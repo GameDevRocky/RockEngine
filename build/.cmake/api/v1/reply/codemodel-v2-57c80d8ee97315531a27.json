@@ -1,0 +1,78 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-d0094a50bb2071803777.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.16"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "RockEngine",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "RockEngine::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RockEngine-44e0ad403be90d9d6050.json",
+					"name" : "RockEngine",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RockEngine_autogen::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RockEngine_autogen-f82566d3f78fc95537a3.json",
+					"name" : "RockEngine_autogen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RockEngine_autogen_timestamp_deps::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RockEngine_autogen_timestamp_deps-43adfca945eddfe90b72.json",
+					"name" : "RockEngine_autogen_timestamp_deps",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/rockl/Coding Projects/RockEngine/build",
+		"source" : "C:/Users/rockl/Coding Projects/RockEngine"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 8
+	}
+}

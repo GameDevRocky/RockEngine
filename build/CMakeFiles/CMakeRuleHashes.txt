@@ -1,0 +1,3 @@
+# Hashes of file build rules.
+de27e45223831f12bb8d83ea53faf21d CMakeFiles/RockEngine_autogen
+4fe13217e8bb0f448ed1c93b57bfa356 RockEngine_autogen/timestamp

@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/include",
+                "C:/Qt/6.10.0/mingw_64/include",
+                "C:/Qt/6.10.0/mingw_64/include/QtCore",
+                "C:/Qt/6.10.0/mingw_64/include/QtGui",
+                "C:/Qt/6.10.0/mingw_64/include/QtWidgets",
+                "${workspaceFolder}/build" 
+            ],
+            "defines": [],
+            "compilerPath": "C:/msys64/ucrt64/bin/c++.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}
