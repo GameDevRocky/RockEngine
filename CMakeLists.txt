@@ -10,16 +10,26 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# Find Qt package (adjust to your Qt version)
+# Find Qt package
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 
 # Source files
 set(SOURCES
     src/main.cpp
+    src/engine/core/Application.cpp
+    src/engine/core/InputManager.cpp
+    src/engine/core/System.cpp
+    src/engine/core/SceneManager.cpp
+    src/engine/core/Scene.cpp
 )
 
 # Create the executable
 add_executable(RockEngine ${SOURCES})
+
+# ✅ Add include directories (important!)
+target_include_directories(RockEngine PRIVATE
+    ${CMAKE_SOURCE_DIR}/include   # for headers
+)
 
 # Link Qt modules
 target_link_libraries(RockEngine PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)

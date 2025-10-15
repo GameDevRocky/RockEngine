@@ -4,6 +4,8 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/**",
+                "C:/Users/rockl/Coding Projects/RockEngine/include",
                 "C:/Qt/6.10.0/mingw_64/include",
                 "C:/Qt/6.10.0/mingw_64/include/QtCore",
                 "C:/Qt/6.10.0/mingw_64/include/QtGui",
@@ -11,7 +13,7 @@
                 "${workspaceFolder}/build" 
             ],
             "defines": [],
-            "compilerPath": "C:/msys64/ucrt64/bin/c++.exe",
+            "compilerPath": "C:/Qt/Tools/mingw1310_64/bin/g++.exe",
             "cStandard": "c11",
             "cppStandard": "c++17",
             "intelliSenseMode": "gcc-x64"

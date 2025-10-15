@@ -1,12 +1,9 @@
-#include <QApplication>
-#include <QMainWindow>
+#include "engine/core/Application.hpp"
 
 int main(int argc, char *argv[]) {
-    QApplication *app = new QApplication(argc, argv);
-    QMainWindow *window = new QMainWindow();
-    window->showMaximized();
-    app->exec();
-
-    delete window;
-    delete app;
+    Application &app = Application::Get();
+    app.Init();
+    app.Run();
+    app.Shutdown();
+    return -1;
 }

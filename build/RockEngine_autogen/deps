@@ -91,9 +91,8 @@ RockEngine_autogen/timestamp: \
 	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Internal/CheckFlagCommonConfig.cmake \
 	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Internal/CheckSourceCompiles.cmake \
 	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Internal/FeatureTesting.cmake \
-	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Linker/GNU-CXX.cmake \
-	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Linker/GNU.cmake \
 	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Platform/Linker/GNU.cmake \
+	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Platform/Linker/Windows-CXX.cmake \
 	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Platform/Linker/Windows-GNU-CXX.cmake \
 	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Platform/Linker/Windows-GNU.cmake \
 	C:/Program\ Files/CMake/share/cmake-4.1/Modules/Platform/Windows-Determine-CXX.cmake \
@@ -260,5 +259,10 @@ RockEngine_autogen/timestamp: \
 	C:/Users/rockl/Coding\ Projects/RockEngine/build/CMakeFiles/4.1.2/CMakeCXXCompiler.cmake \
 	C:/Users/rockl/Coding\ Projects/RockEngine/build/CMakeFiles/4.1.2/CMakeRCCompiler.cmake \
 	C:/Users/rockl/Coding\ Projects/RockEngine/build/CMakeFiles/4.1.2/CMakeSystem.cmake \
+	C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Application.cpp \
+	C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/InputManager.cpp \
+	C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Scene.cpp \
+	C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/SceneManager.cpp \
+	C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/System.cpp \
 	C:/Users/rockl/Coding\ Projects/RockEngine/src/main.cpp \
 	C:/Program\ Files/CMake/bin/cmake.exe

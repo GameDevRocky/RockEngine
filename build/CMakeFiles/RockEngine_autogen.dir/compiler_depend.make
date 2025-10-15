@@ -262,6 +262,11 @@ RockEngine_autogen/timestamp: C:/Program\ Files/CMake/bin/cmake.exe \
   CMakeFiles/4.1.2/CMakeCXXCompiler.cmake \
   CMakeFiles/4.1.2/CMakeRCCompiler.cmake \
   CMakeFiles/4.1.2/CMakeSystem.cmake \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Application.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/InputManager.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Scene.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/SceneManager.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/System.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/main.cpp
 
 
@@ -404,6 +409,8 @@ C:/Program\ Files/CMake/share/cmake-4.1/Modules/FindPackageMessage.cmake:
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/FujitsuClang-DetermineCompiler.cmake:
 
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/GNU-CXX-DetermineCompiler.cmake:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Application.cpp:
 
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6EntryPointPrivate/Qt6EntryPointPrivateTargets-relwithdebinfo.cmake:
 
@@ -755,6 +762,8 @@ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6Widgets/Qt6WidgetsConfigVersion.cmake:
 
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6Widgets/Qt6WidgetsConfigVersionImpl.cmake:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Scene.cpp:
+
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6Widgets/Qt6WidgetsDependencies.cmake:
 
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6Widgets/Qt6WidgetsMacros.cmake:
@@ -786,5 +795,11 @@ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6ZlibPrivate/Qt6ZlibPrivateConfig.cmake:
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6ZlibPrivate/Qt6ZlibPrivateVersionlessAliasTargets.cmake:
 
 CMakeFiles/4.1.2/CMakeCXXCompiler.cmake:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/InputManager.cpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/SceneManager.cpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/System.cpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/src/main.cpp:
