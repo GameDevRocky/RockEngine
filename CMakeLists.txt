@@ -35,8 +35,10 @@ set(SOURCES
 add_executable(RockEngine ${SOURCES})
 
 # ✅ Add include directories (important!)
-target_include_directories(RockEngine PRIVATE
-    ${CMAKE_SOURCE_DIR}/include   # for headers
+target_include_directories(RockEngine
+    PRIVATE
+    ${CMAKE_SOURCE_DIR}/include  
+    ${CMAKE_SOURCE_DIR}/src/editor   
 )
 
 # Link Qt modules

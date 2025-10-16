@@ -1,6 +1,6 @@
-#include "editor/Editor.hpp"
+#include "Editor.hpp"
 
-void Editor::Init() override {
+void Editor::Init() {
     if (!app) {
         int argc = 0;
         char** argv = nullptr;
@@ -8,12 +8,12 @@ void Editor::Init() override {
     }
 }
 
-void Editor::Update() override {
+void Editor::Update() {
     if (app)
-        app->processEvents(); // Keeps the Qt event loop alive
+        app->processEvents();
 }
 
-void Editor::Shutdown() override {
+void Editor::Shutdown() {
     delete app;
     app = nullptr;
 }

@@ -259,6 +259,9 @@ RockEngine_autogen/timestamp: \
 	C:/Users/rockl/Coding\ Projects/RockEngine/build/CMakeFiles/4.1.2/CMakeCXXCompiler.cmake \
 	C:/Users/rockl/Coding\ Projects/RockEngine/build/CMakeFiles/4.1.2/CMakeRCCompiler.cmake \
 	C:/Users/rockl/Coding\ Projects/RockEngine/build/CMakeFiles/4.1.2/CMakeSystem.cmake \
+	C:/Users/rockl/Coding\ Projects/RockEngine/src/editor/Editor.cpp \
+	C:/Users/rockl/Coding\ Projects/RockEngine/src/editor/Editor.hpp \
+	C:/Users/rockl/Coding\ Projects/RockEngine/src/editor/EditorWindow.cpp \
 	C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Application.cpp \
 	C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Component.cpp \
 	C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/GameObject.cpp \

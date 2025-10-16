@@ -83,8 +83,8 @@ clean: CMakeFiles/RockEngine_autogen.dir/clean
 # Target rules for target CMakeFiles/RockEngine.dir
 
 # All Build rule for target.
-CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
 CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen.dir/all
+CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17 "Built target RockEngine"
