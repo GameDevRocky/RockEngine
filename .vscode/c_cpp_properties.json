@@ -4,6 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/include",
+                "${workspaceFolder}/src/editor",
                 "${workspaceFolder}/**",
                 "C:/Users/rockl/Coding Projects/RockEngine/include",
                 "C:/Qt/6.10.0/mingw_64/include",

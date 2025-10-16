@@ -411,35 +411,7 @@
 	"QT_VERSION_MAJOR" : 6,
 	"QT_VERSION_MINOR" : 10,
 	"SETTINGS_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/CMakeFiles/RockEngine_autogen.dir/AutogenUsed.txt",
-	"SOURCES" : 
-	[
-		[
-			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Application.cpp",
-			"MU",
-			null
-		],
-		[
-			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/InputManager.cpp",
-			"MU",
-			null
-		],
-		[
-			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Scene.cpp",
-			"MU",
-			null
-		],
-		[
-			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/SceneManager.cpp",
-			"MU",
-			null
-		],
-		[
-			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/System.cpp",
-			"MU",
-			null
-		],
-		[ "C:/Users/rockl/Coding Projects/RockEngine/src/main.cpp", "MU", null ]
-	],
+	"SOURCES" : [],
 	"UIC_OPTIONS" : [],
 	"UIC_SEARCH_PATHS" : [],
 	"UIC_SKIP" : [],

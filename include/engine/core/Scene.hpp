@@ -7,7 +7,7 @@ class Scene {
 
 public:
     Scene();
-    Scene::Scene(std::string name);
+    Scene(std::string name);
     ~Scene();
 
     void Init();
