@@ -21,6 +21,12 @@ set(SOURCES
     src/engine/core/System.cpp
     src/engine/core/SceneManager.cpp
     src/engine/core/Scene.cpp
+    src/engine/core/TimeManager.cpp
+    src/engine/core/GameObject.cpp
+    src/engine/core/Component.cpp
+    src/engine/core/Observable.cpp
+    src/engine/utils/IDGenerator.cpp
+    src/engine/core/Serializable.cpp
 )
 
 # Create the executable

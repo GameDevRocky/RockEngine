@@ -264,9 +264,15 @@ C:/Users/rockl/Coding Projects/RockEngine/build/RockEngine_autogen/timestamp
  C:/Users/rockl/Coding Projects/RockEngine/build/CMakeFiles/4.1.2/CMakeRCCompiler.cmake
  C:/Users/rockl/Coding Projects/RockEngine/build/CMakeFiles/4.1.2/CMakeSystem.cmake
  C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Application.cpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Component.cpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/GameObject.cpp
  C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/InputManager.cpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Observable.cpp
  C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Scene.cpp
  C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/SceneManager.cpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Serializable.cpp
  C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/System.cpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/TimeManager.cpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/engine/utils/IDGenerator.cpp
  C:/Users/rockl/Coding Projects/RockEngine/src/main.cpp
 

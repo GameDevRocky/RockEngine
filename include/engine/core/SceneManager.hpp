@@ -10,10 +10,7 @@ public:
         static SceneManager instance;
         return instance;
     }
-    void Init() override{ 
-        Scene *sampleScene = new Scene();
-
-    }
+    void Init() override;
     void AddScene(Scene* scene);
     void RemoveScene(Scene* scene);
     const std::vector<Scene*>& GetScenes() const;

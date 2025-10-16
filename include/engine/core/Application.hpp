@@ -14,14 +14,15 @@ public:
     void Init();
     void Run();
     void Shutdown();
-    
+
     void SetActive(bool active);
     bool GetActive();
 
     
     private:
-        bool active;
+        bool active = true;
         Application() = default;
+
         ~Application() = default;
 
 };

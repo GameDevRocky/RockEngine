@@ -2,12 +2,13 @@
 #include <iostream>
 
 Scene::Scene() {}
-Scene::Scene(std::string name){this->name = name;}
 
+Scene::Scene(std::string name){
+    this->name = name;
+    
+}
 
 Scene::~Scene() {}
-
-
 
 void Scene::Init() {
     std::cout << "Initializing scene: " << std::endl;

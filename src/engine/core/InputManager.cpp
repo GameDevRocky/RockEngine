@@ -6,7 +6,6 @@ void InputManager::Init() {
 }
 
 void InputManager::Update(){
-    std::cout << "InputManager updating...\n";
 }
 
 void InputManager::Shutdown() {

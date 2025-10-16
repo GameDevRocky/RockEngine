@@ -263,16 +263,24 @@ RockEngine_autogen/timestamp: C:/Program\ Files/CMake/bin/cmake.exe \
   CMakeFiles/4.1.2/CMakeRCCompiler.cmake \
   CMakeFiles/4.1.2/CMakeSystem.cmake \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Application.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Component.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/GameObject.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/InputManager.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Observable.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Scene.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/SceneManager.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Serializable.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/System.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/TimeManager.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/utils/IDGenerator.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/main.cpp
 
 
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/IBMClang-CXX-DetermineCompiler.cmake:
 
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/Cray-DetermineCompiler.cmake:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/utils/IDGenerator.cpp:
 
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/Clang-DetermineCompiler.cmake:
 
@@ -364,6 +372,8 @@ C:/Program\ Files/CMake/share/cmake-4.1/Modules/CMakeParseImplicitIncludeInfo.cm
 
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/AppleClang-DetermineCompiler.cmake:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/TimeManager.cpp:
+
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/CMakeSystemSpecificInformation.cmake:
 
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6EntryPointPrivate/Qt6EntryPointPrivateConfigVersionImpl.cmake:
@@ -437,6 +447,8 @@ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6Gui/Qt6QGifPluginAdditionalTargetInfo.cmake:
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/OpenWatcom-DetermineCompiler.cmake:
 
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/OrangeC-DetermineCompiler.cmake:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/GameObject.cpp:
 
 C:/Program\ Files/CMake/share/cmake-4.1/Modules/Compiler/PGI-DetermineCompiler.cmake:
 
@@ -796,9 +808,15 @@ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6ZlibPrivate/Qt6ZlibPrivateVersionlessAliasTar
 
 CMakeFiles/4.1.2/CMakeCXXCompiler.cmake:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Component.cpp:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/InputManager.cpp:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Observable.cpp:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/SceneManager.cpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Serializable.cpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/System.cpp:
 
