@@ -1,0 +1,92 @@
+[
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\RockEngine_autogen\\mocs_compilation.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\build\\RockEngine_autogen\\mocs_compilation.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/build/RockEngine_autogen/mocs_compilation.cpp",
+  "output": "CMakeFiles/RockEngine.dir/RockEngine_autogen/mocs_compilation.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\main.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\main.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/main.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/main.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\Application.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\Application.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Application.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\InputManager.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\InputManager.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/InputManager.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\System.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\System.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/System.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\SceneManager.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\SceneManager.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/SceneManager.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\Scene.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\Scene.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Scene.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\TimeManager.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\TimeManager.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/TimeManager.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\GameObject.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\GameObject.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/GameObject.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\Component.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\Component.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Component.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\Observable.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\Observable.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Observable.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\utils\\IDGenerator.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\utils\\IDGenerator.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/utils/IDGenerator.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\engine\\core\\Serializable.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\engine\\core\\Serializable.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Serializable.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\editor\\Editor.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\editor\\Editor.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/editor/Editor.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj"
+},
+{
+  "directory": "C:/Users/rockl/Coding Projects/RockEngine/build",
+  "command": "C:\\msys64\\ucrt64\\bin\\g++.exe -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_LIB -DUNICODE -DWIN32 -DWIN64 -D_ENABLE_EXTENDED_ALIGNED_STORAGE -D_UNICODE -D_WIN64 @CMakeFiles/RockEngine.dir/includes_CXX.rsp -g -std=gnu++17 -o CMakeFiles\\RockEngine.dir\\src\\editor\\EditorWindow.cpp.obj -c \"C:\\Users\\rockl\\Coding Projects\\RockEngine\\src\\editor\\EditorWindow.cpp\"",
+  "file": "C:/Users/rockl/Coding Projects/RockEngine/src/editor/EditorWindow.cpp",
+  "output": "CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj"
+}
+]

@@ -178,6 +178,342 @@ RockEngine_autogen/mocs_compilation.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/RockEngine_autogen/mocs_compilation.cpp.s
 .PHONY : RockEngine_autogen/mocs_compilation.cpp.s
 
+src/editor/Editor.obj: src/editor/Editor.cpp.obj
+.PHONY : src/editor/Editor.obj
+
+# target to build an object file
+src/editor/Editor.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj
+.PHONY : src/editor/Editor.cpp.obj
+
+src/editor/Editor.i: src/editor/Editor.cpp.i
+.PHONY : src/editor/Editor.i
+
+# target to preprocess a source file
+src/editor/Editor.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.i
+.PHONY : src/editor/Editor.cpp.i
+
+src/editor/Editor.s: src/editor/Editor.cpp.s
+.PHONY : src/editor/Editor.s
+
+# target to generate assembly for a file
+src/editor/Editor.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.s
+.PHONY : src/editor/Editor.cpp.s
+
+src/editor/EditorWindow.obj: src/editor/EditorWindow.cpp.obj
+.PHONY : src/editor/EditorWindow.obj
+
+# target to build an object file
+src/editor/EditorWindow.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj
+.PHONY : src/editor/EditorWindow.cpp.obj
+
+src/editor/EditorWindow.i: src/editor/EditorWindow.cpp.i
+.PHONY : src/editor/EditorWindow.i
+
+# target to preprocess a source file
+src/editor/EditorWindow.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.i
+.PHONY : src/editor/EditorWindow.cpp.i
+
+src/editor/EditorWindow.s: src/editor/EditorWindow.cpp.s
+.PHONY : src/editor/EditorWindow.s
+
+# target to generate assembly for a file
+src/editor/EditorWindow.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.s
+.PHONY : src/editor/EditorWindow.cpp.s
+
+src/engine/core/Application.obj: src/engine/core/Application.cpp.obj
+.PHONY : src/engine/core/Application.obj
+
+# target to build an object file
+src/engine/core/Application.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj
+.PHONY : src/engine/core/Application.cpp.obj
+
+src/engine/core/Application.i: src/engine/core/Application.cpp.i
+.PHONY : src/engine/core/Application.i
+
+# target to preprocess a source file
+src/engine/core/Application.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.i
+.PHONY : src/engine/core/Application.cpp.i
+
+src/engine/core/Application.s: src/engine/core/Application.cpp.s
+.PHONY : src/engine/core/Application.s
+
+# target to generate assembly for a file
+src/engine/core/Application.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.s
+.PHONY : src/engine/core/Application.cpp.s
+
+src/engine/core/Component.obj: src/engine/core/Component.cpp.obj
+.PHONY : src/engine/core/Component.obj
+
+# target to build an object file
+src/engine/core/Component.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj
+.PHONY : src/engine/core/Component.cpp.obj
+
+src/engine/core/Component.i: src/engine/core/Component.cpp.i
+.PHONY : src/engine/core/Component.i
+
+# target to preprocess a source file
+src/engine/core/Component.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.i
+.PHONY : src/engine/core/Component.cpp.i
+
+src/engine/core/Component.s: src/engine/core/Component.cpp.s
+.PHONY : src/engine/core/Component.s
+
+# target to generate assembly for a file
+src/engine/core/Component.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.s
+.PHONY : src/engine/core/Component.cpp.s
+
+src/engine/core/GameObject.obj: src/engine/core/GameObject.cpp.obj
+.PHONY : src/engine/core/GameObject.obj
+
+# target to build an object file
+src/engine/core/GameObject.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj
+.PHONY : src/engine/core/GameObject.cpp.obj
+
+src/engine/core/GameObject.i: src/engine/core/GameObject.cpp.i
+.PHONY : src/engine/core/GameObject.i
+
+# target to preprocess a source file
+src/engine/core/GameObject.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.i
+.PHONY : src/engine/core/GameObject.cpp.i
+
+src/engine/core/GameObject.s: src/engine/core/GameObject.cpp.s
+.PHONY : src/engine/core/GameObject.s
+
+# target to generate assembly for a file
+src/engine/core/GameObject.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.s
+.PHONY : src/engine/core/GameObject.cpp.s
+
+src/engine/core/InputManager.obj: src/engine/core/InputManager.cpp.obj
+.PHONY : src/engine/core/InputManager.obj
+
+# target to build an object file
+src/engine/core/InputManager.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj
+.PHONY : src/engine/core/InputManager.cpp.obj
+
+src/engine/core/InputManager.i: src/engine/core/InputManager.cpp.i
+.PHONY : src/engine/core/InputManager.i
+
+# target to preprocess a source file
+src/engine/core/InputManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.i
+.PHONY : src/engine/core/InputManager.cpp.i
+
+src/engine/core/InputManager.s: src/engine/core/InputManager.cpp.s
+.PHONY : src/engine/core/InputManager.s
+
+# target to generate assembly for a file
+src/engine/core/InputManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.s
+.PHONY : src/engine/core/InputManager.cpp.s
+
+src/engine/core/Observable.obj: src/engine/core/Observable.cpp.obj
+.PHONY : src/engine/core/Observable.obj
+
+# target to build an object file
+src/engine/core/Observable.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj
+.PHONY : src/engine/core/Observable.cpp.obj
+
+src/engine/core/Observable.i: src/engine/core/Observable.cpp.i
+.PHONY : src/engine/core/Observable.i
+
+# target to preprocess a source file
+src/engine/core/Observable.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.i
+.PHONY : src/engine/core/Observable.cpp.i
+
+src/engine/core/Observable.s: src/engine/core/Observable.cpp.s
+.PHONY : src/engine/core/Observable.s
+
+# target to generate assembly for a file
+src/engine/core/Observable.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.s
+.PHONY : src/engine/core/Observable.cpp.s
+
+src/engine/core/Scene.obj: src/engine/core/Scene.cpp.obj
+.PHONY : src/engine/core/Scene.obj
+
+# target to build an object file
+src/engine/core/Scene.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj
+.PHONY : src/engine/core/Scene.cpp.obj
+
+src/engine/core/Scene.i: src/engine/core/Scene.cpp.i
+.PHONY : src/engine/core/Scene.i
+
+# target to preprocess a source file
+src/engine/core/Scene.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.i
+.PHONY : src/engine/core/Scene.cpp.i
+
+src/engine/core/Scene.s: src/engine/core/Scene.cpp.s
+.PHONY : src/engine/core/Scene.s
+
+# target to generate assembly for a file
+src/engine/core/Scene.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.s
+.PHONY : src/engine/core/Scene.cpp.s
+
+src/engine/core/SceneManager.obj: src/engine/core/SceneManager.cpp.obj
+.PHONY : src/engine/core/SceneManager.obj
+
+# target to build an object file
+src/engine/core/SceneManager.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj
+.PHONY : src/engine/core/SceneManager.cpp.obj
+
+src/engine/core/SceneManager.i: src/engine/core/SceneManager.cpp.i
+.PHONY : src/engine/core/SceneManager.i
+
+# target to preprocess a source file
+src/engine/core/SceneManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.i
+.PHONY : src/engine/core/SceneManager.cpp.i
+
+src/engine/core/SceneManager.s: src/engine/core/SceneManager.cpp.s
+.PHONY : src/engine/core/SceneManager.s
+
+# target to generate assembly for a file
+src/engine/core/SceneManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.s
+.PHONY : src/engine/core/SceneManager.cpp.s
+
+src/engine/core/Serializable.obj: src/engine/core/Serializable.cpp.obj
+.PHONY : src/engine/core/Serializable.obj
+
+# target to build an object file
+src/engine/core/Serializable.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj
+.PHONY : src/engine/core/Serializable.cpp.obj
+
+src/engine/core/Serializable.i: src/engine/core/Serializable.cpp.i
+.PHONY : src/engine/core/Serializable.i
+
+# target to preprocess a source file
+src/engine/core/Serializable.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.i
+.PHONY : src/engine/core/Serializable.cpp.i
+
+src/engine/core/Serializable.s: src/engine/core/Serializable.cpp.s
+.PHONY : src/engine/core/Serializable.s
+
+# target to generate assembly for a file
+src/engine/core/Serializable.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.s
+.PHONY : src/engine/core/Serializable.cpp.s
+
+src/engine/core/System.obj: src/engine/core/System.cpp.obj
+.PHONY : src/engine/core/System.obj
+
+# target to build an object file
+src/engine/core/System.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj
+.PHONY : src/engine/core/System.cpp.obj
+
+src/engine/core/System.i: src/engine/core/System.cpp.i
+.PHONY : src/engine/core/System.i
+
+# target to preprocess a source file
+src/engine/core/System.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.i
+.PHONY : src/engine/core/System.cpp.i
+
+src/engine/core/System.s: src/engine/core/System.cpp.s
+.PHONY : src/engine/core/System.s
+
+# target to generate assembly for a file
+src/engine/core/System.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.s
+.PHONY : src/engine/core/System.cpp.s
+
+src/engine/core/TimeManager.obj: src/engine/core/TimeManager.cpp.obj
+.PHONY : src/engine/core/TimeManager.obj
+
+# target to build an object file
+src/engine/core/TimeManager.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj
+.PHONY : src/engine/core/TimeManager.cpp.obj
+
+src/engine/core/TimeManager.i: src/engine/core/TimeManager.cpp.i
+.PHONY : src/engine/core/TimeManager.i
+
+# target to preprocess a source file
+src/engine/core/TimeManager.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.i
+.PHONY : src/engine/core/TimeManager.cpp.i
+
+src/engine/core/TimeManager.s: src/engine/core/TimeManager.cpp.s
+.PHONY : src/engine/core/TimeManager.s
+
+# target to generate assembly for a file
+src/engine/core/TimeManager.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.s
+.PHONY : src/engine/core/TimeManager.cpp.s
+
+src/engine/utils/IDGenerator.obj: src/engine/utils/IDGenerator.cpp.obj
+.PHONY : src/engine/utils/IDGenerator.obj
+
+# target to build an object file
+src/engine/utils/IDGenerator.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj
+.PHONY : src/engine/utils/IDGenerator.cpp.obj
+
+src/engine/utils/IDGenerator.i: src/engine/utils/IDGenerator.cpp.i
+.PHONY : src/engine/utils/IDGenerator.i
+
+# target to preprocess a source file
+src/engine/utils/IDGenerator.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.i
+.PHONY : src/engine/utils/IDGenerator.cpp.i
+
+src/engine/utils/IDGenerator.s: src/engine/utils/IDGenerator.cpp.s
+.PHONY : src/engine/utils/IDGenerator.s
+
+# target to generate assembly for a file
+src/engine/utils/IDGenerator.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.s
+.PHONY : src/engine/utils/IDGenerator.cpp.s
+
+src/main.obj: src/main.cpp.obj
+.PHONY : src/main.obj
+
+# target to build an object file
+src/main.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/main.cpp.obj
+.PHONY : src/main.cpp.obj
+
+src/main.i: src/main.cpp.i
+.PHONY : src/main.i
+
+# target to preprocess a source file
+src/main.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/main.cpp.i
+.PHONY : src/main.cpp.i
+
+src/main.s: src/main.cpp.s
+.PHONY : src/main.s
+
+# target to generate assembly for a file
+src/main.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/main.cpp.s
+.PHONY : src/main.cpp.s
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -192,6 +528,48 @@ help:
 	@echo ... RockEngine_autogen/mocs_compilation.obj
 	@echo ... RockEngine_autogen/mocs_compilation.i
 	@echo ... RockEngine_autogen/mocs_compilation.s
+	@echo ... src/editor/Editor.obj
+	@echo ... src/editor/Editor.i
+	@echo ... src/editor/Editor.s
+	@echo ... src/editor/EditorWindow.obj
+	@echo ... src/editor/EditorWindow.i
+	@echo ... src/editor/EditorWindow.s
+	@echo ... src/engine/core/Application.obj
+	@echo ... src/engine/core/Application.i
+	@echo ... src/engine/core/Application.s
+	@echo ... src/engine/core/Component.obj
+	@echo ... src/engine/core/Component.i
+	@echo ... src/engine/core/Component.s
+	@echo ... src/engine/core/GameObject.obj
+	@echo ... src/engine/core/GameObject.i
+	@echo ... src/engine/core/GameObject.s
+	@echo ... src/engine/core/InputManager.obj
+	@echo ... src/engine/core/InputManager.i
+	@echo ... src/engine/core/InputManager.s
+	@echo ... src/engine/core/Observable.obj
+	@echo ... src/engine/core/Observable.i
+	@echo ... src/engine/core/Observable.s
+	@echo ... src/engine/core/Scene.obj
+	@echo ... src/engine/core/Scene.i
+	@echo ... src/engine/core/Scene.s
+	@echo ... src/engine/core/SceneManager.obj
+	@echo ... src/engine/core/SceneManager.i
+	@echo ... src/engine/core/SceneManager.s
+	@echo ... src/engine/core/Serializable.obj
+	@echo ... src/engine/core/Serializable.i
+	@echo ... src/engine/core/Serializable.s
+	@echo ... src/engine/core/System.obj
+	@echo ... src/engine/core/System.i
+	@echo ... src/engine/core/System.s
+	@echo ... src/engine/core/TimeManager.obj
+	@echo ... src/engine/core/TimeManager.i
+	@echo ... src/engine/core/TimeManager.s
+	@echo ... src/engine/utils/IDGenerator.obj
+	@echo ... src/engine/utils/IDGenerator.i
+	@echo ... src/engine/utils/IDGenerator.s
+	@echo ... src/main.obj
+	@echo ... src/main.i
+	@echo ... src/main.s
 .PHONY : help
 
 

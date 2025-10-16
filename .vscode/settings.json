@@ -1,6 +1,11 @@
 {
     "files.associations": {
         "ostream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "functional": "cpp",
+        "compare": "cpp",
+        "cstdint": "cpp",
+        "format": "cpp",
+        "unordered_map": "cpp"
     }
 }

@@ -13,12 +13,14 @@ public:
     void Init();
     void Update();
     void Shutdown();
+    
 
 protected:
     bool active = true;
+    bool dirty = false;
 
 private:
-    std::string name;
-    
+    std::string name;  
+
 
 };
