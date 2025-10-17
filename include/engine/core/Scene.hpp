@@ -19,15 +19,10 @@ public:
 
     void Deserialize(const YAML::Node& node) override;
 
-    std::string GetTypeName() const override {
-        return "Scene";
-    }
-    std::string GetName(){
-        return name;
-    }
-    void SetName(std::string name){
-        this->name = name;
-    }
+    std::string GetTypeName() override {return "Scene";}
+    std::string GetName(){return name;}
+
+    void SetName(std::string name){this->name = name;}
 
 protected:
     bool active = true;

@@ -1,44 +1,62 @@
-# Scene metadata
-type: Scene
-name: SampleScene
-id: scene-001
+# Sample Scene with only Transform Components
+name: "SampleScene"
+created_at: "2025-10-17T21:00:00Z"
 
-gameObjects:
-  - type: GameObject
-    name: Player
-    id: go-001
-    components:
-      - type: Transform
-        id: comp-001
-        x: 0.0
-        y: 0.0
-        rotation: 0.0
-      - type: SpriteRenderer
-        id: comp-002
-        sprite: player.png
+# List of all Transform components
+components:
+  - id: "t1"
+    type: "Transform"
+    position: [0, 0, 0]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
 
-  - type: GameObject
-    name: Enemy
-    id: go-002
-    components:
-      - type: Transform
-        id: comp-003
-        x: 5.0
-        y: 3.0
-        rotation: 0.0
-      - type: SpriteRenderer
-        id: comp-004
-        sprite: enemy.png
+  - id: "t2"
+    type: "Transform"
+    position: [5, 0, 0]
+    rotation: [0, 180, 0]
+    scale: [1, 1, 1]
 
-  - type: GameObject
-    name: Tree
-    id: go-003
-    components:
-      - type: Transform
-        id: comp-005
-        x: 2.0
-        y: 4.0
-        rotation: 0.0
-      - type: SpriteRenderer
-        id: comp-006
-        sprite: tree.png
+  - id: "t3"
+    type: "Transform"
+    position: [-5, 0, 0]
+    rotation: [0, 180, 0]
+    scale: [1, 1, 1]
+
+  - id: "t4"
+    type: "Transform"
+    position: [10, 0, 5]
+    rotation: [0, 0, 0]
+    scale: [2, 2, 2]
+
+  - id: "t5"
+    type: "Transform"
+    position: [-10, 0, -5]
+    rotation: [0, 0, 0]
+    scale: [1, 1, 1]
+
+# List of all game objects, referencing only Transform components
+gameobjects:
+  - id: "o1"
+    type: "GameObject"
+    name: "Player"
+    components: ["t1"]
+
+  - id: "o2"
+    type: "GameObject"
+    name: "Enemy1"
+    components: ["t2"]
+
+  - id: "o3"
+    type: "GameObject"
+    name: "Enemy2"
+    components: ["t3"]
+
+  - id: "o4"
+    type: "GameObject"
+    name: "Tree1"
+    components: ["t4"]
+
+  - id: "o5"
+    type: "GameObject"
+    name: "Rock1"
+    components: ["t5"]

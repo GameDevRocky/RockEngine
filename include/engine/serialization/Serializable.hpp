@@ -10,12 +10,10 @@ class Registry;
 class Serializable : public Observable {
 public:
     Serializable();
-    virtual ~Serializable();
-    
+    virtual ~Serializable(); 
     virtual YAML::Node Serialize();
-
     virtual void Deserialize(const YAML::Node& node);
-    virtual std::string GetTypeName() const = 0;
+    virtual std::string GetTypeName();
     const std::string& GetID() const { return id; }
 
 protected:

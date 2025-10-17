@@ -3,12 +3,14 @@
 #include <type_traits>
 #include <typeinfo>
 #include <string>
+#include "engine/serialization/Serializable.hpp"
 class Component; // Forward declare
 
-class GameObject {
+class GameObject : public Serializable {
+
 public:
 GameObject() = default;
-~GameObject();
+~GameObject() =default;
 
 template<typename T, typename... Args>
 T* AddComponent(Args&&... args);
@@ -16,11 +18,14 @@ T* AddComponent(Args&&... args);
 template<typename T>
 T* GetComponent();
 
+YAML::Node Serialize() override;
+void Deserialize(const YAML::Node& node) override;
+std::string GetTypeName() override {return "GameObject";}
+
 private:
 int id;
-
-std::vector<Component*> components;
 std::string name;
+std::vector<Component*> components;
 
 
 

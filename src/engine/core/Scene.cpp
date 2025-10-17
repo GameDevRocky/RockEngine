@@ -1,6 +1,7 @@
 #include "engine/core/Scene.hpp"
 #include <iostream>
-
+#include "engine/core/GameObject.hpp"
+#include "engine/serialization/Registry.hpp"
 
 void Scene::Init() {
     std::cout << "Initializing scene: " << std::endl;
@@ -23,4 +24,12 @@ YAML::Node Scene::Serialize() {
         Serializable::Deserialize(node);
         if (node["name"]) name = node["name"].as<std::string>();
         else name = "Couldn't read name from File";
+        
+        for (const auto& node : node["gameobjects"]){
+            GameObject* obj = new GameObject();
+            obj->Deserialize(node);
+            Registry::Get().Register(obj);
+        }
+
+
     }
