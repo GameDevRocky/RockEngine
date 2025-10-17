@@ -368,6 +368,7 @@
 		"UNICODE",
 		"WIN32",
 		"WIN64",
+		"YAML_CPP_STATIC_DEFINE",
 		"_ENABLE_EXTENDED_ALIGNED_STORAGE",
 		"_UNICODE",
 		"_WIN64"
@@ -383,6 +384,8 @@
 	[
 		"C:/Users/rockl/Coding Projects/RockEngine/include",
 		"C:/Users/rockl/Coding Projects/RockEngine/src/editor",
+		"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/third_party/glm",
 		"C:/Qt/6.10.0/mingw_64/include/QtCore",
 		"C:/Qt/6.10.0/mingw_64/include",
 		"C:/Qt/6.10.0/mingw_64/mkspecs/win32-g++",
@@ -439,6 +442,11 @@
 			null
 		],
 		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/components/Transform.cpp",
+			"MU",
+			null
+		],
+		[
 			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Application.cpp",
 			"MU",
 			null
@@ -474,17 +482,32 @@
 			null
 		],
 		[
-			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/Serializable.cpp",
-			"MU",
-			null
-		],
-		[
 			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/System.cpp",
 			"MU",
 			null
 		],
 		[
 			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/core/TimeManager.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/inspection/inspector.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/serialization/Registry.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/serialization/Serializable.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/serialization/SerializableFactory.cpp",
 			"MU",
 			null
 		],

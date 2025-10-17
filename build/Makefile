@@ -112,6 +112,7 @@ preinstall/fast:
 
 # clear depends
 depend:
+	$(CMAKE_COMMAND) -P "C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles\VerifyGlobs.cmake"
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 1
 .PHONY : depend
 
@@ -153,6 +154,448 @@ RockEngine_autogen: cmake_check_build_system
 RockEngine_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine_autogen.dir\build.make CMakeFiles/RockEngine_autogen.dir/build
 .PHONY : RockEngine_autogen/fast
+
+#=============================================================================
+# Target rules for targets named glm
+
+# Build rule for target.
+glm: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 glm
+.PHONY : glm
+
+# fast build rule for target.
+glm/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\glm\glm\CMakeFiles\glm.dir\build.make third_party/glm/glm/CMakeFiles/glm.dir/build
+.PHONY : glm/fast
+
+#=============================================================================
+# Target rules for targets named glm_autogen_timestamp_deps
+
+# Build rule for target.
+glm_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 glm_autogen_timestamp_deps
+.PHONY : glm_autogen_timestamp_deps
+
+# fast build rule for target.
+glm_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\glm\glm\CMakeFiles\glm_autogen_timestamp_deps.dir\build.make third_party/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/build
+.PHONY : glm_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named glm_autogen
+
+# Build rule for target.
+glm_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 glm_autogen
+.PHONY : glm_autogen
+
+# fast build rule for target.
+glm_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\glm\glm\CMakeFiles\glm_autogen.dir\build.make third_party/glm/glm/CMakeFiles/glm_autogen.dir/build
+.PHONY : glm_autogen/fast
+
+#=============================================================================
+# Target rules for targets named Experimental
+
+# Build rule for target.
+Experimental: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 Experimental
+.PHONY : Experimental
+
+# fast build rule for target.
+Experimental/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\Experimental.dir\build.make third_party/yaml/CMakeFiles/Experimental.dir/build
+.PHONY : Experimental/fast
+
+#=============================================================================
+# Target rules for targets named Nightly
+
+# Build rule for target.
+Nightly: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 Nightly
+.PHONY : Nightly
+
+# fast build rule for target.
+Nightly/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\Nightly.dir\build.make third_party/yaml/CMakeFiles/Nightly.dir/build
+.PHONY : Nightly/fast
+
+#=============================================================================
+# Target rules for targets named Continuous
+
+# Build rule for target.
+Continuous: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 Continuous
+.PHONY : Continuous
+
+# fast build rule for target.
+Continuous/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\Continuous.dir\build.make third_party/yaml/CMakeFiles/Continuous.dir/build
+.PHONY : Continuous/fast
+
+#=============================================================================
+# Target rules for targets named NightlyMemoryCheck
+
+# Build rule for target.
+NightlyMemoryCheck: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlyMemoryCheck
+.PHONY : NightlyMemoryCheck
+
+# fast build rule for target.
+NightlyMemoryCheck/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyMemoryCheck.dir\build.make third_party/yaml/CMakeFiles/NightlyMemoryCheck.dir/build
+.PHONY : NightlyMemoryCheck/fast
+
+#=============================================================================
+# Target rules for targets named NightlyStart
+
+# Build rule for target.
+NightlyStart: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlyStart
+.PHONY : NightlyStart
+
+# fast build rule for target.
+NightlyStart/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyStart.dir\build.make third_party/yaml/CMakeFiles/NightlyStart.dir/build
+.PHONY : NightlyStart/fast
+
+#=============================================================================
+# Target rules for targets named NightlyUpdate
+
+# Build rule for target.
+NightlyUpdate: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlyUpdate
+.PHONY : NightlyUpdate
+
+# fast build rule for target.
+NightlyUpdate/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyUpdate.dir\build.make third_party/yaml/CMakeFiles/NightlyUpdate.dir/build
+.PHONY : NightlyUpdate/fast
+
+#=============================================================================
+# Target rules for targets named NightlyConfigure
+
+# Build rule for target.
+NightlyConfigure: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlyConfigure
+.PHONY : NightlyConfigure
+
+# fast build rule for target.
+NightlyConfigure/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyConfigure.dir\build.make third_party/yaml/CMakeFiles/NightlyConfigure.dir/build
+.PHONY : NightlyConfigure/fast
+
+#=============================================================================
+# Target rules for targets named NightlyBuild
+
+# Build rule for target.
+NightlyBuild: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlyBuild
+.PHONY : NightlyBuild
+
+# fast build rule for target.
+NightlyBuild/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyBuild.dir\build.make third_party/yaml/CMakeFiles/NightlyBuild.dir/build
+.PHONY : NightlyBuild/fast
+
+#=============================================================================
+# Target rules for targets named NightlyTest
+
+# Build rule for target.
+NightlyTest: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlyTest
+.PHONY : NightlyTest
+
+# fast build rule for target.
+NightlyTest/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyTest.dir\build.make third_party/yaml/CMakeFiles/NightlyTest.dir/build
+.PHONY : NightlyTest/fast
+
+#=============================================================================
+# Target rules for targets named NightlyCoverage
+
+# Build rule for target.
+NightlyCoverage: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlyCoverage
+.PHONY : NightlyCoverage
+
+# fast build rule for target.
+NightlyCoverage/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyCoverage.dir\build.make third_party/yaml/CMakeFiles/NightlyCoverage.dir/build
+.PHONY : NightlyCoverage/fast
+
+#=============================================================================
+# Target rules for targets named NightlyMemCheck
+
+# Build rule for target.
+NightlyMemCheck: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlyMemCheck
+.PHONY : NightlyMemCheck
+
+# fast build rule for target.
+NightlyMemCheck/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyMemCheck.dir\build.make third_party/yaml/CMakeFiles/NightlyMemCheck.dir/build
+.PHONY : NightlyMemCheck/fast
+
+#=============================================================================
+# Target rules for targets named NightlySubmit
+
+# Build rule for target.
+NightlySubmit: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 NightlySubmit
+.PHONY : NightlySubmit
+
+# fast build rule for target.
+NightlySubmit/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlySubmit.dir\build.make third_party/yaml/CMakeFiles/NightlySubmit.dir/build
+.PHONY : NightlySubmit/fast
+
+#=============================================================================
+# Target rules for targets named ExperimentalStart
+
+# Build rule for target.
+ExperimentalStart: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ExperimentalStart
+.PHONY : ExperimentalStart
+
+# fast build rule for target.
+ExperimentalStart/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalStart.dir\build.make third_party/yaml/CMakeFiles/ExperimentalStart.dir/build
+.PHONY : ExperimentalStart/fast
+
+#=============================================================================
+# Target rules for targets named ExperimentalUpdate
+
+# Build rule for target.
+ExperimentalUpdate: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ExperimentalUpdate
+.PHONY : ExperimentalUpdate
+
+# fast build rule for target.
+ExperimentalUpdate/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalUpdate.dir\build.make third_party/yaml/CMakeFiles/ExperimentalUpdate.dir/build
+.PHONY : ExperimentalUpdate/fast
+
+#=============================================================================
+# Target rules for targets named ExperimentalConfigure
+
+# Build rule for target.
+ExperimentalConfigure: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ExperimentalConfigure
+.PHONY : ExperimentalConfigure
+
+# fast build rule for target.
+ExperimentalConfigure/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalConfigure.dir\build.make third_party/yaml/CMakeFiles/ExperimentalConfigure.dir/build
+.PHONY : ExperimentalConfigure/fast
+
+#=============================================================================
+# Target rules for targets named ExperimentalBuild
+
+# Build rule for target.
+ExperimentalBuild: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ExperimentalBuild
+.PHONY : ExperimentalBuild
+
+# fast build rule for target.
+ExperimentalBuild/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalBuild.dir\build.make third_party/yaml/CMakeFiles/ExperimentalBuild.dir/build
+.PHONY : ExperimentalBuild/fast
+
+#=============================================================================
+# Target rules for targets named ExperimentalTest
+
+# Build rule for target.
+ExperimentalTest: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ExperimentalTest
+.PHONY : ExperimentalTest
+
+# fast build rule for target.
+ExperimentalTest/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalTest.dir\build.make third_party/yaml/CMakeFiles/ExperimentalTest.dir/build
+.PHONY : ExperimentalTest/fast
+
+#=============================================================================
+# Target rules for targets named ExperimentalCoverage
+
+# Build rule for target.
+ExperimentalCoverage: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ExperimentalCoverage
+.PHONY : ExperimentalCoverage
+
+# fast build rule for target.
+ExperimentalCoverage/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalCoverage.dir\build.make third_party/yaml/CMakeFiles/ExperimentalCoverage.dir/build
+.PHONY : ExperimentalCoverage/fast
+
+#=============================================================================
+# Target rules for targets named ExperimentalMemCheck
+
+# Build rule for target.
+ExperimentalMemCheck: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ExperimentalMemCheck
+.PHONY : ExperimentalMemCheck
+
+# fast build rule for target.
+ExperimentalMemCheck/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalMemCheck.dir\build.make third_party/yaml/CMakeFiles/ExperimentalMemCheck.dir/build
+.PHONY : ExperimentalMemCheck/fast
+
+#=============================================================================
+# Target rules for targets named ExperimentalSubmit
+
+# Build rule for target.
+ExperimentalSubmit: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ExperimentalSubmit
+.PHONY : ExperimentalSubmit
+
+# fast build rule for target.
+ExperimentalSubmit/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalSubmit.dir\build.make third_party/yaml/CMakeFiles/ExperimentalSubmit.dir/build
+.PHONY : ExperimentalSubmit/fast
+
+#=============================================================================
+# Target rules for targets named ContinuousStart
+
+# Build rule for target.
+ContinuousStart: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContinuousStart
+.PHONY : ContinuousStart
+
+# fast build rule for target.
+ContinuousStart/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousStart.dir\build.make third_party/yaml/CMakeFiles/ContinuousStart.dir/build
+.PHONY : ContinuousStart/fast
+
+#=============================================================================
+# Target rules for targets named ContinuousUpdate
+
+# Build rule for target.
+ContinuousUpdate: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContinuousUpdate
+.PHONY : ContinuousUpdate
+
+# fast build rule for target.
+ContinuousUpdate/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousUpdate.dir\build.make third_party/yaml/CMakeFiles/ContinuousUpdate.dir/build
+.PHONY : ContinuousUpdate/fast
+
+#=============================================================================
+# Target rules for targets named ContinuousConfigure
+
+# Build rule for target.
+ContinuousConfigure: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContinuousConfigure
+.PHONY : ContinuousConfigure
+
+# fast build rule for target.
+ContinuousConfigure/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousConfigure.dir\build.make third_party/yaml/CMakeFiles/ContinuousConfigure.dir/build
+.PHONY : ContinuousConfigure/fast
+
+#=============================================================================
+# Target rules for targets named ContinuousBuild
+
+# Build rule for target.
+ContinuousBuild: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContinuousBuild
+.PHONY : ContinuousBuild
+
+# fast build rule for target.
+ContinuousBuild/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousBuild.dir\build.make third_party/yaml/CMakeFiles/ContinuousBuild.dir/build
+.PHONY : ContinuousBuild/fast
+
+#=============================================================================
+# Target rules for targets named ContinuousTest
+
+# Build rule for target.
+ContinuousTest: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContinuousTest
+.PHONY : ContinuousTest
+
+# fast build rule for target.
+ContinuousTest/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousTest.dir\build.make third_party/yaml/CMakeFiles/ContinuousTest.dir/build
+.PHONY : ContinuousTest/fast
+
+#=============================================================================
+# Target rules for targets named ContinuousCoverage
+
+# Build rule for target.
+ContinuousCoverage: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContinuousCoverage
+.PHONY : ContinuousCoverage
+
+# fast build rule for target.
+ContinuousCoverage/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousCoverage.dir\build.make third_party/yaml/CMakeFiles/ContinuousCoverage.dir/build
+.PHONY : ContinuousCoverage/fast
+
+#=============================================================================
+# Target rules for targets named ContinuousMemCheck
+
+# Build rule for target.
+ContinuousMemCheck: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContinuousMemCheck
+.PHONY : ContinuousMemCheck
+
+# fast build rule for target.
+ContinuousMemCheck/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousMemCheck.dir\build.make third_party/yaml/CMakeFiles/ContinuousMemCheck.dir/build
+.PHONY : ContinuousMemCheck/fast
+
+#=============================================================================
+# Target rules for targets named ContinuousSubmit
+
+# Build rule for target.
+ContinuousSubmit: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 ContinuousSubmit
+.PHONY : ContinuousSubmit
+
+# fast build rule for target.
+ContinuousSubmit/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousSubmit.dir\build.make third_party/yaml/CMakeFiles/ContinuousSubmit.dir/build
+.PHONY : ContinuousSubmit/fast
+
+#=============================================================================
+# Target rules for targets named yaml-cpp
+
+# Build rule for target.
+yaml-cpp: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 yaml-cpp
+.PHONY : yaml-cpp
+
+# fast build rule for target.
+yaml-cpp/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\yaml-cpp.dir\build.make third_party/yaml/CMakeFiles/yaml-cpp.dir/build
+.PHONY : yaml-cpp/fast
+
+#=============================================================================
+# Target rules for targets named yaml-cpp_autogen_timestamp_deps
+
+# Build rule for target.
+yaml-cpp_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 yaml-cpp_autogen_timestamp_deps
+.PHONY : yaml-cpp_autogen_timestamp_deps
+
+# fast build rule for target.
+yaml-cpp_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\yaml-cpp_autogen_timestamp_deps.dir\build.make third_party/yaml/CMakeFiles/yaml-cpp_autogen_timestamp_deps.dir/build
+.PHONY : yaml-cpp_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named yaml-cpp_autogen
+
+# Build rule for target.
+yaml-cpp_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 yaml-cpp_autogen
+.PHONY : yaml-cpp_autogen
+
+# fast build rule for target.
+yaml-cpp_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\yaml-cpp_autogen.dir\build.make third_party/yaml/CMakeFiles/yaml-cpp_autogen.dir/build
+.PHONY : yaml-cpp_autogen/fast
 
 RockEngine_autogen/mocs_compilation.obj: RockEngine_autogen/mocs_compilation.cpp.obj
 .PHONY : RockEngine_autogen/mocs_compilation.obj
@@ -225,6 +668,30 @@ src/editor/EditorWindow.s: src/editor/EditorWindow.cpp.s
 src/editor/EditorWindow.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.s
 .PHONY : src/editor/EditorWindow.cpp.s
+
+src/engine/components/Transform.obj: src/engine/components/Transform.cpp.obj
+.PHONY : src/engine/components/Transform.obj
+
+# target to build an object file
+src/engine/components/Transform.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj
+.PHONY : src/engine/components/Transform.cpp.obj
+
+src/engine/components/Transform.i: src/engine/components/Transform.cpp.i
+.PHONY : src/engine/components/Transform.i
+
+# target to preprocess a source file
+src/engine/components/Transform.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.i
+.PHONY : src/engine/components/Transform.cpp.i
+
+src/engine/components/Transform.s: src/engine/components/Transform.cpp.s
+.PHONY : src/engine/components/Transform.s
+
+# target to generate assembly for a file
+src/engine/components/Transform.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.s
+.PHONY : src/engine/components/Transform.cpp.s
 
 src/engine/core/Application.obj: src/engine/core/Application.cpp.obj
 .PHONY : src/engine/core/Application.obj
@@ -394,30 +861,6 @@ src/engine/core/SceneManager.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.s
 .PHONY : src/engine/core/SceneManager.cpp.s
 
-src/engine/core/Serializable.obj: src/engine/core/Serializable.cpp.obj
-.PHONY : src/engine/core/Serializable.obj
-
-# target to build an object file
-src/engine/core/Serializable.cpp.obj:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj
-.PHONY : src/engine/core/Serializable.cpp.obj
-
-src/engine/core/Serializable.i: src/engine/core/Serializable.cpp.i
-.PHONY : src/engine/core/Serializable.i
-
-# target to preprocess a source file
-src/engine/core/Serializable.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.i
-.PHONY : src/engine/core/Serializable.cpp.i
-
-src/engine/core/Serializable.s: src/engine/core/Serializable.cpp.s
-.PHONY : src/engine/core/Serializable.s
-
-# target to generate assembly for a file
-src/engine/core/Serializable.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.s
-.PHONY : src/engine/core/Serializable.cpp.s
-
 src/engine/core/System.obj: src/engine/core/System.cpp.obj
 .PHONY : src/engine/core/System.obj
 
@@ -465,6 +908,102 @@ src/engine/core/TimeManager.s: src/engine/core/TimeManager.cpp.s
 src/engine/core/TimeManager.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.s
 .PHONY : src/engine/core/TimeManager.cpp.s
+
+src/engine/inspection/inspector.obj: src/engine/inspection/inspector.cpp.obj
+.PHONY : src/engine/inspection/inspector.obj
+
+# target to build an object file
+src/engine/inspection/inspector.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj
+.PHONY : src/engine/inspection/inspector.cpp.obj
+
+src/engine/inspection/inspector.i: src/engine/inspection/inspector.cpp.i
+.PHONY : src/engine/inspection/inspector.i
+
+# target to preprocess a source file
+src/engine/inspection/inspector.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.i
+.PHONY : src/engine/inspection/inspector.cpp.i
+
+src/engine/inspection/inspector.s: src/engine/inspection/inspector.cpp.s
+.PHONY : src/engine/inspection/inspector.s
+
+# target to generate assembly for a file
+src/engine/inspection/inspector.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.s
+.PHONY : src/engine/inspection/inspector.cpp.s
+
+src/engine/serialization/Registry.obj: src/engine/serialization/Registry.cpp.obj
+.PHONY : src/engine/serialization/Registry.obj
+
+# target to build an object file
+src/engine/serialization/Registry.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj
+.PHONY : src/engine/serialization/Registry.cpp.obj
+
+src/engine/serialization/Registry.i: src/engine/serialization/Registry.cpp.i
+.PHONY : src/engine/serialization/Registry.i
+
+# target to preprocess a source file
+src/engine/serialization/Registry.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.i
+.PHONY : src/engine/serialization/Registry.cpp.i
+
+src/engine/serialization/Registry.s: src/engine/serialization/Registry.cpp.s
+.PHONY : src/engine/serialization/Registry.s
+
+# target to generate assembly for a file
+src/engine/serialization/Registry.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.s
+.PHONY : src/engine/serialization/Registry.cpp.s
+
+src/engine/serialization/Serializable.obj: src/engine/serialization/Serializable.cpp.obj
+.PHONY : src/engine/serialization/Serializable.obj
+
+# target to build an object file
+src/engine/serialization/Serializable.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj
+.PHONY : src/engine/serialization/Serializable.cpp.obj
+
+src/engine/serialization/Serializable.i: src/engine/serialization/Serializable.cpp.i
+.PHONY : src/engine/serialization/Serializable.i
+
+# target to preprocess a source file
+src/engine/serialization/Serializable.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.i
+.PHONY : src/engine/serialization/Serializable.cpp.i
+
+src/engine/serialization/Serializable.s: src/engine/serialization/Serializable.cpp.s
+.PHONY : src/engine/serialization/Serializable.s
+
+# target to generate assembly for a file
+src/engine/serialization/Serializable.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.s
+.PHONY : src/engine/serialization/Serializable.cpp.s
+
+src/engine/serialization/SerializableFactory.obj: src/engine/serialization/SerializableFactory.cpp.obj
+.PHONY : src/engine/serialization/SerializableFactory.obj
+
+# target to build an object file
+src/engine/serialization/SerializableFactory.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj
+.PHONY : src/engine/serialization/SerializableFactory.cpp.obj
+
+src/engine/serialization/SerializableFactory.i: src/engine/serialization/SerializableFactory.cpp.i
+.PHONY : src/engine/serialization/SerializableFactory.i
+
+# target to preprocess a source file
+src/engine/serialization/SerializableFactory.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.i
+.PHONY : src/engine/serialization/SerializableFactory.cpp.i
+
+src/engine/serialization/SerializableFactory.s: src/engine/serialization/SerializableFactory.cpp.s
+.PHONY : src/engine/serialization/SerializableFactory.s
+
+# target to generate assembly for a file
+src/engine/serialization/SerializableFactory.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.s
+.PHONY : src/engine/serialization/SerializableFactory.cpp.s
 
 src/engine/utils/IDGenerator.obj: src/engine/utils/IDGenerator.cpp.obj
 .PHONY : src/engine/utils/IDGenerator.obj
@@ -522,9 +1061,43 @@ help:
 	@echo ... depend
 	@echo ... edit_cache
 	@echo ... rebuild_cache
+	@echo ... Continuous
+	@echo ... ContinuousBuild
+	@echo ... ContinuousConfigure
+	@echo ... ContinuousCoverage
+	@echo ... ContinuousMemCheck
+	@echo ... ContinuousStart
+	@echo ... ContinuousSubmit
+	@echo ... ContinuousTest
+	@echo ... ContinuousUpdate
+	@echo ... Experimental
+	@echo ... ExperimentalBuild
+	@echo ... ExperimentalConfigure
+	@echo ... ExperimentalCoverage
+	@echo ... ExperimentalMemCheck
+	@echo ... ExperimentalStart
+	@echo ... ExperimentalSubmit
+	@echo ... ExperimentalTest
+	@echo ... ExperimentalUpdate
+	@echo ... Nightly
+	@echo ... NightlyBuild
+	@echo ... NightlyConfigure
+	@echo ... NightlyCoverage
+	@echo ... NightlyMemCheck
+	@echo ... NightlyMemoryCheck
+	@echo ... NightlyStart
+	@echo ... NightlySubmit
+	@echo ... NightlyTest
+	@echo ... NightlyUpdate
 	@echo ... RockEngine_autogen
 	@echo ... RockEngine_autogen_timestamp_deps
+	@echo ... glm_autogen
+	@echo ... glm_autogen_timestamp_deps
+	@echo ... yaml-cpp_autogen
+	@echo ... yaml-cpp_autogen_timestamp_deps
 	@echo ... RockEngine
+	@echo ... glm
+	@echo ... yaml-cpp
 	@echo ... RockEngine_autogen/mocs_compilation.obj
 	@echo ... RockEngine_autogen/mocs_compilation.i
 	@echo ... RockEngine_autogen/mocs_compilation.s
@@ -534,6 +1107,9 @@ help:
 	@echo ... src/editor/EditorWindow.obj
 	@echo ... src/editor/EditorWindow.i
 	@echo ... src/editor/EditorWindow.s
+	@echo ... src/engine/components/Transform.obj
+	@echo ... src/engine/components/Transform.i
+	@echo ... src/engine/components/Transform.s
 	@echo ... src/engine/core/Application.obj
 	@echo ... src/engine/core/Application.i
 	@echo ... src/engine/core/Application.s
@@ -555,15 +1131,24 @@ help:
 	@echo ... src/engine/core/SceneManager.obj
 	@echo ... src/engine/core/SceneManager.i
 	@echo ... src/engine/core/SceneManager.s
-	@echo ... src/engine/core/Serializable.obj
-	@echo ... src/engine/core/Serializable.i
-	@echo ... src/engine/core/Serializable.s
 	@echo ... src/engine/core/System.obj
 	@echo ... src/engine/core/System.i
 	@echo ... src/engine/core/System.s
 	@echo ... src/engine/core/TimeManager.obj
 	@echo ... src/engine/core/TimeManager.i
 	@echo ... src/engine/core/TimeManager.s
+	@echo ... src/engine/inspection/inspector.obj
+	@echo ... src/engine/inspection/inspector.i
+	@echo ... src/engine/inspection/inspector.s
+	@echo ... src/engine/serialization/Registry.obj
+	@echo ... src/engine/serialization/Registry.i
+	@echo ... src/engine/serialization/Registry.s
+	@echo ... src/engine/serialization/Serializable.obj
+	@echo ... src/engine/serialization/Serializable.i
+	@echo ... src/engine/serialization/Serializable.s
+	@echo ... src/engine/serialization/SerializableFactory.obj
+	@echo ... src/engine/serialization/SerializableFactory.i
+	@echo ... src/engine/serialization/SerializableFactory.s
 	@echo ... src/engine/utils/IDGenerator.obj
 	@echo ... src/engine/utils/IDGenerator.i
 	@echo ... src/engine/utils/IDGenerator.s
@@ -581,6 +1166,7 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
+	$(CMAKE_COMMAND) -P "C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles\VerifyGlobs.cmake"
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

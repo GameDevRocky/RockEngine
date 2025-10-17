@@ -1,0 +1,44 @@
+# Scene metadata
+type: Scene
+name: SampleScene
+id: scene-001
+
+gameObjects:
+  - type: GameObject
+    name: Player
+    id: go-001
+    components:
+      - type: Transform
+        id: comp-001
+        x: 0.0
+        y: 0.0
+        rotation: 0.0
+      - type: SpriteRenderer
+        id: comp-002
+        sprite: player.png
+
+  - type: GameObject
+    name: Enemy
+    id: go-002
+    components:
+      - type: Transform
+        id: comp-003
+        x: 5.0
+        y: 3.0
+        rotation: 0.0
+      - type: SpriteRenderer
+        id: comp-004
+        sprite: enemy.png
+
+  - type: GameObject
+    name: Tree
+    id: go-003
+    components:
+      - type: Transform
+        id: comp-005
+        x: 2.0
+        y: 4.0
+        rotation: 0.0
+      - type: SpriteRenderer
+        id: comp-006
+        sprite: tree.png

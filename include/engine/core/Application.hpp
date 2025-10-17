@@ -12,6 +12,7 @@ public:
     }
 
     void Init();
+    void Init(char *args[]);
     void Run();
     void Shutdown();
 

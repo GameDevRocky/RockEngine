@@ -385,6 +385,7 @@ CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj: \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qalloc.h \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qguiapplication_platform.h \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/System.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Observable.hpp \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Application.hpp \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iostream \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/ostream \
@@ -403,6 +404,61 @@ CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj: \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/InputManager.hpp \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/SceneManager.hpp \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Scene.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/yaml.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/parser.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/dll.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/emitter.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/sstream \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/sstream.tcc \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/binary.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/emitterdef.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/emittermanip.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/null.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/ostream_wrapper.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/fptostring.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/emitterstyle.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/stlemitter.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/exceptions.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/mark.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/noexcept.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/traits.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/node.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/iterator_fwd.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/ptr.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/type.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/impl.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/memory.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/node.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/node_ref.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/node_data.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/node_iterator.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/iterator.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/iterator.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/convert.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/valarray \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/valarray_array.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/valarray_array.tcc \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/valarray_before.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/slice_array.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/valarray_after.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/gslice.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/gslice_array.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/mask_array.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/indirect_array.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/impl.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/parse.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/emit.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/serialization/Serializable.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/utils/IDGenerator.hpp \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/random \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/random.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/opt_random.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/pmmintrin.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/emmintrin.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/xmmintrin.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/mmintrin.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/mwaitintrin.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/random.tcc \
  C:/Qt/6.10.0/mingw_64/include/QtCore/QTimer \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qtimer.h \
  C:\Users\rockl\Coding\ Projects\RockEngine\src\editor\EditorWindow.hpp \

@@ -108,11 +108,26 @@ CMakeFiles/RockEngine.dir/src/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/RockEngine.dir/src/main.cpp.s"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\main.cpp" -o CMakeFiles\RockEngine.dir\src\main.cpp.s
 
+CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj: CMakeFiles/RockEngine.dir/flags.make
+CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
+CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/Transform.cpp
+CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\components\Transform.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\components\Transform.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\Transform.cpp"
+
+CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.i"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\Transform.cpp" > CMakeFiles\RockEngine.dir\src\engine\components\Transform.cpp.i
+
+CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.s"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\Transform.cpp" -o CMakeFiles\RockEngine.dir\src\engine\components\Transform.cpp.s
+
 CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj: CMakeFiles/RockEngine.dir/flags.make
 CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Application.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\Application.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\Application.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\Application.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.i: cmake_force
@@ -127,7 +142,7 @@ CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj: CMakeFiles/RockE
 CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/InputManager.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\InputManager.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\InputManager.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\InputManager.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.i: cmake_force
@@ -142,7 +157,7 @@ CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj: CMakeFiles/RockEngine.
 CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/System.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\System.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\System.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\System.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.i: cmake_force
@@ -157,7 +172,7 @@ CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj: CMakeFiles/RockE
 CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/SceneManager.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\SceneManager.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\SceneManager.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\SceneManager.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/SceneManager.cpp.i: cmake_force
@@ -172,7 +187,7 @@ CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj: CMakeFiles/RockEngine.d
 CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Scene.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\Scene.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\Scene.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\Scene.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.i: cmake_force
@@ -187,7 +202,7 @@ CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj: CMakeFiles/RockEn
 CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/TimeManager.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\TimeManager.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\TimeManager.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\TimeManager.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/TimeManager.cpp.i: cmake_force
@@ -202,7 +217,7 @@ CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj: CMakeFiles/RockEng
 CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/GameObject.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\GameObject.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\GameObject.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\GameObject.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.i: cmake_force
@@ -217,7 +232,7 @@ CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj: CMakeFiles/RockEngi
 CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Component.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\Component.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\Component.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\Component.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.i: cmake_force
@@ -232,7 +247,7 @@ CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj: CMakeFiles/RockEng
 CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Observable.cpp
 CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_12) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\Observable.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\Observable.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\Observable.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.i: cmake_force
@@ -247,7 +262,7 @@ CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj: CMakeFiles/RockE
 CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/utils/IDGenerator.cpp
 CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_13) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\utils\IDGenerator.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\utils\IDGenerator.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\utils\IDGenerator.cpp"
 
 CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.i: cmake_force
@@ -258,26 +273,71 @@ CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.s"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\utils\IDGenerator.cpp" -o CMakeFiles\RockEngine.dir\src\engine\utils\IDGenerator.cpp.s
 
-CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj: CMakeFiles/RockEngine.dir/flags.make
-CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
-CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/core/Serializable.cpp
-CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_14) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\core\Serializable.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\core\Serializable.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\Serializable.cpp"
+CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: CMakeFiles/RockEngine.dir/flags.make
+CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
+CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/serialization/Registry.cpp
+CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\serialization\Registry.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\serialization\Registry.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\Registry.cpp"
 
-CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.i"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\Serializable.cpp" > CMakeFiles\RockEngine.dir\src\engine\core\Serializable.cpp.i
+CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.i"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\Registry.cpp" > CMakeFiles\RockEngine.dir\src\engine\serialization\Registry.cpp.i
 
-CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.s"
-	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\core\Serializable.cpp" -o CMakeFiles\RockEngine.dir\src\engine\core\Serializable.cpp.s
+CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.s"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\Registry.cpp" -o CMakeFiles\RockEngine.dir\src\engine\serialization\Registry.cpp.s
+
+CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj: CMakeFiles/RockEngine.dir/flags.make
+CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
+CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/serialization/Serializable.cpp
+CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\serialization\Serializable.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\serialization\Serializable.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\Serializable.cpp"
+
+CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.i"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\Serializable.cpp" > CMakeFiles\RockEngine.dir\src\engine\serialization\Serializable.cpp.i
+
+CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.s"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\Serializable.cpp" -o CMakeFiles\RockEngine.dir\src\engine\serialization\Serializable.cpp.s
+
+CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj: CMakeFiles/RockEngine.dir/flags.make
+CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
+CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/serialization/SerializableFactory.cpp
+CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_17) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\serialization\SerializableFactory.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\serialization\SerializableFactory.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\SerializableFactory.cpp"
+
+CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.i"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\SerializableFactory.cpp" > CMakeFiles\RockEngine.dir\src\engine\serialization\SerializableFactory.cpp.i
+
+CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.s"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\serialization\SerializableFactory.cpp" -o CMakeFiles\RockEngine.dir\src\engine\serialization\SerializableFactory.cpp.s
+
+CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj: CMakeFiles/RockEngine.dir/flags.make
+CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
+CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/inspection/inspector.cpp
+CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_18) "Building CXX object CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj -MF CMakeFiles\RockEngine.dir\src\engine\inspection\inspector.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\engine\inspection\inspector.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\inspection\inspector.cpp"
+
+CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.i"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\inspection\inspector.cpp" > CMakeFiles\RockEngine.dir\src\engine\inspection\inspector.cpp.i
+
+CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.s"
+	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\inspection\inspector.cpp" -o CMakeFiles\RockEngine.dir\src\engine\inspection\inspector.cpp.s
 
 CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj: CMakeFiles/RockEngine.dir/flags.make
 CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/editor/Editor.cpp
 CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_15) "Building CXX object CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_19) "Building CXX object CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj -MF CMakeFiles\RockEngine.dir\src\editor\Editor.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\editor\Editor.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\editor\Editor.cpp"
 
 CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.i: cmake_force
@@ -292,7 +352,7 @@ CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj: CMakeFiles/RockEngine
 CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj: CMakeFiles/RockEngine.dir/includes_CXX.rsp
 CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/editor/EditorWindow.cpp
 CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj: CMakeFiles/RockEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_16) "Building CXX object CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_20) "Building CXX object CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj"
 	C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj -MF CMakeFiles\RockEngine.dir\src\editor\EditorWindow.cpp.obj.d -o CMakeFiles\RockEngine.dir\src\editor\EditorWindow.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\editor\EditorWindow.cpp"
 
 CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.i: cmake_force
@@ -307,6 +367,7 @@ CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.s: cmake_force
 RockEngine_OBJECTS = \
 "CMakeFiles/RockEngine.dir/RockEngine_autogen/mocs_compilation.cpp.obj" \
 "CMakeFiles/RockEngine.dir/src/main.cpp.obj" \
+"CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj" \
 "CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj" \
 "CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj" \
 "CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj" \
@@ -317,7 +378,10 @@ RockEngine_OBJECTS = \
 "CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj" \
 "CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj" \
 "CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj" \
-"CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj" \
+"CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj" \
+"CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj" \
+"CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj" \
+"CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj" \
 "CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj" \
 "CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj"
 
@@ -326,6 +390,7 @@ RockEngine_EXTERNAL_OBJECTS =
 
 RockEngine.exe: CMakeFiles/RockEngine.dir/RockEngine_autogen/mocs_compilation.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/main.cpp.obj
+RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/components/Transform.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/core/Application.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/core/InputManager.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/core/System.cpp.obj
@@ -336,17 +401,22 @@ RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/core/Component.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/core/Observable.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/utils/IDGenerator.cpp.obj
-RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/core/Serializable.cpp.obj
+RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj
+RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/serialization/Serializable.cpp.obj
+RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/serialization/SerializableFactory.cpp.obj
+RockEngine.exe: CMakeFiles/RockEngine.dir/src/engine/inspection/inspector.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/build.make
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Widgets.a
+RockEngine.exe: third_party/yaml/libyaml-cppd.a
+RockEngine.exe: third_party/glm/glm/libglm.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Gui.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Core.a
 RockEngine.exe: CMakeFiles/RockEngine.dir/linkLibs.rsp
 RockEngine.exe: CMakeFiles/RockEngine.dir/objects1.rsp
 RockEngine.exe: CMakeFiles/RockEngine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_17) "Linking CXX executable RockEngine.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_21) "Linking CXX executable RockEngine.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\RockEngine.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

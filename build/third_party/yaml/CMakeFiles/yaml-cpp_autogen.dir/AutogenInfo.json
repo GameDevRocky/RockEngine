@@ -1,0 +1,338 @@
+{
+	"AUTOGEN_COMMAND_LINE_LENGTH_MAX" : 32000,
+	"BUILD_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/yaml-cpp_autogen",
+	"CMAKE_BINARY_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml",
+	"CMAKE_CURRENT_SOURCE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml",
+	"CMAKE_EXECUTABLE" : "C:/Program Files/CMake/bin/cmake.exe",
+	"CMAKE_LIST_FILES" : 
+	[
+		"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/CMakeLists.txt",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CMakePackageConfigHelpers.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/WriteBasicConfigVersionFile.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeDependentOption.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CheckCXXCompilerFlag.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/GNUInstallDirs.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CTest.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CTestUseLaunchers.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CTestTargets.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/DartConfiguration.tcl.in",
+		"C:/Program Files/CMake/share/cmake-4.1/Templates/CTestScript.cmake.in",
+		"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/yaml-cpp-config.cmake.in",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/BasicConfigVersion-AnyNewerVersion.cmake.in",
+		"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/yaml-cpp.pc.in"
+	],
+	"CMAKE_SOURCE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine",
+	"CROSS_CONFIG" : false,
+	"DEP_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/yaml-cpp_autogen/deps",
+	"DEP_FILE_RULE_NAME" : "yaml-cpp_autogen/timestamp",
+	"HEADERS" : 
+	[
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/contrib/graphbuilderadapter.h",
+			"MU",
+			"NMHBBTIUK5/moc_graphbuilderadapter.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/directives.h",
+			"MU",
+			"UVLADIE3JM/moc_directives.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/emitterstate.h",
+			"MU",
+			"UVLADIE3JM/moc_emitterstate.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/emitterutils.h",
+			"MU",
+			"UVLADIE3JM/moc_emitterutils.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/exp.h",
+			"MU",
+			"UVLADIE3JM/moc_exp.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/nodebuilder.h",
+			"MU",
+			"UVLADIE3JM/moc_nodebuilder.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/nodeevents.h",
+			"MU",
+			"UVLADIE3JM/moc_nodeevents.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/regex_yaml.h",
+			"MU",
+			"UVLADIE3JM/moc_regex_yaml.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/scanner.h",
+			"MU",
+			"UVLADIE3JM/moc_scanner.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/scanscalar.h",
+			"MU",
+			"UVLADIE3JM/moc_scanscalar.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/scantag.h",
+			"MU",
+			"UVLADIE3JM/moc_scantag.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/singledocparser.h",
+			"MU",
+			"UVLADIE3JM/moc_singledocparser.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/stream.h",
+			"MU",
+			"UVLADIE3JM/moc_stream.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/tag.h",
+			"MU",
+			"UVLADIE3JM/moc_tag.cpp",
+			null
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/yaml-cpp_autogen/include",
+	"MOC_COMPILATION_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/yaml-cpp_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : [ "YAML_CPP_STATIC_DEFINE" ],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include-fixed",
+		"C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include"
+	],
+	"MOC_MACRO_NAMES" : 
+	[
+		"Q_OBJECT",
+		"Q_GADGET",
+		"Q_NAMESPACE",
+		"Q_NAMESPACE_EXPORT",
+		"Q_GADGET_EXPORT",
+		"Q_ENUM_NS"
+	],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"C:/Qt/Tools/mingw1310_64/bin/g++.exe",
+		"-std=gnu++17",
+		"-w",
+		"-dM",
+		"-E",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/yaml-cpp_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 8,
+	"PARSE_CACHE_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/CMakeFiles/yaml-cpp_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "C:/Qt/6.10.0/mingw_64/bin/moc.exe",
+	"QT_UIC_EXECUTABLE" : "C:/Qt/6.10.0/mingw_64/bin/uic.exe",
+	"QT_VERSION_MAJOR" : 6,
+	"QT_VERSION_MINOR" : 10,
+	"SETTINGS_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/CMakeFiles/yaml-cpp_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/binary.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/contrib/graphbuilder.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/contrib/graphbuilderadapter.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/convert.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/depthguard.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/directives.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/emit.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/emitfromevents.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/emitter.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/emitterstate.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/emitterutils.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/exceptions.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/exp.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/fptostring.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/memory.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/node.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/node_data.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/nodebuilder.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/nodeevents.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/null.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/ostream_wrapper.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/parse.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/parser.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/regex_yaml.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/scanner.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/scanscalar.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/scantag.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/scantoken.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/simplekey.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/singledocparser.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/stream.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/src/tag.cpp",
+			"MU",
+			null
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"USE_BETTER_GRAPH" : true,
+	"VERBOSITY" : 0
+}

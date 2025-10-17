@@ -1,6 +1,7 @@
 #pragma once
+#include "engine/core/Observable.hpp"
 
-class System {
+class System : public Observable{
 public:
     virtual ~System() = default;
 
@@ -9,5 +10,5 @@ public:
     virtual void Shutdown() {}
 
 protected:
-    System() = default; // protected so derived classes can call it
+    System() = default; 
 };

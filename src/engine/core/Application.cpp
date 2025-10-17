@@ -5,8 +5,7 @@
 void Application::Init() {
     InputManager::Get().Init();
     SceneManager::Get().Init();
-    TimeManager::Get().Init();
-    
+    TimeManager::Get().Init();  
 }
 
 void Application::Run() {

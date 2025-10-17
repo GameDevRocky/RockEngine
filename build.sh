@@ -25,4 +25,4 @@ fi
 cmake --build "$BUILD_DIR" -j$(nproc)
 
 echo "Running RockEngine..."
-./"$BUILD_DIR"/RockEngine
+./"$BUILD_DIR"/RockEngine hello world

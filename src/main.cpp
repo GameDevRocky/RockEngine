@@ -3,6 +3,7 @@
 #include <iostream>
 
 int main(int argc, char *argv[]) {
+    
     Application &app = Application::Get();
     Editor &editor = Editor::Get();
     app.Init();
