@@ -348,6 +348,12 @@
 			"MU",
 			"W4MZGBQALC/moc_Editor.cpp",
 			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/editor/EditorWindow.hpp",
+			"MU",
+			"W4MZGBQALC/moc_EditorWindow.cpp",
+			null
 		]
 	],
 	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],

@@ -11,15 +11,11 @@ void Application::Init() {
 
 void Application::Run() {
     int count = 0;
-    while (this->GetActive()) {
-        InputManager::Get().Update();
-        SceneManager::Get().Update();
-        TimeManager::Get().Update();
-        if (count > 10000){ 
-            SetActive(false);
-        }
-        count++;
-    }
+    InputManager::Get().Update();
+    SceneManager::Get().Update();
+    TimeManager::Get().Update();
+    SetActive(false);
+    
 }
 
 void Application::Shutdown() {

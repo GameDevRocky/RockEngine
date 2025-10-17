@@ -7,7 +7,6 @@ int main(int argc, char *argv[]) {
     Editor &editor = Editor::Get();
     app.Init();
     editor.Init();
-    app.Run();
     app.Shutdown();
     return -1;
 }

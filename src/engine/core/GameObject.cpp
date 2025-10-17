@@ -16,3 +16,4 @@ T* GameObject::GetComponent() {
             return t;
     return nullptr;
 }
+

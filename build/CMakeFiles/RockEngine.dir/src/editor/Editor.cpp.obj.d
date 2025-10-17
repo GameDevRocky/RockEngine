@@ -384,4 +384,64 @@ CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj: \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qvarlengtharray.h \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qalloc.h \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qguiapplication_platform.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/System.hpp
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/System.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Application.hpp \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iostream \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/ostream \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/ios \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/basic_ios.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/locale_facets.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cwctype \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wctype.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/ctype_base.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/ctype_inline.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/locale_facets.tcc \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/basic_ios.tcc \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/ostream.tcc \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/istream \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/istream.tcc \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/InputManager.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/SceneManager.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Scene.hpp \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QTimer \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qtimer.h \
+ C:\Users\rockl\Coding\ Projects\RockEngine\src\editor\EditorWindow.hpp \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QMainWindow \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qmainwindow.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qwidget.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qaction.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qkeysequence.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qicon.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qpalette.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qbrush.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qfont.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qendian.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qfontmetrics.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qfontinfo.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qfontvariableaxis.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qsizepolicy.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qtabwidget.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QSettings \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qsettings.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QCloseEvent \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qevent.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qiodevice.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qurl.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qeventpoint.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvector2d.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvectornd.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qpointingdevice.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qinputdevice.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qscreen.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QList \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qlist.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QObject \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qobject.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QRect \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qrect.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QSize \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qsize.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QSizeF \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QTransform \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qtransform.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qscreen_platform.h

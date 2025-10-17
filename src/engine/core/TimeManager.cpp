@@ -16,14 +16,9 @@ void TimeManager::Update() {
     unscaledTime += unscaledDeltaTime;
     deltaTime = unscaledDeltaTime * timeScale;
     elapsedTime += deltaTime;
-
     lastFrameTime = now;
-
-    std::cout << "DeltaTime: " << deltaTime
-              << " | Unscaled: " << unscaledDeltaTime
-              << " | Scale: " << timeScale << std::endl;
 }
 
 void TimeManager::Shutdown() {
-    
+
 }

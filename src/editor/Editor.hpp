@@ -1,6 +1,8 @@
 #pragma once
 #include <QApplication>
 #include <engine/core/System.hpp>
+#include <engine/core/Application.hpp>
+#include <QTimer>
 
 class Editor : public System {
 public:
@@ -12,7 +14,7 @@ public:
     void Init() override;
     void Update() override;
     void Shutdown() override;
-
+    
     QApplication* App() const { return app; }
 
 private:
@@ -23,4 +25,5 @@ private:
     Editor& operator=(const Editor&) = delete;
 
     QApplication* app = nullptr;
+    QTimer *timer = nullptr;
 };

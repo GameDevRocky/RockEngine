@@ -402,4 +402,6 @@ CMakeFiles/RockEngine.dir/src/main.cpp.obj: \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qhash.h \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qvarlengtharray.h \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qalloc.h \
- C:/Qt/6.10.0/mingw_64/include/QtGui/qguiapplication_platform.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qguiapplication_platform.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QTimer \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qtimer.h

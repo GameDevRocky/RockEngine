@@ -2,22 +2,26 @@
 #include <vector>
 #include <type_traits>
 #include <typeinfo>
-
+#include <string>
 class Component; // Forward declare
 
 class GameObject {
 public:
-    GameObject() = default;
-    ~GameObject();
+GameObject() = default;
+~GameObject();
 
-    // Add a new component of type T
-    template<typename T, typename... Args>
-    T* AddComponent(Args&&... args);
+template<typename T, typename... Args>
+T* AddComponent(Args&&... args);
 
-    // Retrieve the first component of type T
-    template<typename T>
-    T* GetComponent();
+template<typename T>
+T* GetComponent();
 
 private:
-    std::vector<Component*> components;
+int id;
+
+std::vector<Component*> components;
+std::string name;
+
+
+
 };
