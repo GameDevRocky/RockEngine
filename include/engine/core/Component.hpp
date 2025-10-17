@@ -14,9 +14,11 @@ public:
         YAML::Node node = Serializable::Serialize();
         return node;
     }
-    virtual void Deserialize(YAML::Node node){
-        Serializable::Deserialize(node);
+    virtual void Deserialize(YAML::Node node);
+    virtual void Link(){
+        
     }
+
     virtual void Awake(){}
     virtual void Start() {}
     virtual void Update() {}
@@ -25,4 +27,8 @@ public:
     virtual void OnDestroy() {}
 
     virtual std::string GetTypeName() const = 0;
+    
+private:
+std::string gameobject_id = "";
+
 };

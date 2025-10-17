@@ -15,6 +15,7 @@ public:
     void RemoveScene(Scene* scene);
     const std::vector<Scene*>& GetScenes() const;
 
+
     SceneManager() = default;
     ~SceneManager() = default;
 

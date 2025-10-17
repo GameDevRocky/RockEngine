@@ -18,7 +18,7 @@ public:
     YAML::Node Serialize() override;
 
     void Deserialize(const YAML::Node& node) override;
-
+    void LinkSerializables();
     std::string GetTypeName() override {return "Scene";}
     std::string GetName(){return name;}
 

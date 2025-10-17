@@ -1,4 +1,4 @@
-# Sample Scene with only Transform Components
+# Sample 2D Scene with only Transform Components
 name: "SampleScene"
 created_at: "2025-10-17T21:00:00Z"
 
@@ -6,33 +6,38 @@ created_at: "2025-10-17T21:00:00Z"
 components:
   - id: "t1"
     type: "Transform"
-    position: [0, 0, 0]
-    rotation: [0, 0, 0]
-    scale: [1, 1, 1]
+    gameobject: "o1"
+    position: [0, 0]
+    rotation: 0
+    scale: [1, 1]
 
   - id: "t2"
     type: "Transform"
-    position: [5, 0, 0]
-    rotation: [0, 180, 0]
-    scale: [1, 1, 1]
+    gameobject: "o2"
+    position: [5, 0]
+    rotation: 180
+    scale: [1, 1]
 
   - id: "t3"
     type: "Transform"
-    position: [-5, 0, 0]
-    rotation: [0, 180, 0]
-    scale: [1, 1, 1]
+    gameobject: "o3"
+    position: [-5, 0]
+    rotation: 180
+    scale: [1, 1]
 
   - id: "t4"
     type: "Transform"
-    position: [10, 0, 5]
-    rotation: [0, 0, 0]
-    scale: [2, 2, 2]
+    gameobject: "o4"
+    position: [10, 5]
+    rotation: 0
+    scale: [2, 2]
 
   - id: "t5"
     type: "Transform"
-    position: [-10, 0, -5]
-    rotation: [0, 0, 0]
-    scale: [1, 1, 1]
+    gameobject: "o5"
+    position: [-10, -5]
+    rotation: 0
+    scale: [1, 1]
 
 # List of all game objects, referencing only Transform components
 gameobjects:

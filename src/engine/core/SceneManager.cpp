@@ -1,14 +1,13 @@
 #include "engine/core/SceneManager.hpp"
 #include <iostream>
+#include "engine/serialization/Registry.hpp"
 #define SAMPLE_SCENE_PATH "domain/scenes/SampleScene.yaml"
-
 
 
 void SceneManager::Init(){
     Scene *scene = new Scene();
     YAML::Node root = YAML::LoadFile(SAMPLE_SCENE_PATH);
     scene->Deserialize(root);
-    std::cout << scene->GetName() << std::endl; 
     AddScene(scene);
 }
 

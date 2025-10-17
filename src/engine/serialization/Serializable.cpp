@@ -25,3 +25,7 @@ void Serializable::Deserialize(const YAML::Node& node) {
 std::string Serializable::GetTypeName(){
     return "Serializable";
 }
+
+void Serializable::Link(){
+    
+}

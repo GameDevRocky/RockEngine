@@ -1,6 +1,12 @@
 #include "engine/core/GameObject.hpp"
 #include <iostream>
-// AddComponent returns reference
+#include "engine/serialization/Registry.hpp"
+#include "engine/core/Component.hpp"
+
+// ------------------
+// Template Methods
+// ------------------
+
 template<typename T, typename... Args>
 T* GameObject::AddComponent(Args&&... args) {
     static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
@@ -10,7 +16,6 @@ T* GameObject::AddComponent(Args&&... args) {
     return comp;
 }
 
-// GetComponent returns pointer
 template<typename T>
 T* GameObject::GetComponent() {
     for (auto* c : components)
@@ -19,13 +24,46 @@ T* GameObject::GetComponent() {
     return nullptr;
 }
 
-YAML::Node GameObject::Serialize(){
+// ------------------
+// Serialization
+// ------------------
+YAML::Node GameObject::Serialize() {
     YAML::Node node;
+    node["id"] = id;
+    node["name"] = name;
+
+    YAML::Node compNode;
+    for (auto* comp : components)
+        compNode.push_back(comp->GetID());
+    node["components"] = compNode;
+
     return node;
 }
 
-void GameObject::Deserialize(const YAML::Node &node){
-    Serializable::Deserialize(node);
+void GameObject::Deserialize(const YAML::Node& node) {
+    id = node["id"].as<std::string>();
     name = node["name"].as<std::string>();
-    std::cout << name << ", ";
+
+    Registry::Get().Register(this);
+
+    if (node["components"]) {
+        for (auto& compIdNode : node["components"]) {
+            std::string cid = compIdNode.as<std::string>();
+
+            Registry::Get().DeferLink(cid, [this](Serializable* obj) {
+                if (auto* comp = dynamic_cast<Component*>(obj)) {
+                    this->components.push_back(comp);
+
+                    std::cout << "Linked Component (via Defer): " << comp->GetTypeName()
+                              << " (ID: " << comp->GetID() << ")\n";
+                } else {
+                    std::cerr << "[DeferLink] Invalid component type for ID.\n";
+                }
+            });
+        }
+    }
+}
+
+
+void GameObject::Link() {
 }

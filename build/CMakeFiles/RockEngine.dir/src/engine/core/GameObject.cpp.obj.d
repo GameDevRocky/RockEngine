@@ -276,4 +276,6 @@ CMakeFiles/RockEngine.dir/src/engine/core/GameObject.cpp.obj: \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Observable.hpp \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/functional \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/std_function.h \
- C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iostream
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iostream \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/serialization/Registry.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Component.hpp
