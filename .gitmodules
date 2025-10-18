@@ -1,7 +1,12 @@
-[submodule "third_party/glm"]
-	path = third_party/glm
-	url = https://github.com/g-truc/glm.git
-[submodule "third_party/yaml"]
-	path = third_party/yaml
-	url = https://github.com/jbeder/yaml-cpp.git
-
+[submodule "external/glm"]
+    path = external/glm
+    url = https://github.com/g-truc/glm.git
+[submodule "external/yaml"]
+    path = external/yaml
+    url = https://github.com/jbeder/yaml-cpp.git
+[submodule "external/box2d"]
+    path = external/box2d
+    url = https://github.com/erincatto/box2d.git
+[submodule "externals/glad"]
+    path = externals/glad
+    url = https://github.com/Dav1dde/glad.git
