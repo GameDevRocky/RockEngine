@@ -2,31 +2,8 @@
 #include <iostream>
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/Component.hpp"
+#include "engine/components/Transform.hpp"
 
-// ------------------
-// Template Methods
-// ------------------
-
-template<typename T, typename... Args>
-T* GameObject::AddComponent(Args&&... args) {
-    static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-    T* comp = new T(std::forward<Args>(args)...);
-    comp->gameObject = this;
-    components.push_back(comp);
-    return comp;
-}
-
-template<typename T>
-T* GameObject::GetComponent() {
-    for (auto* c : components)
-        if (auto* t = dynamic_cast<T*>(c))
-            return t;
-    return nullptr;
-}
-
-// ------------------
-// Serialization
-// ------------------
 YAML::Node GameObject::Serialize() {
     YAML::Node node;
     node["id"] = id;
@@ -65,5 +42,6 @@ void GameObject::Deserialize(const YAML::Node& node) {
 }
 
 
-void GameObject::Link() {
+void GameObject::PostDeserialize() {
+    transform = GetComponent<Transform>();
 }

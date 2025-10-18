@@ -13,6 +13,7 @@ public:
     virtual ~Serializable(); 
     virtual YAML::Node Serialize();
     virtual void Deserialize(const YAML::Node& node);
+    virtual void PostDeserialize(){}
     virtual std::string GetTypeName();
     virtual void Link();
     const std::string& GetID() const { return id; }

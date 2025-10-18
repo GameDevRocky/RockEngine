@@ -13,7 +13,7 @@ YAML::Node Transform::Serialize(){
     }
 
 void Transform::Deserialize(const YAML::Node& node){
-        Serializable::Deserialize(node);
+        Component::Deserialize(node);
         if (node["position"]) {
             position.x = node["position"][0].as<float>();
             position.y = node["position"][1].as<float>();

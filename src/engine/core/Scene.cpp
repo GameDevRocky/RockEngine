@@ -55,6 +55,12 @@ void Scene::Deserialize(const YAML::Node& data) {
         }
     }
     Registry::Get().ResolveLinks();
+    
+    for (auto& [id, obj] : Registry::Get().GetAll()){
+        obj->PostDeserialize();
+    }
+
+    
 }
 void Scene::LinkSerializables(){
     

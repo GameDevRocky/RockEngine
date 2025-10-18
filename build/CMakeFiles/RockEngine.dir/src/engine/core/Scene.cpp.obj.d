@@ -278,6 +278,6 @@ CMakeFiles/RockEngine.dir/src/engine/core/Scene.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/functional \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/std_function.h \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/GameObject.hpp \
- C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Component.hpp \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/serialization/Registry.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/Component.hpp \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/serialization/SerializableFactory.hpp

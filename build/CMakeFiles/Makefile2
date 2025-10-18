@@ -180,9 +180,9 @@ third_party/yaml/clean: third_party/yaml/CMakeFiles/yaml-cpp_autogen.dir/clean
 
 # All Build rule for target.
 CMakeFiles/RockEngine.dir/all: third_party/glm/glm/CMakeFiles/glm.dir/all
-CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
-CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen.dir/all
 CMakeFiles/RockEngine.dir/all: third_party/yaml/CMakeFiles/yaml-cpp.dir/all
+CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen.dir/all
+CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21 "Built target RockEngine"
@@ -279,8 +279,8 @@ CMakeFiles/RockEngine_autogen.dir/clean:
 # Target rules for target third_party/glm/glm/CMakeFiles/glm.dir
 
 # All Build rule for target.
-third_party/glm/glm/CMakeFiles/glm.dir/all: third_party/glm/glm/CMakeFiles/glm_autogen.dir/all
 third_party/glm/glm/CMakeFiles/glm.dir/all: third_party/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/all
+third_party/glm/glm/CMakeFiles/glm.dir/all: third_party/glm/glm/CMakeFiles/glm_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f third_party\glm\glm\CMakeFiles\glm.dir\build.make third_party/glm/glm/CMakeFiles/glm.dir/depend
 	$(MAKE) $(MAKESILENT) -f third_party\glm\glm\CMakeFiles\glm.dir\build.make third_party/glm/glm/CMakeFiles/glm.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=23,24,25,26 "Built target glm"
