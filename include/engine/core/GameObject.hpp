@@ -5,6 +5,7 @@
 #include <string>
 #include "engine/serialization/Serializable.hpp"
 #include "engine/serialization/Registry.hpp"
+
 class Component;
 class Transform;
 class GameObject : public Serializable {

@@ -166,8 +166,8 @@ CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/istream \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/istream.tcc \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/serialization/Serializable.hpp \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/yaml.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/parser.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/yaml.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/parser.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/memory \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stl_raw_storage_iter.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/align.h \
@@ -184,8 +184,8 @@ CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward/auto_ptr.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/pstl/glue_memory_defs.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/pstl/execution_defs.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/dll.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/emitter.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/dll.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/emitter.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cmath \
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/math.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/specfun.h \
@@ -207,14 +207,14 @@ CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/sec_api/string_s.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/sstream \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/sstream.tcc \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/binary.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/emitterdef.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/emittermanip.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/null.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/ostream_wrapper.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/fptostring.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/emitterstyle.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/stlemitter.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/binary.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/emitterdef.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/emittermanip.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/null.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/ostream_wrapper.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/fptostring.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/emitterstyle.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/stlemitter.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/list \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stl_list.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/list.tcc \
@@ -225,28 +225,28 @@ CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/map \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stl_map.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stl_multimap.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/exceptions.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/mark.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/noexcept.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/traits.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/exceptions.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/mark.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/noexcept.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/traits.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/utility \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stl_relops.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/node.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/iterator_fwd.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/ptr.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/type.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/impl.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/memory.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/node.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/node_ref.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/node_data.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/node_iterator.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/node.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/detail/iterator_fwd.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/ptr.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/type.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/impl.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/detail/memory.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/detail/node.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/detail/node_ref.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/detail/node_data.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/detail/node_iterator.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iterator \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stream_iterator.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/iterator.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/iterator.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/iterator.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/detail/iterator.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/atomic \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/convert.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/convert.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/valarray \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/algorithm \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/pstl/glue_algorithm_defs.h \
@@ -259,9 +259,9 @@ CMakeFiles/RockEngine.dir/src/engine/serialization/Registry.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/gslice_array.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/mask_array.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/indirect_array.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/detail/impl.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/parse.h \
- C:/Users/rockl/CODING~1/ROCKEN~1/THIRD_~1/yaml/include/yaml-cpp/node/emit.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/detail/impl.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/parse.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include/yaml-cpp/node/emit.h \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/utils/IDGenerator.hpp \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/random \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cstdint \

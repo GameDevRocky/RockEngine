@@ -383,9 +383,15 @@
 	"MOC_INCLUDES" : 
 	[
 		"C:/Users/rockl/Coding Projects/RockEngine/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/src",
 		"C:/Users/rockl/Coding Projects/RockEngine/src/editor",
-		"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/include",
 		"C:/Users/rockl/Coding Projects/RockEngine/third_party/glm",
+		"C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/glm",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src",
 		"C:/Qt/6.10.0/mingw_64/include/QtCore",
 		"C:/Qt/6.10.0/mingw_64/include",
 		"C:/Qt/6.10.0/mingw_64/mkspecs/win32-g++",

@@ -39,12 +39,17 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/rockl/Coding Projects/RockEngine/build/third_party/glm/cmake_install.cmake")
+  include("C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/cmake_install.cmake")
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/cmake_install.cmake")
+  include("C:/Users/rockl/Coding Projects/RockEngine/build/external/yaml/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/cmake_install.cmake")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT

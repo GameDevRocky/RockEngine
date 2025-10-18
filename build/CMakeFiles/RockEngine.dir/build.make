@@ -409,8 +409,9 @@ RockEngine.exe: CMakeFiles/RockEngine.dir/src/editor/Editor.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/src/editor/EditorWindow.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/build.make
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Widgets.a
-RockEngine.exe: third_party/yaml/libyaml-cppd.a
-RockEngine.exe: third_party/glm/glm/libglm.a
+RockEngine.exe: external/yaml/libyaml-cppd.a
+RockEngine.exe: external/glm/glm/libglm.a
+RockEngine.exe: external/box2d/src/libbox2dd.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Gui.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Core.a
 RockEngine.exe: CMakeFiles/RockEngine.dir/linkLibs.rsp

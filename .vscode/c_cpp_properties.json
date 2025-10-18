@@ -4,20 +4,23 @@
             "name": "Win32",
             "includePath": [
                 "${workspaceFolder}/include",
-                "${workspaceFolder}/src/editor",
-                "${workspaceFolder}/**",
-                "C:/Users/rockl/Coding Projects/RockEngine/include",
+                "${workspaceFolder}/src",
+                "${workspaceFolder}/external/glm",
+                "${workspaceFolder}/external/yaml/include",
+                "${workspaceFolder}/external/box2d/include",
                 "C:/Qt/6.10.0/mingw_64/include",
                 "C:/Qt/6.10.0/mingw_64/include/QtCore",
                 "C:/Qt/6.10.0/mingw_64/include/QtGui",
-                "C:/Qt/6.10.0/mingw_64/include/QtWidgets",
-                "${workspaceFolder}/build" 
+                "C:/Qt/6.10.0/mingw_64/include/QtWidgets"
             ],
-            "defines": [],
+            "defines": [
+                "_DEBUG",
+                "UNICODE"
+            ],
             "compilerPath": "C:/Qt/Tools/mingw1310_64/bin/g++.exe",
-            "cStandard": "c11",
+            "cStandard": "c17",
             "cppStandard": "c++17",
-            "intelliSenseMode": "gcc-x64"
+            "intelliSenseMode": "windows-gcc-x64"
         }
     ],
     "version": 4

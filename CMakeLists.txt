@@ -53,20 +53,26 @@ add_executable(RockEngine ${SOURCES})
 target_include_directories(RockEngine
     PRIVATE
     ${CMAKE_SOURCE_DIR}/include
+    ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/src/editor
+    ${CMAKE_SOURCE_DIR}/third_party/glm
+    ${CMAKE_SOURCE_DIR}/third_party/yaml/include
+    ${CMAKE_SOURCE_DIR}/external/box2d/include
 )
 
 # ----------------------------
 # Third-party libraries
 # ----------------------------
-
 # GLM (header-only)
-add_subdirectory(third_party/glm)
+add_subdirectory(external/glm)
 
 # yaml-cpp
 set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "")
 set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "")
-add_subdirectory(third_party/yaml)
+add_subdirectory(external/yaml)
+
+# Box2D
+add_subdirectory(external/box2d)
 
 # ----------------------------
 # Link libraries
@@ -78,4 +84,5 @@ target_link_libraries(RockEngine
     Qt6::Widgets
     yaml-cpp
     glm::glm
+    box2d
 )

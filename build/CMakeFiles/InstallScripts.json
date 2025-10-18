@@ -2,9 +2,11 @@
 	"InstallScripts" : 
 	[
 		"C:/Users/rockl/Coding Projects/RockEngine/build/cmake_install.cmake",
-		"C:/Users/rockl/Coding Projects/RockEngine/build/third_party/glm/cmake_install.cmake",
-		"C:/Users/rockl/Coding Projects/RockEngine/build/third_party/glm/glm/cmake_install.cmake",
-		"C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml/cmake_install.cmake"
+		"C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/cmake_install.cmake",
+		"C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm/cmake_install.cmake",
+		"C:/Users/rockl/Coding Projects/RockEngine/build/external/yaml/cmake_install.cmake",
+		"C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/cmake_install.cmake",
+		"C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

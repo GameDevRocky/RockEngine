@@ -14,6 +14,15 @@
 # EXTERNAL cache entries
 ########################
 
+//Enable AVX2
+BOX2D_AVX2:BOOL=OFF
+
+//Compile warnings as errors
+BOX2D_COMPILE_WARNING_AS_ERROR:BOOL=OFF
+
+//Disable SIMD math (slower)
+BOX2D_DISABLE_SIMD:BOOL=OFF
+
 //Build the testing tree.
 BUILD_TESTING:BOOL=ON
 
@@ -59,8 +68,34 @@ CMAKE_CXX_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
 //Libraries linked by default with all C++ applications.
 CMAKE_CXX_STANDARD_LIBRARIES:STRING=-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
 
-//No help, variable specified on the command line.
-CMAKE_C_COMPILER:UNINITIALIZED=C:/Qt/Tools/mingw1310_64/bin/g++.exe
+//C compiler
+CMAKE_C_COMPILER:STRING=C:/Qt/Tools/mingw1310_64/bin/gcc.exe
+
+//A wrapper around 'ar' adding the appropriate '--plugin' option
+// for the GCC compiler
+CMAKE_C_COMPILER_AR:FILEPATH=C:/Qt/Tools/mingw1310_64/bin/gcc-ar.exe
+
+//A wrapper around 'ranlib' adding the appropriate '--plugin' option
+// for the GCC compiler
+CMAKE_C_COMPILER_RANLIB:FILEPATH=C:/Qt/Tools/mingw1310_64/bin/gcc-ranlib.exe
+
+//Flags used by the C compiler during all build types.
+CMAKE_C_FLAGS:STRING=
+
+//Flags used by the C compiler during DEBUG builds.
+CMAKE_C_FLAGS_DEBUG:STRING=-g
+
+//Flags used by the C compiler during MINSIZEREL builds.
+CMAKE_C_FLAGS_MINSIZEREL:STRING=-Os -DNDEBUG
+
+//Flags used by the C compiler during RELEASE builds.
+CMAKE_C_FLAGS_RELEASE:STRING=-O3 -DNDEBUG
+
+//Flags used by the C compiler during RELWITHDEBINFO builds.
+CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=-O2 -g -DNDEBUG
+
+//Libraries linked by default with all C applications.
+CMAKE_C_STANDARD_LIBRARIES:STRING=-lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
 
 //Path to a program.
 CMAKE_DLLTOOL:FILEPATH=C:/Qt/Tools/mingw1310_64/bin/dlltool.exe
@@ -171,6 +206,9 @@ CMAKE_OBJCOPY:FILEPATH=C:/Qt/Tools/mingw1310_64/bin/objcopy.exe
 
 //Path to a program.
 CMAKE_OBJDUMP:FILEPATH=C:/Qt/Tools/mingw1310_64/bin/objdump.exe
+
+//No help, variable specified on the command line.
+CMAKE_PREFIX_PATH:UNINITIALIZED=C:/Qt/6.10.0/mingw_64/lib/cmake
 
 //Value Computed by CMake
 CMAKE_PROJECT_COMPAT_VERSION:STATIC=
@@ -297,6 +335,19 @@ CTEST_SUBMIT_RETRY_DELAY:STRING=5
 
 //Maximum time allowed before CTest will kill the test.
 DART_TESTING_TIMEOUT:STRING=1500
+
+//Directory under which to collect all populated content
+FETCHCONTENT_BASE_DIR:PATH=C:/Users/rockl/Coding Projects/RockEngine/build/_deps
+
+//Disables all attempts to download or update content and assumes
+// source dirs already exist
+FETCHCONTENT_FULLY_DISCONNECTED:BOOL=OFF
+
+//Enables QUIET option for all content population
+FETCHCONTENT_QUIET:BOOL=ON
+
+//Enables UPDATE_DISCONNECTED behavior for all content population
+FETCHCONTENT_UPDATES_DISCONNECTED:BOOL=OFF
 
 //Path to a program.
 GITCOMMAND:FILEPATH=C:/Program Files/Git/mingw64/bin/git.exe
@@ -435,7 +486,7 @@ WINDEPLOYQT_EXECUTABLE:FILEPATH=C:/Qt/6.10.0/mingw_64/bin/windeployqt.exe
 YAML_BUILD_SHARED_LIBS:BOOL=OFF
 
 //Value Computed by CMake
-YAML_CPP_BINARY_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/build/third_party/yaml
+YAML_CPP_BINARY_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/build/external/yaml
 
 //Enable yaml-cpp contrib in library
 YAML_CPP_BUILD_CONTRIB:BOOL=ON
@@ -459,7 +510,7 @@ YAML_CPP_INSTALL_CMAKEDIR:STRING=lib/cmake/yaml-cpp
 YAML_CPP_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-YAML_CPP_SOURCE_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/third_party/yaml
+YAML_CPP_SOURCE_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/external/yaml
 
 //Use Position-Independent Code 
 YAML_ENABLE_PIC:BOOL=ON
@@ -471,13 +522,22 @@ YAML_MSVC_SHARED_RT:BOOL=ON
 YAML_USE_SYSTEM_GTEST:BOOL=OFF
 
 //Value Computed by CMake
-glm_BINARY_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/build/third_party/glm
+box2d_BINARY_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d
+
+//Value Computed by CMake
+box2d_IS_TOP_LEVEL:STATIC=OFF
+
+//Value Computed by CMake
+box2d_SOURCE_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/external/box2d
+
+//Value Computed by CMake
+glm_BINARY_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/build/external/glm
 
 //Value Computed by CMake
 glm_IS_TOP_LEVEL:STATIC=OFF
 
 //Value Computed by CMake
-glm_SOURCE_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/third_party/glm
+glm_SOURCE_DIR:STATIC=C:/Users/rockl/Coding Projects/RockEngine/external/glm
 
 
 ########################
@@ -524,6 +584,24 @@ CMAKE_CXX_FLAGS_RELEASE-ADVANCED:INTERNAL=1
 CMAKE_CXX_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_CXX_STANDARD_LIBRARIES
 CMAKE_CXX_STANDARD_LIBRARIES-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_COMPILER
+CMAKE_C_COMPILER-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_COMPILER_AR
+CMAKE_C_COMPILER_AR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_COMPILER_RANLIB
+CMAKE_C_COMPILER_RANLIB-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_FLAGS
+CMAKE_C_FLAGS-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_FLAGS_DEBUG
+CMAKE_C_FLAGS_DEBUG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_FLAGS_MINSIZEREL
+CMAKE_C_FLAGS_MINSIZEREL-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_FLAGS_RELEASE
+CMAKE_C_FLAGS_RELEASE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_FLAGS_RELWITHDEBINFO
+CMAKE_C_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: CMAKE_C_STANDARD_LIBRARIES
+CMAKE_C_STANDARD_LIBRARIES-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_DLLTOOL
 CMAKE_DLLTOOL-ADVANCED:INTERNAL=1
 //Path to cache edit program executable.
@@ -606,7 +684,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_NM
 CMAKE_NM-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=4
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=6
 //ADVANCED property for variable: CMAKE_OBJCOPY
 CMAKE_OBJCOPY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_OBJDUMP

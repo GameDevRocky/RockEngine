@@ -1,0 +1,424 @@
+{
+	"AUTOGEN_COMMAND_LINE_LENGTH_MAX" : 32000,
+	"BUILD_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src/box2d_autogen",
+	"CMAKE_BINARY_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src",
+	"CMAKE_CURRENT_SOURCE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src",
+	"CMAKE_EXECUTABLE" : "C:/Program Files/CMake/bin/cmake.exe",
+	"CMAKE_LIST_FILES" : 
+	[
+		"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/CMakeLists.txt",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/GNUInstallDirs.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CMakePackageConfigHelpers.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/WriteBasicConfigVersionFile.cmake",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/BasicConfigVersion-SameMajorVersion.cmake.in"
+	],
+	"CMAKE_SOURCE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine",
+	"CROSS_CONFIG" : false,
+	"DEP_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src/box2d_autogen/deps",
+	"DEP_FILE_RULE_NAME" : "box2d_autogen/timestamp",
+	"HEADERS" : 
+	[
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include/box2d/base.h",
+			"MU",
+			"KVDXHFRG3K/moc_base.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include/box2d/box2d.h",
+			"MU",
+			"KVDXHFRG3K/moc_box2d.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include/box2d/collision.h",
+			"MU",
+			"KVDXHFRG3K/moc_collision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include/box2d/id.h",
+			"MU",
+			"KVDXHFRG3K/moc_id.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include/box2d/math_functions.h",
+			"MU",
+			"KVDXHFRG3K/moc_math_functions.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include/box2d/types.h",
+			"MU",
+			"KVDXHFRG3K/moc_types.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/aabb.h",
+			"MU",
+			"EWIEGA46WW/moc_aabb.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/arena_allocator.h",
+			"MU",
+			"EWIEGA46WW/moc_arena_allocator.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/array.h",
+			"MU",
+			"EWIEGA46WW/moc_array.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/atomic.h",
+			"MU",
+			"EWIEGA46WW/moc_atomic.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/bitset.h",
+			"MU",
+			"EWIEGA46WW/moc_bitset.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/body.h",
+			"MU",
+			"EWIEGA46WW/moc_body.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/broad_phase.h",
+			"MU",
+			"EWIEGA46WW/moc_broad_phase.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/constants.h",
+			"MU",
+			"EWIEGA46WW/moc_constants.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/constraint_graph.h",
+			"MU",
+			"EWIEGA46WW/moc_constraint_graph.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/contact.h",
+			"MU",
+			"EWIEGA46WW/moc_contact.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/contact_solver.h",
+			"MU",
+			"EWIEGA46WW/moc_contact_solver.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/core.h",
+			"MU",
+			"EWIEGA46WW/moc_core.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/ctz.h",
+			"MU",
+			"EWIEGA46WW/moc_ctz.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/id_pool.h",
+			"MU",
+			"EWIEGA46WW/moc_id_pool.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/island.h",
+			"MU",
+			"EWIEGA46WW/moc_island.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/joint.h",
+			"MU",
+			"EWIEGA46WW/moc_joint.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/physics_world.h",
+			"MU",
+			"EWIEGA46WW/moc_physics_world.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/sensor.h",
+			"MU",
+			"EWIEGA46WW/moc_sensor.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/shape.h",
+			"MU",
+			"EWIEGA46WW/moc_shape.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/solver.h",
+			"MU",
+			"EWIEGA46WW/moc_solver.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/solver_set.h",
+			"MU",
+			"EWIEGA46WW/moc_solver_set.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/table.h",
+			"MU",
+			"EWIEGA46WW/moc_table.cpp",
+			null
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src/box2d_autogen/include",
+	"MOC_COMPILATION_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src/box2d_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : [],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include-fixed",
+		"C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include"
+	],
+	"MOC_MACRO_NAMES" : 
+	[
+		"Q_OBJECT",
+		"Q_GADGET",
+		"Q_NAMESPACE",
+		"Q_NAMESPACE_EXPORT",
+		"Q_GADGET_EXPORT",
+		"Q_ENUM_NS"
+	],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"C:/Qt/Tools/mingw1310_64/bin/g++.exe",
+		"-std=gnu++17",
+		"-w",
+		"-dM",
+		"-E",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src/box2d_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 8,
+	"PARSE_CACHE_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src/CMakeFiles/box2d_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "C:/Qt/6.10.0/mingw_64/bin/moc.exe",
+	"QT_UIC_EXECUTABLE" : "C:/Qt/6.10.0/mingw_64/bin/uic.exe",
+	"QT_VERSION_MAJOR" : 6,
+	"QT_VERSION_MINOR" : 10,
+	"SETTINGS_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src/CMakeFiles/box2d_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/aabb.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/arena_allocator.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/array.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/bitset.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/body.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/broad_phase.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/constraint_graph.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/contact.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/contact_solver.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/core.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/distance.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/distance_joint.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/dynamic_tree.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/geometry.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/hull.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/id_pool.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/island.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/joint.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/manifold.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/math_functions.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/motor_joint.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/mover.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/physics_world.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/prismatic_joint.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/revolute_joint.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/sensor.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/shape.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/solver.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/solver_set.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/table.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/timer.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/types.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/weld_joint.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/src/wheel_joint.c",
+			"MU",
+			null
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"USE_BETTER_GRAPH" : true,
+	"VERBOSITY" : 0
+}

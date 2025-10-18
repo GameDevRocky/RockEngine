@@ -1,0 +1,1825 @@
+{
+	"AUTOGEN_COMMAND_LINE_LENGTH_MAX" : 32000,
+	"BUILD_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm/glm_autogen",
+	"CMAKE_BINARY_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm",
+	"CMAKE_CURRENT_SOURCE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm",
+	"CMAKE_EXECUTABLE" : "C:/Program Files/CMake/bin/cmake.exe",
+	"CMAKE_LIST_FILES" : 
+	[
+		"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/CMakeLists.txt"
+	],
+	"CMAKE_SOURCE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine",
+	"CROSS_CONFIG" : false,
+	"DEP_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm/glm_autogen/deps",
+	"DEP_FILE_RULE_NAME" : "glm_autogen/timestamp",
+	"HEADERS" : 
+	[
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/common.hpp",
+			"MU",
+			"EWIEGA46WW/moc_common.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_features.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc__features.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_fixes.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc__fixes.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_noise.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc__noise.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_swizzle.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc__swizzle.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_swizzle_func.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc__swizzle_func.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_vectorize.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc__vectorize.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/compute_common.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_compute_common.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/compute_vector_decl.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_compute_vector_decl.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/compute_vector_relational.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_compute_vector_relational.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/qualifier.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_qualifier.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/setup.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_setup.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_float.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_float.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_half.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_half.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x2.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat2x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x3.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat2x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x4.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat2x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x2.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat3x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x3.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat3x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x4.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat3x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x2.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat4x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x3.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat4x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x4.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_mat4x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_quat.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_quat.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec1.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_vec1.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec2.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_vec2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec3.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_vec3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec4.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc_type_vec4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/exponential.hpp",
+			"MU",
+			"EWIEGA46WW/moc_exponential.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext.hpp",
+			"MU",
+			"EWIEGA46WW/moc_ext.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/_matrix_vectorize.hpp",
+			"MU",
+			"OPB47W6Z4I/moc__matrix_vectorize.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_clip_space.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_clip_space.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_common.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_common.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double2x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double2x2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double2x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double2x3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double2x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double2x4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double3x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double3x2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double3x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double3x3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double3x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double3x4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double4x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double4x2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double4x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double4x3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double4x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_double4x4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float2x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float2x2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float2x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float2x3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float2x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float2x4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float3x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float3x2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float3x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float3x3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float3x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float3x4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float4x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float4x2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float4x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float4x3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float4x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_float4x4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int2x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int2x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int2x2_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int2x2_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int2x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int2x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int2x3_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int2x3_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int2x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int2x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int2x4_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int2x4_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int3x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int3x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int3x2_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int3x2_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int3x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int3x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int3x3_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int3x3_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int3x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int3x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int3x4_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int3x4_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int4x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int4x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int4x2_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int4x2_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int4x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int4x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int4x3_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int4x3_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int4x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int4x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_int4x4_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_int4x4_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_integer.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_integer.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_projection.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_projection.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_relational.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_relational.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_transform.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_transform.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint2x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint2x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint2x2_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint2x2_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint2x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint2x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint2x3_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint2x3_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint2x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint2x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint2x4_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint2x4_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint3x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint3x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint3x2_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint3x2_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint3x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint3x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint3x3_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint3x3_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint3x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint3x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint3x4_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint3x4_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint4x2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint4x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint4x2_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint4x2_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint4x3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint4x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint4x3_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint4x3_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint4x4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint4x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_uint4x4_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_matrix_uint4x4_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_common.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_common.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_double.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_double.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_double_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_double_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_exponential.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_exponential.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_float.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_float.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_float_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_float_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_geometric.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_geometric.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_relational.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_relational.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_transform.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_transform.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/quaternion_trigonometric.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_quaternion_trigonometric.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_common.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_common.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_constants.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_constants.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_int_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_int_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_integer.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_integer.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_packing.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_packing.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_reciprocal.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_reciprocal.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_relational.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_relational.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_uint_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_uint_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_ulp.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_scalar_ulp.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool1.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_bool1.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool1_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_bool1_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_bool2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_bool2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_bool3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_bool3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_bool4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_bool4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_common.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_common.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double1.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_double1.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double1_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_double1_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_double2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_double2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_double3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_double3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_double4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_double4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float1.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_float1.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float1_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_float1_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_float2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float2_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_float2_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_float3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float3_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_float3_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_float4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float4_precision.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_float4_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int1.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_int1.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int1_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_int1_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_int2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int2_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_int2_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_int3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int3_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_int3_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_int4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int4_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_int4_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_integer.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_integer.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_packing.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_packing.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_reciprocal.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_reciprocal.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_relational.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_relational.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint1.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_uint1.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint1_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_uint1_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint2.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_uint2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint2_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_uint2_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint3.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_uint3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint3_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_uint3_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint4.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_uint4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint4_sized.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_uint4_sized.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_ulp.hpp",
+			"MU",
+			"OPB47W6Z4I/moc_vector_ulp.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/fwd.hpp",
+			"MU",
+			"EWIEGA46WW/moc_fwd.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/geometric.hpp",
+			"MU",
+			"EWIEGA46WW/moc_geometric.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/glm.hpp",
+			"MU",
+			"EWIEGA46WW/moc_glm.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/bitfield.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_bitfield.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/color_space.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_color_space.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/constants.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_constants.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/epsilon.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_epsilon.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/integer.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_integer.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/matrix_access.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_matrix_access.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/matrix_integer.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_matrix_integer.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/matrix_inverse.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_matrix_inverse.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/matrix_transform.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_matrix_transform.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/noise.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_noise.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/packing.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_packing.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/quaternion.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_quaternion.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/random.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_random.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/reciprocal.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_reciprocal.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/round.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_round.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/type_aligned.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_type_aligned.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/type_precision.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_type_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/type_ptr.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_type_ptr.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/ulp.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_ulp.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtc/vec1.hpp",
+			"MU",
+			"YXWOPNQHJZ/moc_vec1.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/associated_min_max.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_associated_min_max.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/bit.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_bit.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/closest_point.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_closest_point.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/color_encoding.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_color_encoding.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/color_space.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_color_space.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/color_space_YCoCg.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_color_space_YCoCg.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/common.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_common.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/compatibility.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_compatibility.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/component_wise.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_component_wise.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/dual_quaternion.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_dual_quaternion.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/easing.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_easing.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/euler_angles.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_euler_angles.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/extend.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_extend.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/extended_min_max.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_extended_min_max.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/exterior_product.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_exterior_product.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/fast_exponential.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_fast_exponential.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/fast_square_root.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_fast_square_root.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/fast_trigonometry.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_fast_trigonometry.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/functions.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_functions.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/gradient_paint.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_gradient_paint.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/handed_coordinate_space.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_handed_coordinate_space.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/hash.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_hash.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/integer.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_integer.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/intersect.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_intersect.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/io.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_io.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/iteration.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_iteration.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/log_base.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_log_base.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/matrix_cross_product.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_matrix_cross_product.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/matrix_decompose.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_matrix_decompose.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/matrix_factorisation.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_matrix_factorisation.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/matrix_interpolation.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_matrix_interpolation.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/matrix_major_storage.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_matrix_major_storage.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/matrix_operation.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_matrix_operation.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/matrix_query.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_matrix_query.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/matrix_transform_2d.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_matrix_transform_2d.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/mixed_product.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_mixed_product.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/norm.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_norm.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/normal.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_normal.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/normalize_dot.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_normalize_dot.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/number_precision.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_number_precision.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/optimum_pow.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_optimum_pow.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/orthonormalize.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_orthonormalize.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/pca.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_pca.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/perpendicular.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_perpendicular.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/polar_coordinates.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_polar_coordinates.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/projection.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_projection.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/quaternion.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_quaternion.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/range.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_range.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/raw_data.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_raw_data.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/rotate_normalized_axis.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_rotate_normalized_axis.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/rotate_vector.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_rotate_vector.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/scalar_multiplication.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_scalar_multiplication.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/scalar_relational.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_scalar_relational.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/spline.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_spline.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/std_based_type.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_std_based_type.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/string_cast.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_string_cast.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/structured_bindings.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_structured_bindings.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/texture.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_texture.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/transform.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_transform.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/transform2.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_transform2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/type_aligned.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_type_aligned.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/type_trait.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_type_trait.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/vec_swizzle.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_vec_swizzle.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/vector_angle.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_vector_angle.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/vector_query.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_vector_query.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/gtx/wrap.hpp",
+			"MU",
+			"4H2YQ5XFWU/moc_wrap.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/integer.hpp",
+			"MU",
+			"EWIEGA46WW/moc_integer.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat2x2.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat2x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat2x3.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat2x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat2x4.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat2x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat3x2.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat3x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat3x3.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat3x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat3x4.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat3x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat4x2.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat4x2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat4x3.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat4x3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat4x4.hpp",
+			"MU",
+			"EWIEGA46WW/moc_mat4x4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/matrix.hpp",
+			"MU",
+			"EWIEGA46WW/moc_matrix.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/packing.hpp",
+			"MU",
+			"EWIEGA46WW/moc_packing.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/common.h",
+			"MU",
+			"GC3FBYPM5I/moc_common.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/exponential.h",
+			"MU",
+			"GC3FBYPM5I/moc_exponential.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/geometric.h",
+			"MU",
+			"GC3FBYPM5I/moc_geometric.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/integer.h",
+			"MU",
+			"GC3FBYPM5I/moc_integer.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/matrix.h",
+			"MU",
+			"GC3FBYPM5I/moc_matrix.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/neon.h",
+			"MU",
+			"GC3FBYPM5I/moc_neon.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/packing.h",
+			"MU",
+			"GC3FBYPM5I/moc_packing.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/platform.h",
+			"MU",
+			"GC3FBYPM5I/moc_platform.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/trigonometric.h",
+			"MU",
+			"GC3FBYPM5I/moc_trigonometric.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/vector_relational.h",
+			"MU",
+			"GC3FBYPM5I/moc_vector_relational.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/trigonometric.hpp",
+			"MU",
+			"EWIEGA46WW/moc_trigonometric.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/vec2.hpp",
+			"MU",
+			"EWIEGA46WW/moc_vec2.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/vec3.hpp",
+			"MU",
+			"EWIEGA46WW/moc_vec3.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/vec4.hpp",
+			"MU",
+			"EWIEGA46WW/moc_vec4.cpp",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/vector_relational.hpp",
+			"MU",
+			"EWIEGA46WW/moc_vector_relational.cpp",
+			null
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm/glm_autogen/include",
+	"MOC_COMPILATION_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm/glm_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : [],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"C:/Users/rockl/Coding Projects/RockEngine/external/glm",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include",
+		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include-fixed",
+		"C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include"
+	],
+	"MOC_MACRO_NAMES" : 
+	[
+		"Q_OBJECT",
+		"Q_GADGET",
+		"Q_NAMESPACE",
+		"Q_NAMESPACE_EXPORT",
+		"Q_GADGET_EXPORT",
+		"Q_ENUM_NS"
+	],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : false,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"C:/Qt/Tools/mingw1310_64/bin/g++.exe",
+		"-std=c++17",
+		"-w",
+		"-dM",
+		"-E",
+		"C:/Program Files/CMake/share/cmake-4.1/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm/glm_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 8,
+	"PARSE_CACHE_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm/CMakeFiles/glm_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "C:/Qt/6.10.0/mingw_64/bin/moc.exe",
+	"QT_UIC_EXECUTABLE" : "C:/Qt/6.10.0/mingw_64/bin/uic.exe",
+	"QT_VERSION_MAJOR" : 6,
+	"QT_VERSION_MINOR" : 10,
+	"SETTINGS_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/external/glm/glm/CMakeFiles/glm_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/glm.cpp",
+			"MU",
+			null
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"USE_BETTER_GRAPH" : true,
+	"VERBOSITY" : 0
+}

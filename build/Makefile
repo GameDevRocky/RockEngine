@@ -84,6 +84,51 @@ rebuild_cache:
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
 
+# Special rule for the target list_install_components
+list_install_components:
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Available install components are: \"Unspecified\""
+.PHONY : list_install_components
+
+# Special rule for the target list_install_components
+list_install_components/fast: list_install_components
+.PHONY : list_install_components/fast
+
+# Special rule for the target install
+install: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	"C:\Program Files\CMake\bin\cmake.exe" -P cmake_install.cmake
+.PHONY : install
+
+# Special rule for the target install
+install/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
+	"C:\Program Files\CMake\bin\cmake.exe" -P cmake_install.cmake
+.PHONY : install/fast
+
+# Special rule for the target install/local
+install/local: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local
+
+# Special rule for the target install/local
+install/local/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
+	"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
+.PHONY : install/local/fast
+
+# Special rule for the target install/strip
+install/strip: preinstall
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip
+
+# Special rule for the target install/strip
+install/strip/fast: preinstall/fast
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
+	"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
+.PHONY : install/strip/fast
+
 # The main all target
 all: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start "C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" "C:\Users\rockl\Coding Projects\RockEngine\build\\CMakeFiles\progress.marks"
@@ -165,7 +210,7 @@ glm: cmake_check_build_system
 
 # fast build rule for target.
 glm/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\glm\glm\CMakeFiles\glm.dir\build.make third_party/glm/glm/CMakeFiles/glm.dir/build
+	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm.dir\build.make external/glm/glm/CMakeFiles/glm.dir/build
 .PHONY : glm/fast
 
 #=============================================================================
@@ -178,7 +223,7 @@ glm_autogen_timestamp_deps: cmake_check_build_system
 
 # fast build rule for target.
 glm_autogen_timestamp_deps/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\glm\glm\CMakeFiles\glm_autogen_timestamp_deps.dir\build.make third_party/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/build
+	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm_autogen_timestamp_deps.dir\build.make external/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/build
 .PHONY : glm_autogen_timestamp_deps/fast
 
 #=============================================================================
@@ -191,7 +236,7 @@ glm_autogen: cmake_check_build_system
 
 # fast build rule for target.
 glm_autogen/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\glm\glm\CMakeFiles\glm_autogen.dir\build.make third_party/glm/glm/CMakeFiles/glm_autogen.dir/build
+	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm_autogen.dir\build.make external/glm/glm/CMakeFiles/glm_autogen.dir/build
 .PHONY : glm_autogen/fast
 
 #=============================================================================
@@ -204,7 +249,7 @@ Experimental: cmake_check_build_system
 
 # fast build rule for target.
 Experimental/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\Experimental.dir\build.make third_party/yaml/CMakeFiles/Experimental.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\Experimental.dir\build.make external/yaml/CMakeFiles/Experimental.dir/build
 .PHONY : Experimental/fast
 
 #=============================================================================
@@ -217,7 +262,7 @@ Nightly: cmake_check_build_system
 
 # fast build rule for target.
 Nightly/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\Nightly.dir\build.make third_party/yaml/CMakeFiles/Nightly.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\Nightly.dir\build.make external/yaml/CMakeFiles/Nightly.dir/build
 .PHONY : Nightly/fast
 
 #=============================================================================
@@ -230,7 +275,7 @@ Continuous: cmake_check_build_system
 
 # fast build rule for target.
 Continuous/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\Continuous.dir\build.make third_party/yaml/CMakeFiles/Continuous.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\Continuous.dir\build.make external/yaml/CMakeFiles/Continuous.dir/build
 .PHONY : Continuous/fast
 
 #=============================================================================
@@ -243,7 +288,7 @@ NightlyMemoryCheck: cmake_check_build_system
 
 # fast build rule for target.
 NightlyMemoryCheck/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyMemoryCheck.dir\build.make third_party/yaml/CMakeFiles/NightlyMemoryCheck.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlyMemoryCheck.dir\build.make external/yaml/CMakeFiles/NightlyMemoryCheck.dir/build
 .PHONY : NightlyMemoryCheck/fast
 
 #=============================================================================
@@ -256,7 +301,7 @@ NightlyStart: cmake_check_build_system
 
 # fast build rule for target.
 NightlyStart/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyStart.dir\build.make third_party/yaml/CMakeFiles/NightlyStart.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlyStart.dir\build.make external/yaml/CMakeFiles/NightlyStart.dir/build
 .PHONY : NightlyStart/fast
 
 #=============================================================================
@@ -269,7 +314,7 @@ NightlyUpdate: cmake_check_build_system
 
 # fast build rule for target.
 NightlyUpdate/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyUpdate.dir\build.make third_party/yaml/CMakeFiles/NightlyUpdate.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlyUpdate.dir\build.make external/yaml/CMakeFiles/NightlyUpdate.dir/build
 .PHONY : NightlyUpdate/fast
 
 #=============================================================================
@@ -282,7 +327,7 @@ NightlyConfigure: cmake_check_build_system
 
 # fast build rule for target.
 NightlyConfigure/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyConfigure.dir\build.make third_party/yaml/CMakeFiles/NightlyConfigure.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlyConfigure.dir\build.make external/yaml/CMakeFiles/NightlyConfigure.dir/build
 .PHONY : NightlyConfigure/fast
 
 #=============================================================================
@@ -295,7 +340,7 @@ NightlyBuild: cmake_check_build_system
 
 # fast build rule for target.
 NightlyBuild/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyBuild.dir\build.make third_party/yaml/CMakeFiles/NightlyBuild.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlyBuild.dir\build.make external/yaml/CMakeFiles/NightlyBuild.dir/build
 .PHONY : NightlyBuild/fast
 
 #=============================================================================
@@ -308,7 +353,7 @@ NightlyTest: cmake_check_build_system
 
 # fast build rule for target.
 NightlyTest/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyTest.dir\build.make third_party/yaml/CMakeFiles/NightlyTest.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlyTest.dir\build.make external/yaml/CMakeFiles/NightlyTest.dir/build
 .PHONY : NightlyTest/fast
 
 #=============================================================================
@@ -321,7 +366,7 @@ NightlyCoverage: cmake_check_build_system
 
 # fast build rule for target.
 NightlyCoverage/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyCoverage.dir\build.make third_party/yaml/CMakeFiles/NightlyCoverage.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlyCoverage.dir\build.make external/yaml/CMakeFiles/NightlyCoverage.dir/build
 .PHONY : NightlyCoverage/fast
 
 #=============================================================================
@@ -334,7 +379,7 @@ NightlyMemCheck: cmake_check_build_system
 
 # fast build rule for target.
 NightlyMemCheck/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlyMemCheck.dir\build.make third_party/yaml/CMakeFiles/NightlyMemCheck.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlyMemCheck.dir\build.make external/yaml/CMakeFiles/NightlyMemCheck.dir/build
 .PHONY : NightlyMemCheck/fast
 
 #=============================================================================
@@ -347,7 +392,7 @@ NightlySubmit: cmake_check_build_system
 
 # fast build rule for target.
 NightlySubmit/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\NightlySubmit.dir\build.make third_party/yaml/CMakeFiles/NightlySubmit.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\NightlySubmit.dir\build.make external/yaml/CMakeFiles/NightlySubmit.dir/build
 .PHONY : NightlySubmit/fast
 
 #=============================================================================
@@ -360,7 +405,7 @@ ExperimentalStart: cmake_check_build_system
 
 # fast build rule for target.
 ExperimentalStart/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalStart.dir\build.make third_party/yaml/CMakeFiles/ExperimentalStart.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ExperimentalStart.dir\build.make external/yaml/CMakeFiles/ExperimentalStart.dir/build
 .PHONY : ExperimentalStart/fast
 
 #=============================================================================
@@ -373,7 +418,7 @@ ExperimentalUpdate: cmake_check_build_system
 
 # fast build rule for target.
 ExperimentalUpdate/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalUpdate.dir\build.make third_party/yaml/CMakeFiles/ExperimentalUpdate.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ExperimentalUpdate.dir\build.make external/yaml/CMakeFiles/ExperimentalUpdate.dir/build
 .PHONY : ExperimentalUpdate/fast
 
 #=============================================================================
@@ -386,7 +431,7 @@ ExperimentalConfigure: cmake_check_build_system
 
 # fast build rule for target.
 ExperimentalConfigure/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalConfigure.dir\build.make third_party/yaml/CMakeFiles/ExperimentalConfigure.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ExperimentalConfigure.dir\build.make external/yaml/CMakeFiles/ExperimentalConfigure.dir/build
 .PHONY : ExperimentalConfigure/fast
 
 #=============================================================================
@@ -399,7 +444,7 @@ ExperimentalBuild: cmake_check_build_system
 
 # fast build rule for target.
 ExperimentalBuild/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalBuild.dir\build.make third_party/yaml/CMakeFiles/ExperimentalBuild.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ExperimentalBuild.dir\build.make external/yaml/CMakeFiles/ExperimentalBuild.dir/build
 .PHONY : ExperimentalBuild/fast
 
 #=============================================================================
@@ -412,7 +457,7 @@ ExperimentalTest: cmake_check_build_system
 
 # fast build rule for target.
 ExperimentalTest/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalTest.dir\build.make third_party/yaml/CMakeFiles/ExperimentalTest.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ExperimentalTest.dir\build.make external/yaml/CMakeFiles/ExperimentalTest.dir/build
 .PHONY : ExperimentalTest/fast
 
 #=============================================================================
@@ -425,7 +470,7 @@ ExperimentalCoverage: cmake_check_build_system
 
 # fast build rule for target.
 ExperimentalCoverage/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalCoverage.dir\build.make third_party/yaml/CMakeFiles/ExperimentalCoverage.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ExperimentalCoverage.dir\build.make external/yaml/CMakeFiles/ExperimentalCoverage.dir/build
 .PHONY : ExperimentalCoverage/fast
 
 #=============================================================================
@@ -438,7 +483,7 @@ ExperimentalMemCheck: cmake_check_build_system
 
 # fast build rule for target.
 ExperimentalMemCheck/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalMemCheck.dir\build.make third_party/yaml/CMakeFiles/ExperimentalMemCheck.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ExperimentalMemCheck.dir\build.make external/yaml/CMakeFiles/ExperimentalMemCheck.dir/build
 .PHONY : ExperimentalMemCheck/fast
 
 #=============================================================================
@@ -451,7 +496,7 @@ ExperimentalSubmit: cmake_check_build_system
 
 # fast build rule for target.
 ExperimentalSubmit/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ExperimentalSubmit.dir\build.make third_party/yaml/CMakeFiles/ExperimentalSubmit.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ExperimentalSubmit.dir\build.make external/yaml/CMakeFiles/ExperimentalSubmit.dir/build
 .PHONY : ExperimentalSubmit/fast
 
 #=============================================================================
@@ -464,7 +509,7 @@ ContinuousStart: cmake_check_build_system
 
 # fast build rule for target.
 ContinuousStart/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousStart.dir\build.make third_party/yaml/CMakeFiles/ContinuousStart.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ContinuousStart.dir\build.make external/yaml/CMakeFiles/ContinuousStart.dir/build
 .PHONY : ContinuousStart/fast
 
 #=============================================================================
@@ -477,7 +522,7 @@ ContinuousUpdate: cmake_check_build_system
 
 # fast build rule for target.
 ContinuousUpdate/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousUpdate.dir\build.make third_party/yaml/CMakeFiles/ContinuousUpdate.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ContinuousUpdate.dir\build.make external/yaml/CMakeFiles/ContinuousUpdate.dir/build
 .PHONY : ContinuousUpdate/fast
 
 #=============================================================================
@@ -490,7 +535,7 @@ ContinuousConfigure: cmake_check_build_system
 
 # fast build rule for target.
 ContinuousConfigure/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousConfigure.dir\build.make third_party/yaml/CMakeFiles/ContinuousConfigure.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ContinuousConfigure.dir\build.make external/yaml/CMakeFiles/ContinuousConfigure.dir/build
 .PHONY : ContinuousConfigure/fast
 
 #=============================================================================
@@ -503,7 +548,7 @@ ContinuousBuild: cmake_check_build_system
 
 # fast build rule for target.
 ContinuousBuild/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousBuild.dir\build.make third_party/yaml/CMakeFiles/ContinuousBuild.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ContinuousBuild.dir\build.make external/yaml/CMakeFiles/ContinuousBuild.dir/build
 .PHONY : ContinuousBuild/fast
 
 #=============================================================================
@@ -516,7 +561,7 @@ ContinuousTest: cmake_check_build_system
 
 # fast build rule for target.
 ContinuousTest/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousTest.dir\build.make third_party/yaml/CMakeFiles/ContinuousTest.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ContinuousTest.dir\build.make external/yaml/CMakeFiles/ContinuousTest.dir/build
 .PHONY : ContinuousTest/fast
 
 #=============================================================================
@@ -529,7 +574,7 @@ ContinuousCoverage: cmake_check_build_system
 
 # fast build rule for target.
 ContinuousCoverage/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousCoverage.dir\build.make third_party/yaml/CMakeFiles/ContinuousCoverage.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ContinuousCoverage.dir\build.make external/yaml/CMakeFiles/ContinuousCoverage.dir/build
 .PHONY : ContinuousCoverage/fast
 
 #=============================================================================
@@ -542,7 +587,7 @@ ContinuousMemCheck: cmake_check_build_system
 
 # fast build rule for target.
 ContinuousMemCheck/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousMemCheck.dir\build.make third_party/yaml/CMakeFiles/ContinuousMemCheck.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ContinuousMemCheck.dir\build.make external/yaml/CMakeFiles/ContinuousMemCheck.dir/build
 .PHONY : ContinuousMemCheck/fast
 
 #=============================================================================
@@ -555,7 +600,7 @@ ContinuousSubmit: cmake_check_build_system
 
 # fast build rule for target.
 ContinuousSubmit/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\ContinuousSubmit.dir\build.make third_party/yaml/CMakeFiles/ContinuousSubmit.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\ContinuousSubmit.dir\build.make external/yaml/CMakeFiles/ContinuousSubmit.dir/build
 .PHONY : ContinuousSubmit/fast
 
 #=============================================================================
@@ -568,7 +613,7 @@ yaml-cpp: cmake_check_build_system
 
 # fast build rule for target.
 yaml-cpp/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\yaml-cpp.dir\build.make third_party/yaml/CMakeFiles/yaml-cpp.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\yaml-cpp.dir\build.make external/yaml/CMakeFiles/yaml-cpp.dir/build
 .PHONY : yaml-cpp/fast
 
 #=============================================================================
@@ -581,7 +626,7 @@ yaml-cpp_autogen_timestamp_deps: cmake_check_build_system
 
 # fast build rule for target.
 yaml-cpp_autogen_timestamp_deps/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\yaml-cpp_autogen_timestamp_deps.dir\build.make third_party/yaml/CMakeFiles/yaml-cpp_autogen_timestamp_deps.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\yaml-cpp_autogen_timestamp_deps.dir\build.make external/yaml/CMakeFiles/yaml-cpp_autogen_timestamp_deps.dir/build
 .PHONY : yaml-cpp_autogen_timestamp_deps/fast
 
 #=============================================================================
@@ -594,8 +639,47 @@ yaml-cpp_autogen: cmake_check_build_system
 
 # fast build rule for target.
 yaml-cpp_autogen/fast:
-	$(MAKE) $(MAKESILENT) -f third_party\yaml\CMakeFiles\yaml-cpp_autogen.dir\build.make third_party/yaml/CMakeFiles/yaml-cpp_autogen.dir/build
+	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\yaml-cpp_autogen.dir\build.make external/yaml/CMakeFiles/yaml-cpp_autogen.dir/build
 .PHONY : yaml-cpp_autogen/fast
+
+#=============================================================================
+# Target rules for targets named box2d
+
+# Build rule for target.
+box2d: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 box2d
+.PHONY : box2d
+
+# fast build rule for target.
+box2d/fast:
+	$(MAKE) $(MAKESILENT) -f external\box2d\src\CMakeFiles\box2d.dir\build.make external/box2d/src/CMakeFiles/box2d.dir/build
+.PHONY : box2d/fast
+
+#=============================================================================
+# Target rules for targets named box2d_autogen_timestamp_deps
+
+# Build rule for target.
+box2d_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 box2d_autogen_timestamp_deps
+.PHONY : box2d_autogen_timestamp_deps
+
+# fast build rule for target.
+box2d_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f external\box2d\src\CMakeFiles\box2d_autogen_timestamp_deps.dir\build.make external/box2d/src/CMakeFiles/box2d_autogen_timestamp_deps.dir/build
+.PHONY : box2d_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named box2d_autogen
+
+# Build rule for target.
+box2d_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 box2d_autogen
+.PHONY : box2d_autogen
+
+# fast build rule for target.
+box2d_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f external\box2d\src\CMakeFiles\box2d_autogen.dir\build.make external/box2d/src/CMakeFiles/box2d_autogen.dir/build
+.PHONY : box2d_autogen/fast
 
 RockEngine_autogen/mocs_compilation.obj: RockEngine_autogen/mocs_compilation.cpp.obj
 .PHONY : RockEngine_autogen/mocs_compilation.obj
@@ -1060,6 +1144,10 @@ help:
 	@echo ... clean
 	@echo ... depend
 	@echo ... edit_cache
+	@echo ... install
+	@echo ... install/local
+	@echo ... install/strip
+	@echo ... list_install_components
 	@echo ... rebuild_cache
 	@echo ... Continuous
 	@echo ... ContinuousBuild
@@ -1091,11 +1179,14 @@ help:
 	@echo ... NightlyUpdate
 	@echo ... RockEngine_autogen
 	@echo ... RockEngine_autogen_timestamp_deps
+	@echo ... box2d_autogen
+	@echo ... box2d_autogen_timestamp_deps
 	@echo ... glm_autogen
 	@echo ... glm_autogen_timestamp_deps
 	@echo ... yaml-cpp_autogen
 	@echo ... yaml-cpp_autogen_timestamp_deps
 	@echo ... RockEngine
+	@echo ... box2d
 	@echo ... glm
 	@echo ... yaml-cpp
 	@echo ... RockEngine_autogen/mocs_compilation.obj

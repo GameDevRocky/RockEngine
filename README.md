@@ -1,2 +1,2 @@
 # RockEngine
-A Python Game Engine for 2D Games
+A C++ Game Engine for 2D Games
