@@ -225,9 +225,9 @@ external/yaml/clean: external/yaml/CMakeFiles/yaml-cpp_autogen.dir/clean
 # All Build rule for target.
 CMakeFiles/RockEngine.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 CMakeFiles/RockEngine.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
-CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
 CMakeFiles/RockEngine.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen.dir/all
+CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21 "Built target RockEngine"
@@ -325,8 +325,8 @@ CMakeFiles/RockEngine_autogen.dir/clean:
 # Target rules for target external/glm/glm/CMakeFiles/glm.dir
 
 # All Build rule for target.
-external/glm/glm/CMakeFiles/glm.dir/all: external/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/all
 external/glm/glm/CMakeFiles/glm.dir/all: external/glm/glm/CMakeFiles/glm_autogen.dir/all
+external/glm/glm/CMakeFiles/glm.dir/all: external/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm.dir\build.make external/glm/glm/CMakeFiles/glm.dir/depend
 	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm.dir\build.make external/glm/glm/CMakeFiles/glm.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=60,61,62,63 "Built target glm"
@@ -1318,8 +1318,8 @@ external/yaml/CMakeFiles/ContinuousSubmit.dir/clean:
 # Target rules for target external/yaml/CMakeFiles/yaml-cpp.dir
 
 # All Build rule for target.
-external/yaml/CMakeFiles/yaml-cpp.dir/all: external/yaml/CMakeFiles/yaml-cpp_autogen_timestamp_deps.dir/all
 external/yaml/CMakeFiles/yaml-cpp.dir/all: external/yaml/CMakeFiles/yaml-cpp_autogen.dir/all
+external/yaml/CMakeFiles/yaml-cpp.dir/all: external/yaml/CMakeFiles/yaml-cpp_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\yaml-cpp.dir\build.make external/yaml/CMakeFiles/yaml-cpp.dir/depend
 	$(MAKE) $(MAKESILENT) -f external\yaml\CMakeFiles\yaml-cpp.dir\build.make external/yaml/CMakeFiles/yaml-cpp.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98 "Built target yaml-cpp"
