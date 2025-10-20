@@ -1,13 +1,13 @@
-#include "engine/core/Application.hpp"
+#include "engine/Engine.hpp"
 #include "editor/Editor.hpp"
 #include <iostream>
 
 int main(int argc, char *argv[]) {
     
-    Application &app = Application::Get();
+    Engine &engine = Engine::Get();
     Editor &editor = Editor::Get();
-    app.Init();
+    engine.Init();
     editor.Init();
-    app.Shutdown();
+    engine.Shutdown();
     return -1;
 }
