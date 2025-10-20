@@ -1,7 +1,7 @@
 #include "engine/core/GameObject.hpp"
 #include <iostream>
 #include "engine/serialization/Registry.hpp"
-#include "engine/core/Component.hpp"
+#include "engine/components/Component.hpp"
 #include "engine/components/Transform.hpp"
 
 YAML::Node GameObject::Serialize() {

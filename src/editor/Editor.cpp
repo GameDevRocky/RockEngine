@@ -13,7 +13,7 @@ void Editor::Init() {
 
     timer = new QTimer();
     QObject::connect(timer, &QTimer::timeout, []() {
-        Application::Get().Run(); // assuming Application::Run() is a static function
+        Engine::Get().Run(); // assuming Application::Run() is a static function
     });
     timer->start(16); // roughly 60 FPS
 

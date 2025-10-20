@@ -3,7 +3,6 @@ set -e
 
 # Qt CMake path
 export CMAKE_PREFIX_PATH="C:/Qt/6.10.0/mingw_64/lib/cmake"
-
 # Add Qt + MinGW to PATH
 export PATH="C:/Qt/Tools/mingw1310_64/bin:C:/Qt/6.10.0/mingw_64/bin:$PATH"
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "engine/core/Component.hpp"
+#include "engine/components/Component.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
 #include "yaml-cpp/yaml.h"
 #include <glm/glm.hpp>

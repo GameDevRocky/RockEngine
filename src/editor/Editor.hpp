@@ -1,7 +1,7 @@
 #pragma once
 #include <QApplication>
 #include <engine/core/System.hpp>
-#include <engine/core/Application.hpp>
+#include <engine/Engine.hpp>
 #include <QTimer>
 
 class Editor : public System {

@@ -1,7 +1,7 @@
 #include "engine/core/Scene.hpp"
 #include <iostream>
 #include "engine/core/GameObject.hpp"
-#include "engine/core/Component.hpp"
+#include "engine/components/Component.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
 
