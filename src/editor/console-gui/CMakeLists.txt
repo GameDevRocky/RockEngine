@@ -1,5 +1,6 @@
 file(GLOB_RECURSE EDITOR_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"
 )
 
 add_library(ConsoleGui STATIC ${EDITOR_SRC})
@@ -11,9 +12,8 @@ target_include_directories(ConsoleGui
 )
 
 target_link_libraries(ConsoleGui
-    PRIVATE 
-        Qt6::Core 
-        Qt6::Gui 
-        Qt6::Widgets 
-    
+    PRIVATE
+        Qt6::Core
+        Qt6::Gui
+        Qt6::Widgets
 )

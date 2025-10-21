@@ -7,7 +7,7 @@ void Editor::Init() {
     int argc = 0;
     char** argv = nullptr;
     app = new QApplication(argc, argv);
-    ConsoleGui &console_window = ConsoleGui::Get();
+    ConsoleGui& console_window = *ConsoleGui::Get();
     console_window.show();
     timer = new QTimer();
     QObject::connect(timer, &QTimer::timeout, [this]() {

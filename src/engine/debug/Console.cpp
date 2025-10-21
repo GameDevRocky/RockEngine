@@ -1,6 +1,7 @@
 #include "engine/debug/Console.hpp"
 
 void Console::Comment(const std::string& message) {
+    
     auto& comments = Console::Get().comments;
     auto it = comments.find(message);
 

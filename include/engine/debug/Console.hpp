@@ -24,7 +24,7 @@ public:
     static std::unordered_map<std::string, int>& GetAlerts();
 
 protected:
-    Console() = default;
+    Console():System(){};
 
 
 private:
