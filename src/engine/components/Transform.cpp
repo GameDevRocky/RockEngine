@@ -26,7 +26,6 @@ void Transform::Deserialize(const YAML::Node& node){
         }
     }
 void Transform::PostDeserialize(){
-    std::cout << "x: " << position.x << " y: " << position.y << std::endl;
     
 }
 
