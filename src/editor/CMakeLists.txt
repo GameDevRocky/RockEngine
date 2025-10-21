@@ -1,8 +1,11 @@
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTORCC ON)
+add_subdirectory(console-gui)
+
 add_library(Editor STATIC
     Editor.cpp
     Editor.hpp
-    EditorWindow.cpp
-    EditorWindow.hpp
 )
 
 target_include_directories(Editor
@@ -12,5 +15,10 @@ target_include_directories(Editor
 )
 
 target_link_libraries(Editor
-    PUBLIC Qt6::Core Qt6::Gui Qt6::Widgets yaml-cpp
+    PUBLIC 
+    Qt6::Core
+    Qt6::Gui 
+    Qt6::Widgets 
+    yaml-cpp
+    ConsoleGui
 )

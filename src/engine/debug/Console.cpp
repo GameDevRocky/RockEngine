@@ -1,6 +1,6 @@
 #include "engine/debug/Console.hpp"
 
-static void Comment(const std::string& message) {
+void Console::Comment(const std::string& message) {
     auto& comments = Console::Get().comments;
     auto it = comments.find(message);
 
@@ -9,10 +9,11 @@ static void Comment(const std::string& message) {
     } else {
         comments[message] = 1;
     }
+    Console::Get().Notify();
+    std::cout << "Comment: " << message << std::endl; 
 }
 
-
-static void Warn(std::string message){
+void Console::Warn(const std::string &message){
     auto& warnings = Console::Get().warnings;
     auto it = warnings.find(message);
 
@@ -21,10 +22,11 @@ static void Warn(std::string message){
     } else {
         warnings[message] = 1;
     }
-
+    Console::Get().Notify();
+    std::cout << "Warning: " << message << std::endl; 
 }
 
-static void Alert(std::string message){
+void Console::Alert(const std::string &message){
     auto& alerts = Console::Get().alerts;
     auto it = alerts.find(message);
 
@@ -33,5 +35,25 @@ static void Alert(std::string message){
     } else {
         alerts[message] = 1;
     }
+    Console::Get().Notify();
+    std::cout << "Alert: " << message << std::endl;  
+}
+
+std::unordered_map<std::string, int>& Console::GetComments(){
+    return Console::Get().comments;
+}
+
+std::unordered_map<std::string, int>& Console::GetWarnings(){
+    return Console::Get().warnings;
+}
+
+std::unordered_map<std::string, int>& Console::GetAlerts(){
+    return Console::Get().alerts;
+}
+
+void Console::Update(){
+
+}
+void Console::Shutdown(){
 
 }

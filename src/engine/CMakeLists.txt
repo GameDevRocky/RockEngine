@@ -3,6 +3,7 @@ add_subdirectory(core)
 add_subdirectory(rendering)
 add_subdirectory(serialization)
 add_subdirectory(utils)
+add_subdirectory(debug)
 
 add_library(Engine STATIC
     Engine.cpp
@@ -18,6 +19,8 @@ target_link_libraries(Engine
     PUBLIC
         Components
         Core
+        Rendering
+        Debug
         Serialization
         Utils
         glm::glm

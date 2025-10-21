@@ -1,27 +1,27 @@
 #include "Editor.hpp"
-#include "EditorWindow.hpp"
 #include <QApplication>
 #include <QTimer>
+#include "console-gui/ConsoleGui.hpp"
 
 void Editor::Init() {
     int argc = 0;
     char** argv = nullptr;
     app = new QApplication(argc, argv);
-
-    EditorWindow& window = EditorWindow::Get();
-    window.Init();
-
+    ConsoleGui &console_window = ConsoleGui::Get();
+    console_window.show();
     timer = new QTimer();
-    QObject::connect(timer, &QTimer::timeout, []() {
-        Engine::Get().Run(); // assuming Application::Run() is a static function
+    QObject::connect(timer, &QTimer::timeout, [this]() {
+        Engine::Get().Run();
     });
-    timer->start(16); // roughly 60 FPS
 
+    timer->start(16);
     app->exec();
+    delete timer;
+    delete app;
 }
 
 void Editor::Update() {
-    // not needed if using QTimer + app->exec()
+
 }
 
 void Editor::Shutdown() {

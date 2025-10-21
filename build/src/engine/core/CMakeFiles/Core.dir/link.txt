@@ -1,2 +1,0 @@
-C:\msys64\ucrt64\bin\ar.exe qc libCore.a CMakeFiles/Core.dir/Core_autogen/mocs_compilation.cpp.obj CMakeFiles/Core.dir/GameObject.cpp.obj CMakeFiles/Core.dir/InputManager.cpp.obj CMakeFiles/Core.dir/Observable.cpp.obj CMakeFiles/Core.dir/Scene.cpp.obj CMakeFiles/Core.dir/SceneManager.cpp.obj CMakeFiles/Core.dir/System.cpp.obj CMakeFiles/Core.dir/TimeManager.cpp.obj
-C:\msys64\ucrt64\bin\ranlib.exe libCore.a

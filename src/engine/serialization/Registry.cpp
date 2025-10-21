@@ -1,6 +1,7 @@
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/Serializable.hpp" // ✅ required for GetID()
 #include <algorithm>
+#include "engine/debug/Console.hpp"
 
 void Registry::Register(Serializable* obj) {
     if (!obj) return;
@@ -36,19 +37,17 @@ Serializable* Registry::Get(const std::string& id) {
 }
 
 void Registry::DeferLink(const std::string& targetUUID, std::function<void(Serializable*)> setter) {
-    // If object is already registered, resolve immediately
     if (auto* obj = Get(targetUUID)) {
         setter(obj);
         return;
     }
 
-    // Otherwise, defer until that ID is registered
     deferredLinks.push_back({setter, targetUUID});
 }
 
 void Registry::ResolveLinks() {
     if (deferredLinks.empty()) {
-        std::cout << "All links resolved.\n";
+        Console::Comment("All links resolved");
         return;
     }
 
