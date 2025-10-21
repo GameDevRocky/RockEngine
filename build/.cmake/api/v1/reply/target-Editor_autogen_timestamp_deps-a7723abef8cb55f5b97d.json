@@ -1,0 +1,34 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"src/editor/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 0,
+			"id" : "yaml-cpp::@423024c5e821cb2e5096"
+		}
+	],
+	"id" : "Editor_autogen_timestamp_deps::@01b63ccde04debc086b6",
+	"isGeneratorProvided" : true,
+	"name" : "Editor_autogen_timestamp_deps",
+	"paths" : 
+	{
+		"build" : "src/editor",
+		"source" : "src/editor"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

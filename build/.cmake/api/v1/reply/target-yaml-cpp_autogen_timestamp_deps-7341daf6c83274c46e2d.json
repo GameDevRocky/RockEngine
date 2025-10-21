@@ -1,0 +1,27 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"external/yaml/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"id" : "yaml-cpp_autogen_timestamp_deps::@423024c5e821cb2e5096",
+	"isGeneratorProvided" : true,
+	"name" : "yaml-cpp_autogen_timestamp_deps",
+	"paths" : 
+	{
+		"build" : "external/yaml",
+		"source" : "external/yaml"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

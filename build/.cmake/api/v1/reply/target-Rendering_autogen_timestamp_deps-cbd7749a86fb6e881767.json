@@ -1,0 +1,42 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"src/engine/rendering/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 0,
+			"id" : "glm::@d090a432591bc19a3a56"
+		},
+		{
+			"backtrace" : 0,
+			"id" : "yaml-cpp::@423024c5e821cb2e5096"
+		},
+		{
+			"backtrace" : 0,
+			"id" : "box2d::@47f6c3280e91e140bb38"
+		}
+	],
+	"id" : "Rendering_autogen_timestamp_deps::@b58d2feb847929c660e2",
+	"isGeneratorProvided" : true,
+	"name" : "Rendering_autogen_timestamp_deps",
+	"paths" : 
+	{
+		"build" : "src/engine/rendering",
+		"source" : "src/engine/rendering"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

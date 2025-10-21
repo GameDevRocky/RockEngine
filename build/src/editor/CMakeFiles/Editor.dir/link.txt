@@ -1,0 +1,2 @@
+C:\msys64\ucrt64\bin\ar.exe qc libEditor.a CMakeFiles/Editor.dir/Editor_autogen/mocs_compilation.cpp.obj CMakeFiles/Editor.dir/Editor.cpp.obj CMakeFiles/Editor.dir/EditorWindow.cpp.obj
+C:\msys64\ucrt64\bin\ranlib.exe libEditor.a

@@ -1,0 +1,34 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"src/engine/serialization/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 0,
+			"id" : "yaml-cpp::@423024c5e821cb2e5096"
+		}
+	],
+	"id" : "Serialization_autogen_timestamp_deps::@c6590f203060f93570ff",
+	"isGeneratorProvided" : true,
+	"name" : "Serialization_autogen_timestamp_deps",
+	"paths" : 
+	{
+		"build" : "src/engine/serialization",
+		"source" : "src/engine/serialization"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

@@ -14,8 +14,6 @@ YAML::Node Transform::Serialize(){
 
 void Transform::Deserialize(const YAML::Node& node){
         Component::Deserialize(node);
-        std::cout << "Nothing Yet" << std::endl;
-
         position.x = node["position"][0].as<float>();
         position.y = node["position"][1].as<float>();
         

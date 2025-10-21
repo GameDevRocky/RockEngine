@@ -1,0 +1,46 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"src/engine/core/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 0,
+			"id" : "glm::@d090a432591bc19a3a56"
+		},
+		{
+			"backtrace" : 0,
+			"id" : "yaml-cpp::@423024c5e821cb2e5096"
+		},
+		{
+			"backtrace" : 0,
+			"id" : "box2d::@47f6c3280e91e140bb38"
+		},
+		{
+			"backtrace" : 0,
+			"id" : "Components::@f59c1d1ad96d65f80253"
+		}
+	],
+	"id" : "Core_autogen_timestamp_deps::@f6e09a354aeb77c46665",
+	"isGeneratorProvided" : true,
+	"name" : "Core_autogen_timestamp_deps",
+	"paths" : 
+	{
+		"build" : "src/engine/core",
+		"source" : "src/engine/core"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

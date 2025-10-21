@@ -1,0 +1,2 @@
+C:\msys64\ucrt64\bin\ar.exe qc libComponents.a CMakeFiles/Components.dir/Components_autogen/mocs_compilation.cpp.obj CMakeFiles/Components.dir/Component.cpp.obj CMakeFiles/Components.dir/Transform.cpp.obj
+C:\msys64\ucrt64\bin\ranlib.exe libComponents.a
