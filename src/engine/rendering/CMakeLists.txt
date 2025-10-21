@@ -4,7 +4,6 @@ file(GLOB_RECURSE ENGINE_SRC
 
 add_library(Rendering STATIC ${ENGINE_SRC})
 
-# Include headers
 target_include_directories(Rendering
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include

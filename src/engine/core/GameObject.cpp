@@ -30,9 +30,6 @@ void GameObject::Deserialize(const YAML::Node& node) {
             Registry::Get().DeferLink(cid, [this](Serializable* obj) {
                 if (auto* comp = dynamic_cast<Component*>(obj)) {
                     this->components.push_back(comp);
-
-                    std::cout << "Linked Component (via Defer): " << comp->GetTypeName()
-                              << " (ID: " << comp->GetID() << ")\n";
                 } else {
                     std::cerr << "[DeferLink] Invalid component type for ID.\n";
                 }
@@ -44,4 +41,5 @@ void GameObject::Deserialize(const YAML::Node& node) {
 
 void GameObject::PostDeserialize() {
     transform = GetComponent<Transform>();
+    transform->Translate(glm::vec2(5,9));
 }

@@ -4,6 +4,7 @@
 #include "engine/components/Component.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
+#include <typeinfo>
 
 void Scene::Init() {
     std::cout << "Initializing scene: " << std::endl;
@@ -42,6 +43,7 @@ void Scene::Deserialize(const YAML::Node& data) {
         for (const auto& compNode : data["components"]) {
             std::string typeName = compNode["type"].as<std::string>();
             Serializable* created = SerializableFactory::Create(typeName);
+
             if (!created) continue;
 
             Component* comp = dynamic_cast<Component*>(created);
@@ -52,10 +54,11 @@ void Scene::Deserialize(const YAML::Node& data) {
             }
             comp->Deserialize(compNode);
             Registry::Get().Register(comp);
+
         }
     }
     Registry::Get().ResolveLinks();
-    
+
     for (auto& [id, obj] : Registry::Get().GetAll()){
         obj->PostDeserialize();
     }

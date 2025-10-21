@@ -8,16 +8,19 @@
 
 class Transform : public Component {
 public:
-    glm::vec2 position = {100.0f, 50.0f};
-    float rotation = 0.0f; // in degrees
+    glm::vec2 position = {0.0f, 0.0f};
+    float rotation = 0.0f;
     glm::vec2 scale = {1.0f, 1.0f};
 
     YAML::Node Serialize() override;
-
     void Deserialize(const YAML::Node& node) override;
+    void PostDeserialize() override;
     std::string GetTypeName() const override { return "Transform"; }
 
-  
+    void Translate(glm::vec2 translation) {
+        position += translation;
+    }
+
     glm::mat4 GetTransformMatrix() const;
 };
 

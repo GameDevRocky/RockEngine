@@ -48,11 +48,11 @@ void Registry::DeferLink(const std::string& targetUUID, std::function<void(Seria
 
 void Registry::ResolveLinks() {
     if (deferredLinks.empty()) {
-        std::cout << "✅ All links resolved.\n";
+        std::cout << "All links resolved.\n";
         return;
     }
 
-    std::cerr << "⚠️ Unresolved links remaining:\n";
+    std::cerr << "Unresolved links remaining:\n";
     for (auto& link : deferredLinks) {
         std::cerr << "  - Missing target UUID: " << link.targetUUID << std::endl;
     }

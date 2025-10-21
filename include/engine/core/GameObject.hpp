@@ -11,6 +11,8 @@ class Transform;
 class GameObject : public Serializable {
 
 public:
+    std::string name;
+
     GameObject() = default;
     ~GameObject() =default;
 
@@ -40,7 +42,6 @@ public:
     Transform* transform = nullptr;
 
 private:
-    std::string name;
     std::vector<Component*> components;
     std::vector<std::string> component_ids;
 };

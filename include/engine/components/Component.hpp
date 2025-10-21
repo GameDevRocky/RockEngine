@@ -14,7 +14,7 @@ public:
         YAML::Node node = Serializable::Serialize();
         return node;
     }
-    virtual void Deserialize(YAML::Node node);
+    virtual void Deserialize(const YAML::Node& node) override;
     virtual void Link(){
         
     }
