@@ -1,60 +1,56 @@
 #include "engine/debug/Console.hpp"
+#include <filesystem>
 
-void Console::Comment(const std::string& message) {
+void Console::Update() {}
+void Console::Shutdown() {}
+
+void Console::CreateMessage(std::string message, std::string type, const std::source_location loc){
+    Console& instance = Get();
     
-    auto& comments = Console::Get().comments;
-    auto it = comments.find(message);
+    std::string full_path = loc.file_name();
+    std::filesystem::path path(full_path);
+    std::string path_str = path.generic_string();    
+    size_t pos = path_str.find("src/");
+    std::string file_name = (pos == std::string::npos) ? path_str : path_str.substr(pos);
 
-    if (it != comments.end()) {
-        it->second += 1; 
-    } else {
-        comments[message] = 1;
-    }
-    Console::Get().Notify();
-    std::cout << "Comment: " << message << std::endl; 
-}
+    int line = loc.line();
+    std::string function = loc.function_name();
+    std::string text = message;
+    float time_stamp = TimeManager::Get().ElapsedTime();
 
-void Console::Warn(const std::string &message){
-    auto& warnings = Console::Get().warnings;
-    auto it = warnings.find(message);
+    auto& msg = instance.comments[message];
+    msg.count++;
+    msg.count = msg.count > 999 ? 999 : msg.count;
+    msg.file_name = file_name;
+    msg.text = text;
+    msg.time_stamp = time_stamp;
+    msg.type = type;
 
-    if (it != warnings.end()) {
-        it->second += 1; 
-    } else {
-        warnings[message] = 1;
-    }
-    Console::Get().Notify();
-    std::cout << "Warning: " << message << std::endl; 
-}
-
-void Console::Alert(const std::string &message){
-    auto& alerts = Console::Get().alerts;
-    auto it = alerts.find(message);
-
-    if (it != alerts.end()) {
-        it->second += 1; 
-    } else {
-        alerts[message] = 1;
-    }
-    Console::Get().Notify();
-    std::cout << "Alert: " << message << std::endl;  
-}
-
-std::unordered_map<std::string, int>& Console::GetComments(){
-    return Console::Get().comments;
-}
-
-std::unordered_map<std::string, int>& Console::GetWarnings(){
-    return Console::Get().warnings;
-}
-
-std::unordered_map<std::string, int>& Console::GetAlerts(){
-    return Console::Get().alerts;
-}
-
-void Console::Update(){
+    instance.Notify();
 
 }
-void Console::Shutdown(){
 
+void Console::Comment(const std::string &message,
+                      const std::source_location& loc)
+{
+    CreateMessage(message, "comment", loc);
+    
+}
+
+void Console::Warn(const std::string &message,
+                   const std::source_location& loc)
+{
+   CreateMessage(message, "warning", loc);
+}
+
+void Console::Alert(const std::string &message,
+                    const std::source_location& loc)
+{
+  CreateMessage(message, "alert", loc);
+}
+
+void Console::Clear(){
+    comments.clear();
+    warnings.clear();
+    alerts.clear();
 }

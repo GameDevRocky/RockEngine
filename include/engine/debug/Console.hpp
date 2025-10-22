@@ -3,6 +3,9 @@
 #include <string>
 #include <unordered_map>
 #include <iostream>
+#include <source_location>
+#include "engine/core/TimeManager.hpp"
+#include "Message.hpp"
 
 class Console : public System {
 public:
@@ -15,20 +18,28 @@ public:
     void Update() override;
     void Shutdown() override;
 
-    static void Comment(const std::string &message);
-    static void Warn(const std::string &message);
-    static void Alert(const std::string &message);
+    void Clear();
 
-    static std::unordered_map<std::string, int>& GetComments();
-    static std::unordered_map<std::string, int>& GetWarnings();
-    static std::unordered_map<std::string, int>& GetAlerts();
+    static void Comment(const std::string &message,
+                    const std::source_location& loc = std::source_location::current());
+    static void Warn(const std::string &message,
+                    const std::source_location& loc = std::source_location::current());
+    static void Alert(const std::string &message,
+                    const std::source_location& loc = std::source_location::current());
+
+    static std::unordered_map<std::string, Message>& GetComments(){return Get().comments;}
+    static std::unordered_map<std::string, Message>& GetWarnings(){return Get().warnings;}
+    static std::unordered_map<std::string, Message>& GetAlerts(){return Get().alerts;}
+
+    
 
 protected:
     Console():System(){};
 
 
 private:
-    std::unordered_map<std::string, int> comments;
-    std::unordered_map<std::string, int> warnings;
-    std::unordered_map<std::string, int> alerts;
+    static void CreateMessage(std::string message, std::string type, const std::source_location loc);
+    std::unordered_map<std::string, Message> comments;
+    std::unordered_map<std::string, Message> warnings;
+    std::unordered_map<std::string, Message> alerts;
 };

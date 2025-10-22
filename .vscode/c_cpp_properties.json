@@ -19,7 +19,7 @@
             ],
             "compilerPath": "C:/Qt/Tools/mingw1310_64/bin/g++.exe",
             "cStandard": "c17",
-            "cppStandard": "c++17",
+            "cppStandard": "c++20",
             "intelliSenseMode": "windows-gcc-x64"
         }
     ],

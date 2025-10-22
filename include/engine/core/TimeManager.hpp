@@ -16,6 +16,7 @@ public:
     float FixedDeltaTime() const { return fixedDeltaTime; }
     float UnscaledTime() const { return unscaledTime; }
     float UnscaledDeltaTime() const { return unscaledDeltaTime; }
+    float ElapsedTime() const { return elapsedTime; }
     float UnscaledFixedDeltaTime() const { return unscaledFixedDeltaTime; }
     float TimeScale() const { return timeScale; }
 

@@ -1,7 +1,7 @@
 #include "engine/Engine.hpp"
 #include "engine/core/TimeManager.hpp"
 #include <iostream>
-
+#include "engine/debug/Console.hpp"
 void Engine::Init() {
     InputManager::Get().Init();
     SceneManager::Get().Init();
@@ -13,6 +13,7 @@ void Engine::Run() {
     InputManager::Get().Update();
     SceneManager::Get().Update();
     TimeManager::Get().Update();
+    Console::Warn("Hello");
     SetActive(false);
     
 }

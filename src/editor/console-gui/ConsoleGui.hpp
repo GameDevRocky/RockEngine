@@ -1,6 +1,7 @@
 #pragma once
 #include <QWidget>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QResizeEvent>
 #include "engine/debug/Console.hpp"
 
@@ -15,8 +16,12 @@ public:
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
+    void GenerateWidgets();
 
 private:
     explicit ConsoleGui(QWidget* parent = nullptr);
     QPushButton* button;
+    QScrollArea* content;
+
+
 };
