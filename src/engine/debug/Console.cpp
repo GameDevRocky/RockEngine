@@ -63,4 +63,8 @@ void Console::Clear(){
     }
     Get().messages.clear();
     Get().Notify();
+    Console::Comment("Cleared");
+    Console::Warn("All messages have been cleared");
+    Console::Alert("You will no longer have access to previos messages");
+
 }
