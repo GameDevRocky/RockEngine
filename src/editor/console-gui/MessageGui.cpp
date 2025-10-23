@@ -29,10 +29,9 @@ QLabel#countLabel {
 
 constexpr const char* WARNING_STYLESHEET = R"(
 QWidget {
-    background-color: #3B2A14;
+    background-color: #252525;
     color: #FFF3C1;
     border-radius: 6px;
-    border: 1px solid #FFA500;
 }
 QWidget#body{
     border: 1px solid #FFA500;
@@ -50,7 +49,7 @@ QLabel#countLabel {
 
 constexpr const char* ALERT_STYLESHEET = R"(
 QWidget {
-    background-color: #3A1E1E;
+    background-color: #252525;
     color: #F5C6CB;
     border-radius: 6px;
 }
@@ -98,11 +97,11 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
 
     // --- Layout ---
     auto* main_layout = new QVBoxLayout(this);
-    main_layout->setContentsMargins(10, 6, 10, 6);
-    main_layout->setSpacing(4);
+    main_layout->setContentsMargins(10,10,10,10);
+    main_layout->setSpacing(0);
 
     auto* header_layout = new QHBoxLayout();
-    header_layout->setSpacing(16);
+    header_layout->setSpacing(8);
     header_layout->setContentsMargins(0,0,0,0);
     header_layout->addWidget(type);
     header_layout->addWidget(file_path, 1);
@@ -116,16 +115,15 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     main_layout->addLayout(header_layout);
     main_layout->addWidget(divider);
     main_layout->addWidget(text);
-    main_layout->addStretch(0); 
 
     setLayout(main_layout);
 
     // --- Set stylesheet based on type ---
     if (msg) {
         std::string t = msg->type;
-        if (t == "[COMMENT]") setStyleSheet(COMMENT_STYLESHEET);
-        else if (t == "[WARNING]") setStyleSheet(WARNING_STYLESHEET);
-        else if (t == "[ALERT]") setStyleSheet(ALERT_STYLESHEET);
+        if (t == "comment") setStyleSheet(COMMENT_STYLESHEET);
+        else if (t == "warning") setStyleSheet(WARNING_STYLESHEET);
+        else if (t == "alert") setStyleSheet(ALERT_STYLESHEET);
         else setStyleSheet(COMMENT_STYLESHEET);
     }
 
