@@ -16,7 +16,7 @@ QWidget#body{
 }
 QLabel {
     font-family: Consolas;
-    font-size: 14px;
+    font-size: 13px;
 }
 QLabel#file_name {
     font-weight: 600;
@@ -38,7 +38,7 @@ QWidget#body{
 }
 QLabel {
     font-family: Consolas;
-    font-size: 14px;
+    font-size: 13px;
 }
 QLabel#countLabel {
     color: #FFC400;
@@ -58,7 +58,7 @@ QWidget#body{
 }
 QLabel {
     font-family: Consolas;
-    font-size: 14px;
+    font-size: 13px;
 }
 QLabel#countLabel {
     color: #FF7A7A;
@@ -72,13 +72,11 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     if (msg)
         msg->Subscribe([this]() { Update(); });
 
-    // --- Widget creation ---
     file_path = new EditorUtils::ClickableLabel(this);
     count = new QLabel(this);
     text = new QLabel(this);
     type = new QLabel(this);
 
-    // --- Size policy ---
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     setMinimumHeight(0);
     setMaximumHeight(QWIDGETSIZE_MAX);
@@ -95,7 +93,6 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     type->setStyleSheet("font-weight: bold; text-transform: uppercase;");
     count->setAlignment(Qt::AlignRight);
 
-    // --- Layout ---
     auto* main_layout = new QVBoxLayout(this);
     main_layout->setContentsMargins(10,10,10,10);
     main_layout->setSpacing(0);
@@ -118,7 +115,6 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
 
     setLayout(main_layout);
 
-    // --- Set stylesheet based on type ---
     if (msg) {
         std::string t = msg->type;
         if (t == "comment") setStyleSheet(COMMENT_STYLESHEET);

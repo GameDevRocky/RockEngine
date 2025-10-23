@@ -76,9 +76,9 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     content = new QScrollArea(this);
     QWidget* scrollWidget = new QWidget();
     scrollLayout = new QVBoxLayout(scrollWidget);
-    scrollLayout->setContentsMargins(5, 5, 5, 5);
+    scrollLayout->setContentsMargins(4, 4, 4, 4);
     scrollLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
-    scrollLayout->setSpacing(12);
+    scrollLayout->setSpacing(4);
     scrollLayout->setAlignment(Qt::AlignTop);
 
     scrollWidget->setLayout(scrollLayout);
@@ -87,6 +87,7 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     content->setWidgetResizable(true);
 
     clear_button = new QPushButton("Clear", this);
+    clear_button->setStyleSheet("font-size : 13px");
     QWidget* content_bar = new QWidget(this);
     QHBoxLayout* bar_layout = new QHBoxLayout(this);
     bar_layout->addWidget(clear_button);
