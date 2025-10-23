@@ -12,5 +12,5 @@ target_include_directories(Serialization
 )
 
 target_link_libraries(Serialization
-    PRIVATE yaml-cpp Debug
+    PRIVATE yaml-cpp Debug EngineUtils
 )

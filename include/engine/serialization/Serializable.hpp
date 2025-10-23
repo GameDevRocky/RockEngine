@@ -1,7 +1,7 @@
 #pragma once
 #include <string>
 #include <yaml-cpp/yaml.h>
-#include "engine/utils/IDGenerator.hpp"
+#include "engine/utils/EngineUtils.hpp"
 #include "engine/core/Observable.hpp"
 #include <memory>
 

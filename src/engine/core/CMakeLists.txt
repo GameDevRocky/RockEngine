@@ -14,6 +14,8 @@ target_link_libraries(Core
     PUBLIC
         Components
         Serialization
+        Debug
+        EngineUtils
     PRIVATE 
         yaml-cpp 
         glm::glm 

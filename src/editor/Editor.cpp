@@ -10,6 +10,7 @@ void Editor::Init() {
     ConsoleGui& console_window = *ConsoleGui::Get();
     console_window.show();
     timer = new QTimer();
+    
     QObject::connect(timer, &QTimer::timeout, [this]() {
         Engine::Get().Run();
     });

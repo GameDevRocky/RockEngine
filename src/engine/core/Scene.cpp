@@ -4,6 +4,7 @@
 #include "engine/components/Component.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
+#include "engine/debug/Console.hpp"
 #include <typeinfo>
 
 void Scene::Init() {
@@ -36,6 +37,7 @@ void Scene::Deserialize(const YAML::Node& data) {
             GameObject* obj = new GameObject();
             obj->Deserialize(goNode);
             Registry::Get().Register(obj);
+            Console::Comment("Created and registered " + obj->GetTypeName());
         }
     } 
 
@@ -54,6 +56,7 @@ void Scene::Deserialize(const YAML::Node& data) {
             }
             comp->Deserialize(compNode);
             Registry::Get().Register(comp);
+            Console::Comment("Created and registered " + comp->GetTypeName());
 
         }
     }
@@ -61,9 +64,8 @@ void Scene::Deserialize(const YAML::Node& data) {
 
     for (auto& [id, obj] : Registry::Get().GetAll()){
         obj->PostDeserialize();
-    }
 
-    
+    }
 }
 void Scene::LinkSerializables(){
     

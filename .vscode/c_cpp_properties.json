@@ -5,9 +5,13 @@
             "includePath": [
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/src",
+                "${workspaceFolder}/src/editor/utils",    
+                "${workspaceFolder}/src/editor/console-gui", 
+
                 "${workspaceFolder}/external/glm",
                 "${workspaceFolder}/external/yaml/include",
                 "${workspaceFolder}/external/box2d/include",
+
                 "C:/Qt/6.10.0/mingw_64/include",
                 "C:/Qt/6.10.0/mingw_64/include/QtCore",
                 "C:/Qt/6.10.0/mingw_64/include/QtGui",

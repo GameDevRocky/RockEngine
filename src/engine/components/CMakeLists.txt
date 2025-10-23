@@ -12,6 +12,7 @@ target_include_directories(Components
 target_link_libraries(Components
     PUBLIC 
         Serialization
+        EngineUtils
     PRIVATE 
         yaml-cpp 
         glm::glm 

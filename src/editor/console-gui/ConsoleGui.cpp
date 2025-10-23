@@ -107,14 +107,13 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     connect(clear_button, &QPushButton::clicked, [](bool) {
         Console::Clear();
     });
+    GenerateWidgets();
 }
 
 void ConsoleGui::resizeEvent(QResizeEvent* event)
 {
     QWidget::resizeEvent(event);
 }
-
-
 
 void ConsoleGui::GenerateWidgets()
 {

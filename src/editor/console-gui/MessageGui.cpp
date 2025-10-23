@@ -2,12 +2,16 @@
 #include "ConsoleGui.hpp"
 #include <QFrame>
 #include <QSpacerItem>
+#include "editor/utils/EditorUtils.hpp"
+
 
 constexpr const char* COMMENT_STYLESHEET = R"(
 QWidget {
     background-color: #252525;
     color: #EEEEEE;
     border-radius: 6px;
+}
+QWidget#body{
     border: 1px solid #555;
 }
 QLabel {
@@ -30,6 +34,9 @@ QWidget {
     border-radius: 6px;
     border: 1px solid #FFA500;
 }
+QWidget#body{
+    border: 1px solid #FFA500;
+}
 QLabel {
     font-family: Consolas;
     font-size: 14px;
@@ -38,6 +45,7 @@ QLabel#countLabel {
     color: #FFC400;
     font-weight: bold;
 }
+    
 )";
 
 constexpr const char* ALERT_STYLESHEET = R"(
@@ -45,6 +53,8 @@ QWidget {
     background-color: #3A1E1E;
     color: #F5C6CB;
     border-radius: 6px;
+}
+QWidget#body{
     border: 1px solid #FF5555;
 }
 QLabel {
@@ -64,37 +74,36 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
         msg->Subscribe([this]() { Update(); });
 
     // --- Widget creation ---
-    file_path = new QLabel(this);
+    file_path = new EditorUtils::ClickableLabel(this);
     count = new QLabel(this);
     text = new QLabel(this);
     type = new QLabel(this);
 
-    // --- Size policy: expanding width, minimal height ---
+    // --- Size policy ---
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     setMinimumHeight(0);
     setMaximumHeight(QWIDGETSIZE_MAX);
 
-    // --- Label configurations ---
     text->setWordWrap(true);
     text->setTextInteractionFlags(Qt::TextSelectableByMouse);
     text->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
 
     file_path->setWordWrap(false);
-    file_path->setTextInteractionFlags(Qt::TextSelectableByMouse);
     file_path->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    file_path->setTextFormat(Qt::RichText);
 
     type->setAlignment(Qt::AlignCenter);
-    type->setFixedWidth(80);
     type->setStyleSheet("font-weight: bold; text-transform: uppercase;");
     count->setAlignment(Qt::AlignRight);
 
-    // --- Layouts ---
+    // --- Layout ---
     auto* main_layout = new QVBoxLayout(this);
     main_layout->setContentsMargins(10, 6, 10, 6);
     main_layout->setSpacing(4);
 
     auto* header_layout = new QHBoxLayout();
-    header_layout->setSpacing(6);
+    header_layout->setSpacing(16);
+    header_layout->setContentsMargins(0,0,0,0);
     header_layout->addWidget(type);
     header_layout->addWidget(file_path, 1);
     header_layout->addWidget(count);
@@ -107,25 +116,35 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     main_layout->addLayout(header_layout);
     main_layout->addWidget(divider);
     main_layout->addWidget(text);
-    main_layout->addStretch(0); // remove any forced extra height
+    main_layout->addStretch(0); 
 
     setLayout(main_layout);
 
-    // --- Apply theme ---
+    // --- Set stylesheet based on type ---
     if (msg) {
-        QString t = QString::fromStdString(msg->type);
-        if (t.compare("COMMENT", Qt::CaseInsensitive) == 0)
-            setStyleSheet(COMMENT_STYLESHEET);
-        else if (t.compare("WARNING", Qt::CaseInsensitive) == 0)
-            setStyleSheet(WARNING_STYLESHEET);
-        else if (t.compare("ALERT", Qt::CaseInsensitive) == 0)
-            setStyleSheet(ALERT_STYLESHEET);
-        else
-            setStyleSheet(COMMENT_STYLESHEET);
+        std::string t = msg->type;
+        if (t == "[COMMENT]") setStyleSheet(COMMENT_STYLESHEET);
+        else if (t == "[WARNING]") setStyleSheet(WARNING_STYLESHEET);
+        else if (t == "[ALERT]") setStyleSheet(ALERT_STYLESHEET);
+        else setStyleSheet(COMMENT_STYLESHEET);
     }
 
+    setObjectName("body");
     Update();
+
+    std::string projectRoot = "C:/Users/rockl/Coding Projects/RockEngine/";
+    fullPath = projectRoot + msg->file_name;
+    file_path->setFilePath(QString::fromStdString(fullPath));
+
+    connect(file_path, &EditorUtils::ClickableLabel::clicked, [this](){
+        EditorUtils::OpenInVSCode(file_path->getFilePath().toStdString());
+    });
+
+    file_path->setText(QString::fromStdString(msg->file_name));
+
+
 }
+
 
 void MessageGui::Update() {
     if (!msg)
@@ -148,9 +167,10 @@ void MessageGui::Update() {
     }
 
     file_path->setText(QString::fromStdString(msg->file_name));
+
     count->setText(QString::number(msg->count));
     text->setText(QString::fromStdString(msg->text));
-    type->setText(QString::fromStdString(msg->type).toUpper());
+    type->setText(  QString::fromStdString( "[" + msg->type + "]").toUpper());
 
     adjustSize(); // makes sure height adapts perfectly to content
 }

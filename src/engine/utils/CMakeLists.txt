@@ -1,9 +1,13 @@
-add_library(Utils STATIC
-    IDGenerator.cpp
+file(GLOB_RECURSE ENGINE_SRC
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
 )
 
-target_include_directories(Utils
+add_library(EngineUtils STATIC ${ENGINE_SRC})
+
+target_include_directories(EngineUtils
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/external
+    
+        
 )

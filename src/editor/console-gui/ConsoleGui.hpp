@@ -8,6 +8,7 @@
 #include <QScrollBar>
 #include <unordered_set>
 #include <iostream>
+#include <QProcess>
 #include "engine/debug/Console.hpp"
 #include "MessageGui.hpp"
 
@@ -26,13 +27,12 @@ protected:
     void resizeEvent(QResizeEvent* event) override;
     void GenerateWidgets();
 
-
 private:
     explicit ConsoleGui(QWidget* parent = nullptr);
 
     QPushButton* clear_button;
     QScrollArea* content;
-    QVBoxLayout* scrollLayout;  // ✅ add this
+    QVBoxLayout* scrollLayout;
 
 
 };

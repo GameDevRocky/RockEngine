@@ -22,7 +22,7 @@ target_link_libraries(Engine
         Rendering
         Debug
         Serialization
-        Utils
+        EngineUtils
         glm::glm
         box2d
         yaml-cpp

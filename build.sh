@@ -1,12 +1,30 @@
 #!/bin/bash
 set -e
 
-# Qt CMake path
+# --- Handle flags ---
+ALL=0
+for arg in "$@"; do
+    case $arg in
+        --all)
+            ALL=1
+            shift
+            ;;
+        *)
+            ;;
+    esac
+done
+
+# --- Qt CMake path ---
 export CMAKE_PREFIX_PATH="C:/Qt/6.10.0/mingw_64/lib/cmake"
-# Add Qt + MinGW to PATH
 export PATH="C:/Qt/Tools/mingw1310_64/bin:C:/Qt/6.10.0/mingw_64/bin:$PATH"
 
 BUILD_DIR="build"
+
+# --- Remove build folder if --all flag is set ---
+if [ $ALL -eq 1 ]; then
+    echo "Removing build directory..."
+    rm -rf "$BUILD_DIR"
+fi
 
 mkdir -p "$BUILD_DIR"
 
@@ -19,7 +37,6 @@ if [ ! -f "$BUILD_DIR/CMakeCache.txt" ]; then
         -DCMAKE_CXX_COMPILER="C:/Qt/Tools/mingw1310_64/bin/g++.exe" \
         -DCMAKE_PREFIX_PATH="C:/Qt/6.10.0/mingw_64/lib/cmake"
 fi
-
 
 # Determine number of cores (default 4)
 JOBS=$(nproc 2>/dev/null || echo 4)

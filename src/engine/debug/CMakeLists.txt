@@ -10,5 +10,5 @@ target_include_directories(Debug
 )
 
 target_link_libraries(Debug
-    PRIVATE yaml-cpp glm::glm box2d Core
+    PRIVATE yaml-cpp glm::glm box2d Core EngineUtils
 )

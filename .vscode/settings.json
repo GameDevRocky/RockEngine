@@ -75,6 +75,8 @@
         "qpushbutton": "cpp",
         "source_location": "cpp",
         "filesystem": "cpp",
-        "codecvt": "cpp"
+        "codecvt": "cpp",
+        "qtimer": "cpp",
+        "qvboxlayout": "cpp"
     }
 }

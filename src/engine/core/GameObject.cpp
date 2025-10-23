@@ -3,6 +3,7 @@
 #include "engine/serialization/Registry.hpp"
 #include "engine/components/Component.hpp"
 #include "engine/components/Transform.hpp"
+#include "engine/debug/Console.hpp"
 
 YAML::Node GameObject::Serialize() {
     YAML::Node node;
@@ -30,8 +31,9 @@ void GameObject::Deserialize(const YAML::Node& node) {
             Registry::Get().DeferLink(cid, [this](Serializable* obj) {
                 if (auto* comp = dynamic_cast<Component*>(obj)) {
                     this->components.push_back(comp);
+                    Console::Comment("Successfully Linked " + comp->GetTypeName() + " Via " + this->GetTypeName());
                 } else {
-                    std::cerr << "[DeferLink] Invalid component type for ID.\n";
+                    Console::Comment("[DeferLink] Invalid component type for ID.\n");
                 }
             });
         }

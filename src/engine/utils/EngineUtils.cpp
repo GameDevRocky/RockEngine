@@ -1,13 +1,9 @@
+#include "engine/utils/EngineUtils.hpp"
 
-#pragma once
-#include <atomic>
-#include <string>
-#include <random>
-#include <sstream>
 
-class IDGenerator {
-public:
-    static std::string GenerateUUID() {
+namespace EngineUtils{
+
+    std::string GenerateUUID() {
         static std::random_device rd;
         static std::mt19937 gen(rd());
         static std::uniform_int_distribution<> dis(0, 15);
@@ -20,4 +16,4 @@ public:
 
         return ss.str();
     }
-};
+}
