@@ -1,8 +1,4 @@
 #include "ConsoleGui.hpp"
-#include <QPushButton>
-#include <QVBoxLayout>
-#include <QLabel>
-#include <QScrollArea>
 #include "engine/core/TimeManager.hpp"
 
 constexpr const char* COMMENT_STYLESHEET = R"(
@@ -75,34 +71,41 @@ constexpr const char* ALERT_STYLESHEET = R"(
     }
 )";
 
-ConsoleGui::ConsoleGui(QWidget* parent)
-    : QWidget(parent)
+ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
 {
-    // Scroll container setup
     content = new QScrollArea(this);
     QWidget* scrollWidget = new QWidget();
-    QVBoxLayout* scrollLayout = new QVBoxLayout(scrollWidget);
+    scrollLayout = new QVBoxLayout(scrollWidget);
     scrollLayout->setContentsMargins(5, 5, 5, 5);
+    scrollLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+    scrollLayout->setSpacing(12);
+    scrollLayout->setAlignment(Qt::AlignTop);
+
     scrollWidget->setLayout(scrollLayout);
 
     content->setWidget(scrollWidget);
     content->setWidgetResizable(true);
 
-    button = new QPushButton("ADD", this);
-
+    clear_button = new QPushButton("Clear", this);
+    QWidget* content_bar = new QWidget(this);
+    QHBoxLayout* bar_layout = new QHBoxLayout(this);
+    bar_layout->addWidget(clear_button);
+    content_bar->setLayout(bar_layout);
+    bar_layout->setContentsMargins(0,0,0,0);
+    bar_layout->addStretch();
+    clear_button->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    content->setAlignment(Qt::AlignTop);
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(content);
-    mainLayout->addWidget(button);
+    mainLayout->addWidget(content_bar);
     setLayout(mainLayout);
 
     resize(720, 300);
 
     Console::Get().Subscribe([this]() { GenerateWidgets(); });
 
-    connect(button, &QPushButton::clicked, [](bool) {
-        float elapsed = TimeManager::Get().ElapsedTime();
-        std::string msg = "Elapsed time: " + std::to_string(elapsed);
-        Console::Alert("Testing Out the Length of the widget and How much text it can take and handle. I am just adding text to see how well it looks with a lot of text. I have an interview tmr and I'mm kinda nervous. Wiish me Luck!");
+    connect(clear_button, &QPushButton::clicked, [](bool) {
+        Console::Clear();
     });
 }
 
@@ -112,73 +115,15 @@ void ConsoleGui::resizeEvent(QResizeEvent* event)
 }
 
 
+
 void ConsoleGui::GenerateWidgets()
 {
-    QWidget* scrollWidget = content->widget();
-    QVBoxLayout* layout = qobject_cast<QVBoxLayout*>(scrollWidget->layout());
-
-    QLayoutItem* item;
-    while ((item = layout->takeAt(0)) != nullptr) {
-        delete item->widget();
-        delete item;
-    }
-
-std::vector<std::pair<std::string, Message>> allMessages;
-
-auto addMessages = [&allMessages](const auto& container) {
-    allMessages.insert(allMessages.end(), container.begin(), container.end());
-};
-
-addMessages(Console::GetComments());
-addMessages(Console::GetWarnings());
-addMessages(Console::GetAlerts());
-
-std::sort(allMessages.begin(), allMessages.end(),
-          [](const auto& a, const auto& b) {
-              return a.second.time_stamp < b.second.time_stamp;
-          });
-
-for (auto& [text, message] : allMessages) {
-    QWidget* widget = new QWidget(scrollWidget);
-
-    widget->setStyleSheet(
-        message.type == "alert" ? ALERT_STYLESHEET :
-        message.type == "warning" ? WARNING_STYLESHEET :
-        COMMENT_STYLESHEET
-    );
-    widget->setObjectName("body");
-    widget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-
-
-    QLabel* file_name = new QLabel(QString::fromStdString(message.file_name), widget);
-    file_name->setObjectName("file_name");
-
-    std::string typeUpper = message.type;
-    std::transform(typeUpper.begin(), typeUpper.end(), typeUpper.begin(),
-                   [](unsigned char c){ return std::toupper(c); });
-    std::string labelText = "[" + typeUpper + "]: " + message.text;
-
-    QLabel* label = new QLabel(QString::fromStdString(labelText), widget);
-    label->setWordWrap(true);               
-    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    QLabel* count = new QLabel(QString::number(message.count), widget);
-    count->setObjectName("countLabel");
-    QVBoxLayout* vbox = new QVBoxLayout(widget);
-    vbox->addWidget(label);
-    vbox->setSizeConstraint(QLayout::SetMinAndMaxSize); 
-
-    QHBoxLayout* bottomLayout = new QHBoxLayout();
-    bottomLayout->addWidget(file_name);
-    bottomLayout->addStretch();
-    bottomLayout->addWidget(count);
-    vbox->addLayout(bottomLayout);
-    vbox->setContentsMargins(10, 10, 10, 10);
-
-    widget->setLayout(vbox);
-
-    layout->addWidget(widget);
-}
-
-layout->addStretch();
-
+    auto& messages = Console::Get().GetMessages();
+    for (auto& [key, msg] : messages) {
+        if (message_widgets.find(key) == message_widgets.end()) {
+            MessageGui* gui = new MessageGui(this, msg);
+            scrollLayout->addWidget(gui);
+            message_widgets.emplace(key, gui);
+        }     
+    }  
 }

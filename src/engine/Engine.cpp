@@ -13,9 +13,7 @@ void Engine::Run() {
     InputManager::Get().Update();
     SceneManager::Get().Update();
     TimeManager::Get().Update();
-    Console::Warn("Hello");
     SetActive(false);
-    
 }
 
 void Engine::Shutdown() {

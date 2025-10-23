@@ -4,7 +4,7 @@
 void Console::Update() {}
 void Console::Shutdown() {}
 
-void Console::CreateMessage(std::string message, std::string type, const std::source_location loc){
+void Console::CreateMessage(std::string text, std::string type, const std::source_location loc){
     Console& instance = Get();
     
     std::string full_path = loc.file_name();
@@ -15,18 +15,26 @@ void Console::CreateMessage(std::string message, std::string type, const std::so
 
     int line = loc.line();
     std::string function = loc.function_name();
-    std::string text = message;
     float time_stamp = TimeManager::Get().ElapsedTime();
 
-    auto& msg = instance.comments[message];
-    msg.count++;
-    msg.count = msg.count > 999 ? 999 : msg.count;
-    msg.file_name = file_name;
-    msg.text = text;
-    msg.time_stamp = time_stamp;
-    msg.type = type;
-
-    instance.Notify();
+    std::string key = text + type;
+    auto it = instance.messages.find(key);
+    
+    if (it == instance.messages.end()) {
+        // Create new message if it doesn't exist
+        Message* msg = new Message(text, type, function, file_name, std::to_string(line), time_stamp);
+        instance.messages[key] = msg;
+        msg->Notify();
+    } else {
+        // Update existing message
+        Message* msg = it->second;
+        msg->count++;
+        msg->count = msg->count > 999 ? 999 : msg->count;
+        msg->time_stamp = time_stamp;
+        msg->Notify();
+    }
+    
+    Get().Notify();
 
 }
 
@@ -50,7 +58,9 @@ void Console::Alert(const std::string &message,
 }
 
 void Console::Clear(){
-    comments.clear();
-    warnings.clear();
-    alerts.clear();
+    for (auto& [_, msg] : Get().messages){
+        msg->Destroy();
+    }
+    Get().messages.clear();
+    Get().Notify();
 }

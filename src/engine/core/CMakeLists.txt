@@ -11,5 +11,11 @@ target_include_directories(Core
 )
 
 target_link_libraries(Core
-    PRIVATE yaml-cpp glm::glm box2d Components
+    PUBLIC
+        Components
+        Serialization
+    PRIVATE 
+        yaml-cpp 
+        glm::glm 
+        box2d
 )

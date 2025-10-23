@@ -1,6 +1,6 @@
 #include "engine/core/TimeManager.hpp"
 #include <iostream>
-
+#include "engine/debug/Console.hpp"
 void TimeManager::Init() {
     lastFrameTime = std::chrono::high_resolution_clock::now();
     deltaTime = 0.0f;

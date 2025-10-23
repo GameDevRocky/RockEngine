@@ -18,7 +18,7 @@ public:
     void Update() override;
     void Shutdown() override;
 
-    void Clear();
+    static void Clear();
 
     static void Comment(const std::string &message,
                     const std::source_location& loc = std::source_location::current());
@@ -26,12 +26,9 @@ public:
                     const std::source_location& loc = std::source_location::current());
     static void Alert(const std::string &message,
                     const std::source_location& loc = std::source_location::current());
-
-    static std::unordered_map<std::string, Message>& GetComments(){return Get().comments;}
-    static std::unordered_map<std::string, Message>& GetWarnings(){return Get().warnings;}
-    static std::unordered_map<std::string, Message>& GetAlerts(){return Get().alerts;}
-
+    static std::unordered_map<std::string, Message*>& GetMessages(){return Get().messages;}
     
+
 
 protected:
     Console():System(){};
@@ -39,7 +36,5 @@ protected:
 
 private:
     static void CreateMessage(std::string message, std::string type, const std::source_location loc);
-    std::unordered_map<std::string, Message> comments;
-    std::unordered_map<std::string, Message> warnings;
-    std::unordered_map<std::string, Message> alerts;
+    std::unordered_map<std::string, Message*> messages;
 };

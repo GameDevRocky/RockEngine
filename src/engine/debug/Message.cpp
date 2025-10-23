@@ -1,6 +1,6 @@
 #include "engine/debug/Message.hpp"
 
-Message::Message(
+Message::Message (
     const std::string& text,
     const std::string& type,
     const std::string& created_at,
