@@ -10,6 +10,9 @@ target_include_directories(Rendering
 )
 
 target_link_libraries(Rendering
-    PRIVATE yaml-cpp glm::glm box2d
-    
+    PRIVATE 
+        yaml-cpp 
+        glm::glm 
+        box2d
+        glad
 )

@@ -8,3 +8,4 @@ set(YAML_CPP_BUILD_UTILS OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(yaml)
 add_subdirectory(box2d)
+add_library(glad)

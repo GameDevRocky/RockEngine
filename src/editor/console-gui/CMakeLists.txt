@@ -1,6 +1,3 @@
-
-
-
 file(GLOB_RECURSE EDITOR_SRC
     "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp"

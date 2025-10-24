@@ -22,7 +22,7 @@ public:
         return instance;
     }
     std::unordered_map<std::string, MessageGui*> message_widgets;
-
+    void Init();
 protected:
     void resizeEvent(QResizeEvent* event) override;
     void GenerateWidgets();

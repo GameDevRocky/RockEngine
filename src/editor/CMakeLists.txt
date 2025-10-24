@@ -3,8 +3,8 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 
-# --- Subdirectories ---
-add_subdirectory(console-gui)
+# --- Find Qt Modules (MUST come before subdirectories) ---
+find_package(Qt6 REQUIRED COMPONENTS Core Gui  Widgets OpenGL OpenGLWidgets)
 
 # --- Editor Utils Library ---
 file(GLOB_RECURSE EDITOR_UTILS_SRC
@@ -26,6 +26,14 @@ target_link_libraries(EditorUtils
         Qt6::Widgets
 )
 
+# --- Add GUI Submodules ---
+add_subdirectory(console-gui)
+add_subdirectory(hierarchy-gui)
+add_subdirectory(inspector-gui)
+add_subdirectory(sceneview-gui)
+add_subdirectory(gameview-gui)
+add_subdirectory(mainwindow-gui)
+
 # --- Main Editor Library ---
 add_library(Editor STATIC
     Editor.cpp
@@ -43,7 +51,14 @@ target_link_libraries(Editor
         Qt6::Core
         Qt6::Gui 
         Qt6::Widgets 
+        Qt6::OpenGLWidgets
+        Qt6::OpenGL
         yaml-cpp
         ConsoleGui
+        InspectorGui
+        HierarchyGui
+        GameViewGui
+        SceneViewGui
+        MainWindowGui
         EditorUtils
 )

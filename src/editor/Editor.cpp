@@ -1,24 +1,22 @@
 #include "Editor.hpp"
 #include <QApplication>
 #include <QTimer>
-#include "console-gui/ConsoleGui.hpp"
+#include "mainwindow-gui/MainWindowGui.hpp"
 
 void Editor::Init() {
     int argc = 0;
     char** argv = nullptr;
     app = new QApplication(argc, argv);
-    ConsoleGui& console_window = *ConsoleGui::Get();
-    console_window.show();
+    MainWindow& main_window = *MainWindow::Get();
+    main_window.Init();
+
     timer = new QTimer();
-    
     QObject::connect(timer, &QTimer::timeout, [this]() {
         Engine::Get().Run();
     });
 
     timer->start(16);
     app->exec();
-    delete timer;
-    delete app;
 }
 
 void Editor::Update() {
