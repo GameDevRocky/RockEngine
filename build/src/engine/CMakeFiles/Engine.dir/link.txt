@@ -1,0 +1,2 @@
+C:\Qt\Tools\mingw1310_64\bin\ar.exe qc libEngine.a CMakeFiles/Engine.dir/Engine_autogen/mocs_compilation.cpp.obj CMakeFiles/Engine.dir/Engine.cpp.obj
+C:\Qt\Tools\mingw1310_64\bin\ranlib.exe libEngine.a
