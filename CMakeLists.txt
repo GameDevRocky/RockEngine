@@ -1,7 +1,20 @@
 cmake_minimum_required(VERSION 3.16)
-project(RockEngine VERSION 1.0 LANGUAGES CXX)
+project(RockEngine VERSION 1.0 LANGUAGES C CXX)
+
+# C++ settings
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# C settings
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# MSVC-specific settings
+if(MSVC)
+    add_compile_options(/Zc:__cplusplus)
+endif()
+
+# Qt configuration
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON) 

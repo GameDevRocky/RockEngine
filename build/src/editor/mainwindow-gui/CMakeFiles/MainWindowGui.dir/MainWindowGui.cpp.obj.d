@@ -503,6 +503,8 @@ src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/MainWindowGui.cpp.obj: \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qcursor.h \
  C:/Users/rockl/CodingProjects/RockEngine/src/editor/gameview-gui/GameViewGui.hpp \
  C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/SceneViewGui.hpp \
+ C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/glad/glad.h \
+ C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/KHR/khrplatform.h \
  C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/QOpenGLWidget \
  C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qopenglwidget.h \
  C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qtopenglwidgetsglobal.h \

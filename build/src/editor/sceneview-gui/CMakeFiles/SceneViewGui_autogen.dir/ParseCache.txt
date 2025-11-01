@@ -452,5 +452,7 @@ C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/SceneViewGui.h
  mdp:C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h
  mdp:C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wctype.h
  mdp:C:/Users/rockl/CodingProjects/RockEngine/build/src/editor/sceneview-gui/SceneViewGui_autogen/moc_predefs.h
+ mdp:C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/KHR/khrplatform.h
+ mdp:C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/glad/glad.h
  mdp:C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/SceneViewGui.hpp
 C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/SceneViewGui.cpp

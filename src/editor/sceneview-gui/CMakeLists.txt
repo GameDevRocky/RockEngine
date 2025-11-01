@@ -14,8 +14,10 @@ target_include_directories(SceneViewGui
 )
 
 target_link_libraries(SceneViewGui
+   
     PUBLIC
         EditorUtils
+        Rendering      
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets

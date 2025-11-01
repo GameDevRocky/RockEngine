@@ -6,5 +6,5 @@ CXX_DEFINES = -DYAML_CPP_NO_CONTRIB -DYAML_CPP_STATIC_DEFINE
 
 CXX_INCLUDES = @CMakeFiles/yaml-cpp.dir/includes_CXX.rsp
 
-CXX_FLAGS = -g -std=gnu++20
+CXX_FLAGS = -O2 -g -g -std=gnu++20
 

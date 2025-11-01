@@ -502,4 +502,60 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj: \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qfontinfo.h \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qfontvariableaxis.h \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qsizepolicy.h \
- C:/Qt/6.10.0/mingw_64/include/QtWidgets/qtabwidget.h
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qtabwidget.h \
+ C:/Users/rockl/CodingProjects/RockEngine/src/editor/console-gui/ConsoleGui.hpp \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QWidget \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qwidget.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QPushButton \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qpushbutton.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qabstractbutton.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QScrollArea \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qscrollarea.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qabstractscrollarea.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qframe.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QResizeEvent \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qevent.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qiodevice.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qurl.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qeventpoint.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvector2d.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvectornd.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qpointingdevice.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qinputdevice.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qscreen.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QList \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qlist.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QObject \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qobject.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QRect \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qrect.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QSize \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qsize.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QSizeF \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QTransform \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qtransform.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qscreen_platform.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QVBoxLayout \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qboxlayout.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qlayout.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qlayoutitem.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qboxlayout.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qgridlayout.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QLabel \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qlabel.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qpicture.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qtextdocument.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QScrollBar \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qscrollbar.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qabstractslider.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QProcess \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qprocess.h \
+ C:/Users/rockl/CodingProjects/RockEngine/include/engine/debug/Console.hpp \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/source_location \
+ C:/Users/rockl/CodingProjects/RockEngine/include/engine/core/TimeManager.hpp \
+ C:/Users/rockl/CodingProjects/RockEngine/include/engine/debug/Message.hpp \
+ C:/Users/rockl/CodingProjects/RockEngine/src/editor/console-gui/MessageGui.hpp \
+ C:/Users/rockl/CodingProjects/RockEngine/src/editor/utils/EditorUtils.hpp \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QMouseEvent \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QCursor \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qcursor.h

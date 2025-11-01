@@ -2,6 +2,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/glad_autogen.dir/AutogenUsed.txt"
   "CMakeFiles/glad_autogen.dir/ParseCache.txt"
   "glad_autogen"
+  "CMakeFiles/glad.dir/glad/src/glad.c.obj"
+  "CMakeFiles/glad.dir/glad/src/glad.c.obj.d"
   "CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.obj"
   "CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.obj.d"
   "glad_autogen/mocs_compilation.cpp"
@@ -11,6 +13,6 @@ file(REMOVE_RECURSE
 )
 
 # Per-language clean rules from dependency scanning.
-foreach(lang CXX)
+foreach(lang C CXX)
   include(CMakeFiles/glad.dir/cmake_clean_${lang}.cmake OPTIONAL)
 endforeach()

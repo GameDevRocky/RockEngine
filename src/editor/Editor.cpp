@@ -2,7 +2,7 @@
 #include <QApplication>
 #include <QTimer>
 #include "mainwindow-gui/MainWindowGui.hpp"
-
+#include "editor/console-gui/ConsoleGui.hpp"
 void Editor::Init() {
     int argc = 0;
     char** argv = nullptr;

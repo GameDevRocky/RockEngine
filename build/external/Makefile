@@ -203,6 +203,30 @@ glad_autogen/fast:
 	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad_autogen.dir\build.make external/CMakeFiles/glad_autogen.dir/build
 .PHONY : glad_autogen/fast
 
+glad/src/glad.obj: glad/src/glad.c.obj
+.PHONY : glad/src/glad.obj
+
+# target to build an object file
+glad/src/glad.c.obj:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad/src/glad.c.obj
+.PHONY : glad/src/glad.c.obj
+
+glad/src/glad.i: glad/src/glad.c.i
+.PHONY : glad/src/glad.i
+
+# target to preprocess a source file
+glad/src/glad.c.i:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad/src/glad.c.i
+.PHONY : glad/src/glad.c.i
+
+glad/src/glad.s: glad/src/glad.c.s
+.PHONY : glad/src/glad.s
+
+# target to generate assembly for a file
+glad/src/glad.c.s:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad/src/glad.c.s
+.PHONY : glad/src/glad.c.s
+
 glad_autogen/mocs_compilation.obj: glad_autogen/mocs_compilation.cpp.obj
 .PHONY : glad_autogen/mocs_compilation.obj
 
@@ -242,6 +266,9 @@ help:
 	@echo ... glad_autogen
 	@echo ... glad_autogen_timestamp_deps
 	@echo ... glad
+	@echo ... glad/src/glad.obj
+	@echo ... glad/src/glad.i
+	@echo ... glad/src/glad.s
 	@echo ... glad_autogen/mocs_compilation.obj
 	@echo ... glad_autogen/mocs_compilation.i
 	@echo ... glad_autogen/mocs_compilation.s

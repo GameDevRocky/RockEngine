@@ -203,6 +203,30 @@ Rendering_autogen/fast:
 	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering_autogen.dir\build.make src/engine/rendering/CMakeFiles/Rendering_autogen.dir/build
 .PHONY : Rendering_autogen/fast
 
+Rendering.obj: Rendering.cpp.obj
+.PHONY : Rendering.obj
+
+# target to build an object file
+Rendering.cpp.obj:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/Rendering.cpp.obj
+.PHONY : Rendering.cpp.obj
+
+Rendering.i: Rendering.cpp.i
+.PHONY : Rendering.i
+
+# target to preprocess a source file
+Rendering.cpp.i:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/Rendering.cpp.i
+.PHONY : Rendering.cpp.i
+
+Rendering.s: Rendering.cpp.s
+.PHONY : Rendering.s
+
+# target to generate assembly for a file
+Rendering.cpp.s:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/Rendering.cpp.s
+.PHONY : Rendering.cpp.s
+
 Rendering_autogen/mocs_compilation.obj: Rendering_autogen/mocs_compilation.cpp.obj
 .PHONY : Rendering_autogen/mocs_compilation.obj
 
@@ -227,6 +251,30 @@ Rendering_autogen/mocs_compilation.cpp.s:
 	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/Rendering_autogen/mocs_compilation.cpp.s
 .PHONY : Rendering_autogen/mocs_compilation.cpp.s
 
+__/__/__/external/glad/src/glad.obj: __/__/__/external/glad/src/glad.c.obj
+.PHONY : __/__/__/external/glad/src/glad.obj
+
+# target to build an object file
+__/__/__/external/glad/src/glad.c.obj:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/__/__/__/external/glad/src/glad.c.obj
+.PHONY : __/__/__/external/glad/src/glad.c.obj
+
+__/__/__/external/glad/src/glad.i: __/__/__/external/glad/src/glad.c.i
+.PHONY : __/__/__/external/glad/src/glad.i
+
+# target to preprocess a source file
+__/__/__/external/glad/src/glad.c.i:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/__/__/__/external/glad/src/glad.c.i
+.PHONY : __/__/__/external/glad/src/glad.c.i
+
+__/__/__/external/glad/src/glad.s: __/__/__/external/glad/src/glad.c.s
+.PHONY : __/__/__/external/glad/src/glad.s
+
+# target to generate assembly for a file
+__/__/__/external/glad/src/glad.c.s:
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/__/__/__/external/glad/src/glad.c.s
+.PHONY : __/__/__/external/glad/src/glad.c.s
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -242,9 +290,15 @@ help:
 	@echo ... Rendering_autogen
 	@echo ... Rendering_autogen_timestamp_deps
 	@echo ... Rendering
+	@echo ... Rendering.obj
+	@echo ... Rendering.i
+	@echo ... Rendering.s
 	@echo ... Rendering_autogen/mocs_compilation.obj
 	@echo ... Rendering_autogen/mocs_compilation.i
 	@echo ... Rendering_autogen/mocs_compilation.s
+	@echo ... __/__/__/external/glad/src/glad.obj
+	@echo ... __/__/__/external/glad/src/glad.i
+	@echo ... __/__/__/external/glad/src/glad.s
 .PHONY : help
 
 

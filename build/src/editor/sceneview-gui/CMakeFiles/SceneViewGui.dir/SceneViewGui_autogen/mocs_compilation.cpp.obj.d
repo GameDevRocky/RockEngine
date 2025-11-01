@@ -2,6 +2,19 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/SceneViewGui_autogen/mocs_c
  C:\Users\rockl\CodingProjects\RockEngine\build\src\editor\sceneview-gui\SceneViewGui_autogen\mocs_compilation.cpp \
  C:\Users\rockl\CodingProjects\RockEngine\build\src\editor\sceneview-gui\SceneViewGui_autogen\EWIEGA46WW/moc_SceneViewGui.cpp \
  C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/SceneViewGui.hpp \
+ C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/glad/glad.h \
+ C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/KHR/khrplatform.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/stdint.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/stdint.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/crtdefs.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/corecrt.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw_mac.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw_secapi.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/sdks/_mingw_ddk.h \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/stddef.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/stddef.h \
  C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/QOpenGLWidget \
  C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qopenglwidget.h \
  C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qtopenglwidgetsglobal.h \
@@ -12,15 +25,6 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/SceneViewGui_autogen/mocs_c
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/cpu_defines.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/pstl/pstl_config.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cstddef \
- C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/stddef.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/stddef.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/crtdefs.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/corecrt.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw_mac.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw_secapi.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/sdks/_mingw_ddk.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/utility \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stl_relops.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stl_pair.h \
@@ -33,8 +37,6 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/SceneViewGui_autogen/mocs_c
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/cpp_type_traits.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/ext/type_traits.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cstdint \
- C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/stdint.h \
- C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/stdint.h \
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/assert.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/stdlib.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cstdlib \

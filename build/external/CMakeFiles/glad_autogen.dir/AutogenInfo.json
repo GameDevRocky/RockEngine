@@ -24,6 +24,8 @@
 	],
 	"MOC_INCLUDES" : 
 	[
+		"C:/Users/rockl/CodingProjects/RockEngine/external/glad/include",
+		"C:/Users/rockl/CodingProjects/RockEngine/external/glad/src",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward",
@@ -62,7 +64,14 @@
 	"QT_VERSION_MAJOR" : 6,
 	"QT_VERSION_MINOR" : 10,
 	"SETTINGS_FILE" : "C:/Users/rockl/CodingProjects/RockEngine/build/external/CMakeFiles/glad_autogen.dir/AutogenUsed.txt",
-	"SOURCES" : [],
+	"SOURCES" : 
+	[
+		[
+			"C:/Users/rockl/CodingProjects/RockEngine/external/glad/src/glad.c",
+			"MU",
+			null
+		]
+	],
 	"UIC_OPTIONS" : [],
 	"UIC_SEARCH_PATHS" : [],
 	"UIC_SKIP" : [],

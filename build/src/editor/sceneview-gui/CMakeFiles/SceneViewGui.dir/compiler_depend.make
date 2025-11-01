@@ -453,6 +453,8 @@ src/editor/sceneview-gui/SceneViewGui_autogen/timestamp: C:/Program\ Files/CMake
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h \
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wctype.h \
   src/editor/sceneview-gui/SceneViewGui_autogen/moc_predefs.h \
+  C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/KHR/khrplatform.h \
+  C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/glad/glad.h \
   C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/CMakeLists.txt \
   C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/SceneViewGui.cpp \
   C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/SceneViewGui.hpp
@@ -1365,5 +1367,9 @@ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/sys/timeb.h:
 C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/time.h:
 
 C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h:
+
+C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/KHR/khrplatform.h:
+
+C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/glad/glad.h:
 
 C:/Users/rockl/CodingProjects/RockEngine/src/editor/sceneview-gui/CMakeLists.txt:

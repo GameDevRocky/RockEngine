@@ -93,17 +93,34 @@ external/CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.s"
 	cd /d C:\Users\rockl\CodingProjects\RockEngine\build\external && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rockl\CodingProjects\RockEngine\build\external\glad_autogen\mocs_compilation.cpp -o CMakeFiles\glad.dir\glad_autogen\mocs_compilation.cpp.s
 
+external/CMakeFiles/glad.dir/glad/src/glad.c.obj: external/CMakeFiles/glad.dir/flags.make
+external/CMakeFiles/glad.dir/glad/src/glad.c.obj: external/CMakeFiles/glad.dir/includes_C.rsp
+external/CMakeFiles/glad.dir/glad/src/glad.c.obj: C:/Users/rockl/CodingProjects/RockEngine/external/glad/src/glad.c
+external/CMakeFiles/glad.dir/glad/src/glad.c.obj: external/CMakeFiles/glad.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object external/CMakeFiles/glad.dir/glad/src/glad.c.obj"
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build\external && C:\Qt\Tools\mingw1310_64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT external/CMakeFiles/glad.dir/glad/src/glad.c.obj -MF CMakeFiles\glad.dir\glad\src\glad.c.obj.d -o CMakeFiles\glad.dir\glad\src\glad.c.obj -c C:\Users\rockl\CodingProjects\RockEngine\external\glad\src\glad.c
+
+external/CMakeFiles/glad.dir/glad/src/glad.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/glad.dir/glad/src/glad.c.i"
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build\external && C:\Qt\Tools\mingw1310_64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E C:\Users\rockl\CodingProjects\RockEngine\external\glad\src\glad.c > CMakeFiles\glad.dir\glad\src\glad.c.i
+
+external/CMakeFiles/glad.dir/glad/src/glad.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/glad.dir/glad/src/glad.c.s"
+	cd /d C:\Users\rockl\CodingProjects\RockEngine\build\external && C:\Qt\Tools\mingw1310_64\bin\gcc.exe $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S C:\Users\rockl\CodingProjects\RockEngine\external\glad\src\glad.c -o CMakeFiles\glad.dir\glad\src\glad.c.s
+
 # Object files for target glad
 glad_OBJECTS = \
-"CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.obj"
+"CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.obj" \
+"CMakeFiles/glad.dir/glad/src/glad.c.obj"
 
 # External object files for target glad
 glad_EXTERNAL_OBJECTS =
 
 external/libglad.a: external/CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.obj
+external/libglad.a: external/CMakeFiles/glad.dir/glad/src/glad.c.obj
 external/libglad.a: external/CMakeFiles/glad.dir/build.make
 external/libglad.a: external/CMakeFiles/glad.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX static library libglad.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libglad.a"
 	cd /d C:\Users\rockl\CodingProjects\RockEngine\build\external && $(CMAKE_COMMAND) -P CMakeFiles\glad.dir\cmake_clean_target.cmake
 	cd /d C:\Users\rockl\CodingProjects\RockEngine\build\external && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\glad.dir\link.txt --verbose=$(VERBOSE)
 

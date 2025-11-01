@@ -600,24 +600,23 @@ src/engine/utils/clean: src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/clea
 # Target rules for target CMakeFiles/RockEngine.dir
 
 # All Build rule for target.
-CMakeFiles/RockEngine.dir/all: external/CMakeFiles/glad.dir/all
 CMakeFiles/RockEngine.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 CMakeFiles/RockEngine.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
-CMakeFiles/RockEngine.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 CMakeFiles/RockEngine.dir/all: src/engine/CMakeFiles/Engine.dir/all
 CMakeFiles/RockEngine.dir/all: src/engine/components/CMakeFiles/Components.dir/all
+CMakeFiles/RockEngine.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 CMakeFiles/RockEngine.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
-CMakeFiles/RockEngine.dir/all: src/engine/utils/CMakeFiles/EngineUtils.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/CMakeFiles/Editor.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
+CMakeFiles/RockEngine.dir/all: src/engine/utils/CMakeFiles/EngineUtils.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-CMakeFiles/RockEngine.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+CMakeFiles/RockEngine.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
+CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
 CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
-CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=44,45 "Built target RockEngine"
@@ -625,7 +624,7 @@ CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/RockEngine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 100
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 98
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/RockEngine.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : CMakeFiles/RockEngine.dir/rule
@@ -658,7 +657,7 @@ CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all: src/editor/CMakeFiles/Edit
 
 # Build rule for subdir invocation for target.
 CMakeFiles/RockEngine_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 97
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 95
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : CMakeFiles/RockEngine_autogen_timestamp_deps.dir/rule
@@ -690,7 +689,7 @@ CMakeFiles/RockEngine_autogen.dir/all: CMakeFiles/RockEngine_autogen_timestamp_d
 
 # Build rule for subdir invocation for target.
 CMakeFiles/RockEngine_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 98
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 96
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 CMakeFiles/RockEngine_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : CMakeFiles/RockEngine_autogen.dir/rule
@@ -718,7 +717,7 @@ external/CMakeFiles/glad.dir/all: external/CMakeFiles/glad_autogen.dir/all
 external/CMakeFiles/glad.dir/all: external/CMakeFiles/glad_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/depend
 	$(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=76 "Built target glad"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=76,77 "Built target glad"
 .PHONY : external/CMakeFiles/glad.dir/all
 
 # Build rule for subdir invocation for target.
@@ -735,7 +734,7 @@ glad: external/CMakeFiles/glad.dir/rule
 # codegen rule for target.
 external/CMakeFiles/glad.dir/codegen: external/CMakeFiles/glad_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=76 "Finished codegen for target glad"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=76,77 "Finished codegen for target glad"
 .PHONY : external/CMakeFiles/glad.dir/codegen
 
 # clean rule for target.
@@ -782,12 +781,12 @@ external/CMakeFiles/glad_autogen_timestamp_deps.dir/clean:
 external/CMakeFiles/glad_autogen.dir/all: external/CMakeFiles/glad_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad_autogen.dir\build.make external/CMakeFiles/glad_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad_autogen.dir\build.make external/CMakeFiles/glad_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=77 "Built target glad_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target glad_autogen"
 .PHONY : external/CMakeFiles/glad_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 external/CMakeFiles/glad_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 external/CMakeFiles/glad_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : external/CMakeFiles/glad_autogen.dir/rule
@@ -799,7 +798,7 @@ glad_autogen: external/CMakeFiles/glad_autogen.dir/rule
 # codegen rule for target.
 external/CMakeFiles/glad_autogen.dir/codegen: external/CMakeFiles/glad_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad_autogen.dir\build.make external/CMakeFiles/glad_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=77 "Finished codegen for target glad_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target glad_autogen"
 .PHONY : external/CMakeFiles/glad_autogen.dir/codegen
 
 # clean rule for target.
@@ -811,11 +810,11 @@ external/CMakeFiles/glad_autogen.dir/clean:
 # Target rules for target external/glm/glm/CMakeFiles/glm.dir
 
 # All Build rule for target.
-external/glm/glm/CMakeFiles/glm.dir/all: external/glm/glm/CMakeFiles/glm_autogen.dir/all
 external/glm/glm/CMakeFiles/glm.dir/all: external/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/all
+external/glm/glm/CMakeFiles/glm.dir/all: external/glm/glm/CMakeFiles/glm_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm.dir\build.make external/glm/glm/CMakeFiles/glm.dir/depend
 	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm.dir\build.make external/glm/glm/CMakeFiles/glm.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=78,79 "Built target glm"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=78,79,80 "Built target glm"
 .PHONY : external/glm/glm/CMakeFiles/glm.dir/all
 
 # Build rule for subdir invocation for target.
@@ -832,7 +831,7 @@ glm: external/glm/glm/CMakeFiles/glm.dir/rule
 # codegen rule for target.
 external/glm/glm/CMakeFiles/glm.dir/codegen: external/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm.dir\build.make external/glm/glm/CMakeFiles/glm.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=78,79 "Finished codegen for target glm"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=78,79,80 "Finished codegen for target glm"
 .PHONY : external/glm/glm/CMakeFiles/glm.dir/codegen
 
 # clean rule for target.
@@ -879,12 +878,12 @@ external/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/clean:
 external/glm/glm/CMakeFiles/glm_autogen.dir/all: external/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm_autogen.dir\build.make external/glm/glm/CMakeFiles/glm_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm_autogen.dir\build.make external/glm/glm/CMakeFiles/glm_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=80 "Built target glm_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target glm_autogen"
 .PHONY : external/glm/glm/CMakeFiles/glm_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 external/glm/glm/CMakeFiles/glm_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 external/glm/glm/CMakeFiles/glm_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : external/glm/glm/CMakeFiles/glm_autogen.dir/rule
@@ -896,7 +895,7 @@ glm_autogen: external/glm/glm/CMakeFiles/glm_autogen.dir/rule
 # codegen rule for target.
 external/glm/glm/CMakeFiles/glm_autogen.dir/codegen: external/glm/glm/CMakeFiles/glm_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f external\glm\glm\CMakeFiles\glm_autogen.dir\build.make external/glm/glm/CMakeFiles/glm_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=80 "Finished codegen for target glm_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target glm_autogen"
 .PHONY : external/glm/glm/CMakeFiles/glm_autogen.dir/codegen
 
 # clean rule for target.
@@ -1998,23 +1997,22 @@ external/box2d/src/CMakeFiles/box2d_autogen.dir/clean:
 # Target rules for target src/engine/CMakeFiles/Engine.dir
 
 # All Build rule for target.
-src/engine/CMakeFiles/Engine.dir/all: external/CMakeFiles/glad.dir/all
 src/engine/CMakeFiles/Engine.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 src/engine/CMakeFiles/Engine.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
-src/engine/CMakeFiles/Engine.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 src/engine/CMakeFiles/Engine.dir/all: src/engine/components/CMakeFiles/Components.dir/all
+src/engine/CMakeFiles/Engine.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 src/engine/CMakeFiles/Engine.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 src/engine/CMakeFiles/Engine.dir/all: src/engine/utils/CMakeFiles/EngineUtils.dir/all
 src/engine/CMakeFiles/Engine.dir/all: src/engine/CMakeFiles/Engine_autogen.dir/all
 src/engine/CMakeFiles/Engine.dir/all: src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine.dir\build.make src/engine/CMakeFiles/Engine.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine.dir\build.make src/engine/CMakeFiles/Engine.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=24,25 "Built target Engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=23,24,25 "Built target Engine"
 .PHONY : src/engine/CMakeFiles/Engine.dir/all
 
 # Build rule for subdir invocation for target.
 src/engine/CMakeFiles/Engine.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 72
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 71
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/CMakeFiles/Engine.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/CMakeFiles/Engine.dir/rule
@@ -2026,7 +2024,7 @@ Engine: src/engine/CMakeFiles/Engine.dir/rule
 # codegen rule for target.
 src/engine/CMakeFiles/Engine.dir/codegen: src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine.dir\build.make src/engine/CMakeFiles/Engine.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=24,25 "Finished codegen for target Engine"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=23,24,25 "Finished codegen for target Engine"
 .PHONY : src/engine/CMakeFiles/Engine.dir/codegen
 
 # clean rule for target.
@@ -2040,8 +2038,8 @@ src/engine/CMakeFiles/Engine.dir/clean:
 # All Build rule for target.
 src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
-src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all: src/engine/components/CMakeFiles/Components.dir/all
+src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all: src/engine/utils/CMakeFiles/EngineUtils.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine_autogen_timestamp_deps.dir\build.make src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/depend
@@ -2051,7 +2049,7 @@ src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all: src/engine/utils/CM
 
 # Build rule for subdir invocation for target.
 src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 70
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 67
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/rule
@@ -2078,12 +2076,12 @@ src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/clean:
 src/engine/CMakeFiles/Engine_autogen.dir/all: src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine_autogen.dir\build.make src/engine/CMakeFiles/Engine_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine_autogen.dir\build.make src/engine/CMakeFiles/Engine_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target Engine_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=28 "Built target Engine_autogen"
 .PHONY : src/engine/CMakeFiles/Engine_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/engine/CMakeFiles/Engine_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 70
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 68
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/CMakeFiles/Engine_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/CMakeFiles/Engine_autogen.dir/rule
@@ -2095,7 +2093,7 @@ Engine_autogen: src/engine/CMakeFiles/Engine_autogen.dir/rule
 # codegen rule for target.
 src/engine/CMakeFiles/Engine_autogen.dir/codegen: src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine_autogen.dir\build.make src/engine/CMakeFiles/Engine_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target Engine_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=28 "Finished codegen for target Engine_autogen"
 .PHONY : src/engine/CMakeFiles/Engine_autogen.dir/codegen
 
 # clean rule for target.
@@ -2115,7 +2113,7 @@ src/engine/components/CMakeFiles/Components.dir/all: src/engine/core/CMakeFiles/
 
 # Build rule for subdir invocation for target.
 src/engine/components/CMakeFiles/Components.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 65
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 64
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/components/CMakeFiles/Components.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/components/CMakeFiles/Components.dir/rule
@@ -2150,7 +2148,7 @@ src/engine/components/CMakeFiles/Components_autogen_timestamp_deps.dir/all: src/
 
 # Build rule for subdir invocation for target.
 src/engine/components/CMakeFiles/Components_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 48
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 47
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/components/CMakeFiles/Components_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/components/CMakeFiles/Components_autogen_timestamp_deps.dir/rule
@@ -2182,7 +2180,7 @@ src/engine/components/CMakeFiles/Components_autogen.dir/all: src/engine/componen
 
 # Build rule for subdir invocation for target.
 src/engine/components/CMakeFiles/Components_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 49
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 48
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/components/CMakeFiles/Components_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/components/CMakeFiles/Components_autogen.dir/rule
@@ -2209,12 +2207,12 @@ src/engine/components/CMakeFiles/Components_autogen.dir/clean:
 src/engine/core/CMakeFiles/Core.dir/all: src/engine/serialization/CMakeFiles/Serialization.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\core\CMakeFiles\Core.dir\build.make src/engine/core/CMakeFiles/Core.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\core\CMakeFiles\Core.dir\build.make src/engine/core/CMakeFiles/Core.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=8,9,10,11,12,13 "Built target Core"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=7,8,9,10,11,12 "Built target Core"
 .PHONY : src/engine/core/CMakeFiles/Core.dir/all
 
 # Build rule for subdir invocation for target.
 src/engine/core/CMakeFiles/Core.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 63
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 62
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/core/CMakeFiles/Core.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/core/CMakeFiles/Core.dir/rule
@@ -2226,7 +2224,7 @@ Core: src/engine/core/CMakeFiles/Core.dir/rule
 # codegen rule for target.
 src/engine/core/CMakeFiles/Core.dir/codegen:
 	$(MAKE) $(MAKESILENT) -f src\engine\core\CMakeFiles\Core.dir\build.make src/engine/core/CMakeFiles/Core.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=8,9,10,11,12,13 "Finished codegen for target Core"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=7,8,9,10,11,12 "Finished codegen for target Core"
 .PHONY : src/engine/core/CMakeFiles/Core.dir/codegen
 
 # clean rule for target.
@@ -2249,7 +2247,7 @@ src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/all: src/engine/utils
 
 # Build rule for subdir invocation for target.
 src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 48
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 47
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/rule
@@ -2276,7 +2274,7 @@ src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/clean:
 src/engine/core/CMakeFiles/Core_autogen.dir/all: src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\core\CMakeFiles\Core_autogen.dir\build.make src/engine/core/CMakeFiles/Core_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\core\CMakeFiles\Core_autogen.dir\build.make src/engine/core/CMakeFiles/Core_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target Core_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=13 "Built target Core_autogen"
 .PHONY : src/engine/core/CMakeFiles/Core_autogen.dir/all
 
 # Build rule for subdir invocation for target.
@@ -2293,7 +2291,7 @@ Core_autogen: src/engine/core/CMakeFiles/Core_autogen.dir/rule
 # codegen rule for target.
 src/engine/core/CMakeFiles/Core_autogen.dir/codegen: src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\core\CMakeFiles\Core_autogen.dir\build.make src/engine/core/CMakeFiles/Core_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target Core_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=13 "Finished codegen for target Core_autogen"
 .PHONY : src/engine/core/CMakeFiles/Core_autogen.dir/codegen
 
 # clean rule for target.
@@ -2305,7 +2303,6 @@ src/engine/core/CMakeFiles/Core_autogen.dir/clean:
 # Target rules for target src/engine/rendering/CMakeFiles/Rendering.dir
 
 # All Build rule for target.
-src/engine/rendering/CMakeFiles/Rendering.dir/all: external/CMakeFiles/glad.dir/all
 src/engine/rendering/CMakeFiles/Rendering.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 src/engine/rendering/CMakeFiles/Rendering.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
 src/engine/rendering/CMakeFiles/Rendering.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
@@ -2313,12 +2310,12 @@ src/engine/rendering/CMakeFiles/Rendering.dir/all: src/engine/rendering/CMakeFil
 src/engine/rendering/CMakeFiles/Rendering.dir/all: src/engine/rendering/CMakeFiles/Rendering_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=41,42 "Built target Rendering"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=41,42,43 "Built target Rendering"
 .PHONY : src/engine/rendering/CMakeFiles/Rendering.dir/all
 
 # Build rule for subdir invocation for target.
 src/engine/rendering/CMakeFiles/Rendering.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 50
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 48
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/rendering/CMakeFiles/Rendering.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/rendering/CMakeFiles/Rendering.dir/rule
@@ -2330,7 +2327,7 @@ Rendering: src/engine/rendering/CMakeFiles/Rendering.dir/rule
 # codegen rule for target.
 src/engine/rendering/CMakeFiles/Rendering.dir/codegen: src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=41,42 "Finished codegen for target Rendering"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=41,42,43 "Finished codegen for target Rendering"
 .PHONY : src/engine/rendering/CMakeFiles/Rendering.dir/codegen
 
 # clean rule for target.
@@ -2342,7 +2339,6 @@ src/engine/rendering/CMakeFiles/Rendering.dir/clean:
 # Target rules for target src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir
 
 # All Build rule for target.
-src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all: external/CMakeFiles/glad.dir/all
 src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
 src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
@@ -2353,7 +2349,7 @@ src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all: extern
 
 # Build rule for subdir invocation for target.
 src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 47
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/rule
@@ -2380,12 +2376,12 @@ src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/clean:
 src/engine/rendering/CMakeFiles/Rendering_autogen.dir/all: src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering_autogen.dir\build.make src/engine/rendering/CMakeFiles/Rendering_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering_autogen.dir\build.make src/engine/rendering/CMakeFiles/Rendering_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=43 "Built target Rendering_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target Rendering_autogen"
 .PHONY : src/engine/rendering/CMakeFiles/Rendering_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/engine/rendering/CMakeFiles/Rendering_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 48
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 45
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/rendering/CMakeFiles/Rendering_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/rendering/CMakeFiles/Rendering_autogen.dir/rule
@@ -2397,7 +2393,7 @@ Rendering_autogen: src/engine/rendering/CMakeFiles/Rendering_autogen.dir/rule
 # codegen rule for target.
 src/engine/rendering/CMakeFiles/Rendering_autogen.dir/codegen: src/engine/rendering/CMakeFiles/Rendering_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering_autogen.dir\build.make src/engine/rendering/CMakeFiles/Rendering_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=43 "Finished codegen for target Rendering_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target Rendering_autogen"
 .PHONY : src/engine/rendering/CMakeFiles/Rendering_autogen.dir/codegen
 
 # clean rule for target.
@@ -2417,7 +2413,7 @@ src/engine/serialization/CMakeFiles/Serialization.dir/all: src/engine/debug/CMak
 
 # Build rule for subdir invocation for target.
 src/engine/serialization/CMakeFiles/Serialization.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 57
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 56
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/serialization/CMakeFiles/Serialization.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/serialization/CMakeFiles/Serialization.dir/rule
@@ -2450,7 +2446,7 @@ src/engine/serialization/CMakeFiles/Serialization_autogen_timestamp_deps.dir/all
 
 # Build rule for subdir invocation for target.
 src/engine/serialization/CMakeFiles/Serialization_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 23
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 22
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/serialization/CMakeFiles/Serialization_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/serialization/CMakeFiles/Serialization_autogen_timestamp_deps.dir/rule
@@ -2482,7 +2478,7 @@ src/engine/serialization/CMakeFiles/Serialization_autogen.dir/all: src/engine/se
 
 # Build rule for subdir invocation for target.
 src/engine/serialization/CMakeFiles/Serialization_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 24
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 23
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/serialization/CMakeFiles/Serialization_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/serialization/CMakeFiles/Serialization_autogen.dir/rule
@@ -2506,8 +2502,8 @@ src/engine/serialization/CMakeFiles/Serialization_autogen.dir/clean:
 # Target rules for target src/engine/utils/CMakeFiles/EngineUtils.dir
 
 # All Build rule for target.
-src/engine/utils/CMakeFiles/EngineUtils.dir/all: src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/all
 src/engine/utils/CMakeFiles/EngineUtils.dir/all: src/engine/utils/CMakeFiles/EngineUtils_autogen_timestamp_deps.dir/all
+src/engine/utils/CMakeFiles/EngineUtils.dir/all: src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\utils\CMakeFiles\EngineUtils.dir\build.make src/engine/utils/CMakeFiles/EngineUtils.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\utils\CMakeFiles\EngineUtils.dir\build.make src/engine/utils/CMakeFiles/EngineUtils.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=26,27 "Built target EngineUtils"
@@ -2515,7 +2511,7 @@ src/engine/utils/CMakeFiles/EngineUtils.dir/all: src/engine/utils/CMakeFiles/Eng
 
 # Build rule for subdir invocation for target.
 src/engine/utils/CMakeFiles/EngineUtils.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 2
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/utils/CMakeFiles/EngineUtils.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/utils/CMakeFiles/EngineUtils.dir/rule
@@ -2574,12 +2570,12 @@ src/engine/utils/CMakeFiles/EngineUtils_autogen_timestamp_deps.dir/clean:
 src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/all: src/engine/utils/CMakeFiles/EngineUtils_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\utils\CMakeFiles\EngineUtils_autogen.dir\build.make src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\utils\CMakeFiles\EngineUtils_autogen.dir\build.make src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=28 "Built target EngineUtils_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target EngineUtils_autogen"
 .PHONY : src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 1
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/rule
@@ -2591,7 +2587,7 @@ EngineUtils_autogen: src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/rule
 # codegen rule for target.
 src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/codegen: src/engine/utils/CMakeFiles/EngineUtils_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\utils\CMakeFiles\EngineUtils_autogen.dir\build.make src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=28 "Finished codegen for target EngineUtils_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target EngineUtils_autogen"
 .PHONY : src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/codegen
 
 # clean rule for target.
@@ -2607,14 +2603,14 @@ src/engine/debug/CMakeFiles/Debug.dir/all: external/glm/glm/CMakeFiles/glm.dir/a
 src/engine/debug/CMakeFiles/Debug.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/utils/CMakeFiles/EngineUtils.dir/all
-src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/components/CMakeFiles/Components_autogen_timestamp_deps.dir/all
-src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/serialization/CMakeFiles/Serialization_autogen_timestamp_deps.dir/all
-src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/serialization/CMakeFiles/Serialization_autogen.dir/all
-src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/all
-src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/core/CMakeFiles/Core_autogen.dir/all
-src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/debug/CMakeFiles/Debug_autogen.dir/all
+src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/components/CMakeFiles/Components_autogen.dir/all
+src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/core/CMakeFiles/Core_autogen.dir/all
+src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/serialization/CMakeFiles/Serialization_autogen_timestamp_deps.dir/all
+src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/debug/CMakeFiles/Debug_autogen.dir/all
+src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/all
+src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/serialization/CMakeFiles/Serialization_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\debug\CMakeFiles\Debug.dir\build.make src/engine/debug/CMakeFiles/Debug.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\debug\CMakeFiles\Debug.dir\build.make src/engine/debug/CMakeFiles/Debug.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=14,15,16 "Built target Debug"
@@ -2622,7 +2618,7 @@ src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/components/CMakeFiles/Comp
 
 # Build rule for subdir invocation for target.
 src/engine/debug/CMakeFiles/Debug.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 54
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 53
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/debug/CMakeFiles/Debug.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/debug/CMakeFiles/Debug.dir/rule
@@ -2657,7 +2653,7 @@ src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/all: src/engine/uti
 
 # Build rule for subdir invocation for target.
 src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 48
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 47
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/rule
@@ -2684,12 +2680,12 @@ src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/clean:
 src/engine/debug/CMakeFiles/Debug_autogen.dir/all: src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\debug\CMakeFiles\Debug_autogen.dir\build.make src/engine/debug/CMakeFiles/Debug_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\debug\CMakeFiles\Debug_autogen.dir\build.make src/engine/debug/CMakeFiles/Debug_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=17 "Built target Debug_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target Debug_autogen"
 .PHONY : src/engine/debug/CMakeFiles/Debug_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/engine/debug/CMakeFiles/Debug_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 49
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 47
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/engine/debug/CMakeFiles/Debug_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/engine/debug/CMakeFiles/Debug_autogen.dir/rule
@@ -2701,7 +2697,7 @@ Debug_autogen: src/engine/debug/CMakeFiles/Debug_autogen.dir/rule
 # codegen rule for target.
 src/engine/debug/CMakeFiles/Debug_autogen.dir/codegen: src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\debug\CMakeFiles\Debug_autogen.dir\build.make src/engine/debug/CMakeFiles/Debug_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=17 "Finished codegen for target Debug_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target Debug_autogen"
 .PHONY : src/engine/debug/CMakeFiles/Debug_autogen.dir/codegen
 
 # clean rule for target.
@@ -2746,24 +2742,27 @@ src/editor/CMakeFiles/EditorUtils.dir/clean:
 # Target rules for target src/editor/CMakeFiles/Editor.dir
 
 # All Build rule for target.
+src/editor/CMakeFiles/Editor.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 src/editor/CMakeFiles/Editor.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
+src/editor/CMakeFiles/Editor.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
+src/editor/CMakeFiles/Editor.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-src/editor/CMakeFiles/Editor.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+src/editor/CMakeFiles/Editor.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/CMakeFiles/Editor_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor.dir\build.make src/editor/CMakeFiles/Editor.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor.dir\build.make src/editor/CMakeFiles/Editor.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=18,19 "Built target Editor"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=17,18,19 "Built target Editor"
 .PHONY : src/editor/CMakeFiles/Editor.dir/all
 
 # Build rule for subdir invocation for target.
 src/editor/CMakeFiles/Editor.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 45
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 72
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/CMakeFiles/Editor.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/CMakeFiles/Editor.dir/rule
@@ -2775,7 +2774,7 @@ Editor: src/editor/CMakeFiles/Editor.dir/rule
 # codegen rule for target.
 src/editor/CMakeFiles/Editor.dir/codegen: src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor.dir\build.make src/editor/CMakeFiles/Editor.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=18,19 "Finished codegen for target Editor"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=17,18,19 "Finished codegen for target Editor"
 .PHONY : src/editor/CMakeFiles/Editor.dir/codegen
 
 # clean rule for target.
@@ -2855,8 +2854,8 @@ src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: external/yaml/CMake
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor_autogen_timestamp_deps.dir\build.make src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/depend
@@ -2866,7 +2865,7 @@ src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/mainwind
 
 # Build rule for subdir invocation for target.
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 42
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 69
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/rule
@@ -2893,12 +2892,12 @@ src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/clean:
 src/editor/CMakeFiles/Editor_autogen.dir/all: src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor_autogen.dir\build.make src/editor/CMakeFiles/Editor_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor_autogen.dir\build.make src/editor/CMakeFiles/Editor_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=23 "Built target Editor_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target Editor_autogen"
 .PHONY : src/editor/CMakeFiles/Editor_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/editor/CMakeFiles/Editor_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 43
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 69
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/CMakeFiles/Editor_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/CMakeFiles/Editor_autogen.dir/rule
@@ -2910,7 +2909,7 @@ Editor_autogen: src/editor/CMakeFiles/Editor_autogen.dir/rule
 # codegen rule for target.
 src/editor/CMakeFiles/Editor_autogen.dir/codegen: src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor_autogen.dir\build.make src/editor/CMakeFiles/Editor_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=23 "Finished codegen for target Editor_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target Editor_autogen"
 .PHONY : src/editor/CMakeFiles/Editor_autogen.dir/codegen
 
 # clean rule for target.
@@ -2932,7 +2931,7 @@ src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all: src/editor/console-gui/CMa
 
 # Build rule for subdir invocation for target.
 src/editor/console-gui/CMakeFiles/ConsoleGui.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 7
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 6
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/console-gui/CMakeFiles/ConsoleGui.dir/rule
@@ -2991,12 +2990,12 @@ src/editor/console-gui/CMakeFiles/ConsoleGui_autogen_timestamp_deps.dir/clean:
 src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\console-gui\CMakeFiles\ConsoleGui_autogen.dir\build.make src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\console-gui\CMakeFiles\ConsoleGui_autogen.dir\build.make src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=7 "Built target ConsoleGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target ConsoleGui_autogen"
 .PHONY : src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 3
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/rule
@@ -3008,7 +3007,7 @@ ConsoleGui_autogen: src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/rul
 # codegen rule for target.
 src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/codegen: src/editor/console-gui/CMakeFiles/ConsoleGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\console-gui\CMakeFiles\ConsoleGui_autogen.dir\build.make src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=7 "Finished codegen for target ConsoleGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target ConsoleGui_autogen"
 .PHONY : src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/codegen
 
 # clean rule for target.
@@ -3021,11 +3020,11 @@ src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/clean:
 
 # All Build rule for target.
 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/all
 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen_timestamp_deps.dir/all
+src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\hierarchy-gui\CMakeFiles\HierarchyGui.dir\build.make src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\hierarchy-gui\CMakeFiles\HierarchyGui.dir\build.make src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=32,33,34 "Built target HierarchyGui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=32,33 "Built target HierarchyGui"
 .PHONY : src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
 
 # Build rule for subdir invocation for target.
@@ -3042,7 +3041,7 @@ HierarchyGui: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/rule
 # codegen rule for target.
 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/codegen: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\hierarchy-gui\CMakeFiles\HierarchyGui.dir\build.make src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=32,33,34 "Finished codegen for target HierarchyGui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=32,33 "Finished codegen for target HierarchyGui"
 .PHONY : src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/codegen
 
 # clean rule for target.
@@ -3089,12 +3088,12 @@ src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen_timestamp_deps.dir/clea
 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\hierarchy-gui\CMakeFiles\HierarchyGui_autogen.dir\build.make src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\hierarchy-gui\CMakeFiles\HierarchyGui_autogen.dir\build.make src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target HierarchyGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=34 "Built target HierarchyGui_autogen"
 .PHONY : src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/rule
@@ -3106,7 +3105,7 @@ HierarchyGui_autogen: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.d
 # codegen rule for target.
 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/codegen: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\hierarchy-gui\CMakeFiles\HierarchyGui_autogen.dir\build.make src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target HierarchyGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=34 "Finished codegen for target HierarchyGui_autogen"
 .PHONY : src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/codegen
 
 # clean rule for target.
@@ -3119,11 +3118,11 @@ src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/clean:
 
 # All Build rule for target.
 src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/all
 src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen_timestamp_deps.dir/all
+src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\inspector-gui\CMakeFiles\InspectorGui.dir\build.make src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\inspector-gui\CMakeFiles\InspectorGui.dir\build.make src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=35,36,37 "Built target InspectorGui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=35,36 "Built target InspectorGui"
 .PHONY : src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
 
 # Build rule for subdir invocation for target.
@@ -3140,7 +3139,7 @@ InspectorGui: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/rule
 # codegen rule for target.
 src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/codegen: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\inspector-gui\CMakeFiles\InspectorGui.dir\build.make src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=35,36,37 "Finished codegen for target InspectorGui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=35,36 "Finished codegen for target InspectorGui"
 .PHONY : src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/codegen
 
 # clean rule for target.
@@ -3187,12 +3186,12 @@ src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen_timestamp_deps.dir/clea
 src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\inspector-gui\CMakeFiles\InspectorGui_autogen.dir\build.make src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\inspector-gui\CMakeFiles\InspectorGui_autogen.dir\build.make src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target InspectorGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=37 "Built target InspectorGui_autogen"
 .PHONY : src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/rule
@@ -3204,7 +3203,7 @@ InspectorGui_autogen: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.d
 # codegen rule for target.
 src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/codegen: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\inspector-gui\CMakeFiles\InspectorGui_autogen.dir\build.make src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target InspectorGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=37 "Finished codegen for target InspectorGui_autogen"
 .PHONY : src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/codegen
 
 # clean rule for target.
@@ -3216,9 +3215,13 @@ src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/clean:
 # Target rules for target src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir
 
 # All Build rule for target.
+src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
+src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
+src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
+src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/all
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/all
+src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\sceneview-gui\CMakeFiles\SceneViewGui.dir\build.make src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\sceneview-gui\CMakeFiles\SceneViewGui.dir\build.make src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=47,48 "Built target SceneViewGui"
@@ -3226,7 +3229,7 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/sceneview-g
 
 # Build rule for subdir invocation for target.
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 6
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 54
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/rule
@@ -3250,6 +3253,7 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/clean:
 # Target rules for target src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir
 
 # All Build rule for target.
+src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\sceneview-gui\CMakeFiles\SceneViewGui_autogen_timestamp_deps.dir\build.make src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\sceneview-gui\CMakeFiles\SceneViewGui_autogen_timestamp_deps.dir\build.make src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/build
@@ -3258,7 +3262,7 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/all:
 
 # Build rule for subdir invocation for target.
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 51
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/rule
@@ -3290,7 +3294,7 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/all: src/editor/sce
 
 # Build rule for subdir invocation for target.
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 4
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 52
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/rule
@@ -3315,11 +3319,11 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/clean:
 
 # All Build rule for target.
 src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen_timestamp_deps.dir/all
 src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/all
+src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\gameview-gui\CMakeFiles\GameViewGui.dir\build.make src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\gameview-gui\CMakeFiles\GameViewGui.dir\build.make src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=29,30,31 "Built target GameViewGui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=29,30 "Built target GameViewGui"
 .PHONY : src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 
 # Build rule for subdir invocation for target.
@@ -3336,7 +3340,7 @@ GameViewGui: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/rule
 # codegen rule for target.
 src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/codegen: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\gameview-gui\CMakeFiles\GameViewGui.dir\build.make src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=29,30,31 "Finished codegen for target GameViewGui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=29,30 "Finished codegen for target GameViewGui"
 .PHONY : src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/codegen
 
 # clean rule for target.
@@ -3383,12 +3387,12 @@ src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen_timestamp_deps.dir/clean:
 src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\gameview-gui\CMakeFiles\GameViewGui_autogen.dir\build.make src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\gameview-gui\CMakeFiles\GameViewGui_autogen.dir\build.make src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target GameViewGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=31 "Built target GameViewGui_autogen"
 .PHONY : src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 3
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 4
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/rule
@@ -3400,7 +3404,7 @@ GameViewGui_autogen: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/
 # codegen rule for target.
 src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/codegen: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\gameview-gui\CMakeFiles\GameViewGui_autogen.dir\build.make src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target GameViewGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=31 "Finished codegen for target GameViewGui_autogen"
 .PHONY : src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/codegen
 
 # clean rule for target.
@@ -3412,22 +3416,26 @@ src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/clean:
 # Target rules for target src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir
 
 # All Build rule for target.
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=38,39,40 "Built target MainWindowGui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=38,39 "Built target MainWindowGui"
 .PHONY : src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
 
 # Build rule for subdir invocation for target.
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 22
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 69
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/rule
@@ -3439,7 +3447,7 @@ MainWindowGui: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/rule
 # codegen rule for target.
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/codegen: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=38,39,40 "Finished codegen for target MainWindowGui"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=38,39 "Finished codegen for target MainWindowGui"
 .PHONY : src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/codegen
 
 # clean rule for target.
@@ -3454,8 +3462,8 @@ src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/clean:
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui_autogen_timestamp_deps.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui_autogen_timestamp_deps.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/build
@@ -3464,7 +3472,7 @@ src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/al
 
 # Build rule for subdir invocation for target.
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 19
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 66
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/rule
@@ -3491,12 +3499,12 @@ src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/cl
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui_autogen.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui_autogen.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Built target MainWindowGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=40 "Built target MainWindowGui_autogen"
 .PHONY : src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/all
 
 # Build rule for subdir invocation for target.
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 19
+	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 67
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles 0
 .PHONY : src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/rule
@@ -3508,7 +3516,7 @@ MainWindowGui_autogen: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autoge
 # codegen rule for target.
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/codegen: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui_autogen.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/codegen
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num= "Finished codegen for target MainWindowGui_autogen"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=C:\Users\rockl\CodingProjects\RockEngine\build\CMakeFiles --progress-num=40 "Finished codegen for target MainWindowGui_autogen"
 .PHONY : src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/codegen
 
 # clean rule for target.
