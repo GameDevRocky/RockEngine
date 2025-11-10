@@ -558,4 +558,35 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj: \
  C:/Users/rockl/CodingProjects/RockEngine/src/editor/utils/EditorUtils.hpp \
  C:/Qt/6.10.0/mingw_64/include/QtGui/QMouseEvent \
  C:/Qt/6.10.0/mingw_64/include/QtGui/QCursor \
- C:/Qt/6.10.0/mingw_64/include/QtGui/qcursor.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qcursor.h \
+ C:\Users\rockl\CodingProjects\RockEngine\src\editor\sceneview-gui/SceneViewGui.hpp \
+ C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/glad/glad.h \
+ C:/Users/rockl/CodingProjects/RockEngine/external/glad/include/KHR/khrplatform.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/QOpenGLWidget \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qopenglwidget.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qtopenglwidgetsglobal.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qtopenglwidgetsexports.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QWidget \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QSurfaceFormat \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qsurfaceformat.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopengl.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/GL/gl.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglext.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QOpenGLFunctions \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglfunctions.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglcontext.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglcontext_platform.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLShaderProgram \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglshaderprogram.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qtopenglglobal.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qtopenglexports.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvector3d.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvector4d.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qmatrix4x4.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qgenericmatrix.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLBuffer \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglbuffer.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLVertexArrayObject \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglvertexarrayobject.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QElapsedTimer \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qelapsedtimer.h

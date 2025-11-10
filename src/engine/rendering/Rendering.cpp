@@ -1,6 +1,10 @@
 // Renderer.cpp
 #include "engine/rendering/Renderer.hpp"
+#include "engine/core/TimeManager.hpp"
+#include "engine/debug/Console.hpp"
 #include <iostream>
+#include <cmath> 
+#include <chrono>
 
 Renderer::Renderer() {}
 Renderer::~Renderer() {
@@ -22,51 +26,78 @@ void Renderer::Init() {
     SetupQuad();
 
     // Simple shader
-    const std::string vertexShaderSrc = R"(#version 460 core
+    // Simple color-changing triangle shader
+const std::string vertexShaderSrc = R"(#version 460 core
 layout(location = 0) in vec3 aPos;
-layout(location = 1) in vec2 aTexCoord;
-out vec2 TexCoord;
 void main() {
     gl_Position = vec4(aPos, 1.0);
-    TexCoord = aTexCoord;
 })";
 
-    const std::string fragShaderSrc = R"(#version 460 core
+const std::string fragShaderSrc = R"(#version 460 core
 out vec4 FragColor;
-in vec2 TexCoord;
-uniform sampler2D screenTexture;
+uniform float time;
 void main() {
-    FragColor = texture(screenTexture, TexCoord);
+    float r = abs(sin(time));
+    float g = abs(sin(time + 2.0));
+    float b = abs(sin(time + 4.0));
+    FragColor = vec4(r, g, b, 1.0);
 })";
 
-    if (!LoadShaders(vertexShaderSrc, fragShaderSrc)) {
-        std::cerr << "Failed to load shaders" << std::endl;
-    }
+if (!LoadShaders(vertexShaderSrc, fragShaderSrc)) {
+    std::cerr << "Failed to load shaders" << std::endl;
+}
+
+// Setup triangle
+float triangleVertices[] = {
+     0.0f,  0.5f, 0.0f,
+    -0.5f, -0.5f, 0.0f,
+     0.5f, -0.5f, 0.0f
+};
+
+glGenVertexArrays(1, &quadVAO);  // reuse quadVAO for simplicity
+glGenBuffers(1, &quadVBO);
+glBindVertexArray(quadVAO);
+glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+glBufferData(GL_ARRAY_BUFFER, sizeof(triangleVertices), triangleVertices, GL_STATIC_DRAW);
+
+glEnableVertexAttribArray(0);
+glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+glBindBuffer(GL_ARRAY_BUFFER, 0);
+glBindVertexArray(0);
+
 
 }
 
-// --------------------
-// Clear framebuffer
-// --------------------
 void Renderer::Clear(float r, float g, float b, float a) {
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-// --------------------
-// Render scene / display FBO
-// --------------------
 void Renderer::Render() {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0); // render to screen
+    float time = TimeManager::Get().ElapsedTime();
+    
 
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(0, 0, 1280, 720); 
+    Clear(sin(time), 0.7f, 0.7f, 1.0f);
+    
+
+    // Use our shader
     glUseProgram(shaderProgram);
+
+    // Pass time to shader
+    glUniform1f(glGetUniformLocation(shaderProgram, "time"), time);
+
+    // Draw triangle
     glBindVertexArray(quadVAO);
-    glBindTexture(GL_TEXTURE_2D, fboTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
     glUseProgram(0);
 }
+
+
 
 // --------------------
 // Create framebuffer

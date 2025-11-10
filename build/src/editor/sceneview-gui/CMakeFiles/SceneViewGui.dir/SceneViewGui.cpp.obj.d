@@ -468,4 +468,9 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/SceneViewGui.cpp.obj: \
  C:/Users/rockl/CodingProjects/RockEngine/include/engine/core/System.hpp \
  C:/Users/rockl/CodingProjects/RockEngine/include/engine/core/Observable.hpp \
  C:/Qt/6.10.0/mingw_64/include/QtCore/QDebug \
- C:/Qt/6.10.0/mingw_64/include/QtCore/qdebug.h
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qdebug.h \
+ C:/Users/rockl/CodingProjects/RockEngine/include/engine/debug/Console.hpp \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iostream \
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/source_location \
+ C:/Users/rockl/CodingProjects/RockEngine/include/engine/core/TimeManager.hpp \
+ C:/Users/rockl/CodingProjects/RockEngine/include/engine/debug/Message.hpp

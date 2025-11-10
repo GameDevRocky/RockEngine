@@ -3,6 +3,7 @@
 #include <QTimer>
 #include "mainwindow-gui/MainWindowGui.hpp"
 #include "editor/console-gui/ConsoleGui.hpp"
+#include "sceneview-gui/SceneViewGui.hpp"
 void Editor::Init() {
     int argc = 0;
     char** argv = nullptr;
@@ -13,6 +14,7 @@ void Editor::Init() {
     timer = new QTimer();
     QObject::connect(timer, &QTimer::timeout, [this]() {
         Engine::Get().Run();
+
     });
 
     timer->start(16);
@@ -20,6 +22,7 @@ void Editor::Init() {
 }
 
 void Editor::Update() {
+    
 
 }
 

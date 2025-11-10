@@ -1,18 +1,19 @@
 #include "SceneViewGui.hpp"
-#include "engine/rendering/Renderer.hpp" // your singleton renderer
+#include "engine/rendering/Renderer.hpp" 
 #include <QDebug>
-
+#include "engine/debug/Console.hpp"
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
 {
-    frameTimer.setInterval(16); // ~60 FPS
+    frameTimer.setInterval(16); 
     connect(&frameTimer, &QTimer::timeout, this, QOverload<>::of(&SceneViewGui::update));
+    frameTimer.start(16);
 }
 
 SceneViewGui::~SceneViewGui()
 {
     makeCurrent();
-    Renderer::Get().Shutdown(); // cleanup GL resources
+    Renderer::Get().Shutdown();
     doneCurrent();
 }
 void SceneViewGui::initializeGL() {
@@ -27,6 +28,7 @@ void SceneViewGui::resizeGL(int w, int h) {
 }
 
 void SceneViewGui::paintGL() {
-    Renderer::Get().Clear(0.1f, 0.1f, 0.1f, 1.0f);
+    
     Renderer::Get().Render();
+   
 }
