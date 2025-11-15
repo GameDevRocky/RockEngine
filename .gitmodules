@@ -1,9 +1,12 @@
 [submodule "external/glm"]
 	path = external/glm
-	url = https://github.com/g-truc/glm.git
+	url = https://github.com/g-truc/glm
 [submodule "external/yaml"]
 	path = external/yaml
 	url = https://github.com/jbeder/yaml-cpp.git
 [submodule "external/box2d"]
-    path = external/box2d
-    url = https://github.com/erincatto/box2d.git
+	path = external/box2d
+	url = https://github.com/erincatto/box2d
+[submodule "external/yaml-cpp"]
+	path = external/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp
