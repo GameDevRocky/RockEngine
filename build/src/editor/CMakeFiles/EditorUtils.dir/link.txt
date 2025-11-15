@@ -1,2 +1,0 @@
-C:\Qt\Tools\mingw1310_64\bin\ar.exe qc libEditorUtils.a CMakeFiles/EditorUtils.dir/EditorUtils_autogen/mocs_compilation.cpp.obj CMakeFiles/EditorUtils.dir/utils/EditorUtils.cpp.obj
-C:\Qt\Tools\mingw1310_64\bin\ranlib.exe libEditorUtils.a

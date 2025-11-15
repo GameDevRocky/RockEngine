@@ -1,2 +1,0 @@
-C:\Qt\Tools\mingw1310_64\bin\ar.exe qc libInspectorGui.a CMakeFiles/InspectorGui.dir/InspectorGui_autogen/mocs_compilation.cpp.obj CMakeFiles/InspectorGui.dir/InspectorGui.cpp.obj
-C:\Qt\Tools\mingw1310_64\bin\ranlib.exe libInspectorGui.a

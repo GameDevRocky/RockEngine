@@ -1,2 +1,0 @@
-C:\Qt\Tools\mingw1310_64\bin\ar.exe qc libGameViewGui.a CMakeFiles/GameViewGui.dir/GameViewGui_autogen/mocs_compilation.cpp.obj CMakeFiles/GameViewGui.dir/GameViewGui.cpp.obj
-C:\Qt\Tools\mingw1310_64\bin\ranlib.exe libGameViewGui.a
