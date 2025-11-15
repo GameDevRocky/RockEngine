@@ -212,3 +212,12 @@ C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/mainwindow-gui/CMakeF
 C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/mainwindow-gui/CMakeFiles/install/strip.dir
 C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir
 C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/edit_cache.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/rebuild_cache.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/list_install_components.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/install.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/install/local.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/install/strip.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui_autogen_timestamp_deps.dir
+C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui_autogen.dir

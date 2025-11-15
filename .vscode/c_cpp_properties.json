@@ -13,6 +13,7 @@
                 "${workspaceFolder}/src/editor/gameview-gui", 
                 "${workspaceFolder}/src/editor/sceneview-gui", 
                 "${workspaceFolder}/src/editor/mainwindow-gui", 
+                "${workspaceFolder}/src/editor/fileexplorer-gui", 
 
                 "${workspaceFolder}/external/glm",
                 "${workspaceFolder}/external/yaml/include",

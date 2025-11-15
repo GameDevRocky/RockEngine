@@ -142,6 +142,7 @@ RockEngine.exe: external/box2d/src/libbox2dd.a
 RockEngine.exe: external/yaml/libyaml-cppd.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6OpenGLWidgets.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6OpenGL.a
+RockEngine.exe: src/editor/fileexplorer-gui/libFileExplorerGui.a
 RockEngine.exe: src/editor/libEditorUtils.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Widgets.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Gui.a

@@ -24,6 +24,7 @@ target_link_libraries(MainWindowGui
         HierarchyGui
         GameViewGui
         SceneViewGui
+        FileExplorerGui
 
         Qt6::Core
         Qt6::Gui

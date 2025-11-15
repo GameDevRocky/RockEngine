@@ -33,6 +33,7 @@ add_subdirectory(inspector-gui)
 add_subdirectory(sceneview-gui)
 add_subdirectory(gameview-gui)
 add_subdirectory(mainwindow-gui)
+add_subdirectory(fileexplorer-gui)
 
 # --- Main Editor Library ---
 add_library(Editor STATIC
@@ -59,6 +60,8 @@ target_link_libraries(Editor
         HierarchyGui
         GameViewGui
         SceneViewGui
+        FileExplorerGui
         MainWindowGui
         EditorUtils
+
 )

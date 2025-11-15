@@ -32,3 +32,6 @@ void SceneViewGui::paintGL() {
     Renderer::Get().Render();
    
 }
+void SceneViewGui::Init(){
+    
+}

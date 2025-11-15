@@ -334,6 +334,7 @@ set(CMAKE_MAKEFILE_DEPENDS
   "C:/Users/rockl/Coding Projects/RockEngine/external/yaml/yaml-cpp.pc.in"
   "C:/Users/rockl/Coding Projects/RockEngine/src/editor/CMakeLists.txt"
   "C:/Users/rockl/Coding Projects/RockEngine/src/editor/console-gui/CMakeLists.txt"
+  "C:/Users/rockl/Coding Projects/RockEngine/src/editor/fileexplorer-gui/CMakeLists.txt"
   "C:/Users/rockl/Coding Projects/RockEngine/src/editor/gameview-gui/CMakeLists.txt"
   "C:/Users/rockl/Coding Projects/RockEngine/src/editor/hierarchy-gui/CMakeLists.txt"
   "C:/Users/rockl/Coding Projects/RockEngine/src/editor/inspector-gui/CMakeLists.txt"
@@ -413,6 +414,8 @@ set(CMAKE_MAKEFILE_PRODUCTS
   "src/editor/gameview-gui/CMakeFiles/CMakeDirectoryInformation.cmake"
   "src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/AutogenInfo.json"
   "src/editor/mainwindow-gui/CMakeFiles/CMakeDirectoryInformation.cmake"
+  "src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui_autogen.dir/AutogenInfo.json"
+  "src/editor/fileexplorer-gui/CMakeFiles/CMakeDirectoryInformation.cmake"
   )
 
 # Dependency information for all targets:
@@ -505,4 +508,7 @@ set(CMAKE_DEPEND_INFO_FILES
   "src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/DependInfo.cmake"
   "src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/DependInfo.cmake"
   "src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/DependInfo.cmake"
+  "src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui.dir/DependInfo.cmake"
+  "src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui_autogen_timestamp_deps.dir/DependInfo.cmake"
+  "src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui_autogen.dir/DependInfo.cmake"
   )
