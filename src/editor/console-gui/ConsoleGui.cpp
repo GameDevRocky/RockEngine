@@ -110,6 +110,9 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     });
     GenerateWidgets();
 }
+void ConsoleGui::Init(){
+    
+}
 
 void ConsoleGui::resizeEvent(QResizeEvent* event)
 {

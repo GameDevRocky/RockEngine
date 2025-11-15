@@ -28,6 +28,7 @@
 	"MOC_INCLUDES" : 
 	[
 		"C:/Users/rockl/Coding Projects/RockEngine/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/glad/include",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/glm",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include",
@@ -70,7 +71,19 @@
 	"QT_VERSION_MAJOR" : 6,
 	"QT_VERSION_MINOR" : 10,
 	"SETTINGS_FILE" : "C:/Users/rockl/Coding Projects/RockEngine/build/src/engine/rendering/CMakeFiles/Rendering_autogen.dir/AutogenUsed.txt",
-	"SOURCES" : [],
+	"SOURCES" : 
+	[
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glad/src/glad.c",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/Rendering.cpp",
+			"MU",
+			null
+		]
+	],
 	"UIC_OPTIONS" : [],
 	"UIC_SEARCH_PATHS" : [],
 	"UIC_SKIP" : [],

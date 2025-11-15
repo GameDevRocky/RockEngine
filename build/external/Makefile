@@ -161,6 +161,96 @@ depend:
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 1
 .PHONY : depend
 
+# Convenience name for target.
+external/CMakeFiles/glad.dir/rule:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 external/CMakeFiles/glad.dir/rule
+.PHONY : external/CMakeFiles/glad.dir/rule
+
+# Convenience name for target.
+glad: external/CMakeFiles/glad.dir/rule
+.PHONY : glad
+
+# fast build rule for target.
+glad/fast:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/build
+.PHONY : glad/fast
+
+# Convenience name for target.
+external/CMakeFiles/glad_autogen_timestamp_deps.dir/rule:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 external/CMakeFiles/glad_autogen_timestamp_deps.dir/rule
+.PHONY : external/CMakeFiles/glad_autogen_timestamp_deps.dir/rule
+
+# Convenience name for target.
+glad_autogen_timestamp_deps: external/CMakeFiles/glad_autogen_timestamp_deps.dir/rule
+.PHONY : glad_autogen_timestamp_deps
+
+# fast build rule for target.
+glad_autogen_timestamp_deps/fast:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad_autogen_timestamp_deps.dir\build.make external/CMakeFiles/glad_autogen_timestamp_deps.dir/build
+.PHONY : glad_autogen_timestamp_deps/fast
+
+# Convenience name for target.
+external/CMakeFiles/glad_autogen.dir/rule:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 external/CMakeFiles/glad_autogen.dir/rule
+.PHONY : external/CMakeFiles/glad_autogen.dir/rule
+
+# Convenience name for target.
+glad_autogen: external/CMakeFiles/glad_autogen.dir/rule
+.PHONY : glad_autogen
+
+# fast build rule for target.
+glad_autogen/fast:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad_autogen.dir\build.make external/CMakeFiles/glad_autogen.dir/build
+.PHONY : glad_autogen/fast
+
+glad/src/glad.obj: glad/src/glad.c.obj
+.PHONY : glad/src/glad.obj
+
+# target to build an object file
+glad/src/glad.c.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad/src/glad.c.obj
+.PHONY : glad/src/glad.c.obj
+
+glad/src/glad.i: glad/src/glad.c.i
+.PHONY : glad/src/glad.i
+
+# target to preprocess a source file
+glad/src/glad.c.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad/src/glad.c.i
+.PHONY : glad/src/glad.c.i
+
+glad/src/glad.s: glad/src/glad.c.s
+.PHONY : glad/src/glad.s
+
+# target to generate assembly for a file
+glad/src/glad.c.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad/src/glad.c.s
+.PHONY : glad/src/glad.c.s
+
+glad_autogen/mocs_compilation.obj: glad_autogen/mocs_compilation.cpp.obj
+.PHONY : glad_autogen/mocs_compilation.obj
+
+# target to build an object file
+glad_autogen/mocs_compilation.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.obj
+.PHONY : glad_autogen/mocs_compilation.cpp.obj
+
+glad_autogen/mocs_compilation.i: glad_autogen/mocs_compilation.cpp.i
+.PHONY : glad_autogen/mocs_compilation.i
+
+# target to preprocess a source file
+glad_autogen/mocs_compilation.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.i
+.PHONY : glad_autogen/mocs_compilation.cpp.i
+
+glad_autogen/mocs_compilation.s: glad_autogen/mocs_compilation.cpp.s
+.PHONY : glad_autogen/mocs_compilation.s
+
+# target to generate assembly for a file
+glad_autogen/mocs_compilation.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f external\CMakeFiles\glad.dir\build.make external/CMakeFiles/glad.dir/glad_autogen/mocs_compilation.cpp.s
+.PHONY : glad_autogen/mocs_compilation.cpp.s
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -173,6 +263,15 @@ help:
 	@echo ... install/strip
 	@echo ... list_install_components
 	@echo ... rebuild_cache
+	@echo ... glad_autogen
+	@echo ... glad_autogen_timestamp_deps
+	@echo ... glad
+	@echo ... glad/src/glad.obj
+	@echo ... glad/src/glad.i
+	@echo ... glad/src/glad.s
+	@echo ... glad_autogen/mocs_compilation.obj
+	@echo ... glad_autogen/mocs_compilation.i
+	@echo ... glad_autogen/mocs_compilation.s
 .PHONY : help
 
 

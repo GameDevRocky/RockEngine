@@ -1,6 +1,7 @@
 glm_autogen/timestamp: \
 	C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/CMakeLists.txt \
 	C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/common.hpp \
+	C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_features.hpp \
 	C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_fixes.hpp \
 	C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_noise.hpp \
 	C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_swizzle.hpp \

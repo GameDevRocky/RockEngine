@@ -5,8 +5,8 @@
 	path = external/yaml
 	url = https://github.com/jbeder/yaml-cpp.git
 [submodule "external/box2d"]
-	path = external/box2d
-	url = https://github.com/erincatto/box2d
-[submodule "external/yaml-cpp"]
-	path = external/yaml-cpp
-	url = https://github.com/jbeder/yaml-cpp
+    path = external/box2d
+    url = https://github.com/erincatto/box2d.git
+[submodule "external/glad"]
+	path = external/glad
+	url = https://github.com/Dav1dde/glad.git

@@ -30,7 +30,6 @@ void OpenInVSCode(const std::string& fullPath)
 
     // Full path to VS Code exe (adjust if installed somewhere else)
     QString codeExe = "C:/Users/rockl/AppData/Local/Programs/Microsoft VS Code/Code.exe";
-
     QProcess::startDetached(codeExe, args);
 }
 

@@ -63,4 +63,5 @@ void Console::Clear(){
     }
     Get().messages.clear();
     Get().Notify();
+    Console::Warn("Cleared");
 }

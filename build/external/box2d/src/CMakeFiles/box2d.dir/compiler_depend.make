@@ -336,7 +336,6 @@ external/box2d/src/CMakeFiles/box2d.dir/core.c.obj: C:/Users/rockl/Coding\ Proje
   C:/Users/rockl/Coding\ Projects/RockEngine/external/box2d/include/box2d/base.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/box2d/include/box2d/math_functions.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/box2d/src/atomic.h \
-  C:/Users/rockl/Coding\ Projects/RockEngine/external/box2d/src/constants.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/box2d/src/core.h
 
 external/box2d/src/CMakeFiles/box2d.dir/distance.c.obj: C:/Users/rockl/Coding\ Projects/RockEngine/external/box2d/src/distance.c \

@@ -4,6 +4,7 @@
 external/glm/glm/glm_autogen/timestamp: C:/Program\ Files/CMake/bin/cmake.exe \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/CMakeLists.txt \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/common.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_features.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_fixes.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_noise.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_swizzle.hpp \
@@ -311,8 +312,6 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/common.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/compute_vector_relational.hpp:
 
-C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_vectorize.hpp:
-
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_fixes.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/glm.hpp:
@@ -325,11 +324,19 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/matrix_double4x2
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/CMakeLists.txt:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/type_mat4x3.hpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/gtx/matrix_factorisation.hpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_features.hpp:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/qualifier.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/vector_integer.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_swizzle_func.hpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/_vectorize.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/gtx/orthonormalize.hpp:
 
@@ -384,8 +391,6 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/type_mat3x2.h
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/matrix_double2x3.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/type_mat3x4.hpp:
-
-C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/detail/type_mat4x3.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/exponential.hpp:
 
@@ -794,8 +799,6 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/simd/neon.h:
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/gtx/matrix_cross_product.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/gtx/matrix_decompose.hpp:
-
-C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/gtx/matrix_factorisation.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/gtx/matrix_query.hpp:
 

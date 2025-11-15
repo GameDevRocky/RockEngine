@@ -316,4 +316,7 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/variant \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/debug/Console.hpp \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/source_location \
- C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/debug/Message.hpp
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/debug/Message.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/rendering/Renderer.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/glad/include/glad/glad.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/glad/include/KHR/khrplatform.h

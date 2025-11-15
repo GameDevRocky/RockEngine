@@ -282,6 +282,8 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wctype.h
+ C:/Users/rockl/Coding Projects/RockEngine/external/glad/include/KHR/khrplatform.h
+ C:/Users/rockl/Coding Projects/RockEngine/external/glad/include/glad/glad.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/binary.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/dll.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/emitter.h
@@ -323,6 +325,7 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/TimeManager.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/debug/Console.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/debug/Message.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/rendering/Renderer.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Serializable.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/utils/EngineUtils.hpp
 

@@ -7,11 +7,11 @@ C_DEFINES =
 
 C_INCLUDES = @CMakeFiles/box2d.dir/includes_C.rsp
 
-C_FLAGS = -g -std=gnu17 -fvisibility=hidden -ffp-contract=off
+C_FLAGS = -O2 -g -g -std=gnu17 -fvisibility=hidden -ffp-contract=off
 
 CXX_DEFINES = 
 
 CXX_INCLUDES = @CMakeFiles/box2d.dir/includes_CXX.rsp
 
-CXX_FLAGS = -g -std=gnu++20 -fno-keep-inline-dllexport -ffp-contract=off
+CXX_FLAGS = -O2 -g -g -std=gnu++20 -fno-keep-inline-dllexport -ffp-contract=off
 

@@ -487,8 +487,9 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/random.tcc \
  C:/Qt/6.10.0/mingw_64/include/QtCore/QTimer \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qtimer.h \
- C:\Users\rockl\Coding\ Projects\RockEngine\src\editor\console-gui/ConsoleGui.hpp \
- C:/Qt/6.10.0/mingw_64/include/QtWidgets/QWidget \
+ C:\Users\rockl\Coding\ Projects\RockEngine\src\editor\mainwindow-gui/MainWindowGui.hpp \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QMainWindow \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qmainwindow.h \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qwidget.h \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qaction.h \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qkeysequence.h \
@@ -501,10 +502,13 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj: \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qfontinfo.h \
  C:/Qt/6.10.0/mingw_64/include/QtGui/qfontvariableaxis.h \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qsizepolicy.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qtabwidget.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/src/editor/console-gui/ConsoleGui.hpp \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QWidget \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qwidget.h \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/QPushButton \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qpushbutton.h \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qabstractbutton.h \
- C:/Qt/6.10.0/mingw_64/include/QtWidgets/qwidget.h \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/QScrollArea \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qscrollarea.h \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qabstractscrollarea.h \
@@ -550,8 +554,39 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/source_location \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/TimeManager.hpp \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/debug/Message.hpp \
- C:\Users\rockl\Coding\ Projects\RockEngine\src\editor\console-gui/MessageGui.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/src/editor/console-gui/MessageGui.hpp \
  C:/Users/rockl/CODING~1/ROCKEN~1/src/editor/utils/EditorUtils.hpp \
  C:/Qt/6.10.0/mingw_64/include/QtGui/QMouseEvent \
  C:/Qt/6.10.0/mingw_64/include/QtGui/QCursor \
- C:/Qt/6.10.0/mingw_64/include/QtGui/qcursor.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qcursor.h \
+ C:\Users\rockl\Coding\ Projects\RockEngine\src\editor\sceneview-gui/SceneViewGui.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/glad/include/glad/glad.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/external/glad/include/KHR/khrplatform.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/QOpenGLWidget \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qopenglwidget.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qtopenglwidgetsglobal.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qtopenglwidgetsexports.h \
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QWidget \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QSurfaceFormat \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qsurfaceformat.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopengl.h \
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/GL/gl.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglext.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QOpenGLFunctions \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglfunctions.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglcontext.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglcontext_platform.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLShaderProgram \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglshaderprogram.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qtopenglglobal.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qtopenglexports.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvector3d.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvector4d.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qmatrix4x4.h \
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qgenericmatrix.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLBuffer \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglbuffer.h \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLVertexArrayObject \
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglvertexarrayobject.h \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QElapsedTimer \
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qelapsedtimer.h

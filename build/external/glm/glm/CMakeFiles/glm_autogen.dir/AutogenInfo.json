@@ -22,6 +22,12 @@
 			null
 		],
 		[
+			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_features.hpp",
+			"MU",
+			"O7LIVGFRLQ/moc__features.cpp",
+			null
+		],
+		[
 			"C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_fixes.hpp",
 			"MU",
 			"O7LIVGFRLQ/moc__fixes.cpp",
@@ -1785,7 +1791,7 @@
 	"MOC_PREDEFS_CMD" : 
 	[
 		"C:/Qt/Tools/mingw1310_64/bin/g++.exe",
-		"-std=c++17",
+		"-std=c++20",
 		"-w",
 		"-dM",
 		"-E",

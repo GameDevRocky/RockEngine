@@ -6,5 +6,5 @@ CXX_DEFINES = -DYAML_CPP_STATIC_DEFINE
 
 CXX_INCLUDES = @CMakeFiles/Debug.dir/includes_CXX.rsp
 
-CXX_FLAGS = -g -std=gnu++20
+CXX_FLAGS = -O2 -g -g -std=gnu++20
 

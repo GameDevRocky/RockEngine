@@ -280,6 +280,8 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj: C:/Users/rockl/Coding\ Projects
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h \
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h \
   C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wctype.h \
+  C:/Users/rockl/Coding\ Projects/RockEngine/external/glad/include/KHR/khrplatform.h \
+  C:/Users/rockl/Coding\ Projects/RockEngine/external/glad/include/glad/glad.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/binary.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/dll.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/emitter.h \
@@ -321,6 +323,7 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj: C:/Users/rockl/Coding\ Projects
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/TimeManager.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/debug/Console.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/debug/Message.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/Renderer.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Serializable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/utils/EngineUtils.hpp
 
@@ -797,6 +800,8 @@ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/tr1/hyper
 
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/tr1/poly_hermite.tcc:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/external/glad/include/glad/glad.h:
+
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/tr1/riemann_zeta.tcc:
 
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/tr1/special_function_util.h:
@@ -913,6 +918,8 @@ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h:
 
 C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/external/glad/include/KHR/khrplatform.h:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/binary.h:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/node/detail/node_iterator.h:
@@ -936,6 +943,8 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/node/d
 C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/node/detail/memory.h:
 
 src/engine/Engine_autogen/mocs_compilation.cpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/Renderer.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/node/detail/node.h:
 

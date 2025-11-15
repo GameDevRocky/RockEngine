@@ -6,5 +6,5 @@ CXX_DEFINES = -DMINGW_HAS_SECURE_API=1 -DQT_CORE_LIB -DQT_GUI_LIB -DQT_WIDGETS_L
 
 CXX_INCLUDES = @CMakeFiles/EditorUtils.dir/includes_CXX.rsp
 
-CXX_FLAGS = -g -std=gnu++20
+CXX_FLAGS = -O2 -g -g -std=gnu++20
 

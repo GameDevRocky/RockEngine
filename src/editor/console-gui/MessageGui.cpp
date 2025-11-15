@@ -126,7 +126,7 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     setObjectName("body");
     Update();
 
-    std::string projectRoot = "C:/Users/rockl/Coding Projects/RockEngine/";
+    std::string projectRoot = "C:/Users/rockl/Coding Projects/RockEngine";
     fullPath = projectRoot + msg->file_name;
     file_path->setFilePath(QString::fromStdString(fullPath));
 

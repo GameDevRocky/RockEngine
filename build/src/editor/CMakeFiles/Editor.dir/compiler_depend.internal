@@ -3,12 +3,74 @@
 
 C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/Editor_autogen/timestamp
  C:/Program Files/CMake/bin/cmake.exe
+ C:/Program Files/CMake/share/cmake-4.2/Modules/CMakeFindDependencyMacro.cmake
+ C:/Program Files/CMake/share/cmake-4.2/Modules/CheckCXXCompilerFlag.cmake
+ C:/Program Files/CMake/share/cmake-4.2/Modules/FindPackageHandleStandardArgs.cmake
+ C:/Program Files/CMake/share/cmake-4.2/Modules/FindPackageMessage.cmake
+ C:/Program Files/CMake/share/cmake-4.2/Modules/FindVulkan.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/FindWrapVulkanHeaders.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/Qt6Config.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/Qt6ConfigExtras.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/Qt6ConfigVersion.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/Qt6ConfigVersionImpl.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/Qt6Dependencies.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/Qt6Targets.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/Qt6VersionlessAliasTargets.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtFeature.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtFeatureCommon.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtInstallPaths.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicAndroidHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicAppleHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicCMakeEarlyPolicyHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicCMakeHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicCMakeVersionHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicDependencyHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicExternalProjectHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicFinalizerHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicFindPackageHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicGitHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicPluginHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicPluginHelpers_v2.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomAttributionHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomCpeHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomDepHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomFileHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomGenerationHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomLicenseHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomOpsHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomPurlHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomPythonHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomQtEntityHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicSbomSystemDepHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicTargetHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicTestHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicToolHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicWalkLibsHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6/QtPublicWindowsHelpers.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGL/Qt6OpenGLAdditionalTargetInfo.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGL/Qt6OpenGLConfig.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGL/Qt6OpenGLConfigVersion.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGL/Qt6OpenGLConfigVersionImpl.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGL/Qt6OpenGLDependencies.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGL/Qt6OpenGLTargets-relwithdebinfo.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGL/Qt6OpenGLTargets.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGL/Qt6OpenGLVersionlessAliasTargets.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsAdditionalTargetInfo.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfig.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfigVersion.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsConfigVersionImpl.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsDependencies.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsTargets-relwithdebinfo.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsTargets.cmake
+ C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6OpenGLWidgets/Qt6OpenGLWidgetsVersionlessAliasTargets.cmake
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/CMakeLists.txt
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/Editor.cpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/Editor.hpp
 
 src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/Editor.cpp
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QElapsedTimer
  C:/Qt/6.10.0/mingw_64/include/QtCore/QList
  C:/Qt/6.10.0/mingw_64/include/QtCore/QObject
  C:/Qt/6.10.0/mingw_64/include/QtCore/QProcess
@@ -59,6 +121,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/6.10.0/mingw_64/include/QtCore/qdatastream.h
  C:/Qt/6.10.0/mingw_64/include/QtCore/qdeadlinetimer.h
  C:/Qt/6.10.0/mingw_64/include/QtCore/qdebug.h
+ C:/Qt/6.10.0/mingw_64/include/QtCore/qelapsedtimer.h
  C:/Qt/6.10.0/mingw_64/include/QtCore/qendian.h
  C:/Qt/6.10.0/mingw_64/include/QtCore/qeventloop.h
  C:/Qt/6.10.0/mingw_64/include/QtCore/qexceptionhandling.h
@@ -158,7 +221,9 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/6.10.0/mingw_64/include/QtCore/qyieldcpu.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/QCursor
  C:/Qt/6.10.0/mingw_64/include/QtGui/QMouseEvent
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QOpenGLFunctions
  C:/Qt/6.10.0/mingw_64/include/QtGui/QResizeEvent
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QSurfaceFormat
  C:/Qt/6.10.0/mingw_64/include/QtGui/QTransform
  C:/Qt/6.10.0/mingw_64/include/QtGui/qaction.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qbitmap.h
@@ -171,6 +236,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/6.10.0/mingw_64/include/QtGui/qfontinfo.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qfontmetrics.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qfontvariableaxis.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qgenericmatrix.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qguiapplication.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qguiapplication_platform.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qicon.h
@@ -178,6 +244,12 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/6.10.0/mingw_64/include/QtGui/qinputdevice.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qinputmethod.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qkeysequence.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qmatrix4x4.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopengl.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglcontext.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglcontext_platform.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglext.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qopenglfunctions.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qpaintdevice.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qpalette.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qpicture.h
@@ -190,17 +262,33 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/6.10.0/mingw_64/include/QtGui/qrgba64.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qscreen.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qscreen_platform.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qsurfaceformat.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qtextdocument.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qtgui-config.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qtguiexports.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qtguiglobal.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qtransform.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qvector2d.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvector3d.h
+ C:/Qt/6.10.0/mingw_64/include/QtGui/qvector4d.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qvectornd.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qwindowdefs.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qwindowdefs_win.h
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLBuffer
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLShaderProgram
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/QOpenGLVertexArrayObject
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglbuffer.h
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglshaderprogram.h
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qopenglvertexarrayobject.h
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qtopenglexports.h
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGL/qtopenglglobal.h
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/QOpenGLWidget
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qopenglwidget.h
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qtopenglwidgetsexports.h
+ C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets/qtopenglwidgetsglobal.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/QApplication
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/QLabel
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/QMainWindow
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/QPushButton
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/QScrollArea
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/QScrollBar
@@ -216,10 +304,12 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qlabel.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qlayout.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qlayoutitem.h
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qmainwindow.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qpushbutton.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qscrollarea.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qscrollbar.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qsizepolicy.h
+ C:/Qt/6.10.0/mingw_64/include/QtWidgets/qtabwidget.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qtwidgets-config.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qtwidgetsexports.h
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qtwidgetsglobal.h
@@ -464,6 +554,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/stdint.h
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/syslimits.h
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/xmmintrin.h
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/GL/gl.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw_mac.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/_mingw_off_t.h
@@ -509,6 +600,8 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/vadefs.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wchar.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wctype.h
+ C:/Users/rockl/Coding Projects/RockEngine/external/glad/include/KHR/khrplatform.h
+ C:/Users/rockl/Coding Projects/RockEngine/external/glad/include/glad/glad.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/binary.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/dll.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/emitter.h
@@ -552,10 +645,12 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/debug/Message.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Serializable.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/utils/EngineUtils.hpp
- C:/Users/rockl/Coding Projects/RockEngine/src/editor/utils/EditorUtils.hpp
- C:/Users/rockl/Coding Projects/RockEngine/src/editor/Editor.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/console-gui/ConsoleGui.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/console-gui/MessageGui.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/editor/utils/EditorUtils.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/editor/Editor.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/editor/mainwindow-gui/MainWindowGui.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/src/editor/sceneview-gui/SceneViewGui.hpp
 
 src/editor/CMakeFiles/Editor.dir/Editor_autogen/mocs_compilation.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/Editor_autogen/mocs_compilation.cpp

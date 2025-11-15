@@ -5,17 +5,28 @@
             "includePath": [
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/src",
-                "${workspaceFolder}/src/editor/utils",    
+                "${workspaceFolder}/src/editor/utils",  
+
                 "${workspaceFolder}/src/editor/console-gui", 
+                "${workspaceFolder}/src/editor/inspector-gui", 
+                "${workspaceFolder}/src/editor/hierarchy-gui", 
+                "${workspaceFolder}/src/editor/gameview-gui", 
+                "${workspaceFolder}/src/editor/sceneview-gui", 
+                "${workspaceFolder}/src/editor/mainwindow-gui", 
 
                 "${workspaceFolder}/external/glm",
                 "${workspaceFolder}/external/yaml/include",
                 "${workspaceFolder}/external/box2d/include",
+                "${workspaceFolder}/external/glad/include",
+                
 
                 "C:/Qt/6.10.0/mingw_64/include",
                 "C:/Qt/6.10.0/mingw_64/include/QtCore",
                 "C:/Qt/6.10.0/mingw_64/include/QtGui",
-                "C:/Qt/6.10.0/mingw_64/include/QtWidgets"
+                "C:/Qt/6.10.0/mingw_64/include/QtWidgets",
+                "C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets",
+                "C:/Qt/6.10.0/mingw_64/include/QtOpenGL"
+
             ],
             "defines": [
                 "_DEBUG",

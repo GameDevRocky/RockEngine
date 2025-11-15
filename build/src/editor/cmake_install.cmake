@@ -29,7 +29,7 @@ endif()
 
 # Is this installation the result of a crosscompile?
 if(NOT DEFINED CMAKE_CROSSCOMPILING)
-  set(CMAKE_CROSSCOMPILING "FALSE")
+  set(CMAKE_CROSSCOMPILING "TRUE")
 endif()
 
 # Set path to fallback-tool for dependency-resolution.
@@ -40,6 +40,31 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
   include("C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/console-gui/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/hierarchy-gui/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/inspector-gui/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/sceneview-gui/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/gameview-gui/cmake_install.cmake")
+endif()
+
+if(NOT CMAKE_INSTALL_LOCAL_ONLY)
+  # Include the install script for the subdirectory.
+  include("C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/mainwindow-gui/cmake_install.cmake")
 endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT

@@ -121,7 +121,6 @@ RockEngine.exe: CMakeFiles/RockEngine.dir/src/main.cpp.obj
 RockEngine.exe: CMakeFiles/RockEngine.dir/build.make
 RockEngine.exe: src/engine/libEngine.a
 RockEngine.exe: src/editor/libEditor.a
-RockEngine.exe: src/engine/rendering/libRendering.a
 RockEngine.exe: src/engine/components/libComponents.a
 RockEngine.exe: src/engine/core/libCore.a
 RockEngine.exe: src/engine/debug/libDebug.a
@@ -131,10 +130,18 @@ RockEngine.exe: src/engine/core/libCore.a
 RockEngine.exe: src/engine/debug/libDebug.a
 RockEngine.exe: src/engine/serialization/libSerialization.a
 RockEngine.exe: src/engine/utils/libEngineUtils.a
+RockEngine.exe: src/editor/mainwindow-gui/libMainWindowGui.a
+RockEngine.exe: src/editor/console-gui/libConsoleGui.a
+RockEngine.exe: src/editor/inspector-gui/libInspectorGui.a
+RockEngine.exe: src/editor/hierarchy-gui/libHierarchyGui.a
+RockEngine.exe: src/editor/gameview-gui/libGameViewGui.a
+RockEngine.exe: src/editor/sceneview-gui/libSceneViewGui.a
+RockEngine.exe: src/engine/rendering/libRendering.a
 RockEngine.exe: external/glm/glm/libglm.a
 RockEngine.exe: external/box2d/src/libbox2dd.a
 RockEngine.exe: external/yaml/libyaml-cppd.a
-RockEngine.exe: src/editor/console-gui/libConsoleGui.a
+RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6OpenGLWidgets.a
+RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6OpenGL.a
 RockEngine.exe: src/editor/libEditorUtils.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Widgets.a
 RockEngine.exe: C:/Qt/6.10.0/mingw_64/lib/libQt6Gui.a

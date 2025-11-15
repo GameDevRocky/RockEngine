@@ -8,7 +8,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "C:/Users/rockl/Coding Projects/RockEngine/external/glad/src/glad.c" "src/engine/rendering/CMakeFiles/Rendering.dir/__/__/__/external/glad/src/glad.c.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/__/__/__/external/glad/src/glad.c.obj.d"
   "" "src/engine/rendering/Rendering_autogen/timestamp" "custom" "src/engine/rendering/Rendering_autogen/deps"
+  "C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/Rendering.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/Rendering.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/Rendering.cpp.obj.d"
   "C:/Users/rockl/Coding Projects/RockEngine/build/src/engine/rendering/Rendering_autogen/mocs_compilation.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/Rendering_autogen/mocs_compilation.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/Rendering_autogen/mocs_compilation.cpp.obj.d"
   )
 
