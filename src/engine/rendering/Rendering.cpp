@@ -70,32 +70,41 @@ glBindVertexArray(0);
 }
 
 void Renderer::Clear(float r, float g, float b, float a) {
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glClearColor(r, g, b, a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Renderer::Render() {
     float time = TimeManager::Get().ElapsedTime();
-    
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, 1280, 720); 
+    // Assume the caller (QOpenGLWidget::paintGL) has already bound the correct framebuffer.
+    // Query current viewport in case we need it:
+    GLint vp[4];
+    glGetIntegerv(GL_VIEWPORT, vp);
+    // vp[2] = width, vp[3] = height
+
+    // Optionally ensure viewport matches expected size:
+    // glViewport(0, 0, vp[2], vp[3]);
+
+    // Clear current framebuffer (Qt's FBO)
     Clear(sin(time), 0.7f, 0.7f, 1.0f);
-    
 
     // Use our shader
     glUseProgram(shaderProgram);
 
     // Pass time to shader
-    glUniform1f(glGetUniformLocation(shaderProgram, "time"), time);
+    GLint loc = glGetUniformLocation(shaderProgram, "time");
+    if (loc >= 0)
+        glUniform1f(loc, time);
 
     // Draw triangle
     glBindVertexArray(quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
+
     glUseProgram(0);
 }
+
 
 
 

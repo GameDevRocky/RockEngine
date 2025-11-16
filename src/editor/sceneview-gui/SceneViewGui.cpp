@@ -2,13 +2,18 @@
 #include "engine/rendering/Renderer.hpp" 
 #include <QDebug>
 #include "engine/debug/Console.hpp"
+
+
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
 {
-    frameTimer.setInterval(16); 
-    connect(&frameTimer, &QTimer::timeout, this, QOverload<>::of(&SceneViewGui::update));
-    frameTimer.start(16);
+    frameTimer.setInterval(16);
+    connect(&frameTimer, &QTimer::timeout, this, [this]() {
+        this->update();
+    });
+    frameTimer.start();
 }
+
 
 SceneViewGui::~SceneViewGui()
 {
