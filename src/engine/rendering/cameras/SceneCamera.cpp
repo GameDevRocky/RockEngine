@@ -15,7 +15,6 @@ void SceneCamera::Init(){
 void SceneCamera::Update()
 {
     bool changed = false;
-    SetPosition(glm::vec2(1.0f) + position);
     float scroll = 0.0f;
     if (scroll != 0.0f) {
         zoom -= scroll * zoomSpeed;

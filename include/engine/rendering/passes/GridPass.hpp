@@ -5,6 +5,7 @@
 #include "engine/core/Scene.hpp"
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/core/TimeManager.hpp"
+#include "engine/rendering/core/SharedResources.hpp"
 #include <glad/glad.h>
 #include <memory>
 
@@ -34,8 +35,7 @@ public:
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glBindVertexArray(0);
 
-        // Load shaders from strings
-        shader = Shader::LoadFromPath("src/engine/rendering/shaders/grid.vert", "src/engine/rendering/shaders/grid.frag");
+        shader = SharedResources::Get().GetShader("grid");
     }
 
     void Shutdown() override
