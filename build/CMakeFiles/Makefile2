@@ -633,15 +633,15 @@ CMakeFiles/RockEngine.dir/all: src/engine/CMakeFiles/Engine.dir/all
 CMakeFiles/RockEngine.dir/all: src/engine/components/CMakeFiles/Components.dir/all
 CMakeFiles/RockEngine.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 CMakeFiles/RockEngine.dir/all: src/engine/utils/CMakeFiles/EngineUtils.dir/all
-CMakeFiles/RockEngine.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
-CMakeFiles/RockEngine.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/CMakeFiles/Editor.dir/all
-CMakeFiles/RockEngine.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+CMakeFiles/RockEngine.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
+CMakeFiles/RockEngine.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-CMakeFiles/RockEngine.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
+CMakeFiles/RockEngine.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
-CMakeFiles/RockEngine.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
+CMakeFiles/RockEngine.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 CMakeFiles/RockEngine.dir/all: src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui.dir/all
+CMakeFiles/RockEngine.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
 CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen_timestamp_deps.dir/all
 CMakeFiles/RockEngine.dir/all: CMakeFiles/RockEngine_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\RockEngine.dir\build.make CMakeFiles/RockEngine.dir/depend
@@ -2031,8 +2031,8 @@ src/engine/CMakeFiles/Engine.dir/all: external/box2d/src/CMakeFiles/box2d.dir/al
 src/engine/CMakeFiles/Engine.dir/all: src/engine/components/CMakeFiles/Components.dir/all
 src/engine/CMakeFiles/Engine.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 src/engine/CMakeFiles/Engine.dir/all: src/engine/utils/CMakeFiles/EngineUtils.dir/all
-src/engine/CMakeFiles/Engine.dir/all: src/engine/CMakeFiles/Engine_autogen.dir/all
 src/engine/CMakeFiles/Engine.dir/all: src/engine/CMakeFiles/Engine_autogen_timestamp_deps.dir/all
+src/engine/CMakeFiles/Engine.dir/all: src/engine/CMakeFiles/Engine_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine.dir\build.make src/engine/CMakeFiles/Engine.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\CMakeFiles\Engine.dir\build.make src/engine/CMakeFiles/Engine.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=22,23 "Built target Engine"
@@ -2530,8 +2530,8 @@ src/engine/serialization/CMakeFiles/Serialization_autogen.dir/clean:
 # Target rules for target src/engine/utils/CMakeFiles/EngineUtils.dir
 
 # All Build rule for target.
-src/engine/utils/CMakeFiles/EngineUtils.dir/all: src/engine/utils/CMakeFiles/EngineUtils_autogen_timestamp_deps.dir/all
 src/engine/utils/CMakeFiles/EngineUtils.dir/all: src/engine/utils/CMakeFiles/EngineUtils_autogen.dir/all
+src/engine/utils/CMakeFiles/EngineUtils.dir/all: src/engine/utils/CMakeFiles/EngineUtils_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\utils\CMakeFiles\EngineUtils.dir\build.make src/engine/utils/CMakeFiles/EngineUtils.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\utils\CMakeFiles\EngineUtils.dir\build.make src/engine/utils/CMakeFiles/EngineUtils.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=24,25 "Built target EngineUtils"
@@ -2631,13 +2631,13 @@ src/engine/debug/CMakeFiles/Debug.dir/all: external/glm/glm/CMakeFiles/glm.dir/a
 src/engine/debug/CMakeFiles/Debug.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: external/box2d/src/CMakeFiles/box2d.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/utils/CMakeFiles/EngineUtils.dir/all
+src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/serialization/CMakeFiles/Serialization_autogen.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/core/CMakeFiles/Core_autogen_timestamp_deps.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/components/CMakeFiles/Components_autogen_timestamp_deps.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/components/CMakeFiles/Components_autogen.dir/all
-src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/core/CMakeFiles/Core_autogen.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/serialization/CMakeFiles/Serialization_autogen_timestamp_deps.dir/all
+src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/core/CMakeFiles/Core_autogen.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/debug/CMakeFiles/Debug_autogen_timestamp_deps.dir/all
-src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/serialization/CMakeFiles/Serialization_autogen.dir/all
 src/engine/debug/CMakeFiles/Debug.dir/all: src/engine/debug/CMakeFiles/Debug_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\engine\debug\CMakeFiles\Debug.dir\build.make src/engine/debug/CMakeFiles/Debug.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\engine\debug\CMakeFiles\Debug.dir\build.make src/engine/debug/CMakeFiles/Debug.dir/build
@@ -2737,8 +2737,8 @@ src/engine/debug/CMakeFiles/Debug_autogen.dir/clean:
 # Target rules for target src/editor/CMakeFiles/EditorUtils.dir
 
 # All Build rule for target.
-src/editor/CMakeFiles/EditorUtils.dir/all: src/editor/CMakeFiles/EditorUtils_autogen_timestamp_deps.dir/all
 src/editor/CMakeFiles/EditorUtils.dir/all: src/editor/CMakeFiles/EditorUtils_autogen.dir/all
+src/editor/CMakeFiles/EditorUtils.dir/all: src/editor/CMakeFiles/EditorUtils_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\EditorUtils.dir\build.make src/editor/CMakeFiles/EditorUtils.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\EditorUtils.dir\build.make src/editor/CMakeFiles/EditorUtils.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=18,19,20 "Built target EditorUtils"
@@ -2774,14 +2774,14 @@ src/editor/CMakeFiles/Editor.dir/all: external/CMakeFiles/glad.dir/all
 src/editor/CMakeFiles/Editor.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 src/editor/CMakeFiles/Editor.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
-src/editor/CMakeFiles/Editor.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/CMakeFiles/Editor.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+src/editor/CMakeFiles/Editor.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-src/editor/CMakeFiles/Editor.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
+src/editor/CMakeFiles/Editor.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
-src/editor/CMakeFiles/Editor.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
+src/editor/CMakeFiles/Editor.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui.dir/all
+src/editor/CMakeFiles/Editor.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all
 src/editor/CMakeFiles/Editor.dir/all: src/editor/CMakeFiles/Editor_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor.dir\build.make src/editor/CMakeFiles/Editor.dir/depend
@@ -2880,14 +2880,14 @@ src/editor/CMakeFiles/EditorUtils_autogen.dir/clean:
 
 # All Build rule for target.
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
-src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
+src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
-src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
+src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui.dir/all
+src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor_autogen_timestamp_deps.dir\build.make src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\CMakeFiles\Editor_autogen_timestamp_deps.dir\build.make src/editor/CMakeFiles/Editor_autogen_timestamp_deps.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num= "Built target Editor_autogen_timestamp_deps"
@@ -3050,8 +3050,8 @@ src/editor/console-gui/CMakeFiles/ConsoleGui_autogen.dir/clean:
 
 # All Build rule for target.
 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/all
 src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen_timestamp_deps.dir/all
+src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\hierarchy-gui\CMakeFiles\HierarchyGui.dir\build.make src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\hierarchy-gui\CMakeFiles\HierarchyGui.dir\build.make src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=33,34 "Built target HierarchyGui"
@@ -3148,8 +3148,8 @@ src/editor/hierarchy-gui/CMakeFiles/HierarchyGui_autogen.dir/clean:
 
 # All Build rule for target.
 src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/all
 src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen_timestamp_deps.dir/all
+src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\inspector-gui\CMakeFiles\InspectorGui.dir\build.make src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\inspector-gui\CMakeFiles\InspectorGui.dir\build.make src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=35,36 "Built target InspectorGui"
@@ -3250,8 +3250,8 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: external/glm/glm/CMake
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/all
 src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen_timestamp_deps.dir/all
+src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\sceneview-gui\CMakeFiles\SceneViewGui.dir\build.make src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\sceneview-gui\CMakeFiles\SceneViewGui.dir\build.make src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=51,52 "Built target SceneViewGui"
@@ -3349,8 +3349,8 @@ src/editor/sceneview-gui/CMakeFiles/SceneViewGui_autogen.dir/clean:
 
 # All Build rule for target.
 src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen_timestamp_deps.dir/all
 src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen.dir/all
+src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui_autogen_timestamp_deps.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\gameview-gui\CMakeFiles\GameViewGui.dir\build.make src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\gameview-gui\CMakeFiles\GameViewGui.dir\build.make src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=30,31 "Built target GameViewGui"
@@ -3450,15 +3450,15 @@ src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: external/CMakeFiles/
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: external/glm/glm/CMakeFiles/glm.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: external/yaml/CMakeFiles/yaml-cpp.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/engine/rendering/CMakeFiles/Rendering.dir/all
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui.dir/all
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/all: src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/build
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=38,39 "Built target MainWindowGui"
@@ -3490,12 +3490,12 @@ src/editor/mainwindow-gui/CMakeFiles/MainWindowGui.dir/clean:
 # Target rules for target src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir
 
 # All Build rule for target.
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/CMakeFiles/EditorUtils.dir/all
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/console-gui/CMakeFiles/ConsoleGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/inspector-gui/CMakeFiles/InspectorGui.dir/all
-src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/hierarchy-gui/CMakeFiles/HierarchyGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/sceneview-gui/CMakeFiles/SceneViewGui.dir/all
+src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/gameview-gui/CMakeFiles/GameViewGui.dir/all
 src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/all: src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui.dir/all
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui_autogen_timestamp_deps.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/depend
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui_autogen_timestamp_deps.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen_timestamp_deps.dir/build
