@@ -32,5 +32,7 @@ private:
     QOpenGLBuffer vbo{QOpenGLBuffer::VertexBuffer};
     QOpenGLVertexArrayObject vao;
     QElapsedTimer elapsedTimer;
-    QTimer frameTimer;
+    GLuint quadVAO = 0;
+    GLuint quadVBO = 0;
+    GLuint quadShader = 0;
 };

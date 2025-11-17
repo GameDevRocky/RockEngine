@@ -28,11 +28,9 @@
 	"MOC_INCLUDES" : 
 	[
 		"C:/Users/rockl/Coding Projects/RockEngine/include",
-		"C:/Users/rockl/Coding Projects/RockEngine/external/glad/include",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/glm",
-		"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include",
-		"C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/glad/include",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward",
@@ -74,12 +72,32 @@
 	"SOURCES" : 
 	[
 		[
-			"C:/Users/rockl/Coding Projects/RockEngine/external/glad/src/glad.c",
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/RenderManager.cpp",
 			"MU",
 			null
 		],
 		[
 			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/Rendering.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/GameCamera.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/RenderCamera.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/SceneCamera.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/pipelines/RenderPipeline.cpp",
 			"MU",
 			null
 		]

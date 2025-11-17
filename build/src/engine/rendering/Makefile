@@ -203,6 +203,30 @@ Rendering_autogen/fast:
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering_autogen.dir\build.make src/engine/rendering/CMakeFiles/Rendering_autogen.dir/build
 .PHONY : Rendering_autogen/fast
 
+RenderManager.obj: RenderManager.cpp.obj
+.PHONY : RenderManager.obj
+
+# target to build an object file
+RenderManager.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/RenderManager.cpp.obj
+.PHONY : RenderManager.cpp.obj
+
+RenderManager.i: RenderManager.cpp.i
+.PHONY : RenderManager.i
+
+# target to preprocess a source file
+RenderManager.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/RenderManager.cpp.i
+.PHONY : RenderManager.cpp.i
+
+RenderManager.s: RenderManager.cpp.s
+.PHONY : RenderManager.s
+
+# target to generate assembly for a file
+RenderManager.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/RenderManager.cpp.s
+.PHONY : RenderManager.cpp.s
+
 Rendering.obj: Rendering.cpp.obj
 .PHONY : Rendering.obj
 
@@ -251,29 +275,101 @@ Rendering_autogen/mocs_compilation.cpp.s:
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/Rendering_autogen/mocs_compilation.cpp.s
 .PHONY : Rendering_autogen/mocs_compilation.cpp.s
 
-__/__/__/external/glad/src/glad.obj: __/__/__/external/glad/src/glad.c.obj
-.PHONY : __/__/__/external/glad/src/glad.obj
+cameras/GameCamera.obj: cameras/GameCamera.cpp.obj
+.PHONY : cameras/GameCamera.obj
 
 # target to build an object file
-__/__/__/external/glad/src/glad.c.obj:
-	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/__/__/__/external/glad/src/glad.c.obj
-.PHONY : __/__/__/external/glad/src/glad.c.obj
+cameras/GameCamera.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/GameCamera.cpp.obj
+.PHONY : cameras/GameCamera.cpp.obj
 
-__/__/__/external/glad/src/glad.i: __/__/__/external/glad/src/glad.c.i
-.PHONY : __/__/__/external/glad/src/glad.i
+cameras/GameCamera.i: cameras/GameCamera.cpp.i
+.PHONY : cameras/GameCamera.i
 
 # target to preprocess a source file
-__/__/__/external/glad/src/glad.c.i:
-	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/__/__/__/external/glad/src/glad.c.i
-.PHONY : __/__/__/external/glad/src/glad.c.i
+cameras/GameCamera.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/GameCamera.cpp.i
+.PHONY : cameras/GameCamera.cpp.i
 
-__/__/__/external/glad/src/glad.s: __/__/__/external/glad/src/glad.c.s
-.PHONY : __/__/__/external/glad/src/glad.s
+cameras/GameCamera.s: cameras/GameCamera.cpp.s
+.PHONY : cameras/GameCamera.s
 
 # target to generate assembly for a file
-__/__/__/external/glad/src/glad.c.s:
-	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/__/__/__/external/glad/src/glad.c.s
-.PHONY : __/__/__/external/glad/src/glad.c.s
+cameras/GameCamera.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/GameCamera.cpp.s
+.PHONY : cameras/GameCamera.cpp.s
+
+cameras/RenderCamera.obj: cameras/RenderCamera.cpp.obj
+.PHONY : cameras/RenderCamera.obj
+
+# target to build an object file
+cameras/RenderCamera.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/RenderCamera.cpp.obj
+.PHONY : cameras/RenderCamera.cpp.obj
+
+cameras/RenderCamera.i: cameras/RenderCamera.cpp.i
+.PHONY : cameras/RenderCamera.i
+
+# target to preprocess a source file
+cameras/RenderCamera.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/RenderCamera.cpp.i
+.PHONY : cameras/RenderCamera.cpp.i
+
+cameras/RenderCamera.s: cameras/RenderCamera.cpp.s
+.PHONY : cameras/RenderCamera.s
+
+# target to generate assembly for a file
+cameras/RenderCamera.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/RenderCamera.cpp.s
+.PHONY : cameras/RenderCamera.cpp.s
+
+cameras/SceneCamera.obj: cameras/SceneCamera.cpp.obj
+.PHONY : cameras/SceneCamera.obj
+
+# target to build an object file
+cameras/SceneCamera.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.obj
+.PHONY : cameras/SceneCamera.cpp.obj
+
+cameras/SceneCamera.i: cameras/SceneCamera.cpp.i
+.PHONY : cameras/SceneCamera.i
+
+# target to preprocess a source file
+cameras/SceneCamera.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.i
+.PHONY : cameras/SceneCamera.cpp.i
+
+cameras/SceneCamera.s: cameras/SceneCamera.cpp.s
+.PHONY : cameras/SceneCamera.s
+
+# target to generate assembly for a file
+cameras/SceneCamera.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.s
+.PHONY : cameras/SceneCamera.cpp.s
+
+pipelines/RenderPipeline.obj: pipelines/RenderPipeline.cpp.obj
+.PHONY : pipelines/RenderPipeline.obj
+
+# target to build an object file
+pipelines/RenderPipeline.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj
+.PHONY : pipelines/RenderPipeline.cpp.obj
+
+pipelines/RenderPipeline.i: pipelines/RenderPipeline.cpp.i
+.PHONY : pipelines/RenderPipeline.i
+
+# target to preprocess a source file
+pipelines/RenderPipeline.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.i
+.PHONY : pipelines/RenderPipeline.cpp.i
+
+pipelines/RenderPipeline.s: pipelines/RenderPipeline.cpp.s
+.PHONY : pipelines/RenderPipeline.s
+
+# target to generate assembly for a file
+pipelines/RenderPipeline.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.s
+.PHONY : pipelines/RenderPipeline.cpp.s
 
 # Help Target
 help:
@@ -290,15 +386,27 @@ help:
 	@echo ... Rendering_autogen
 	@echo ... Rendering_autogen_timestamp_deps
 	@echo ... Rendering
+	@echo ... RenderManager.obj
+	@echo ... RenderManager.i
+	@echo ... RenderManager.s
 	@echo ... Rendering.obj
 	@echo ... Rendering.i
 	@echo ... Rendering.s
 	@echo ... Rendering_autogen/mocs_compilation.obj
 	@echo ... Rendering_autogen/mocs_compilation.i
 	@echo ... Rendering_autogen/mocs_compilation.s
-	@echo ... __/__/__/external/glad/src/glad.obj
-	@echo ... __/__/__/external/glad/src/glad.i
-	@echo ... __/__/__/external/glad/src/glad.s
+	@echo ... cameras/GameCamera.obj
+	@echo ... cameras/GameCamera.i
+	@echo ... cameras/GameCamera.s
+	@echo ... cameras/RenderCamera.obj
+	@echo ... cameras/RenderCamera.i
+	@echo ... cameras/RenderCamera.s
+	@echo ... cameras/SceneCamera.obj
+	@echo ... cameras/SceneCamera.i
+	@echo ... cameras/SceneCamera.s
+	@echo ... pipelines/RenderPipeline.obj
+	@echo ... pipelines/RenderPipeline.i
+	@echo ... pipelines/RenderPipeline.s
 .PHONY : help
 
 

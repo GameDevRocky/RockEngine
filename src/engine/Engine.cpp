@@ -3,10 +3,12 @@
 #include <iostream>
 #include "engine/debug/Console.hpp"
 #include "engine/rendering/Renderer.hpp"
+#include "engine/rendering/RenderManager.hpp"
+
 void Engine::Init() {
     InputManager::Get().Init();
     SceneManager::Get().Init();
-    TimeManager::Get().Init();  
+    TimeManager::Get().Init(); 
 }
 
 void Engine::Run() {
@@ -14,6 +16,8 @@ void Engine::Run() {
     InputManager::Get().Update();
     SceneManager::Get().Update();
     TimeManager::Get().Update();
+    RenderManager::Get().Update();
+
 }
 
 void Engine::Shutdown() {
