@@ -1305,6 +1305,45 @@ MainWindowGui_autogen/fast:
 	$(MAKE) $(MAKESILENT) -f src\editor\mainwindow-gui\CMakeFiles\MainWindowGui_autogen.dir\build.make src/editor/mainwindow-gui/CMakeFiles/MainWindowGui_autogen.dir/build
 .PHONY : MainWindowGui_autogen/fast
 
+#=============================================================================
+# Target rules for targets named FileExplorerGui
+
+# Build rule for target.
+FileExplorerGui: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 FileExplorerGui
+.PHONY : FileExplorerGui
+
+# fast build rule for target.
+FileExplorerGui/fast:
+	$(MAKE) $(MAKESILENT) -f src\editor\fileexplorer-gui\CMakeFiles\FileExplorerGui.dir\build.make src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui.dir/build
+.PHONY : FileExplorerGui/fast
+
+#=============================================================================
+# Target rules for targets named FileExplorerGui_autogen_timestamp_deps
+
+# Build rule for target.
+FileExplorerGui_autogen_timestamp_deps: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 FileExplorerGui_autogen_timestamp_deps
+.PHONY : FileExplorerGui_autogen_timestamp_deps
+
+# fast build rule for target.
+FileExplorerGui_autogen_timestamp_deps/fast:
+	$(MAKE) $(MAKESILENT) -f src\editor\fileexplorer-gui\CMakeFiles\FileExplorerGui_autogen_timestamp_deps.dir\build.make src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui_autogen_timestamp_deps.dir/build
+.PHONY : FileExplorerGui_autogen_timestamp_deps/fast
+
+#=============================================================================
+# Target rules for targets named FileExplorerGui_autogen
+
+# Build rule for target.
+FileExplorerGui_autogen: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 FileExplorerGui_autogen
+.PHONY : FileExplorerGui_autogen
+
+# fast build rule for target.
+FileExplorerGui_autogen/fast:
+	$(MAKE) $(MAKESILENT) -f src\editor\fileexplorer-gui\CMakeFiles\FileExplorerGui_autogen.dir\build.make src/editor/fileexplorer-gui/CMakeFiles/FileExplorerGui_autogen.dir/build
+.PHONY : FileExplorerGui_autogen/fast
+
 RockEngine_autogen/mocs_compilation.obj: RockEngine_autogen/mocs_compilation.cpp.obj
 .PHONY : RockEngine_autogen/mocs_compilation.obj
 
@@ -1399,6 +1438,8 @@ help:
 	@echo ... ExperimentalSubmit
 	@echo ... ExperimentalTest
 	@echo ... ExperimentalUpdate
+	@echo ... FileExplorerGui_autogen
+	@echo ... FileExplorerGui_autogen_timestamp_deps
 	@echo ... GameViewGui_autogen
 	@echo ... GameViewGui_autogen_timestamp_deps
 	@echo ... HierarchyGui_autogen
@@ -1441,6 +1482,7 @@ help:
 	@echo ... EditorUtils
 	@echo ... Engine
 	@echo ... EngineUtils
+	@echo ... FileExplorerGui
 	@echo ... GameViewGui
 	@echo ... HierarchyGui
 	@echo ... InspectorGui

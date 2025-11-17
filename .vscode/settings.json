@@ -77,6 +77,7 @@
         "filesystem": "cpp",
         "codecvt": "cpp",
         "qtimer": "cpp",
-        "qvboxlayout": "cpp"
+        "qvboxlayout": "cpp",
+        "qpainter": "cpp"
     }
 }

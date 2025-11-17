@@ -21,7 +21,8 @@
 		"C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/inspector-gui/cmake_install.cmake",
 		"C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/sceneview-gui/cmake_install.cmake",
 		"C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/gameview-gui/cmake_install.cmake",
-		"C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/mainwindow-gui/cmake_install.cmake"
+		"C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/mainwindow-gui/cmake_install.cmake",
+		"C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

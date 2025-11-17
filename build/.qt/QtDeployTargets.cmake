@@ -32,6 +32,8 @@ set(__QT_DEPLOY_TARGET_GameViewGui_FILE C:/Users/rockl/Coding Projects/RockEngin
 set(__QT_DEPLOY_TARGET_GameViewGui_TYPE STATIC_LIBRARY)
 set(__QT_DEPLOY_TARGET_MainWindowGui_FILE C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/mainwindow-gui/libMainWindowGui.a)
 set(__QT_DEPLOY_TARGET_MainWindowGui_TYPE STATIC_LIBRARY)
+set(__QT_DEPLOY_TARGET_FileExplorerGui_FILE C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/fileexplorer-gui/libFileExplorerGui.a)
+set(__QT_DEPLOY_TARGET_FileExplorerGui_TYPE STATIC_LIBRARY)
 set(__QT_DEPLOY_TARGET_EditorUtils_FILE C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/libEditorUtils.a)
 set(__QT_DEPLOY_TARGET_EditorUtils_TYPE STATIC_LIBRARY)
 set(__QT_DEPLOY_TARGET_Editor_FILE C:/Users/rockl/Coding Projects/RockEngine/build/src/editor/libEditor.a)
