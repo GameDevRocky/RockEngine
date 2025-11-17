@@ -347,6 +347,78 @@ cameras/SceneCamera.cpp.s:
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.s
 .PHONY : cameras/SceneCamera.cpp.s
 
+core/Shader.obj: core/Shader.cpp.obj
+.PHONY : core/Shader.obj
+
+# target to build an object file
+core/Shader.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj
+.PHONY : core/Shader.cpp.obj
+
+core/Shader.i: core/Shader.cpp.i
+.PHONY : core/Shader.i
+
+# target to preprocess a source file
+core/Shader.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.i
+.PHONY : core/Shader.cpp.i
+
+core/Shader.s: core/Shader.cpp.s
+.PHONY : core/Shader.s
+
+# target to generate assembly for a file
+core/Shader.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.s
+.PHONY : core/Shader.cpp.s
+
+core/SharedResources.obj: core/SharedResources.cpp.obj
+.PHONY : core/SharedResources.obj
+
+# target to build an object file
+core/SharedResources.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj
+.PHONY : core/SharedResources.cpp.obj
+
+core/SharedResources.i: core/SharedResources.cpp.i
+.PHONY : core/SharedResources.i
+
+# target to preprocess a source file
+core/SharedResources.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.i
+.PHONY : core/SharedResources.cpp.i
+
+core/SharedResources.s: core/SharedResources.cpp.s
+.PHONY : core/SharedResources.s
+
+# target to generate assembly for a file
+core/SharedResources.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.s
+.PHONY : core/SharedResources.cpp.s
+
+core/Texture2D.obj: core/Texture2D.cpp.obj
+.PHONY : core/Texture2D.obj
+
+# target to build an object file
+core/Texture2D.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj
+.PHONY : core/Texture2D.cpp.obj
+
+core/Texture2D.i: core/Texture2D.cpp.i
+.PHONY : core/Texture2D.i
+
+# target to preprocess a source file
+core/Texture2D.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.i
+.PHONY : core/Texture2D.cpp.i
+
+core/Texture2D.s: core/Texture2D.cpp.s
+.PHONY : core/Texture2D.s
+
+# target to generate assembly for a file
+core/Texture2D.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.s
+.PHONY : core/Texture2D.cpp.s
+
 pipelines/RenderPipeline.obj: pipelines/RenderPipeline.cpp.obj
 .PHONY : pipelines/RenderPipeline.obj
 
@@ -404,6 +476,15 @@ help:
 	@echo ... cameras/SceneCamera.obj
 	@echo ... cameras/SceneCamera.i
 	@echo ... cameras/SceneCamera.s
+	@echo ... core/Shader.obj
+	@echo ... core/Shader.i
+	@echo ... core/Shader.s
+	@echo ... core/SharedResources.obj
+	@echo ... core/SharedResources.i
+	@echo ... core/SharedResources.s
+	@echo ... core/Texture2D.obj
+	@echo ... core/Texture2D.i
+	@echo ... core/Texture2D.s
 	@echo ... pipelines/RenderPipeline.obj
 	@echo ... pipelines/RenderPipeline.i
 	@echo ... pipelines/RenderPipeline.s

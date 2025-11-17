@@ -29,6 +29,8 @@ public:
     // ───────────────────────────────────────────────────────
     const glm::mat4& GetViewMatrix();
     const glm::mat4& GetProjectionMatrix();
+    int viewportWidth  = 1;
+    int viewportHeight = 1;
 
 protected:
     // Recompute matrices only if dirty
@@ -43,8 +45,6 @@ protected:
     float rotationDeg = 0.0f;        // 2D rotation in degrees
     float zoom = 1.0f;               // > 1 = zoom out
 
-    int viewportWidth  = 1;
-    int viewportHeight = 1;
 
     glm::mat4 viewMatrix      = glm::mat4(1.0f);
     glm::mat4 projectionMatrix = glm::mat4(1.0f);

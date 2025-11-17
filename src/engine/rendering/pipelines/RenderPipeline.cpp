@@ -39,16 +39,19 @@ void RenderPipeline::Resize(int width, int height)
 
 void RenderPipeline::Render(RenderCamera& camera, Scene& scene)
 {
-    // Bind the pipeline’s FBO so ALL passes render into it
-    glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
+    // Save currently bound framebuffer so we can restore it (important when used inside
+    // QOpenGLWidget where the default Qt FBO is not necessarily 0).
+    GLint prevFBO = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
 
-    glViewport(0, 0, viewportWidth, viewportHeight);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    for (auto* pass : passes)
+    for (auto* pass : passes) {
+        glBindFramebuffer(GL_FRAMEBUFFER, outputFBO); // ensure each pass draws to pipeline FBO
+        glViewport(0, 0, viewportWidth, viewportHeight);
         pass->Execute(camera, scene);
+    }
 
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    // Restore previously bound framebuffer (could be Qt's FBO)
+    glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
 }
 
 void RenderPipeline::Shutdown()

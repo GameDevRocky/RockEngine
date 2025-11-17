@@ -29,6 +29,7 @@
 	[
 		"C:/Users/rockl/Coding Projects/RockEngine/include",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/stb",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/glm",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/glad/include",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
@@ -93,6 +94,21 @@
 		],
 		[
 			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/SceneCamera.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/Shader.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/SharedResources.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/Texture2D.cpp",
 			"MU",
 			null
 		],

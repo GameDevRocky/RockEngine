@@ -15,6 +15,9 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/GameCamera.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/cameras/GameCamera.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/cameras/GameCamera.cpp.obj.d"
   "C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/RenderCamera.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/cameras/RenderCamera.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/cameras/RenderCamera.cpp.obj.d"
   "C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/SceneCamera.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.obj.d"
+  "C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/Shader.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj.d"
+  "C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/SharedResources.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj.d"
+  "C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/Texture2D.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj.d"
   "C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/pipelines/RenderPipeline.cpp" "src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj" "gcc" "src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj.d"
   )
 

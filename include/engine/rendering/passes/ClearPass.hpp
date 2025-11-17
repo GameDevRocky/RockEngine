@@ -10,11 +10,12 @@ public:
     void Init() override {}
     void Resize(int width, int height) override {}
 
-    void Execute(RenderCamera& camera, Scene& scene) override
+    void Execute(RenderCamera&, Scene&) override
     {
-        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // ✅ FIX
     }
+
 
     void Shutdown() override {}
 };

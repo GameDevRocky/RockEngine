@@ -4,4 +4,7 @@ C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/SceneCame
 C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/GameCamera.cpp
 C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/Rendering.cpp
 C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/RenderCamera.cpp
+C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/Texture2D.cpp
+C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/Shader.cpp
 C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/pipelines/RenderPipeline.cpp
+C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/SharedResources.cpp

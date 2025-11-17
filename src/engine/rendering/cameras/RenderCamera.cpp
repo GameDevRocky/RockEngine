@@ -79,8 +79,8 @@ void RenderCamera::RecalculateView()
 
 void RenderCamera::RecalculateProjection()
 {
-    float halfWidth  = static_cast<float>(viewportWidth) * 0.5f;
-    float halfHeight = static_cast<float>(viewportHeight) * 0.5f;
+    float halfWidth  = static_cast<float>(viewportWidth) * 0.5f * zoom;
+    float halfHeight = static_cast<float>(viewportHeight) * 0.5f * zoom;
 
     projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, -1.0f, 1.0f);
     projDirty = false;

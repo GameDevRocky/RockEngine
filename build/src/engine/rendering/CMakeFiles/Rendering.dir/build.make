@@ -168,11 +168,56 @@ src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.s: cmake_f
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.s"
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\cameras\SceneCamera.cpp" -o CMakeFiles\Rendering.dir\cameras\SceneCamera.cpp.s
 
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/flags.make
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/includes_CXX.rsp
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/core/Shader.cpp
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj -MF CMakeFiles\Rendering.dir\core\Shader.cpp.obj.d -o CMakeFiles\Rendering.dir\core\Shader.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\Shader.cpp"
+
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Rendering.dir/core/Shader.cpp.i"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\Shader.cpp" > CMakeFiles\Rendering.dir\core\Shader.cpp.i
+
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Rendering.dir/core/Shader.cpp.s"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\Shader.cpp" -o CMakeFiles\Rendering.dir\core\Shader.cpp.s
+
+src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/flags.make
+src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/includes_CXX.rsp
+src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/core/SharedResources.cpp
+src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj -MF CMakeFiles\Rendering.dir\core\SharedResources.cpp.obj.d -o CMakeFiles\Rendering.dir\core\SharedResources.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\SharedResources.cpp"
+
+src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Rendering.dir/core/SharedResources.cpp.i"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\SharedResources.cpp" > CMakeFiles\Rendering.dir\core\SharedResources.cpp.i
+
+src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Rendering.dir/core/SharedResources.cpp.s"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\SharedResources.cpp" -o CMakeFiles\Rendering.dir\core\SharedResources.cpp.s
+
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/flags.make
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/includes_CXX.rsp
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/core/Texture2D.cpp
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj -MF CMakeFiles\Rendering.dir\core\Texture2D.cpp.obj.d -o CMakeFiles\Rendering.dir\core\Texture2D.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\Texture2D.cpp"
+
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Rendering.dir/core/Texture2D.cpp.i"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\Texture2D.cpp" > CMakeFiles\Rendering.dir\core\Texture2D.cpp.i
+
+src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Rendering.dir/core/Texture2D.cpp.s"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\core\Texture2D.cpp" -o CMakeFiles\Rendering.dir\core\Texture2D.cpp.s
+
 src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/flags.make
 src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/includes_CXX.rsp
 src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/pipelines/RenderPipeline.cpp
 src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj: src/engine/rendering/CMakeFiles/Rendering.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj"
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj -MF CMakeFiles\Rendering.dir\pipelines\RenderPipeline.cpp.obj.d -o CMakeFiles\Rendering.dir\pipelines\RenderPipeline.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\rendering\pipelines\RenderPipeline.cpp"
 
 src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.i: cmake_force
@@ -191,6 +236,9 @@ Rendering_OBJECTS = \
 "CMakeFiles/Rendering.dir/cameras/GameCamera.cpp.obj" \
 "CMakeFiles/Rendering.dir/cameras/RenderCamera.cpp.obj" \
 "CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.obj" \
+"CMakeFiles/Rendering.dir/core/Shader.cpp.obj" \
+"CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj" \
+"CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj" \
 "CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj"
 
 # External object files for target Rendering
@@ -202,10 +250,13 @@ src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.d
 src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/cameras/GameCamera.cpp.obj
 src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/cameras/RenderCamera.cpp.obj
 src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.obj
+src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/core/Shader.cpp.obj
+src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj
+src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/core/Texture2D.cpp.obj
 src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/pipelines/RenderPipeline.cpp.obj
 src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/build.make
 src/engine/rendering/libRendering.a: src/engine/rendering/CMakeFiles/Rendering.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX static library libRendering.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX static library libRendering.a"
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && $(CMAKE_COMMAND) -P CMakeFiles\Rendering.dir\cmake_clean_target.cmake
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\RENDER~1 && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\Rendering.dir\link.txt --verbose=$(VERBOSE)
 

@@ -1,6 +1,6 @@
 #include "engine/rendering/cameras/SceneCamera.hpp"
 #include <glm/gtc/matrix_transform.hpp>
-
+#include "engine/debug/Console.hpp"
 // Editor-controlled camera
 
 
@@ -15,8 +15,7 @@ void SceneCamera::Init(){
 void SceneCamera::Update()
 {
     bool changed = false;
-    position.x -= 0.2f;
-
+    SetPosition(glm::vec2(1.0f) + position);
     float scroll = 0.0f;
     if (scroll != 0.0f) {
         zoom -= scroll * zoomSpeed;

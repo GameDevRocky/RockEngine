@@ -10,6 +10,7 @@ target_include_directories(Rendering
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include
         ${PROJECT_SOURCE_DIR}/external/yaml/include  # adjust if needed
+        ${PROJECT_SOURCE_DIR}/external/stb
 )
 
 
@@ -18,4 +19,5 @@ target_link_libraries(Rendering
         glm::glm
         glad
         yaml-cpp
+        
 )

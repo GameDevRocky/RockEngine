@@ -31,11 +31,6 @@ public:
 
     void Execute(RenderCamera& camera, Scene& scene) override
     {
-        // Clear debug overlay (optional, usually transparent)
-        // glClearColor(0, 0, 0, 0);
-        // glClear(GL_COLOR_BUFFER_BIT);
-
-        // Draw debug info
         DrawGrid();
     }
 
@@ -55,7 +50,7 @@ private:
         std::vector<float> lines;
 
         const float step = 0.1f; // grid spacing
-        const int count = 20;
+        const int count = 50;
 
         for (int i = -count; i <= count; ++i)
         {

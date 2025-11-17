@@ -7,7 +7,8 @@
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
 {
-    
+   
+
 }
 
 
@@ -20,7 +21,11 @@ SceneViewGui::~SceneViewGui()
 void SceneViewGui::initializeGL() {
     initializeOpenGLFunctions();
     RenderManager::Get().Init();
-    RenderManager::Get().editor_pipeline->Resize(width(), height());
+
+    // Ensure pipeline FBO matches the real GL framebuffer size (consider HiDPI)
+    int fbw = static_cast<int>(width() * devicePixelRatio());
+    int fbh = static_cast<int>(height() * devicePixelRatio());
+    RenderManager::Get().editor_pipeline->Resize(fbw, fbh);
 
     // -----------------------------
     // Fullscreen quad setup
@@ -84,33 +89,35 @@ void SceneViewGui::initializeGL() {
 
 
 void SceneViewGui::resizeGL(int w, int h) {
-    RenderManager::Get().editor_pipeline->Resize(width(), height());
-    SceneCamera::Get().Resize(width(), height());
-    glViewport(0, 0, w, h);
+    // Use actual framebuffer pixel size (widget size * devicePixelRatio)
+    int fbw = static_cast<int>(w * devicePixelRatio());
+    int fbh = static_cast<int>(h * devicePixelRatio());
+
+    RenderManager::Get().editor_pipeline->Resize(fbw, fbh);
+    SceneCamera::Get().Resize(fbw, fbh);
+    glViewport(0, 0, fbw, fbh);
 }
 
 void SceneViewGui::paintGL() {
     makeCurrent();
+    RenderManager::Get().Render();
+    GLuint tex = RenderManager::Get().editor_pipeline->GetOutputTexture();
 
-    // Render the scene into the pipeline
-    if (RenderManager::Get().editor_pipeline)
-        RenderManager::Get().Render();
+    // Ensure we're drawing to the Qt-provided default framebuffer (it may not be 0)
+    GLuint qtFBO = static_cast<GLuint>(defaultFramebufferObject());
+    glBindFramebuffer(GL_FRAMEBUFFER, qtFBO);
 
-    // Now draw the pipeline's FBO to the widget
-    GLuint tex = RenderManager::Get().editor_pipeline->GetOutputTexture(); // add getter
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    glViewport(0, 0, width(), height());
+    // Default framebuffer may also be scaled on HiDPI displays
+    int fbw = static_cast<int>(width() * devicePixelRatio());
+    int fbh = static_cast<int>(height() * devicePixelRatio());
+    glViewport(0, 0, fbw, fbh);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glUseProgram(quadShader);
     glBindVertexArray(quadVAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, tex);
     glUniform1i(glGetUniformLocation(quadShader, "uTexture"), 0);
-
     glDrawArrays(GL_TRIANGLES, 0, 6);
-
     glBindVertexArray(0);
     glUseProgram(0);
 }
