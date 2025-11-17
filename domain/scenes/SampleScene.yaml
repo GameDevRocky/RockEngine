@@ -39,6 +39,10 @@ components:
     rotation: 0
     scale: [1, 1]
 
+  - id: "s1"
+    type: "SpriteRenderer"
+    gameobject: "o5"
+
 # List of all game objects, referencing only Transform components
 gameobjects:
   - id: "o1"
@@ -64,4 +68,4 @@ gameobjects:
   - id: "o5"
     type: "GameObject"
     name: "Rock1"
-    components: ["t5"]
+    components: ["t5", "s1"]
