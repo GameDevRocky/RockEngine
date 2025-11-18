@@ -108,11 +108,41 @@ src/engine/components/CMakeFiles/Components.dir/Component.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Components.dir/Component.cpp.s"
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\Component.cpp" -o CMakeFiles\Components.dir\Component.cpp.s
 
+src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj: src/engine/components/CMakeFiles/Components.dir/flags.make
+src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj: src/engine/components/CMakeFiles/Components.dir/includes_CXX.rsp
+src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/ComponentRegistrars.cpp
+src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj: src/engine/components/CMakeFiles/Components.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj -MF CMakeFiles\Components.dir\ComponentRegistrars.cpp.obj.d -o CMakeFiles\Components.dir\ComponentRegistrars.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\ComponentRegistrars.cpp"
+
+src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Components.dir/ComponentRegistrars.cpp.i"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\ComponentRegistrars.cpp" > CMakeFiles\Components.dir\ComponentRegistrars.cpp.i
+
+src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Components.dir/ComponentRegistrars.cpp.s"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\ComponentRegistrars.cpp" -o CMakeFiles\Components.dir\ComponentRegistrars.cpp.s
+
+src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj: src/engine/components/CMakeFiles/Components.dir/flags.make
+src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj: src/engine/components/CMakeFiles/Components.dir/includes_CXX.rsp
+src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/SpriteRenderer.cpp
+src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj: src/engine/components/CMakeFiles/Components.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj -MF CMakeFiles\Components.dir\SpriteRenderer.cpp.obj.d -o CMakeFiles\Components.dir\SpriteRenderer.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\SpriteRenderer.cpp"
+
+src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/Components.dir/SpriteRenderer.cpp.i"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\SpriteRenderer.cpp" > CMakeFiles\Components.dir\SpriteRenderer.cpp.i
+
+src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/Components.dir/SpriteRenderer.cpp.s"
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\SpriteRenderer.cpp" -o CMakeFiles\Components.dir\SpriteRenderer.cpp.s
+
 src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj: src/engine/components/CMakeFiles/Components.dir/flags.make
 src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj: src/engine/components/CMakeFiles/Components.dir/includes_CXX.rsp
 src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj: C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/Transform.cpp
 src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj: src/engine/components/CMakeFiles/Components.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj"
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && C:\Qt\Tools\mingw1310_64\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj -MF CMakeFiles\Components.dir\Transform.cpp.obj.d -o CMakeFiles\Components.dir\Transform.cpp.obj -c "C:\Users\rockl\Coding Projects\RockEngine\src\engine\components\Transform.cpp"
 
 src/engine/components/CMakeFiles/Components.dir/Transform.cpp.i: cmake_force
@@ -127,6 +157,8 @@ src/engine/components/CMakeFiles/Components.dir/Transform.cpp.s: cmake_force
 Components_OBJECTS = \
 "CMakeFiles/Components.dir/Components_autogen/mocs_compilation.cpp.obj" \
 "CMakeFiles/Components.dir/Component.cpp.obj" \
+"CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj" \
+"CMakeFiles/Components.dir/SpriteRenderer.cpp.obj" \
 "CMakeFiles/Components.dir/Transform.cpp.obj"
 
 # External object files for target Components
@@ -134,10 +166,12 @@ Components_EXTERNAL_OBJECTS =
 
 src/engine/components/libComponents.a: src/engine/components/CMakeFiles/Components.dir/Components_autogen/mocs_compilation.cpp.obj
 src/engine/components/libComponents.a: src/engine/components/CMakeFiles/Components.dir/Component.cpp.obj
+src/engine/components/libComponents.a: src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj
+src/engine/components/libComponents.a: src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj
 src/engine/components/libComponents.a: src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj
 src/engine/components/libComponents.a: src/engine/components/CMakeFiles/Components.dir/build.make
 src/engine/components/libComponents.a: src/engine/components/CMakeFiles/Components.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libComponents.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="C:\Users\rockl\Coding Projects\RockEngine\build\CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX static library libComponents.a"
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && $(CMAKE_COMMAND) -P CMakeFiles\Components.dir\cmake_clean_target.cmake
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build\src\engine\COMPON~1 && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\Components.dir\link.txt --verbose=$(VERBOSE)
 

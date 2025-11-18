@@ -37,7 +37,7 @@ void Scene::Deserialize(const YAML::Node& data) {
             GameObject* obj = new GameObject();
             obj->Deserialize(goNode);
             Registry::Get().Register(obj);
-            Console::Comment("Created and registered " + obj->GetTypeName());
+            Console::Comment("Created and registered " + obj->GetName());
         }
     } 
 
@@ -45,6 +45,7 @@ void Scene::Deserialize(const YAML::Node& data) {
         for (const auto& compNode : data["components"]) {
             std::string typeName = compNode["type"].as<std::string>();
             Serializable* created = SerializableFactory::Create(typeName);
+            Console::Comment(typeName + " " + (created? "created" : "not created"));
 
             if (!created) continue;
 

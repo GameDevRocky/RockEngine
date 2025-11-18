@@ -4,8 +4,10 @@
 #include "engine/debug/Console.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/rendering/RenderManager.hpp"
+#include "engine/components/ComponentRegistrars.hpp"
 
 void Engine::Init() {
+    RegisterComponentTypes();
     InputManager::Get().Init();
     SceneManager::Get().Init();
     TimeManager::Get().Init(); 

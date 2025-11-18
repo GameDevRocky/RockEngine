@@ -1,6 +1,7 @@
 #pragma once
 #include "engine/components/Component.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
+#include "yaml-cpp/yaml.h"
 #include "engine/rendering/core/Texture2D.hpp"
 #include <glm/glm.hpp>
 
@@ -20,14 +21,6 @@ private:
     int sortingOrder = 0;
     bool flipX = false;
     bool flipY = false;
-    
-
-    
-
-
-
 };
 
-REGISTER_SERIALIZABLE_TYPE(SpriteRenderer)
-
-
+// Registration moved to a single compiled TU: src/engine/components/ComponentRegistrars.cpp

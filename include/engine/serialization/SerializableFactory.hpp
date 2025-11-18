@@ -23,6 +23,6 @@ private:
 #define REGISTER_SERIALIZABLE_TYPE(TYPE) \
     static struct TYPE##Registrar { \
         TYPE##Registrar() { \
-            SerializableFactory::RegisterType(#TYPE, []() { return new TYPE(); }); \
+            SerializableFactory::RegisterType(#TYPE, []() {return new TYPE(); }); \
         } \
     } TYPE##RegistrarInstance;

@@ -43,5 +43,9 @@ void GameObject::Deserialize(const YAML::Node& node) {
 
 void GameObject::PostDeserialize() {
     transform = GetComponent<Transform>();
-    transform->Translate(glm::vec2(5,9));
+    for (auto& comp : components){
+        Console::Comment(comp->GetTypeName());
+    }
+    
+    
 }

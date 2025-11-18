@@ -471,4 +471,5 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj: \
  C:/Users/rockl/CODING~1/ROCKEN~1/external/glm/glm/integer.hpp \
  C:/Users/rockl/CODING~1/ROCKEN~1/external/glm/glm/detail/func_integer.inl \
  C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/rendering/cameras/GameCamera.hpp \
- C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/rendering/cameras/SceneCamera.hpp
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/rendering/cameras/SceneCamera.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/components/ComponentRegistrars.hpp

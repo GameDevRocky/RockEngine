@@ -40,6 +40,7 @@ public:
     std::string GetTypeName() override {return "GameObject";}
     void Link() override{};
     Transform* transform = nullptr;
+    std::string GetName() {return name;}
 
 private:
     std::vector<Component*> components;

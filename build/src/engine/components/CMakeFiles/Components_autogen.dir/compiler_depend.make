@@ -4,6 +4,8 @@
 src/engine/components/Components_autogen/timestamp: C:/Program\ Files/CMake/bin/cmake.exe \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/CMakeLists.txt \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/Component.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/ComponentRegistrars.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/SpriteRenderer.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/Transform.cpp
 
 
@@ -11,6 +13,10 @@ C:/Program\ Files/CMake/bin/cmake.exe:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/CMakeLists.txt:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/ComponentRegistrars.cpp:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/Component.cpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/SpriteRenderer.cpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/components/Transform.cpp:

@@ -10,7 +10,9 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "" "src/engine/components/Components_autogen/timestamp" "custom" "src/engine/components/Components_autogen/deps"
   "C:/Users/rockl/Coding Projects/RockEngine/src/engine/components/Component.cpp" "src/engine/components/CMakeFiles/Components.dir/Component.cpp.obj" "gcc" "src/engine/components/CMakeFiles/Components.dir/Component.cpp.obj.d"
+  "C:/Users/rockl/Coding Projects/RockEngine/src/engine/components/ComponentRegistrars.cpp" "src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj" "gcc" "src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj.d"
   "C:/Users/rockl/Coding Projects/RockEngine/build/src/engine/components/Components_autogen/mocs_compilation.cpp" "src/engine/components/CMakeFiles/Components.dir/Components_autogen/mocs_compilation.cpp.obj" "gcc" "src/engine/components/CMakeFiles/Components.dir/Components_autogen/mocs_compilation.cpp.obj.d"
+  "C:/Users/rockl/Coding Projects/RockEngine/src/engine/components/SpriteRenderer.cpp" "src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj" "gcc" "src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj.d"
   "C:/Users/rockl/Coding Projects/RockEngine/src/engine/components/Transform.cpp" "src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj" "gcc" "src/engine/components/CMakeFiles/Components.dir/Transform.cpp.obj.d"
   )
 

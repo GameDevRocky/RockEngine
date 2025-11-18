@@ -33,6 +33,8 @@
 		"C:/Users/rockl/Coding Projects/RockEngine/external/box2d/include",
 		"C:/Users/rockl/Coding Projects/RockEngine/build/external/box2d/src",
 		"C:/Users/rockl/Coding Projects/RockEngine/external",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/stb",
+		"C:/Users/rockl/Coding Projects/RockEngine/external/glad/include",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward",

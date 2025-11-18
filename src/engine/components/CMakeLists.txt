@@ -13,6 +13,7 @@ target_link_libraries(Components
     PUBLIC 
         Serialization
         EngineUtils
+        Rendering
     PRIVATE 
         yaml-cpp 
         glm::glm 

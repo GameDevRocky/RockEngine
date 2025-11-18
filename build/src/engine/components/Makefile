@@ -227,6 +227,30 @@ Component.cpp.s:
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\components\CMakeFiles\Components.dir\build.make src/engine/components/CMakeFiles/Components.dir/Component.cpp.s
 .PHONY : Component.cpp.s
 
+ComponentRegistrars.obj: ComponentRegistrars.cpp.obj
+.PHONY : ComponentRegistrars.obj
+
+# target to build an object file
+ComponentRegistrars.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\components\CMakeFiles\Components.dir\build.make src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj
+.PHONY : ComponentRegistrars.cpp.obj
+
+ComponentRegistrars.i: ComponentRegistrars.cpp.i
+.PHONY : ComponentRegistrars.i
+
+# target to preprocess a source file
+ComponentRegistrars.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\components\CMakeFiles\Components.dir\build.make src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.i
+.PHONY : ComponentRegistrars.cpp.i
+
+ComponentRegistrars.s: ComponentRegistrars.cpp.s
+.PHONY : ComponentRegistrars.s
+
+# target to generate assembly for a file
+ComponentRegistrars.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\components\CMakeFiles\Components.dir\build.make src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.s
+.PHONY : ComponentRegistrars.cpp.s
+
 Components_autogen/mocs_compilation.obj: Components_autogen/mocs_compilation.cpp.obj
 .PHONY : Components_autogen/mocs_compilation.obj
 
@@ -250,6 +274,30 @@ Components_autogen/mocs_compilation.s: Components_autogen/mocs_compilation.cpp.s
 Components_autogen/mocs_compilation.cpp.s:
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\components\CMakeFiles\Components.dir\build.make src/engine/components/CMakeFiles/Components.dir/Components_autogen/mocs_compilation.cpp.s
 .PHONY : Components_autogen/mocs_compilation.cpp.s
+
+SpriteRenderer.obj: SpriteRenderer.cpp.obj
+.PHONY : SpriteRenderer.obj
+
+# target to build an object file
+SpriteRenderer.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\components\CMakeFiles\Components.dir\build.make src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj
+.PHONY : SpriteRenderer.cpp.obj
+
+SpriteRenderer.i: SpriteRenderer.cpp.i
+.PHONY : SpriteRenderer.i
+
+# target to preprocess a source file
+SpriteRenderer.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\components\CMakeFiles\Components.dir\build.make src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.i
+.PHONY : SpriteRenderer.cpp.i
+
+SpriteRenderer.s: SpriteRenderer.cpp.s
+.PHONY : SpriteRenderer.s
+
+# target to generate assembly for a file
+SpriteRenderer.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\components\CMakeFiles\Components.dir\build.make src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.s
+.PHONY : SpriteRenderer.cpp.s
 
 Transform.obj: Transform.cpp.obj
 .PHONY : Transform.obj
@@ -293,9 +341,15 @@ help:
 	@echo ... Component.obj
 	@echo ... Component.i
 	@echo ... Component.s
+	@echo ... ComponentRegistrars.obj
+	@echo ... ComponentRegistrars.i
+	@echo ... ComponentRegistrars.s
 	@echo ... Components_autogen/mocs_compilation.obj
 	@echo ... Components_autogen/mocs_compilation.i
 	@echo ... Components_autogen/mocs_compilation.s
+	@echo ... SpriteRenderer.obj
+	@echo ... SpriteRenderer.i
+	@echo ... SpriteRenderer.s
 	@echo ... Transform.obj
 	@echo ... Transform.i
 	@echo ... Transform.s

@@ -24,4 +24,4 @@ public:
     glm::mat4 GetTransformMatrix() const;
 };
 
-REGISTER_SERIALIZABLE_TYPE(Transform)
+// Registration moved to a single compiled TU: src/engine/components/ComponentRegistrars.cpp

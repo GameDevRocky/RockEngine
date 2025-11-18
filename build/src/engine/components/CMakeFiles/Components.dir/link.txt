@@ -1,2 +1,2 @@
-C:\Qt\Tools\mingw1310_64\bin\ar.exe qc libComponents.a CMakeFiles/Components.dir/Components_autogen/mocs_compilation.cpp.obj CMakeFiles/Components.dir/Component.cpp.obj CMakeFiles/Components.dir/Transform.cpp.obj
+C:\Qt\Tools\mingw1310_64\bin\ar.exe qc libComponents.a CMakeFiles/Components.dir/Components_autogen/mocs_compilation.cpp.obj CMakeFiles/Components.dir/Component.cpp.obj CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj CMakeFiles/Components.dir/SpriteRenderer.cpp.obj CMakeFiles/Components.dir/Transform.cpp.obj
 C:\Qt\Tools\mingw1310_64\bin\ranlib.exe libComponents.a
