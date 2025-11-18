@@ -2,17 +2,23 @@
 #include <string>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include "engine/serialization/Serializable.hpp"
 
-class Shader {
+class Shader : public Serializable{
 public:
     Shader() = default;
-    Shader(const std::string& vertexSrc, const std::string& fragmentSrc);
-    static Shader* LoadFromPath(const std::string& vertexPath, const std::string& fragmentPath);
-
+    static Shader* LoadFromPath(const std::string& vert_path, const std::string& frag_path, const std::string& name = "Unnamed Shader");
     ~Shader();
 
     void Bind() const;
     void Unbind() const;
+    void Init(){};
+    YAML::Node Serialize() override { return YAML::Node(); }
+
+    void Deserialize(const YAML::Node& node) override;
+    void PostDeserialize() override;
+    std::string GetTypeName() {return "Shader";};
+    std::string GetName() {return name;};
 
     // Uniform setters
     void SetInt(const std::string& name, int value) const;
@@ -22,11 +28,17 @@ public:
     void SetVec4(const std::string& name, const glm::vec4& value) const;
     void SetMat4(const std::string& name, const glm::mat4& value) const;
 
-    GLuint GetID() const { return m_ID; }
+    GLuint GetProgramID() const { return program_id; }
 
 private:
-    GLuint m_ID = 0;
+    std::string name;
+    std::string vert_path; 
+    std::string frag_path; 
 
+    std::string vert_src; 
+    std::string frag_src; 
+
+    GLuint program_id = 0;
     GLuint CompileShader(GLenum type, const std::string& source);
     GLuint LinkProgram(GLuint vertexShader, GLuint fragmentShader);
 };

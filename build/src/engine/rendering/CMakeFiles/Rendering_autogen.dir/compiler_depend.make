@@ -8,6 +8,7 @@ src/engine/rendering/Rendering_autogen/timestamp: C:/Program\ Files/CMake/bin/cm
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/cameras/GameCamera.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/cameras/RenderCamera.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/cameras/SceneCamera.cpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/core/Material.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/core/Shader.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/core/SharedResources.cpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/core/Texture2D.cpp \
@@ -15,6 +16,8 @@ src/engine/rendering/Rendering_autogen/timestamp: C:/Program\ Files/CMake/bin/cm
 
 
 C:/Program\ Files/CMake/bin/cmake.exe:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/core/Material.cpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/src/engine/rendering/CMakeLists.txt:
 

@@ -14,6 +14,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/Rendering.dir/cameras/RenderCamera.cpp.obj.d"
   "CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.obj"
   "CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.obj.d"
+  "CMakeFiles/Rendering.dir/core/Material.cpp.obj"
+  "CMakeFiles/Rendering.dir/core/Material.cpp.obj.d"
   "CMakeFiles/Rendering.dir/core/Shader.cpp.obj"
   "CMakeFiles/Rendering.dir/core/Shader.cpp.obj.d"
   "CMakeFiles/Rendering.dir/core/SharedResources.cpp.obj"

@@ -21,6 +21,7 @@ SceneViewGui::~SceneViewGui()
 void SceneViewGui::initializeGL() {
     initializeOpenGLFunctions();
     RenderManager::Get().Init();
+    
 
     // Ensure pipeline FBO matches the real GL framebuffer size (consider HiDPI)
     int fbw = static_cast<int>(width() * devicePixelRatio());

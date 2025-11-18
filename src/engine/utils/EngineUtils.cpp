@@ -1,4 +1,7 @@
 #include "engine/utils/EngineUtils.hpp"
+#include <iostream>
+#include <fstream>
+#include <sstream>
 
 
 namespace EngineUtils{
@@ -16,4 +19,17 @@ namespace EngineUtils{
 
         return ss.str();
     }
+
+    std::string ReadShader(const std::string& path){
+        std::ifstream file(path);
+        if (!file.is_open())
+        {
+            std::cerr << "Failed to open shader file: " << path << std::endl;
+            return "";
+        }
+        std::stringstream ss;
+        ss << file.rdbuf();
+        return ss.str();
+    }
+
 }

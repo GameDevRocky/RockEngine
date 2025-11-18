@@ -6,6 +6,7 @@
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/core/TimeManager.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
+#include "engine/debug/Console.hpp"
 #include <glad/glad.h>
 #include <memory>
 
@@ -35,7 +36,10 @@ public:
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glBindVertexArray(0);
 
-        shader = SharedResources::Get().GetShader("grid");
+        shader = SharedResources::Get().GetShaderByName("grid");
+        if (!shader) Console::Alert("Shader not Loaded");
+        else Console::Comment("Shader Loaded");
+
     }
 
     void Shutdown() override
@@ -60,8 +64,6 @@ public:
         glDisable(GL_DEPTH_TEST);
 
         shader->Bind();
-
-        // Pass uniforms
         shader->SetMat4("uView", camera.GetViewMatrix());
         shader->SetMat4("uProj", camera.GetProjectionMatrix());
         shader->SetFloat("uZoom", camera.GetZoom());

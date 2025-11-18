@@ -1,15 +1,15 @@
 #pragma once
 #include <string>
 #include <unordered_map>
-#include <memory>
+#include <yaml-cpp/yaml.h>
 
-#include "Shader.hpp"
-#include "engine/rendering/core/Texture2D.hpp"
 #include "engine/core/System.hpp"
-#include <unordered_map>
+#include "engine/rendering/core/Shader.hpp"
+#include "engine/rendering/core/Texture2D.hpp"
+#include "engine/rendering/core/Material.hpp"
 
-
-class SharedResources : public System{
+class SharedResources : public System
+{
 public:
     static SharedResources& Get()
     {
@@ -17,18 +17,27 @@ public:
         return instance;
     }
 
-    void Init();
+    void Init() override;
 
-    Shader* GetShader(const std::string& name);
-    Texture2D* GetTexture(const std::string& name);
+    // --- Lookup by ID ---
+    Shader* GetShader(const std::string& id);
+    Texture2D* GetTexture(const std::string& id);
+    Material* GetMaterial(const std::string& id);
 
-    void AddShader(const std::string& name, Shader* shader);
-    void AddTexture(const std::string& name, Texture2D* texture);
+    // --- Lookup by Name ---
+    Shader* GetShaderByName(const std::string& name);
+    Texture2D* GetTextureByName(const std::string& name);
+    Material* GetMaterialByName(const std::string& name);
 
+    // --- Add ---
+    void AddShader(Shader* shader);
+    void AddTexture(Texture2D* texture);
+    void AddMaterial(Material* material);
 
 private:
     SharedResources() = default;
 
-    std::unordered_map<std::string, Shader*> m_Shaders;
-    std::unordered_map<std::string, Texture2D*> m_Textures;
+    std::unordered_map<std::string, Shader*> shaders;
+    std::unordered_map<std::string, Texture2D*> textures;
+    std::unordered_map<std::string, Material*> materials;
 };

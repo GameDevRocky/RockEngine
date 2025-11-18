@@ -293,6 +293,8 @@ CMakeFiles/RockEngine.dir/src/main.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/numeric \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/stl_numeric.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/pstl/glue_numeric_defs.h \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/GameObject.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/serialization/Registry.hpp \
  C:\Users\rockl\Coding\ Projects\RockEngine\src\editor/Editor.hpp \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/QApplication \
  C:/Qt/6.10.0/mingw_64/include/QtWidgets/qapplication.h \

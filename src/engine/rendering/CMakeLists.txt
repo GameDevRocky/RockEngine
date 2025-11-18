@@ -19,5 +19,5 @@ target_link_libraries(Rendering
         glm::glm
         glad
         yaml-cpp
-        
+        EngineUtils
 )

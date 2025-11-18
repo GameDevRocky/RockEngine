@@ -683,6 +683,8 @@ src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/components/Transform.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/GameObject.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/Observable.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/rendering/core/Material.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/rendering/core/Shader.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/rendering/core/Texture2D.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Registry.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Serializable.hpp
@@ -1161,6 +1163,10 @@ src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/components/SpriteRenderer.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/GameObject.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/Observable.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/System.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/rendering/core/Material.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/rendering/core/Shader.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/rendering/core/SharedResources.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/rendering/core/Texture2D.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Registry.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Serializable.hpp

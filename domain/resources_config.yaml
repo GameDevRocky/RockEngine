@@ -1,0 +1,43 @@
+Resources:
+
+  Textures:
+    - id: "t1"
+      name: "main_texture"
+      path: "domain/assets/textures/main_texture.png"
+      filtering: "linear"
+      wrap: "clamp"
+
+    - id: "t2"
+      name: "smiley_texture"
+      path: "domain/assets/textures/smiley_texture.png" 
+      filtering: "linear"
+      wrap: "repeat"
+ 
+  Shaders:
+    - id: "s1"
+      vert_path: "domain/assets/shaders/sprite.vert"
+      frag_path: "domain/assets/shaders/sprite.frag"
+      name: "sprite"
+
+    - id: "s2"
+      vert_path: "domain/assets/shaders/grid.vert"
+      frag_path: "domain/assets/shaders/grid.frag"
+      name: "grid"
+
+  Materials:
+
+    - id: "m1"
+      name: "default"
+      shader_id: "s1"
+      texture_id: "t1"
+      tint: [1,1,1,1]
+      flipX: false
+      flipY: false
+
+    - id: "m2"
+      name: "default"
+      shader_id: "s1"
+      texture_id: "t2"
+      tint: [1,1,1,1]
+      flipX: false
+      flipY: false

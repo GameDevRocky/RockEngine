@@ -48,8 +48,9 @@ void RenderPipeline::Render(RenderCamera& camera, Scene& scene)
         glBindFramebuffer(GL_FRAMEBUFFER, outputFBO); // ensure each pass draws to pipeline FBO
         glViewport(0, 0, viewportWidth, viewportHeight);
         pass->Execute(camera, scene);
-    }
 
+    }
+    
     // Restore previously bound framebuffer (could be Qt's FBO)
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
 }

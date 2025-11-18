@@ -485,6 +485,8 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj: \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/mmintrin.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/mwaitintrin.h \
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/random.tcc \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/core/GameObject.hpp \
+ C:/Users/rockl/CODING~1/ROCKEN~1/include/engine/serialization/Registry.hpp \
  C:/Qt/6.10.0/mingw_64/include/QtCore/QTimer \
  C:/Qt/6.10.0/mingw_64/include/QtCore/qtimer.h \
  C:\Users\rockl\Coding\ Projects\RockEngine\src\editor\mainwindow-gui/MainWindowGui.hpp \

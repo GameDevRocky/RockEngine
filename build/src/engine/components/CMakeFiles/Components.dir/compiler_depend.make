@@ -680,6 +680,8 @@ src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj: C:/
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/Transform.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Observable.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/Material.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/Shader.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/Texture2D.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Registry.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Serializable.hpp \
@@ -1156,6 +1158,10 @@ src/engine/components/CMakeFiles/Components.dir/SpriteRenderer.cpp.obj: C:/Users
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/SpriteRenderer.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Observable.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/System.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/Material.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/Shader.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/SharedResources.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/Texture2D.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Registry.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Serializable.hpp \
@@ -1830,6 +1836,8 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/simd/platform.h:
 
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/basic_ios.tcc:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/SharedResources.hpp:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/vector_uint1_sized.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/quaternion_trigonometric.hpp:
@@ -2076,6 +2084,8 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/matrix_float2x4_
 
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/unique_ptr.h:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/Material.hpp:
+
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/bits/unordered_map.h:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/quaternion_common.inl:
@@ -2182,6 +2192,8 @@ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/iostream:
 
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/istream:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/core/Shader.hpp:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/vector_bool4.hpp:
 
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/list:
@@ -2215,6 +2227,8 @@ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/pstl/glue
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/pstl/glue_numeric_defs.h:
 
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/pstl/pstl_config.h:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/System.hpp:
 
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/random:
 

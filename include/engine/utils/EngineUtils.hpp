@@ -8,5 +8,5 @@ namespace EngineUtils{
 
 
 std::string GenerateUUID();
-
+std::string ReadShader(const std::string& path);
 }

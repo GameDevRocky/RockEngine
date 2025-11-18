@@ -633,6 +633,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj: C:/Users/rockl/Coding\ Projects
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/traits.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/Engine.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/InputManager.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Observable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Scene.hpp \
@@ -641,6 +642,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj: C:/Users/rockl/Coding\ Projects
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/TimeManager.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/debug/Console.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/debug/Message.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Registry.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Serializable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/utils/EngineUtils.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/editor/console-gui/ConsoleGui.hpp \
@@ -1929,9 +1931,13 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/Engine.hpp:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Scene.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/debug/Message.hpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Registry.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/utils/EngineUtils.hpp:
 

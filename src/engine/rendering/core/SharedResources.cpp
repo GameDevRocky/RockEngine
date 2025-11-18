@@ -1,45 +1,129 @@
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/debug/Console.hpp"
-#include <iostream>
+
+#define RESOURCES_CONFIG_PATH "domain/resources_config.yaml"
 
 void SharedResources::Init()
 {
-    m_Shaders["grid"] = Shader::LoadFromPath("src/engine/rendering/shaders/grid.vert","src/engine/rendering/shaders/grid.frag");
+    const YAML::Node root = YAML::LoadFile(RESOURCES_CONFIG_PATH);
+    const YAML::Node data = root["Resources"];
+
+    for (auto& texNode : data["Textures"])
+    {
+        Texture2D* texture = new Texture2D();
+        texture->Deserialize(texNode);
+        AddTexture(texture);
+    }
+
+    for (auto& shadNode : data["Shaders"])
+    {
+        Shader* shader = new Shader();
+        shader->Deserialize(shadNode);
+        AddShader(shader);
+    }
+
+    for (auto& matNode : data["Materials"])
+    {
+        Material* material = new Material();
+        material->Deserialize(matNode);
+        AddMaterial(material);
+    }
+
+    std::vector<Serializable*> all;
+
+    for (auto& kv : textures)  all.push_back(kv.second);
+    for (auto& kv : shaders)   all.push_back(kv.second);
+    for (auto& kv : materials) all.push_back(kv.second);
+
+    for (Serializable* obj : all)
+        obj->PostDeserialize();
+
+    for (Serializable* obj : all)
+        Console::Comment("HEYYY");
+    Console::Comment("Shared Resources Initialized");
+    
 }
 
-Shader* SharedResources::GetShader(const std::string& name)
+// ----------------------
+// Lookup By ID
+// ----------------------
+
+Shader* SharedResources::GetShader(const std::string& id)
 {
-    if (m_Shaders.find(name) != m_Shaders.end())
-        return m_Shaders[name];
-    std::cerr << "Shader not found: " << name << std::endl;
+    auto it = shaders.find(id);
+    return (it != shaders.end()) ? it->second : nullptr;
+}
+
+Texture2D* SharedResources::GetTexture(const std::string& id)
+{
+    auto it = textures.find(id);
+    return (it != textures.end()) ? it->second : nullptr;
+}
+
+Material* SharedResources::GetMaterial(const std::string& id)
+{
+    auto it = materials.find(id);
+    return (it != materials.end()) ? it->second : nullptr;
+}
+
+// ----------------------
+// Lookup By Name
+// ----------------------
+
+Shader* SharedResources::GetShaderByName(const std::string& name)
+{
+    for (auto& kv : shaders)
+        if (kv.second->GetName() == name)
+            return kv.second;
     return nullptr;
 }
 
-Texture2D* SharedResources::GetTexture(const std::string& name)
+Texture2D* SharedResources::GetTextureByName(const std::string& name)
 {
-    if (m_Textures.find(name) != m_Textures.end())
-        return m_Textures[name];
-    std::cerr << "Texture not found: " << name << std::endl;
+    for (auto& kv : textures)
+        if (kv.second->GetName() == name)
+            return kv.second;
     return nullptr;
 }
 
+Material* SharedResources::GetMaterialByName(const std::string& name)
+{
+    for (auto& kv : materials)
+        if (kv.second->GetName() == name)
+            return kv.second;
+    return nullptr;
+}
 
-void SharedResources::AddShader(const std::string& name, Shader* shader){
+// ----------------------
+// Add
+// ----------------------
+
+void SharedResources::AddShader(Shader* shader)
+{
     if (!shader)
     {
-        std::cerr << "Cannot add null shader: " << name << std::endl;
+        Console::Alert("Failed to add shader");
         return;
     }
-    m_Shaders[name] = shader;
-
+    shaders[shader->GetID()] = shader;
 }
 
-void SharedResources::AddTexture(const std::string& name, Texture2D* texture){
+void SharedResources::AddTexture(Texture2D* texture)
+{
     if (!texture)
     {
-        std::cerr << "Cannot add null texture: " << name << std::endl;
+        Console::Alert("Failed to add texture");
         return;
     }
-    m_Textures[name] = texture;
+    textures[texture->GetID()] = texture;
+}
 
+void SharedResources::AddMaterial(Material* material)
+{
+    if (!material)
+    {
+        Console::Alert("Failed to add material");
+        return;
+    }
+    materials[material->GetID()] = material;
 }

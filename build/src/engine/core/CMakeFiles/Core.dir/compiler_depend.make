@@ -1444,6 +1444,7 @@ src/engine/core/CMakeFiles/Core.dir/SceneManager.cpp.obj: C:/Users/rockl/Coding\
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/stlemitter.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/traits.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Observable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Scene.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/SceneManager.hpp \

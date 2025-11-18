@@ -11,19 +11,23 @@ void Editor::Init() {
     app = new QApplication(argc, argv);
     MainWindow& main_window = *MainWindow::Get();
     main_window.Init();
+}
+
+void Editor::Update(){
+
+    
+}
+
+void Editor::Start() {
 
     timer = new QTimer();
+
     QObject::connect(timer, &QTimer::timeout, [this]() {
         Engine::Get().Run();
         SceneViewGui::Get()->update();
     });
-
     timer->start(16);
     app->exec();
-}
-
-void Editor::Update() {
-    
 
 }
 
