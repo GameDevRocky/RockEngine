@@ -63,6 +63,7 @@ public:
             
             Transform* transform = obj->GetComponent<Transform>();
             SpriteRenderer* sprite = obj->GetComponent<SpriteRenderer>();
+            transform->rotation += 1;
             
             if (!transform || !sprite) continue;
             
