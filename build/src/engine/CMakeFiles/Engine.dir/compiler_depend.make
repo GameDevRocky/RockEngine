@@ -385,6 +385,7 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj: C:/Users/rockl/Coding\ Projects
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/traits.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/Engine.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/ComponentRegistrars.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/InputManager.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Observable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Scene.hpp \
@@ -1340,6 +1341,8 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Serializable.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/Engine.hpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/ComponentRegistrars.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Scene.hpp:
 

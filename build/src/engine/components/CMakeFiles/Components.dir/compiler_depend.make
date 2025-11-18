@@ -675,6 +675,7 @@ src/engine/components/CMakeFiles/Components.dir/ComponentRegistrars.cpp.obj: C:/
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/traits.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/Component.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/ComponentRegistrars.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/SpriteRenderer.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/Transform.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp \
@@ -2602,6 +2603,8 @@ C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/trigonometric.hpp:
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/ext/matrix_float3x4_precision.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/vec2.hpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/ComponentRegistrars.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/Transform.hpp:
 
