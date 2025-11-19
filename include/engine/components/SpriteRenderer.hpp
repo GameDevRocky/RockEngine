@@ -3,6 +3,7 @@
 #include "engine/serialization/SerializableFactory.hpp"
 #include "yaml-cpp/yaml.h"
 #include "engine/rendering/core/Material.hpp"
+#include "engine/rendering/core/Texture2D.hpp"
 #include <glm/glm.hpp>
 
 class SpriteRenderer : public Component
@@ -18,7 +19,9 @@ public:
 
     // ---------------- Material ----------------
     Material* GetMaterial() const { return material; }
-    void SetMaterial(Material* mat) { material = mat; }
+    Texture2D* GetTexture() const { return texture; }
+    void SetMaterial(Material* mat);
+    void SetTexture(Texture2D* tex);
 
     // ---------------- Sprite Properties ----------------
     glm::vec4 GetColor() const { return color; }
@@ -34,15 +37,15 @@ public:
     void SetFlipY(bool v) { flipY = v; }
 
 private:
-    // MATERIAL now owns:
-    // - Shader
-    // - Texture
-    // - Uniform values
+
     Material* material = nullptr;
+    Texture2D* texture = nullptr;
+
+    std::string material_id;
+    std::string texture_id;
 
     glm::vec4 uvRect = glm::vec4(0, 0, 1, 1);
     glm::vec4 color = glm::vec4(1, 1, 1, 1);
-
     int sortingOrder = 0;
     bool flipX = false;
     bool flipY = false;

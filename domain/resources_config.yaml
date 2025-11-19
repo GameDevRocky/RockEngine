@@ -12,6 +12,12 @@ Resources:
       path: "domain/assets/textures/smiley_texture.png" 
       filtering: "linear"
       wrap: "repeat"
+
+    - id: "t3"
+      name: "smiley_texture"
+      path: "domain/assets/textures/smiley_texture.png" 
+      filtering: "linear"
+      wrap: "repeat"
  
   Shaders:
     - id: "s1"
@@ -25,19 +31,7 @@ Resources:
       name: "grid"
 
   Materials:
-
     - id: "m1"
       name: "default"
       shader_id: "s1"
       texture_id: "t1"
-      tint: [1,1,1,1]
-      flipX: false
-      flipY: false
-
-    - id: "m2"
-      name: "default"
-      shader_id: "s1"
-      texture_id: "t2"
-      tint: [1,1,1,1]
-      flipX: false
-      flipY: false

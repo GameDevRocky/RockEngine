@@ -14,7 +14,6 @@ void RenderManager::Init(){
         std::cerr << "Failed to initialize GLAD" << std::endl;
     }
     glEnable(GL_DEPTH_TEST);
-    Console::Clear();
     Console::Comment("RenderManager Initialized");
     SharedResources::Get().Init();
     
@@ -30,11 +29,9 @@ void RenderManager::Init(){
 
 void RenderManager::SetUpEditorPipeline(){
     auto clear_pass = new ClearPass();
-    auto grid_pass = new GridPass();
     auto scene_pass = new ScenePass();
 
     editor_pipeline->AddPass(clear_pass);
-    editor_pipeline->AddPass(grid_pass);
     editor_pipeline->AddPass(scene_pass);
 
     editor_pipeline->Init();

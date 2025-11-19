@@ -76,9 +76,6 @@ public:
 private:
 
     std::string name;
-    glm::vec4 tint;
-    bool flipX;
-    bool flipY;
 
     std::string shader_id;
     std::string texture_id;

@@ -30,12 +30,13 @@ void RenderCamera::SetRotation(float degrees)
 {
     rotationDeg = degrees;
     viewDirty = true;
+
 }
 
 void RenderCamera::SetZoom(float zoomAmount)
 {
     zoom = zoomAmount;
-    viewDirty = true;
+    projDirty = true;
 }
 
 const glm::vec2& RenderCamera::GetPosition() const { return position; }
@@ -57,34 +58,37 @@ const glm::mat4& RenderCamera::GetProjectionMatrix()
     if (projDirty)
         RecalculateProjection();
     return projectionMatrix;
-}
+} 
 
 // ───────────────────────────────────────────────────────
 // 4. Internal matrix calculation
 // ───────────────────────────────────────────────────────
 void RenderCamera::RecalculateView()
 {
-    // Translate the world opposite to camera position
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(-position, 0.0f));
-
-    // Apply rotation around Z
     transform = glm::rotate(transform, glm::radians(-rotationDeg), glm::vec3(0, 0, 1));
-
-    // Apply zoom
-    transform = glm::scale(transform, glm::vec3(zoom, zoom, 1.0f));
-
-    viewMatrix = transform;
+    
+    viewMatrix = transform;   // ← no zoom here
     viewDirty = false;
 }
 
 void RenderCamera::RecalculateProjection()
 {
-    float halfWidth  = static_cast<float>(viewportWidth) * 0.5f * zoom;
-    float halfHeight = static_cast<float>(viewportHeight) * 0.5f * zoom;
+    float aspect = (float)viewportWidth / (float)viewportHeight;
 
-    projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, -1.0f, 1.0f);
+    float halfHeight = orthoSize / zoom;
+
+    float halfWidth  = halfHeight * aspect;    // maintain aspect ratio
+
+    projectionMatrix = glm::ortho(
+        -halfWidth, halfWidth,
+        -halfHeight, halfHeight,
+        -1.0f, 1.0f
+    );
+
     projDirty = false;
 }
+
 
 void RenderCamera::Init(){
     

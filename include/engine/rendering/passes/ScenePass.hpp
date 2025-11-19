@@ -63,35 +63,33 @@ public:
             
             Transform* transform = obj->GetComponent<Transform>();
             SpriteRenderer* sprite = obj->GetComponent<SpriteRenderer>();
-            transform->rotation += 1;
-            
             if (!transform || !sprite) continue;
             
             Material* mat = sprite->GetMaterial();
             if (!mat) mat = SharedResources::Get().GetMaterialByName("default");
-            if (!mat->GetShader()) Console::Comment("No Default Mat Shader");
-            if (!mat || !mat->GetShader()) continue;            
+            if (!mat || !mat->GetShader()) continue; 
+
             Shader* shader = mat->GetShader();
-            Texture2D* texture = mat->GetTexture();
+            Texture2D* texture = sprite->GetTexture();
+            if(!texture){
+                Console::Alert("Sprite has no assigned texture");
+                texture = mat->GetTexture();
+            }
             shader->Bind();
             texture->Bind();
 
-
-            // Camera matrices
             mat->SetMat4("uView", camera.GetViewMatrix());
             mat->SetMat4("uProj", camera.GetProjectionMatrix());
 
-            // Model matrix
             glm::mat4 model(1.0f);
             model = glm::translate(model, glm::vec3(transform->position, 0.0f));
             model = glm::rotate(model, glm::radians(transform->rotation), glm::vec3(0, 0, 1));
             model = glm::scale(model, glm::vec3(transform->scale, 1.0f));
+
             mat->SetMat4("uModel", model);
 
-            // Sprite properties
-            mat->SetVec4("uColor", {1,1,1,1});
+            mat->SetVec4("uColor", sprite->GetColor());
 
-            // Apply all uniforms
             mat->ApplyUniforms();
 
             // Draw quad

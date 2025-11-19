@@ -23,6 +23,7 @@ public:
     const glm::vec2& GetPosition() const;
     float GetRotation() const;
     float GetZoom() const;
+    float GetOrthoSize() {return orthoSize;}
 
     // ───────────────────────────────────────────────────────
     // 3. Matrices
@@ -38,12 +39,11 @@ protected:
     virtual void RecalculateProjection();
 
 protected:
-    // ───────────────────────────────────────────────────────
-    // 4. Camera Internal State
-    // ───────────────────────────────────────────────────────
+    
     glm::vec2 position = {0.0f, 0.0f};
-    float rotationDeg = 0.0f;        // 2D rotation in degrees
-    float zoom = 1.0f;               // > 1 = zoom out
+    float rotationDeg = 0.0f;      
+    float zoom = 1.0f;              
+    float orthoSize = 5.0f;
 
 
     glm::mat4 viewMatrix      = glm::mat4(1.0f);

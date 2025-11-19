@@ -22,7 +22,7 @@ vec4 grid(vec2 worldPos)
     //-----------------------------------
     // Grid settings
     //-----------------------------------
-    float cellSize = 100.0;      
+    float cellSize = 1.0;      
     float lineWidthPx = 6.0;   // line thickness in pixels (thicker)
     vec3 lineColor = vec3(0.15); // dark grid lines
 

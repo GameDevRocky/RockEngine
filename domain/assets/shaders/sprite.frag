@@ -4,8 +4,9 @@ out vec4 FragColor;
 
 in vec2 vTexCoord;
 
+
 uniform sampler2D uTexture;
-uniform vec4 uTint; // sprite color tint (optional, can be 1,1,1,1)
+uniform vec4 uColor;
 
 void main()
 {
@@ -15,5 +16,5 @@ void main()
     if (texColor.a <= 0.01)
         discard;
 
-    FragColor = texColor;
+    FragColor = texColor * uColor;
 }

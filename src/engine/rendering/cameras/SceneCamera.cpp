@@ -15,7 +15,6 @@ void SceneCamera::Update()
 {
     bool changed = false;
     float scroll = 0.0f;
-
     if (scroll != 0.0f) {
         zoom -= scroll * zoomSpeed;
         zoom = glm::max(zoom, 0.1f);

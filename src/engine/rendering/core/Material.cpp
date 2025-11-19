@@ -4,9 +4,6 @@
 void Material::Deserialize(const YAML::Node& node){
     Serializable::Deserialize(node);
     name = node["name"].as<std::string>();
-    tint = {1,1,1,1};
-    flipX = node["flipX"].as<bool>();
-    flipY = node["flipY"].as<bool>();
     shader_id = node["shader_id"].as<std::string>();
     texture_id = node["texture_id"].as<std::string>();
 }
