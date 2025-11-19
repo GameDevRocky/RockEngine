@@ -82,10 +82,7 @@ public:
             mat->SetMat4("uProj", camera.GetProjectionMatrix());
 
             glm::mat4 model(1.0f);
-            model = glm::translate(model, glm::vec3(transform->position, 0.0f));
-            model = glm::rotate(model, glm::radians(transform->rotation), glm::vec3(0, 0, 1));
-            model = glm::scale(model, glm::vec3(transform->scale, 1.0f));
-
+            model = transform->GetWorldMatrix();
             mat->SetMat4("uModel", model);
 
             mat->SetVec4("uColor", sprite->GetColor());

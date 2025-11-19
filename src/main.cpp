@@ -9,6 +9,7 @@ int main(int argc, char *argv[]) {
     editor.Init();
     engine.Init();
     editor.Start();
+    editor.Shutdown();
     engine.Shutdown();
     return -1;
 }

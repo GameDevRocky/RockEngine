@@ -1,5 +1,6 @@
 #pragma once
 #include <QMainWindow>
+#include <QSettings>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -10,9 +11,13 @@ public:
         return instance;
     }
     void Init();
+    void Shutdown();
+    void ClearLayout();
 private:
     explicit MainWindow(QWidget* parent = nullptr);
-    ~MainWindow() override = default;
+    void LoadLayout();
+    void SaveLayout();
+    ~MainWindow();
 
 
 };

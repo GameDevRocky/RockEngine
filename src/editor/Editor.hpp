@@ -19,7 +19,7 @@ public:
     QApplication* App() const { return app; }
 
 private:
-    Editor() = default;
+    Editor();
     ~Editor() override = default;
 
     Editor(const Editor&) = delete;

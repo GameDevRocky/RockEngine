@@ -7,6 +7,14 @@
 #include "mainwindow-gui/MainWindowGui.hpp"
 #include "editor/console-gui/ConsoleGui.hpp"
 #include "sceneview-gui/SceneViewGui.hpp"
+#include <QCoreApplication>
+Editor::Editor(){
+    QCoreApplication::setOrganizationName("Rocklyn");
+    QCoreApplication::setApplicationName("RockEngineEditor");
+
+}
+
+
 void Editor::Init() {
     int argc = 0;
     char** argv = nullptr;
@@ -72,11 +80,15 @@ void Editor::Start() {
 }
 
 void Editor::Shutdown() {
+
+    MainWindow::Get()->Shutdown();
+
     if (timer) {
         timer->stop();
         delete timer;
         timer = nullptr;
     }
+
 
     if (app) {
         delete app;

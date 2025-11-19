@@ -10,10 +10,8 @@
 #include "InspectorGui.hpp"
 #include "FileExplorerGui.hpp"
 
-MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent)
-{
-}
+MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent){}
+MainWindow::~MainWindow(){SaveLayout();}
 
 void MainWindow::Init()
 {
@@ -42,26 +40,63 @@ void MainWindow::Init()
     QDockWidget* hierarchyDock = new QDockWidget("Hierarchy", this);
     hierarchyDock->setWidget(&hierarchy);
     addDockWidget(Qt::LeftDockWidgetArea, hierarchyDock);
+  
 
     QDockWidget* inspectorDock = new QDockWidget("Inspector", this);
     inspectorDock->setWidget(&inspector);
     addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
+    inspectorDock->setObjectName("InspectorDock");
+
 
     QDockWidget* fileExplorerDock = new QDockWidget("File Explorer", this);
     fileExplorerDock->setWidget(&file_explorer);
     addDockWidget(Qt::BottomDockWidgetArea, fileExplorerDock);
+    fileExplorerDock->setObjectName("FileExplorerDock");
+
 
     QDockWidget* consoleDock = new QDockWidget("Console", this);
     consoleDock->setWidget(&console_widget);
     addDockWidget(Qt::BottomDockWidgetArea, consoleDock);
+    consoleDock->setObjectName("ConsoleDock");
+
     
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
 
 
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks );
+    
+    LoadLayout();
 
-    // --- Window Setup ---
     setWindowTitle("My Game Engine");
     showMaximized();
+}
+
+void MainWindow::SaveLayout()
+{
+    QSettings settings("Rocklyn", "RockEngineEditor");
+
+    settings.setValue("geometry", saveGeometry());
+    settings.setValue("windowState", saveState());
+}
+
+void MainWindow::LoadLayout()
+{
+    QSettings settings("Rocklyn", "RockEngineEditor");
+
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
+}
+
+void MainWindow::Shutdown(){
+    SaveLayout();
+    ClearLayout();
+}
+
+
+void MainWindow::ClearLayout()
+{
+    QSettings settings("Rocklyn", "RockEngineEditor");
+    settings.remove("geometry");
+    settings.remove("windowState");
 }

@@ -7,44 +7,25 @@ components:
   - id: "t1"
     type: "Transform"
     gameobject: "o1"
-    position: [-1, 0]
-    rotation: 0
-    scale: [1, 1]
+    localPosition: [-1, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: null
 
   - id: "t2"
     type: "Transform"
     gameobject: "o2"
-    position: [0, 0]
-    rotation: 0
-    scale: [1, 1]
-
-  - id: "t3"
-    type: "Transform"
-    gameobject: "o3"
-    position: [1, 0]
-    rotation: 0
-    scale: [1, 1]
-
-  - id: "t4"
-    type: "Transform"
-    gameobject: "o4"
-    position: [10, 5]
-    rotation: 0
-    scale: [2, 2]
-
-  - id: "t5"
-    type: "Transform"
-    gameobject: "o5"
-    position: [0, 0]
-    rotation: 0
-    scale: [1, 1]
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: "t1"
 
   - id: "s1"
     type: "SpriteRenderer"
     gameobject: "o1"
     material_id: "m1"
     texture_id: "t2"
-    color: [1,1,1,1]
+    color: [1,0,0,1]
     flipX: false
     flipY: false
 
@@ -57,38 +38,14 @@ components:
     flipX: false
     flipY: false
 
-  - id: "s3"
-    type: "SpriteRenderer"
-    gameobject: "o3"
-    material_id: "m1"
-    texture_id: "t1"
-    color: [0.5,0.5,1,1]
-    flipX: false
-    flipY: false
-
 # List of all game objects, referencing only Transform components
 gameobjects:
   - id: "o1"
     type: "GameObject"
-    name: "Player"
+    name: "Parent"
     components: ["t1", "s1"]
 
   - id: "o2"
     type: "GameObject"
-    name: "Enemy1"
+    name: "Child"
     components: ["t2", "s2"]
-
-  - id: "o3"
-    type: "GameObject"
-    name: "Enemy2"
-    components: ["t3", "s3"]
-
-  - id: "o4"
-    type: "GameObject"
-    name: "Tree1"
-    components: ["t4"]
-
-  - id: "o5"
-    type: "GameObject"
-    name: "Rock1"
-    components: ["t5"]

@@ -10,9 +10,9 @@ static constexpr int FONT_SIZE = 13;
 static QColor BG_DARK(25, 25, 25);
 static QColor FG_TEXT(230, 230, 230);
 
-static QColor BORDER_COMMENT(90, 90, 90);
-static QColor BORDER_WARNING(255, 150, 50);
-static QColor BORDER_ALERT(255, 80, 80);
+static QColor BORDER_COMMENT(90, 90, 90, 125);
+static QColor BORDER_WARNING(255, 150, 50, 125);
+static QColor BORDER_ALERT(255, 80, 80, 125);
 
 //
 // Apply style ONLY to the outermost widget
@@ -26,14 +26,15 @@ static void ApplyOuterBorder(QWidget* target, const std::string& type)
     else border = BORDER_COMMENT;  // default/comment
 
     QString style = QString(R"(
-        QWidget#MessageRoot {
-            background-color: %1;
-            border-radius: 6px;
-            border: 1px solid %2;
-        }
+    QWidget#MessageRoot {
+        background-color: %1;
+        border-radius: 6px;
+        border: 1px solid %2;
+    }
     )")
     .arg(BG_DARK.name())
-    .arg(border.name());
+    .arg(border.name(QColor::HexArgb));  // include alpha
+
 
     target->setStyleSheet(style);
 }
