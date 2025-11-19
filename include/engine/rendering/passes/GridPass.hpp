@@ -37,8 +37,7 @@ public:
         glBindVertexArray(0);
 
         shader = SharedResources::Get().GetShaderByName("grid");
-        if (!shader) Console::Alert("Shader not Loaded");
-        else Console::Comment("Shader Loaded");
+        if (!shader) Console::Alert("Grid shader not Loaded");
 
     }
 
@@ -62,15 +61,13 @@ public:
             return;
 
         glDisable(GL_DEPTH_TEST);
+        glBindVertexArray(vao);
 
         shader->Bind();
         shader->SetMat4("uView", camera.GetViewMatrix());
         shader->SetMat4("uProj", camera.GetProjectionMatrix());
-        shader->SetFloat("uZoom", camera.GetZoom());
-        shader->SetVec2("uViewportSize", glm::vec2((float)viewportWidth, (float)viewportHeight));
         shader->SetFloat("time", TimeManager::Get().ElapsedTime() );
 
-        glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
     }
@@ -79,6 +76,6 @@ private:
     GLuint vao = 0;
     GLuint vbo = 0;
     Shader* shader = nullptr;
-    int viewportWidth = 1280;  // default width
-    int viewportHeight = 720;  // default height
+    int viewportWidth = 1;  // default width
+    int viewportHeight = 1;  // default height
 };

@@ -1,5 +1,0 @@
-<<<<<<< HEAD
--IC:/Users/rockl/CODING~1/ROCKEN~1/build/src/engine/RENDER~1/RENDER~1/include -IC:/Users/rockl/CODING~1/ROCKEN~1/include -IC:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include -IC:/Users/rockl/CODING~1/ROCKEN~1/external/stb -IC:/Users/rockl/CODING~1/ROCKEN~1/external/glm -IC:/Users/rockl/CODING~1/ROCKEN~1/external/glad/include
-=======
--I"C:/Users/rockl/Coding Projects/RockEngine/build/src/engine/rendering/Rendering_autogen/include" -IC:/Users/rockl/CODING~1/ROCKEN~1/include -IC:/Users/rockl/CODING~1/ROCKEN~1/external/yaml/include -IC:/Users/rockl/CODING~1/ROCKEN~1/external/stb -IC:/Users/rockl/CODING~1/ROCKEN~1/external/glm -IC:/Users/rockl/CODING~1/ROCKEN~1/external/glad/include -IC:/Users/rockl/CODING~1/ROCKEN~1/external
->>>>>>> 08a7f6181b4ccc3f90b61d2412665e9c8ff514e7
