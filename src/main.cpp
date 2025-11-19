@@ -6,8 +6,9 @@ int main(int argc, char *argv[]) {
     
     Engine &engine = Engine::Get();
     Editor &editor = Editor::Get();
-    engine.Init();
     editor.Init();
+    engine.Init();
+    editor.Start();
     engine.Shutdown();
     return -1;
 }

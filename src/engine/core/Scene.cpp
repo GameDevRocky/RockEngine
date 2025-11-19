@@ -27,7 +27,7 @@ YAML::Node Scene::Serialize() {
 
 void Scene::Deserialize(const YAML::Node& data) {
     Serializable::Deserialize(data);
-    if (data["name"])
+    if (data["name"]) 
         name = data["name"].as<std::string>();
     else
         name = "Unnamed Scene";
@@ -37,6 +37,7 @@ void Scene::Deserialize(const YAML::Node& data) {
             GameObject* obj = new GameObject();
             obj->Deserialize(goNode);
             Registry::Get().Register(obj);
+            gameobjects.push_back(obj);
             Console::Comment("Created and registered " + obj->GetName());
         }
     } 
@@ -67,7 +68,4 @@ void Scene::Deserialize(const YAML::Node& data) {
         obj->PostDeserialize();
 
     }
-}
-void Scene::LinkSerializables(){
-    
 }

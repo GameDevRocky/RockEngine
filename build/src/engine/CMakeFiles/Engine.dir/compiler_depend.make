@@ -386,6 +386,7 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj: C:/Users/rockl/Coding\ Projects
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/Engine.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/ComponentRegistrars.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/InputManager.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Observable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Scene.hpp \
@@ -401,6 +402,7 @@ src/engine/CMakeFiles/Engine.dir/Engine.cpp.obj: C:/Users/rockl/Coding\ Projects
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/cameras/SceneCamera.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/passes/RenderPass.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/pipelines/RenderPipeline.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Registry.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Serializable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/utils/EngineUtils.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/glm/glm/common.hpp \
@@ -1344,6 +1346,8 @@ C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/Engine.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/components/ComponentRegistrars.hpp:
 
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp:
+
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Scene.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/RenderManager.hpp:
@@ -1351,6 +1355,8 @@ C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/RenderManage
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/cameras/RenderCamera.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/rendering/pipelines/RenderPipeline.hpp:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Registry.hpp:
 
 C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/utils/EngineUtils.hpp:
 

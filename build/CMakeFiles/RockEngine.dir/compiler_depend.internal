@@ -776,11 +776,13 @@ CMakeFiles/RockEngine.dir/src/main.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/traits.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/Engine.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/GameObject.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/InputManager.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/Observable.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/Scene.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/SceneManager.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/System.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Registry.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Serializable.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/utils/EngineUtils.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/Editor.hpp

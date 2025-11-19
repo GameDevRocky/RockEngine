@@ -12,6 +12,7 @@ public:
     }
 
     void Init() override;
+    void Start();
     void Update() override;
     void Shutdown() override;
     

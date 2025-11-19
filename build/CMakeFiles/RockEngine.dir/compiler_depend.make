@@ -773,11 +773,13 @@ CMakeFiles/RockEngine.dir/src/main.cpp.obj: C:/Users/rockl/Coding\ Projects/Rock
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/traits.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/Engine.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/InputManager.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Observable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/Scene.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/SceneManager.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/System.hpp \
+  C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Registry.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Serializable.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/utils/EngineUtils.hpp \
   C:/Users/rockl/Coding\ Projects/RockEngine/src/editor/Editor.hpp
@@ -1224,6 +1226,8 @@ C:/Program\ Files/CMake/share/cmake-4.2/Modules/Internal/CMakeCXXLinkerInformati
 C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/numbers:
 
 C:/Program\ Files/CMake/share/cmake-4.2/Modules/Internal/CMakeDetermineLinkerId.cmake:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/core/GameObject.hpp:
 
 C:/Program\ Files/CMake/share/cmake-4.2/Modules/Internal/CMakeInspectCLinker.cmake:
 
@@ -1678,6 +1682,8 @@ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/tr1/poly_
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6WidgetsTools/Qt6WidgetsToolsDependencies.cmake:
 
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6WidgetsTools/Qt6WidgetsToolsTargets-relwithdebinfo.cmake:
+
+C:/Users/rockl/Coding\ Projects/RockEngine/include/engine/serialization/Registry.hpp:
 
 C:/Qt/6.10.0/mingw_64/lib/cmake/Qt6WidgetsTools/Qt6WidgetsToolsTargets.cmake:
 

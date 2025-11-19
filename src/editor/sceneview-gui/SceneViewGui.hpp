@@ -7,6 +7,11 @@
 #include <QOpenGLVertexArrayObject>
 #include <QElapsedTimer>
 #include <QTimer>
+#include <QWheelEvent>
+#include <QPoint>
+#include <QMouseEvent>
+#include <glm/glm.hpp>
+
 
 class SceneViewGui : public QOpenGLWidget, protected QOpenGLFunctions {
     Q_OBJECT
@@ -26,8 +31,17 @@ protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;
     void paintGL() override;
-
+    void wheelEvent(QWheelEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    glm::vec2 ScreenToWorld(const QPoint& p);
 private:
+
+    QPoint lastMousePos;
+    bool isPanning = false;
+
+
     QOpenGLShaderProgram program;
     QOpenGLBuffer vbo{QOpenGLBuffer::VertexBuffer};
     QOpenGLVertexArrayObject vao;

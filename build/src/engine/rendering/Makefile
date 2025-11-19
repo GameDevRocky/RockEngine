@@ -347,6 +347,30 @@ cameras/SceneCamera.cpp.s:
 	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/cameras/SceneCamera.cpp.s
 .PHONY : cameras/SceneCamera.cpp.s
 
+core/Material.obj: core/Material.cpp.obj
+.PHONY : core/Material.obj
+
+# target to build an object file
+core/Material.cpp.obj:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Material.cpp.obj
+.PHONY : core/Material.cpp.obj
+
+core/Material.i: core/Material.cpp.i
+.PHONY : core/Material.i
+
+# target to preprocess a source file
+core/Material.cpp.i:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Material.cpp.i
+.PHONY : core/Material.cpp.i
+
+core/Material.s: core/Material.cpp.s
+.PHONY : core/Material.s
+
+# target to generate assembly for a file
+core/Material.cpp.s:
+	cd /d C:\Users\rockl\CODING~1\ROCKEN~1\build && $(MAKE) $(MAKESILENT) -f src\engine\rendering\CMakeFiles\Rendering.dir\build.make src/engine/rendering/CMakeFiles/Rendering.dir/core/Material.cpp.s
+.PHONY : core/Material.cpp.s
+
 core/Shader.obj: core/Shader.cpp.obj
 .PHONY : core/Shader.obj
 
@@ -476,6 +500,9 @@ help:
 	@echo ... cameras/SceneCamera.obj
 	@echo ... cameras/SceneCamera.i
 	@echo ... cameras/SceneCamera.s
+	@echo ... core/Material.obj
+	@echo ... core/Material.i
+	@echo ... core/Material.s
 	@echo ... core/Shader.obj
 	@echo ... core/Shader.i
 	@echo ... core/Shader.s

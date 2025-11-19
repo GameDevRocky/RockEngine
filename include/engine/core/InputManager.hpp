@@ -9,6 +9,7 @@ public:
     }
 
     void Init() override;
+    void PostInit() override {};
     void Update() override;
     void Shutdown() override;
 

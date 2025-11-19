@@ -9,9 +9,10 @@
 void Engine::Init() {
     RegisterComponentTypes();
     InputManager::Get().Init();
-    SceneManager::Get().Init();
     TimeManager::Get().Init(); 
+    SceneManager::Get().Init();
 }
+
 
 void Engine::Run() {
     int count = 0;
@@ -19,6 +20,7 @@ void Engine::Run() {
     SceneManager::Get().Update();
     TimeManager::Get().Update();
     RenderManager::Get().Update();
+    
 
 }
 

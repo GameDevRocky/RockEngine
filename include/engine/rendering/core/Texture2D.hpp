@@ -1,24 +1,51 @@
 #pragma once
 #include <string>
 #include <glad/glad.h>
+#include "engine/serialization/Serializable.hpp"
+#include <yaml-cpp/yaml.h>
 
-class Texture2D {
+
+enum class TextureFilter {
+    Nearest,
+    Linear
+};
+
+enum class TextureWrap {
+    Repeat,
+    Clamp
+};
+
+class Texture2D : public Serializable{
 public:
     Texture2D() = default;
-    Texture2D(const std::string& path, bool flip = true);
 
     ~Texture2D();
 
     void Bind(unsigned int slot = 0) const;
     void Unbind() const;
+    void Init(){};
+    void ApplySettings() const;
+    YAML::Node Serialize() override { return YAML::Node(); }
 
-    int GetWidth() const { return m_Width; }
-    int GetHeight() const { return m_Height; }
-    GLuint GetID() const { return m_ID; }
+    void Deserialize(const YAML::Node& node) override;
+    void PostDeserialize() override;
+    std::string GetTypeName() {return "Texture2D";};
+    std::string GetName() {return name;};
+
+    int GetWidth() const { return width; }
+    int GetHeight() const { return height; }
+
+    std::string GetPath() const {return path;}
+
+    GLuint GetTextureID() const { return texture_id; }
 
 private:
-    GLuint m_ID = 0;
-    int m_Width = 0;
-    int m_Height = 0;
-    int m_Channels = 0;
+    GLuint texture_id = 0;
+    int width = 0;
+    int height = 0;
+    int channels = 0;
+    std::string path;
+    std::string name;
+    TextureFilter filter = TextureFilter::Linear;
+    TextureWrap wrap = TextureWrap::Clamp;
 };

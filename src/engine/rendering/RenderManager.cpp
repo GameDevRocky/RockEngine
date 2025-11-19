@@ -1,6 +1,7 @@
 
 #include "engine/rendering/RenderManager.hpp"
 #include "engine/rendering/passes/GridPass.hpp"
+#include "engine/rendering/passes/ScenePass.hpp"
 #include "engine/rendering/passes/ClearPass.hpp"
 #include "engine/core/SceneManager.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
@@ -13,12 +14,13 @@ void RenderManager::Init(){
         std::cerr << "Failed to initialize GLAD" << std::endl;
     }
     glEnable(GL_DEPTH_TEST);
+    Console::Comment("RenderManager Initialized");
+    SharedResources::Get().Init();
     
     
     editor_pipeline = new RenderPipeline();
     game_pipeline = new RenderPipeline();
     
-    SharedResources::Get().Init();
     SceneCamera::Get().Init();
 
     SetUpEditorPipeline();
@@ -27,10 +29,10 @@ void RenderManager::Init(){
 
 void RenderManager::SetUpEditorPipeline(){
     auto clear_pass = new ClearPass();
-    auto grid_pass = new GridPass();
+    auto scene_pass = new ScenePass();
 
     editor_pipeline->AddPass(clear_pass);
-    editor_pipeline->AddPass(grid_pass);
+    editor_pipeline->AddPass(scene_pass);
 
     editor_pipeline->Init();
 }
@@ -41,6 +43,7 @@ void RenderManager::SetUpGamePipeline(){
 
 void RenderManager::Update(){
     SceneCamera::Get().Update();
+    const auto& shader = SharedResources::Get().GetShaderByName("grid");
    
 }
 

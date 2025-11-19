@@ -78,6 +78,7 @@
         "codecvt": "cpp",
         "qtimer": "cpp",
         "qvboxlayout": "cpp",
-        "qpainter": "cpp"
+        "qpainter": "cpp",
+        "qopenglshaderprogram": "cpp"
     }
 }

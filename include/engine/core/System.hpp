@@ -6,6 +6,7 @@ public:
     virtual ~System() = default;
 
     virtual void Init() {}
+    virtual void PostInit(){}
     virtual void Update() {}
     virtual void Shutdown() {}
 

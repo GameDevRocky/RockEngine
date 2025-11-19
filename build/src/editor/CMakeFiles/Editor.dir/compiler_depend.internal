@@ -73,6 +73,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/6.10.0/mingw_64/include/QtCore/QElapsedTimer
  C:/Qt/6.10.0/mingw_64/include/QtCore/QList
  C:/Qt/6.10.0/mingw_64/include/QtCore/QObject
+ C:/Qt/6.10.0/mingw_64/include/QtCore/QPoint
  C:/Qt/6.10.0/mingw_64/include/QtCore/QProcess
  C:/Qt/6.10.0/mingw_64/include/QtCore/QRect
  C:/Qt/6.10.0/mingw_64/include/QtCore/QSize
@@ -225,6 +226,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/6.10.0/mingw_64/include/QtGui/QResizeEvent
  C:/Qt/6.10.0/mingw_64/include/QtGui/QSurfaceFormat
  C:/Qt/6.10.0/mingw_64/include/QtGui/QTransform
+ C:/Qt/6.10.0/mingw_64/include/QtGui/QWheelEvent
  C:/Qt/6.10.0/mingw_64/include/QtGui/qaction.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qbitmap.h
  C:/Qt/6.10.0/mingw_64/include/QtGui/qbrush.h
@@ -444,6 +446,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cassert
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cctype
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cerrno
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/cfloat
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/charconv
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/chrono
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/climits
@@ -543,6 +546,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/os_defines.h
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32/bits/time_members.h
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/emmintrin.h
+ C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/float.h
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/limits.h
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/mm_malloc.h
  C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/mmintrin.h
@@ -570,6 +574,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/crtdefs.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/ctype.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/errno.h
+ C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/float.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/limits.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/locale.h
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/malloc.h
@@ -602,6 +607,70 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Qt/Tools/mingw1310_64/x86_64-w64-mingw32/include/wctype.h
  C:/Users/rockl/Coding Projects/RockEngine/external/glad/include/KHR/khrplatform.h
  C:/Users/rockl/Coding Projects/RockEngine/external/glad/include/glad/glad.h
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_vectorize.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/compute_vector_decl.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/setup.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x2.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec2.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec3.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec4.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_int_sized.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/scalar_uint_sized.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_bool4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_double4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_float4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int2_sized.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int3_sized.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_int4_sized.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint2_sized.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint3_sized.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/vector_uint4_sized.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_fixes.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/func_integer.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/func_packing.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/func_trigonometric.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/qualifier.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/setup.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_half.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_half.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/fwd.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/glm.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/integer.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat2x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/packing.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/trigonometric.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/vec2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/vec3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/vec4.hpp
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/binary.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/dll.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/emitter.h
@@ -635,6 +704,7 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/traits.h
  C:/Users/rockl/Coding Projects/RockEngine/external/yaml/include/yaml-cpp/yaml.h
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/Engine.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/GameObject.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/InputManager.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/Observable.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/Scene.hpp
@@ -643,11 +713,85 @@ src/editor/CMakeFiles/Editor.dir/Editor.cpp.obj
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/core/TimeManager.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/debug/Console.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/debug/Message.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Registry.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/serialization/Serializable.hpp
  C:/Users/rockl/Coding Projects/RockEngine/include/engine/utils/EngineUtils.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/console-gui/ConsoleGui.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/console-gui/MessageGui.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/utils/EditorUtils.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/common.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/_fixes.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/compute_common.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/compute_vector_relational.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/func_common.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/func_exponential.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/func_geometric.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/func_matrix.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/func_vector_relational.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/setup.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x3.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat2x4.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x2.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x3.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat3x4.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x2.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x3.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_mat4x4.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec1.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/detail/type_vec1.inl
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/exponential.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double2x4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double3x4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_double4x4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float2x4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float3x4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x2_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x3_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/ext/matrix_float4x4_precision.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/geometric.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat2x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat2x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat3x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat3x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat3x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat4x2.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat4x3.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/mat4x4.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/matrix.hpp
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/simd/platform.h
+ C:/Users/rockl/Coding Projects/RockEngine/external/glm/glm/vector_relational.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/Editor.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/mainwindow-gui/MainWindowGui.hpp
  C:/Users/rockl/Coding Projects/RockEngine/src/editor/sceneview-gui/SceneViewGui.hpp

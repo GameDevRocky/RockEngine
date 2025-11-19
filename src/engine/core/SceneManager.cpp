@@ -1,12 +1,13 @@
 #include "engine/core/SceneManager.hpp"
 #include <iostream>
 #include "engine/serialization/Registry.hpp"
-#define SAMPLE_SCENE_PATH "domain/scenes/SampleScene.yaml"
 
+#define SAMPLE_SCENE_PATH "domain/scenes/SampleScene.yaml"
 
 void SceneManager::Init(){
     Scene *scene = new Scene();
     YAML::Node root = YAML::LoadFile(SAMPLE_SCENE_PATH);
+    scene->Init();
     scene->Deserialize(root);
     AddScene(scene);
 }
@@ -18,6 +19,7 @@ void SceneManager::AddScene(Scene* scene) {
 
 void SceneManager::RemoveScene(Scene* scene) {
     scenes.erase(std::remove(scenes.begin(), scenes.end(), scene), scenes.end());
+    Notify();
 }
 
 const std::vector<Scene*>& SceneManager::GetScenes() const {

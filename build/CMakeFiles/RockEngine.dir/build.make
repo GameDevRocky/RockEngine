@@ -129,7 +129,6 @@ RockEngine.exe: src/engine/components/libComponents.a
 RockEngine.exe: src/engine/core/libCore.a
 RockEngine.exe: src/engine/debug/libDebug.a
 RockEngine.exe: src/engine/serialization/libSerialization.a
-RockEngine.exe: src/engine/utils/libEngineUtils.a
 RockEngine.exe: external/box2d/src/libbox2dd.a
 RockEngine.exe: src/editor/mainwindow-gui/libMainWindowGui.a
 RockEngine.exe: src/editor/console-gui/libConsoleGui.a
@@ -138,6 +137,7 @@ RockEngine.exe: src/editor/hierarchy-gui/libHierarchyGui.a
 RockEngine.exe: src/editor/gameview-gui/libGameViewGui.a
 RockEngine.exe: src/editor/sceneview-gui/libSceneViewGui.a
 RockEngine.exe: src/engine/rendering/libRendering.a
+RockEngine.exe: src/engine/utils/libEngineUtils.a
 RockEngine.exe: external/glm/glm/libglm.a
 RockEngine.exe: external/yaml/libyaml-cppd.a
 RockEngine.exe: external/libglad.a

@@ -32,6 +32,7 @@
 		"C:/Users/rockl/Coding Projects/RockEngine/external/stb",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/glm",
 		"C:/Users/rockl/Coding Projects/RockEngine/external/glad/include",
+		"C:/Users/rockl/Coding Projects/RockEngine/external",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/x86_64-w64-mingw32",
 		"C:/Qt/Tools/mingw1310_64/lib/gcc/x86_64-w64-mingw32/13.1.0/include/c++/backward",
@@ -94,6 +95,11 @@
 		],
 		[
 			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/cameras/SceneCamera.cpp",
+			"MU",
+			null
+		],
+		[
+			"C:/Users/rockl/Coding Projects/RockEngine/src/engine/rendering/core/Material.cpp",
 			"MU",
 			null
 		],
