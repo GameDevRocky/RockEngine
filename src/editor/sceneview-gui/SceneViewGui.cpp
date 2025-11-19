@@ -150,7 +150,10 @@ void SceneViewGui::wheelEvent(QWheelEvent* event)
 
 void SceneViewGui::mousePressEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::MiddleButton)
+    bool ctrlLeftPan = (event->button() == Qt::LeftButton &&
+                        (event->modifiers() & Qt::ControlModifier));
+
+    if (event->button() == Qt::MiddleButton || ctrlLeftPan)
     {
         isPanning = true;
         lastMousePos = event->pos();
@@ -158,18 +161,27 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
     }
 }
 
+
 void SceneViewGui::mouseReleaseEvent(QMouseEvent* event)
 {
-    if (event->button() == Qt::MiddleButton)
+    bool ctrlLeftPan = (event->button() == Qt::LeftButton &&
+                        (event->modifiers() & Qt::ControlModifier));
+
+    if (event->button() == Qt::MiddleButton || ctrlLeftPan)
     {
         isPanning = false;
         setCursor(Qt::ArrowCursor);
     }
 }
 
+
 void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
 {
-    if (!isPanning) {
+    bool ctrlHeld = (e->modifiers() & Qt::ControlModifier);
+    bool leftDragPan = (e->buttons() & Qt::LeftButton) && ctrlHeld;
+    bool midDragPan  = (e->buttons() & Qt::MiddleButton);
+
+    if (!leftDragPan && !midDragPan) {
         lastMousePos = e->pos();
         return;
     }
@@ -209,9 +221,8 @@ glm::vec2 SceneViewGui::ScreenToWorld(const QPoint& p)
     int w = width() * devicePixelRatioF();
     int h = height() * devicePixelRatioF();
 
-    // Convert to NDC (-1 to 1)
     float ndcX = (px / w) * 2.0f - 1.0f;
-    float ndcY = 1.0f - (py / h) * 2.0f;  // flip Y (Qt: top-left origin)
+    float ndcY = 1.0f - (py / h) * 2.0f; 
 
     glm::vec4 clip(ndcX, ndcY, 0.0f, 1.0f);
 
