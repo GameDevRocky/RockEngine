@@ -11,8 +11,8 @@ FileExplorerGui::FileExplorerGui(QWidget *parent)
     model = new QFileSystemModel(this);
     model->setRootPath(""); // will be set later
     model->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-
-
+    
+    
     tree = new QTreeView(this);
     tree->setModel(model);
     tree->setHeaderHidden(true);
@@ -21,7 +21,9 @@ FileExplorerGui::FileExplorerGui(QWidget *parent)
     tree->setColumnHidden(1, true);  
     tree->setColumnHidden(2, true);  
     tree->setColumnHidden(3, true);
-
+    
+    tree->viewport()->setAutoFillBackground(true);
+    tree->viewport()->setPalette(this->palette());
     layout->addWidget(tree);
 
     // When user selects a file/folder

@@ -2,25 +2,34 @@
 
 in vec2 WorldPos;
 out vec4 FragColor;
-
-uniform float time;
-
 // Grid settings
-const float cellSize = 1.0;
-const float lineWidth = 0.05;  // in world units
-const vec3 lineColor = vec3(0.15);
+const float minorCell = 1.0;
+const float majorCell = 4.0;
+const float lineWidth = 0.025;      // minor line width
+const float majorLineWidth = 0.05;  // major line width
+const vec3 minorColor = vec3(0.15);
+const vec3 majorColor = vec3(0.25);
 const vec3 bgColor = vec3(0.05);
 
 void main()
 {
-    // Compute distance to nearest grid line
-    float distX = abs(mod(WorldPos.x, cellSize));
-    float distY = abs(mod(WorldPos.y, cellSize));
-    float dist = min(distX, distY);
+    // Distance to nearest minor line
+    float distX = abs(mod(WorldPos.x, minorCell));
+    float distY = abs(mod(WorldPos.y, minorCell));
+    float minorDist = min(distX, distY);
 
-    // Smooth line blending
-    float alpha = 1.0 - smoothstep(0.0, lineWidth, dist);
+    // Distance to nearest major line
+    float majorDistX = abs(mod(WorldPos.x, majorCell));
+    float majorDistY = abs(mod(WorldPos.y, majorCell));
+    float majorDist = min(majorDistX, majorDistY);
 
-    vec3 color = mix(bgColor, lineColor, alpha);
+    // Compute alpha for blending lines
+    float minorAlpha = 1.0 - smoothstep(0.0, lineWidth, minorDist);
+    float majorAlpha = 1.0 - smoothstep(0.0, majorLineWidth, majorDist);
+
+    // Combine colors giving priority to major lines
+    vec3 color = mix(minorColor, majorColor, majorAlpha);
+    color = mix(bgColor, color, max(minorAlpha, majorAlpha));
+
     FragColor = vec4(color, 1.0);
 }

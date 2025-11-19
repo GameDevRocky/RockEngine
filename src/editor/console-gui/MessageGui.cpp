@@ -1,170 +1,174 @@
 #include "MessageGui.hpp"
 #include "ConsoleGui.hpp"
 #include <QFrame>
-#include <QSpacerItem>
 #include "editor/utils/EditorUtils.hpp"
 
+// Dark Theme Colors
+static constexpr const char* FONT_FAMILY = "Consolas";
+static constexpr int FONT_SIZE = 13;
 
-constexpr const char* COMMENT_STYLESHEET = R"(
-QWidget {
-    background-color: #252525;
-    color: #EEEEEE;
-    border-radius: 6px;
-}
-QWidget#body{
-    border: 1px solid #555;
-}
-QLabel {
-    font-family: Consolas;
-    font-size: 13px;
-}
-QLabel#file_name {
-    font-weight: 600;
-}
-QLabel#countLabel {
-    color: #76B47A;
-    font-weight: bold;
-}
-)";
+static QColor BG_DARK(25, 25, 25);
+static QColor FG_TEXT(230, 230, 230);
 
-constexpr const char* WARNING_STYLESHEET = R"(
-QWidget {
-    background-color: #252525;
-    color: #FFF3C1;
-    border-radius: 6px;
-}
-QWidget#body{
-    border: 1px solid #FFA500;
-}
-QLabel {
-    font-family: Consolas;
-    font-size: 13px;
-}
-QLabel#countLabel {
-    color: #FFC400;
-    font-weight: bold;
-}
-    
-)";
+static QColor BORDER_COMMENT(90, 90, 90);
+static QColor BORDER_WARNING(255, 150, 50);
+static QColor BORDER_ALERT(255, 80, 80);
 
-constexpr const char* ALERT_STYLESHEET = R"(
-QWidget {
-    background-color: #252525;
-    color: #F5C6CB;
-    border-radius: 6px;
+//
+// Apply style ONLY to the outermost widget
+//
+static void ApplyOuterBorder(QWidget* target, const std::string& type)
+{
+    QColor border;
+
+    if (type == "warning") border = BORDER_WARNING;
+    else if (type == "alert") border = BORDER_ALERT;
+    else border = BORDER_COMMENT;  // default/comment
+
+    QString style = QString(R"(
+        QWidget#MessageRoot {
+            background-color: %1;
+            border-radius: 6px;
+            border: 1px solid %2;
+        }
+    )")
+    .arg(BG_DARK.name())
+    .arg(border.name());
+
+    target->setStyleSheet(style);
 }
-QWidget#body{
-    border: 1px solid #FF5555;
+
+//
+// Apply clean inner stylesheet (no border, transparent children)
+//
+static void ApplyInnerStyle(QWidget* target)
+{
+    QString style = QString(R"(
+        QWidget {
+            background-color: transparent;
+            color: %1;
+            border: none;
+        }
+        QLabel {
+            font-family: %2;
+            font-size: %3px;
+            background-color: transparent;
+            border: none;
+        }
+    )")
+    .arg(FG_TEXT.name())
+    .arg(FONT_FAMILY)
+    .arg(FONT_SIZE);
+
+    target->setStyleSheet(style);
 }
-QLabel {
-    font-family: Consolas;
-    font-size: 13px;
-}
-QLabel#countLabel {
-    color: #FF7A7A;
-    font-weight: bold;
-}
-)";
+
+
+// ======================================================================
+//  MessageGui Implementation
+// ======================================================================
 
 MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
-    : QWidget(parent), msg(msg), c_parent(parent) {
+    : QWidget(parent), msg(msg), c_parent(parent)
+{
+    setObjectName("MessageRoot");   // Important: ONLY the outer widget gets the border
 
     if (msg)
         msg->Subscribe([this]() { Update(); });
 
+    // Widgets
     file_path = new EditorUtils::ClickableLabel(this);
-    count = new QLabel(this);
-    text = new QLabel(this);
-    type = new QLabel(this);
+    count     = new QLabel(this);
+    text      = new QLabel(this);
+    type      = new QLabel(this);
 
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    setMinimumHeight(0);
-    setMaximumHeight(QWIDGETSIZE_MAX);
-
+    // Word wrap and interaction
     text->setWordWrap(true);
     text->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    text->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-    file_path->setWordWrap(false);
-    file_path->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    file_path->setTextFormat(Qt::RichText);
 
     type->setAlignment(Qt::AlignCenter);
-    type->setStyleSheet("font-weight: bold; text-transform: uppercase;");
+    type->setMinimumWidth(65);
+    type->setStyleSheet("font-weight: bold;");
+
     count->setAlignment(Qt::AlignRight);
 
+    // Outer layout
     auto* main_layout = new QVBoxLayout(this);
-    main_layout->setContentsMargins(10,10,10,10);
-    main_layout->setSpacing(0);
+    main_layout->setContentsMargins(12, 10, 12, 10);
+    main_layout->setSpacing(6);
 
+    // Header row
     auto* header_layout = new QHBoxLayout();
     header_layout->setSpacing(8);
     header_layout->setContentsMargins(0,0,0,0);
+
     header_layout->addWidget(type);
     header_layout->addWidget(file_path, 1);
     header_layout->addWidget(count);
 
+    // Divider
     auto* divider = new QFrame(this);
     divider->setFrameShape(QFrame::HLine);
-    divider->setFrameShadow(QFrame::Sunken);
-    divider->setStyleSheet("color: rgba(90,90,90,0.5);");
+    divider->setStyleSheet("color: #444;");
 
+    // Add items
     main_layout->addLayout(header_layout);
     main_layout->addWidget(divider);
     main_layout->addWidget(text);
 
-    setLayout(main_layout);
+    //
+    // Apply styles
+    //
+    ApplyOuterBorder(this, msg->type);      // ONLY OUTER BORDER
+    ApplyInnerStyle(this->findChild<QWidget*>()); // All children borderless
 
-    if (msg) {
-        std::string t = msg->type;
-        if (t == "comment") setStyleSheet(COMMENT_STYLESHEET);
-        else if (t == "warning") setStyleSheet(WARNING_STYLESHEET);
-        else if (t == "alert") setStyleSheet(ALERT_STYLESHEET);
-        else setStyleSheet(COMMENT_STYLESHEET);
-    }
-
-    setObjectName("body");
     Update();
 
+    // Set path
     std::string projectRoot = "C:/Users/rockl/Coding Projects/RockEngine";
     fullPath = projectRoot + msg->file_name;
     file_path->setFilePath(QString::fromStdString(fullPath));
 
-    connect(file_path, &EditorUtils::ClickableLabel::clicked, [this](){
+    connect(file_path, &EditorUtils::ClickableLabel::clicked, [this]() {
         EditorUtils::OpenInVSCode(file_path->getFilePath().toStdString());
     });
-
-    file_path->setText(QString::fromStdString(msg->file_name));
-
-
 }
 
 
-void MessageGui::Update() {
+// ======================================================================
+// Update
+// ======================================================================
+
+void MessageGui::Update()
+{
     if (!msg)
         return;
 
-    if (msg->isDestroyed) {
-        if (!c_parent) {
-            Console::Comment("No Parent Found");
-            return;
-        }
+    // Handle deletion
+    if (msg->isDestroyed)
+    {
+        if (!c_parent) return;
 
-        for (auto it = c_parent->message_widgets.begin(); it != c_parent->message_widgets.end(); ++it) {
+        for (auto it = c_parent->message_widgets.begin(); it != c_parent->message_widgets.end(); ++it)
+        {
             if (it->second == this) {
                 c_parent->message_widgets.erase(it);
                 break;
             }
         }
+
         deleteLater();
         return;
     }
 
+    // Update contents
     file_path->setText(QString::fromStdString(msg->file_name));
-
     count->setText(QString::number(msg->count));
     text->setText(QString::fromStdString(msg->text));
-    type->setText(  QString::fromStdString( "[" + msg->type + "]").toUpper());
+    type->setText("[" + QString::fromStdString(msg->type).toUpper() + "]");
 
-    adjustSize(); // makes sure height adapts perfectly to content
+    // Re-apply outer border only if type changed
+    ApplyOuterBorder(this, msg->type);
+
+    adjustSize();
 }

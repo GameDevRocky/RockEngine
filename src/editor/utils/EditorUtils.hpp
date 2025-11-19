@@ -3,7 +3,10 @@
 #include <QLabel>
 #include <QMouseEvent>
 #include <QCursor>
-
+#include <Qt>
+#include <QEvent>
+#include <QEnterEvent>
+#include <QFont>
 namespace EditorUtils {
 
 // Open a file in VSCode
@@ -22,12 +25,21 @@ public:
 
         // Enable mouse tracking so hover events work
         setMouseTracking(true);
-
-        // Default style
-        normalStyle = "color: #EEEEEE; text-decoration: none;";
-        hoverStyle  = "color: #EEEEEE; text-decoration: underline;";
-        setStyleSheet(normalStyle);
     }
+    void enterEvent(QEnterEvent* event) override {
+        QFont f = font();
+        f.setUnderline(true);
+        setFont(f);
+        QLabel::enterEvent(event);
+    }
+
+    void leaveEvent(QEvent* event) override {
+        QFont f = font();
+        f.setUnderline(false);
+        setFont(f);
+        QLabel::leaveEvent(event);
+    }
+
 
     void setFilePath(const QString& path) { filePath = path; }
     QString getFilePath() const { return filePath; }
@@ -37,15 +49,7 @@ signals:
     void doubleClicked();
 
 protected:
-    void enterEvent(QEnterEvent* event) override {
-        setStyleSheet(hoverStyle);
-        QLabel::enterEvent(event);
-    }
-
-    void leaveEvent(QEvent* event) override {
-        setStyleSheet(normalStyle);
-        QLabel::leaveEvent(event);
-    }
+    
 
     void mousePressEvent(QMouseEvent* event) override {
         if (event->button() == Qt::LeftButton)

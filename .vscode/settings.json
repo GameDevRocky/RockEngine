@@ -79,6 +79,8 @@
         "qtimer": "cpp",
         "qvboxlayout": "cpp",
         "qpainter": "cpp",
-        "qopenglshaderprogram": "cpp"
+        "qopenglshaderprogram": "cpp",
+        "qspaceritem": "cpp",
+        "qevent": "cpp"
     }
 }
