@@ -11,14 +11,14 @@ public:
         return instance;
     }
     void Init() override;
-    void AddScene(Scene* scene);
-    void RemoveScene(Scene* scene);
-    const std::vector<Scene*>& GetScenes() const;
+    Scene* LoadScene(const std::string& file_path);
+    void RemoveScene(const std::string& scene_id);
+    std::vector<Scene*> GetScenes() const;
 
 
     SceneManager() = default;
     ~SceneManager() = default;
 
 private:
-    std::vector<Scene*> scenes;
+    std::vector<std::string> scene_ids;
 };

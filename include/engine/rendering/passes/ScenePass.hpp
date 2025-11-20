@@ -67,9 +67,6 @@ public:
                 Console::Alert("Not Loading Transform or Sprite");
                 continue;
             }
-
-            
-            if (!transform->GetParent()) transform->Rotate(1.0f);;
             
             Material* mat = sprite->GetMaterial();
             if (!mat) mat = SharedResources::Get().GetMaterialByName("default");

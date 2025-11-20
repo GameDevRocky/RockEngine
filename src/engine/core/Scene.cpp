@@ -38,7 +38,6 @@ void Scene::Deserialize(const YAML::Node& data) {
         GameObject* obj = new GameObject();
         obj->Deserialize(goNode);
         AddGameObject(obj);
-        gameobject_ids.push_back(obj->GetID());
     }
 
     for (const auto& compNode : data["components"]) {
@@ -54,31 +53,19 @@ void Scene::Deserialize(const YAML::Node& data) {
     }
 }
 
-//
-// Scene membership ------------------------------------------------------
-//
 void Scene::AddGameObject(GameObject* obj) {
     if (!obj)
         return;
 
     std::string id = obj->GetID();
-
-    // Register in the global object registry
     Registry::Get().Register(obj);
-
-    // Add to scene membership list
     if (std::find(gameobject_ids.begin(), gameobject_ids.end(), id) == gameobject_ids.end())
         gameobject_ids.push_back(id);
-
-    // Mark the object as belonging to this scene
     obj->SetScene(GetID());
 }
 
-//
-// Root management --------------------------------------------------------
-//
+
 void Scene::AddRootObject(const std::string& obj_id) {
-    // Prevent duplicates
     if (std::find(root_object_ids.begin(), root_object_ids.end(), obj_id) != root_object_ids.end())
         return;
 
@@ -91,9 +78,6 @@ void Scene::RemoveRootObject(const std::string& obj_id) {
         root_object_ids.erase(it);
 }
 
-//
-// Query ------------------------------------------------------------------
-//
 std::vector<GameObject*> Scene::GetRootObjects() {
     std::vector<GameObject*> result;
 

@@ -27,19 +27,14 @@ public:
 
     std::vector<LinkRequest> deferredLinks;
 
-    // ✅ Register an object
     void Register(Serializable* obj);
 
-    // ✅ Unregister (optional for scene unloading)
     void Unregister(Serializable* obj);
 
-    // ✅ Retrieve object by UUID
     Serializable* Find(const std::string& id);
 
-    // ✅ Add a deferred link operation
     void DeferLink(const std::string& targetUUID, std::function<void(Serializable*)> setter);
 
-    // ✅ Resolve all deferred links once all objects are created
     void ResolveLinks();
 
     // Optional helper

@@ -67,7 +67,6 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
             vec.erase(std::remove(vec.begin(), vec.end(), GetID()), vec.end());
         }
 
-        // If we previously had a parent, we must NOT be a root
         if (scene)
             scene->RemoveRootObject(GetGameObject()->GetID());
     }
