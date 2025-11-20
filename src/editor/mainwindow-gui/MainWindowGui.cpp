@@ -72,6 +72,11 @@ void MainWindow::Init()
     showMaximized();
 }
 
+void MainWindow::Start(){
+    HierarchyGui::Get()->Start();
+
+}
+
 void MainWindow::SaveLayout()
 {
     QSettings settings("Rocklyn", "RockEngineEditor");

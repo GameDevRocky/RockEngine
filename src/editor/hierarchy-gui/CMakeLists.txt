@@ -19,7 +19,7 @@ target_include_directories(HierarchyGui
 target_link_libraries(HierarchyGui
     PUBLIC
         EditorUtils
-        
+        Engine
     PRIVATE
         Qt6::Core
         Qt6::Gui

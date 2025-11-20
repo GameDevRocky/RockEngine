@@ -8,6 +8,10 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QPixmap>
+#include <QTreeView>
+
+class HierarchyTreeModel;
+class Scene;
 
 class HierarchyGui : public QWidget {
     Q_OBJECT
@@ -18,7 +22,9 @@ public:
         return instance;
     }
     void Init();
+    void Start();
     explicit HierarchyGui(QWidget* parent = nullptr);
+    void SetScene(Scene* scene);
 
 
 private:
@@ -27,8 +33,9 @@ private:
 
     QTextEdit* filter = nullptr;
     QVBoxLayout* layout = nullptr;
-
-
+    QTreeView* treeView = nullptr;
+    HierarchyTreeModel* treeModel = nullptr;
+    Scene* currentScene = nullptr;
 
     QWidget* header = nullptr;
 

@@ -28,6 +28,7 @@ void GameObject::AddComponent(const std::string& comp_id) {
 
 void GameObject::Deserialize(const YAML::Node& node) {
     Serializable::Deserialize(node);
+    name = node["name"].as<std::string>();
     for (auto& id_node : node["component_ids"]) {
         std::string comp_id = id_node.as<std::string>();
         temp_ids.push_back(comp_id);
@@ -40,7 +41,7 @@ void GameObject::SetScene(const std::string& id){
     if (scene){
         scene_id = id;
     }
-    Notify();
+    Notify(); 
 }
 Scene* GameObject::GetScene(){
     Serializable* s = Registry::Get().Find(scene_id);

@@ -5,18 +5,18 @@ components:
   - id: "t1"
     type: "Transform"
     gameobject: "o1"
-    localPosition: [1, 0]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: "t2"
-
-  - id: "t2"
-    type: "Transform"
-    gameobject: "o2"
     localPosition: [0, 0]
     localRotation: 0
     localScale: [1, 1]
     parent_id: null
+
+  - id: "t2"
+    type: "Transform"
+    gameobject: "o2"
+    localPosition: [1, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: "t1"
 
   - id: "s1"
     type: "SpriteRenderer"

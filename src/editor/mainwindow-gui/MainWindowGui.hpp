@@ -11,6 +11,7 @@ public:
         return instance;
     }
     void Init();
+    void Start();
     void Shutdown();
     void ClearLayout();
 private:

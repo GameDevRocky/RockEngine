@@ -1,6 +1,9 @@
 #include "HierarchyGui.hpp"
+#include "HierarchyTreeModel.hpp"
 #include <QMenu>
 #include <QPoint>
+#include <QTreeView>
+#include "engine/core/SceneManager.hpp"
 
 
 HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
@@ -12,10 +15,12 @@ HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
     layout->setContentsMargins(0,0,0,0);
 
     CreateHeader();
-    
     layout->addWidget(header);
 
-    layout->addStretch();
+    // Create tree view
+    treeView = new QTreeView(this);
+    treeView->setHeaderHidden(true);
+    layout->addWidget(treeView);
 
 }
 
@@ -35,12 +40,11 @@ void HierarchyGui::CreateHeader(){
     
     QLabel* iconLabel = new QLabel(this);
     iconLabel->setPixmap(searchPix);
-    iconLabel->setFixedSize(20, 20); // keeps layout consistent
-    
+    iconLabel->setFixedSize(20, 20); 
     
     filter = new QTextEdit(this);
     filter->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    filter->setMaximumHeight(30); // small height like a search bar
+    filter->setMaximumHeight(30);
     filter->setPlaceholderText("Filter GameObjects...");
     
     QPushButton* menuButton = new QPushButton();
@@ -58,7 +62,6 @@ void HierarchyGui::CreateHeader(){
         menu->popup(pos);
     });
     
-
     header_layout->addWidget(iconLabel);
     header_layout->addWidget(filter);
     header_layout->addWidget(menuButton);
@@ -66,6 +69,32 @@ void HierarchyGui::CreateHeader(){
 }
 
 void HierarchyGui::Init(){ 
-   
     
+}
+
+void HierarchyGui::Start(){ 
+    std::vector<Scene*> scenes = SceneManager::Get().GetScenes();
+    if (!scenes.empty()) {
+        SetScene(scenes[0]);
+
+    }
+    else{
+        std::cout << "No Scenes" << std::endl;
+    }
+}
+
+void HierarchyGui::SetScene(Scene* scene) {
+    if (!scene || scene == currentScene)
+        return;
+
+    currentScene = scene;
+
+    
+    if (!treeModel) {
+        treeModel = new HierarchyTreeModel(scene, this);
+        treeView->setModel(treeModel);
+    } else {
+        // Update existing model with new scene
+        treeModel->SetScene(scene);
+    }
 }

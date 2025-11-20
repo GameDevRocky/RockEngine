@@ -22,7 +22,7 @@ void Registry::Register(Serializable* obj) {
     if (it != deferredLinks.end())
         deferredLinks.erase(it, deferredLinks.end());
 }
-
+ 
 void Registry::Unregister(Serializable* obj) {
     if (!obj) return;
     auto it = std::find_if(serializables.begin(), serializables.end(),

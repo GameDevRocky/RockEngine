@@ -5,7 +5,7 @@
 #define SAMPLE_SCENE_PATH "domain/scenes/SampleScene.yaml"
 
 void SceneManager::Init(){
-    LoadScene(SAMPLE_SCENE_PATH);
+    LoadScene(SAMPLE_SCENE_PATH); 
 }
 
 Scene* SceneManager::LoadScene(const std::string& file_path){

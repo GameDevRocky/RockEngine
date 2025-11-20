@@ -69,6 +69,7 @@ void Editor::Update(){
 void Editor::Start() {
 
     timer = new QTimer();
+    MainWindow::Get()->Start();
 
     QObject::connect(timer, &QTimer::timeout, [this]() {
         Engine::Get().Run();

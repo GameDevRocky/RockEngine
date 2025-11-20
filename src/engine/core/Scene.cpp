@@ -2,10 +2,11 @@
 #include <iostream>
 #include "engine/core/GameObject.hpp"
 #include "engine/components/Component.hpp"
+#include "engine/components/Transform.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/debug/Console.hpp"
-#include <algorithm>
+#include <algorithm> 
 
 void Scene::Init() {
     std::cout << "Initializing scene: " << name << std::endl;
@@ -50,6 +51,15 @@ void Scene::Deserialize(const YAML::Node& data) {
     
     for (auto& [id, obj] : Registry::Get().GetAll()){
         obj->PostDeserialize();
+    }
+
+    for (auto& obj : GetAllGameObjects()){    
+        Transform* transform = obj->GetComponent<Transform>();
+        
+        if (transform && !transform->GetParent()){
+            std::cout << obj->GetName() << " root " << std::endl;
+            AddRootObject(obj->GetID());
+        }
     }
 }
 
