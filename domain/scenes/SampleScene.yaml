@@ -1,16 +1,14 @@
-# Sample 2D Scene with only Transform Components
 name: "SampleScene"
 created_at: "2025-10-17T21:00:00Z"
 
-# List of all Transform components
 components:
   - id: "t1"
     type: "Transform"
     gameobject: "o1"
-    localPosition: [-1, 0]
+    localPosition: [1, 0]
     localRotation: 0
     localScale: [1, 1]
-    parent_id: null
+    parent_id: "t2"
 
   - id: "t2"
     type: "Transform"
@@ -18,14 +16,14 @@ components:
     localPosition: [0, 0]
     localRotation: 0
     localScale: [1, 1]
-    parent_id: "t1"
+    parent_id: null
 
   - id: "s1"
     type: "SpriteRenderer"
     gameobject: "o1"
     material_id: "m1"
     texture_id: "t2"
-    color: [1,0,0,1]
+    color: [1,1,1,1]
     flipX: false
     flipY: false
 
@@ -38,14 +36,15 @@ components:
     flipX: false
     flipY: false
 
-# List of all game objects, referencing only Transform components
 gameobjects:
   - id: "o1"
     type: "GameObject"
     name: "Parent"
-    components: ["t1", "s1"]
+    component_ids: ["t1", "s1"]
 
   - id: "o2"
     type: "GameObject"
     name: "Child"
-    components: ["t2", "s2"]
+    component_ids: ["t2", "s2"]
+
+  

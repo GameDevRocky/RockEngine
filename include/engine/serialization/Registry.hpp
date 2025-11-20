@@ -34,7 +34,7 @@ public:
     void Unregister(Serializable* obj);
 
     // ✅ Retrieve object by UUID
-    Serializable* Get(const std::string& id);
+    Serializable* Find(const std::string& id);
 
     // ✅ Add a deferred link operation
     void DeferLink(const std::string& targetUUID, std::function<void(Serializable*)> setter);

@@ -31,13 +31,13 @@ void Registry::Unregister(Serializable* obj) {
         serializables.erase(it);
 }
 
-Serializable* Registry::Get(const std::string& id) {
+Serializable* Registry::Find(const std::string& id) {
     auto it = serializables.find(id);
     return (it != serializables.end()) ? it->second : nullptr;
 }
 
 void Registry::DeferLink(const std::string& targetUUID, std::function<void(Serializable*)> setter) {
-    if (auto* obj = Get(targetUUID)) {
+    if (auto* obj = Find(targetUUID)) {
         setter(obj);
         return;
     }

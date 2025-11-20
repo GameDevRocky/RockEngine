@@ -13,6 +13,7 @@ void SceneManager::Init(){
 }
 
 void SceneManager::AddScene(Scene* scene) {
+    
     scenes.push_back(scene);
     Notify();
 }

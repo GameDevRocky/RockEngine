@@ -54,16 +54,22 @@ public:
 
     void Execute(RenderCamera& camera, Scene& scene) override
     {
-        const auto& objects = scene.GetGameObjects();
+        const auto& objects = scene.GetAllGameObjects();
         glBindVertexArray(vao);
 
         for (auto* obj : objects)
         {
             if (!obj) continue;
-            
             Transform* transform = obj->GetComponent<Transform>();
             SpriteRenderer* sprite = obj->GetComponent<SpriteRenderer>();
-            if (!transform || !sprite) continue;
+            
+            if (!transform || !sprite){
+                Console::Alert("Not Loading Transform or Sprite");
+                continue;
+            }
+
+            
+            if (!transform->GetParent()) transform->Rotate(1.0f);;
             
             Material* mat = sprite->GetMaterial();
             if (!mat) mat = SharedResources::Get().GetMaterialByName("default");
@@ -77,19 +83,13 @@ public:
             }
             shader->Bind();
             texture->Bind();
-
             mat->SetMat4("uView", camera.GetViewMatrix());
             mat->SetMat4("uProj", camera.GetProjectionMatrix());
-
             glm::mat4 model(1.0f);
             model = transform->GetWorldMatrix();
             mat->SetMat4("uModel", model);
-
             mat->SetVec4("uColor", sprite->GetColor());
-
             mat->ApplyUniforms();
-
-            // Draw quad
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
             shader->Unbind();

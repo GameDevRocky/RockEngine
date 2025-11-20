@@ -1,32 +1,36 @@
 #include "engine/components/Transform.hpp"
 #include <glm/gtc/matrix_inverse.hpp>
+#include "engine/serialization/Registry.hpp"
+#include "engine/debug/Console.hpp"
 
-// ============================================================================
-// MARK DIRTY — when any local value changes
-// ============================================================================
 void Transform::MarkDirty() {
     dirty = true;
 
-    for (Transform* c : children)
-        c->MarkDirty();
+    for (const std::string& id : children_ids) {
+        Serializable* s = Registry::Get().Find(id);
+        if (auto* c = dynamic_cast<Transform*>(s))
+            c->MarkDirty();
+    }
 }
 
-// ============================================================================
-// LOCAL MANIPULATION
-// ============================================================================
 void Transform::Translate(const glm::vec2& delta) {
     localPosition += delta;
     MarkDirty();
+    Notify();
 }
 
 void Transform::Rotate(float deltaDeg) {
     localRotation += deltaDeg;
     MarkDirty();
+    Notify();
 }
 
-// ============================================================================
-// MATRIX GENERATION
-// ============================================================================
+void Transform::Scale(const glm::vec2& delta) {
+    localScale += delta;
+    MarkDirty();
+    Notify();
+}
+
 glm::mat4 Transform::GetLocalMatrix() const {
     glm::mat4 m(1.0f);
     m = glm::translate(m, glm::vec3(localPosition, 0.0f));
@@ -39,8 +43,10 @@ glm::mat4 Transform::GetWorldMatrix() const {
     if (!dirty)
         return worldMatrix;
 
-    if (parent)
-        worldMatrix = parent->GetWorldMatrix() * GetLocalMatrix();
+    Transform* p = const_cast<Transform*>(this)->GetParent();
+
+    if (p)
+        worldMatrix = p->GetWorldMatrix() * GetLocalMatrix();
     else
         worldMatrix = GetLocalMatrix();
 
@@ -48,30 +54,41 @@ glm::mat4 Transform::GetWorldMatrix() const {
     return worldMatrix;
 }
 
-// ============================================================================
-// PARENTING
-// ============================================================================
+
 void Transform::SetParent(Transform* newParent, bool keepWorld) {
+    Scene* scene = GetGameObject()->GetScene();
+
     glm::mat4 oldWorld = GetWorldMatrix();
 
-    // Remove from old parent
-    if (parent) {
-        auto& siblings = parent->children;
-        siblings.erase(std::remove(siblings.begin(), siblings.end(), this), siblings.end());
+    if (!parent_id.empty()) {
+        Serializable* s = Registry::Get().Find(parent_id);
+        if (auto* oldParent = dynamic_cast<Transform*>(s)) {
+            auto& vec = oldParent->children_ids;
+            vec.erase(std::remove(vec.begin(), vec.end(), GetID()), vec.end());
+        }
+
+        // If we previously had a parent, we must NOT be a root
+        if (scene)
+            scene->RemoveRootObject(GetGameObject()->GetID());
+    }
+    if (newParent) {
+        parent_id = newParent->GetID();
+        newParent->children_ids.push_back(GetID());
+
+        if (scene)
+            scene->RemoveRootObject(GetGameObject()->GetID());
+    }
+    else {
+        parent_id.clear();
+
+        if (scene)
+            scene->AddRootObject(GetGameObject()->GetID());
     }
 
-    parent = newParent;
-    parent_id = newParent->GetID();
-
-    if (newParent)
-        newParent->children.push_back(this);
-
     if (keepWorld) {
-        // Convert world → local
-        glm::mat4 newParentWorld = (parent ? parent->GetWorldMatrix() : glm::mat4(1.0f));
-        glm::mat4 newLocal = glm::inverse(newParentWorld) * oldWorld;
+        glm::mat4 parentWorld = (newParent ? newParent->GetWorldMatrix() : glm::mat4(1.0f));
+        glm::mat4 newLocal = glm::inverse(parentWorld) * oldWorld;
 
-        // Extract values
         localPosition = glm::vec2(newLocal[3]);
         localRotation = glm::degrees(atan2(newLocal[1][0], newLocal[0][0]));
         localScale = glm::vec2(glm::length(glm::vec2(newLocal[0])),
@@ -79,11 +96,42 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
     }
 
     MarkDirty();
+    Notify();
 }
 
-// ============================================================================
-// SERIALIZATION
-// ============================================================================
+
+std::vector<Transform*> Transform::GetChildren() {
+    std::vector<Transform*> result;
+    result.reserve(children_ids.size());
+
+    for (const std::string& id : children_ids) {
+        Serializable* s = Registry::Get().Find(id);
+        if (auto* t = dynamic_cast<Transform*>(s))
+            result.push_back(t);
+    }
+
+    return result;
+}
+
+
+Transform* Transform::GetParent() {
+    if (parent_id.empty())
+        return nullptr;
+
+    Serializable* serializable = Registry::Get().Find(parent_id);
+    Transform* transform = dynamic_cast<Transform*>(serializable);
+
+    if (!transform) {
+        Console::Alert("Transform parent_id exists but is not a Transform");
+        return nullptr;
+    }
+
+    return transform;
+}
+
+
+
+
 YAML::Node Transform::Serialize() {
     YAML::Node node;
     node["type"] = GetTypeName();
@@ -110,7 +158,19 @@ void Transform::Deserialize(const YAML::Node& node) {
 }
 
 void Transform::PostDeserialize() {
+    if (parent_id.empty()) {
+        SetParent(nullptr);
+        return;
+    }
 
+    Serializable* serializable = Registry::Get().Find(parent_id);
+    Transform* transform = dynamic_cast<Transform*>(serializable);
 
+    if (!transform) {
+        Console::Warn("Unable to connect Transform parent");
+        return;
+    }
 
+    SetParent(transform);
+    Console::Comment("Transform parent connected");
 }

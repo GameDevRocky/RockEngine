@@ -3,15 +3,22 @@
 
 void Component::Deserialize(const YAML::Node& node){
     Serializable::Deserialize(node);
-    if (node["gameobject"]){
+    gameobject_id = node["gameobject"].as<std::string>();
 
-        std::string gameobject_id = node["gameobject"].as<std::string>();
-        Registry::Get().DeferLink(gameobject_id, [this](Serializable* obj) {
-            if (auto* g_obj = dynamic_cast<GameObject*>(obj)) {
-                this->gameobject = g_obj;
-            } else {
-                std::cerr << "[DeferLink] Invalid component type for ID.\n";
-            }
-        });
-    }
+}
+
+
+GameObject* Component::GetGameObject(){
+    if (gameobject_id.empty()) return nullptr;
+    Serializable* s = Registry::Get().Find(gameobject_id);
+    GameObject* gameobject = dynamic_cast<GameObject*>(s);
+    if (!gameobject) return nullptr;
+    return gameobject;
+}
+
+void Component::SetEnabled(bool e) {
+    if (e == enabled) return;
+    enabled = e;
+    if (enabled) OnEnabled();
+    else OnDisabled();
 }

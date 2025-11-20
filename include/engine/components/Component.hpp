@@ -4,9 +4,7 @@
 #include "engine/serialization/Serializable.hpp"
 
 class Component : public Serializable{
-public:
-    GameObject* gameobject = nullptr;
-    bool enabled = true;
+public: 
 
     virtual ~Component() = default;
     
@@ -15,10 +13,11 @@ public:
         return node;
     }
     virtual void Deserialize(const YAML::Node& node) override;
-    virtual void Link(){
-        
-    }
-
+    GameObject* GetGameObject();
+    virtual void OnEnabled(){}
+    virtual void OnDisabled(){}
+    void SetEnabled(bool e);
+    virtual void Link(){}
     virtual void Awake(){}
     virtual void Start() {}
     virtual void Update() {}
@@ -26,9 +25,13 @@ public:
     virtual void FixedUpdate(){}
     virtual void OnDestroy() {}
 
+
     virtual std::string GetTypeName() const = 0;
     
 private:
 std::string gameobject_id = "";
+bool enabled;
+
+
 
 };

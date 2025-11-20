@@ -50,10 +50,10 @@ void Editor::Init() {
 
     qApp->setPalette(darkPalette);
 
-    QFile file(":/styles/global.qss");  // put the file in your resources
-    if (file.open(QFile::ReadOnly | QFile::Text)) {
-        qApp->setStyleSheet(file.readAll());
-    }
+    // QFile file("domain/assets/styling/default.qss");  // put the file in your resources
+    // if (file.open(QFile::ReadOnly | QFile::Text)) {
+    //     qApp->setStyleSheet(file.readAll());
+    // }
 
 
 

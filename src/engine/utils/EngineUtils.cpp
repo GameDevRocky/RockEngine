@@ -2,9 +2,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <random>
 
-
-namespace EngineUtils{
+namespace EngineUtils {
 
     std::string GenerateUUID() {
         static std::random_device rd;
@@ -20,10 +20,9 @@ namespace EngineUtils{
         return ss.str();
     }
 
-    std::string ReadShader(const std::string& path){
+    std::string ReadShader(const std::string& path) {
         std::ifstream file(path);
-        if (!file.is_open())
-        {
+        if (!file.is_open()) {
             std::cerr << "Failed to open shader file: " << path << std::endl;
             return "";
         }
@@ -31,5 +30,4 @@ namespace EngineUtils{
         ss << file.rdbuf();
         return ss.str();
     }
-
-}
+} 

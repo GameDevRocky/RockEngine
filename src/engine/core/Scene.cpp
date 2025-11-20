@@ -5,10 +5,10 @@
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/debug/Console.hpp"
-#include <typeinfo>
+#include <algorithm>
 
 void Scene::Init() {
-    std::cout << "Initializing scene: " << std::endl;
+    std::cout << "Initializing scene: " << name << std::endl;
 }
 
 void Scene::Update() {
@@ -16,12 +16,14 @@ void Scene::Update() {
 }
 
 void Scene::Shutdown() {
-    std::cout << "Shutting down scene: " << std::endl;
+    std::cout << "Shutting down scene: " << name << std::endl;
 }
 
 YAML::Node Scene::Serialize() {
     YAML::Node node = Serializable::Serialize();
     node["name"] = name;
+    node["root_objects"] = root_object_ids;
+    node["objects"] = gameobject_ids;
     return node;
 }
 
@@ -32,40 +34,84 @@ void Scene::Deserialize(const YAML::Node& data) {
     else
         name = "Unnamed Scene";
 
-    if (data["gameobjects"]) {
-        for (const auto& goNode : data["gameobjects"]) {
-            GameObject* obj = new GameObject();
-            obj->Deserialize(goNode);
-            Registry::Get().Register(obj);
-            gameobjects.push_back(obj);
-            Console::Comment("Created and registered " + obj->GetName());
-        }
-    } 
-
-    if (data["components"]) {
-        for (const auto& compNode : data["components"]) {
-            std::string typeName = compNode["type"].as<std::string>();
-            Serializable* created = SerializableFactory::Create(typeName);
-            Console::Comment(typeName + " " + (created? "created" : "not created"));
-
-            if (!created) continue;
-
-            Component* comp = dynamic_cast<Component*>(created);
-            if (!comp) {
-                std::cerr << "Type " << typeName << " is not a Component!" << std::endl;
-                delete created;
-                continue;
-            }
-            comp->Deserialize(compNode);
-            Registry::Get().Register(comp);
-            Console::Comment("Created and registered " + comp->GetTypeName());
-
-        }
+    for (const auto& goNode : data["gameobjects"]) {
+        GameObject* obj = new GameObject();
+        obj->Deserialize(goNode);
+        AddGameObject(obj);
+        gameobject_ids.push_back(obj->GetID());
     }
-    Registry::Get().ResolveLinks();
 
+    for (const auto& compNode : data["components"]) {
+        std::string typeName = compNode["type"].as<std::string>();
+        Serializable* created = SerializableFactory::Create(typeName);
+        Component* comp = dynamic_cast<Component*>(created);
+        comp->Deserialize(compNode);
+        Registry::Get().Register(comp);
+    }
+    
     for (auto& [id, obj] : Registry::Get().GetAll()){
         obj->PostDeserialize();
-
     }
+}
+
+//
+// Scene membership ------------------------------------------------------
+//
+void Scene::AddGameObject(GameObject* obj) {
+    if (!obj)
+        return;
+
+    std::string id = obj->GetID();
+
+    // Register in the global object registry
+    Registry::Get().Register(obj);
+
+    // Add to scene membership list
+    if (std::find(gameobject_ids.begin(), gameobject_ids.end(), id) == gameobject_ids.end())
+        gameobject_ids.push_back(id);
+
+    // Mark the object as belonging to this scene
+    obj->SetScene(GetID());
+}
+
+//
+// Root management --------------------------------------------------------
+//
+void Scene::AddRootObject(const std::string& obj_id) {
+    // Prevent duplicates
+    if (std::find(root_object_ids.begin(), root_object_ids.end(), obj_id) != root_object_ids.end())
+        return;
+
+    root_object_ids.push_back(obj_id);
+}
+
+void Scene::RemoveRootObject(const std::string& obj_id) {
+    auto it = std::find(root_object_ids.begin(), root_object_ids.end(), obj_id);
+    if (it != root_object_ids.end())
+        root_object_ids.erase(it);
+}
+
+//
+// Query ------------------------------------------------------------------
+//
+std::vector<GameObject*> Scene::GetRootObjects() {
+    std::vector<GameObject*> result;
+
+    for (const std::string& id : root_object_ids) {
+        if (auto* obj = dynamic_cast<GameObject*>(Registry::Get().Find(id)))
+            result.push_back(obj);
+    }
+
+    return result;
+}
+
+std::vector<GameObject*> Scene::GetAllGameObjects() {
+    std::vector<GameObject*> result;
+
+    for (const std::string& id : gameobject_ids) {
+        if (auto* obj = dynamic_cast<GameObject*>(Registry::Get().Find(id)))
+            result.push_back(obj);
+    }
+
+    return result;
 }
