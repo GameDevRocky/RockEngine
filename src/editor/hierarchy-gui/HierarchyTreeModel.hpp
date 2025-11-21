@@ -8,7 +8,6 @@
 class Scene;
 class GameObject;
 
-// TreeItem represents a node in the hierarchy tree
 struct HierarchyTreeItem {
     explicit HierarchyTreeItem(const std::string& objId, HierarchyTreeItem* parent = nullptr);
     ~HierarchyTreeItem();
@@ -31,7 +30,6 @@ public:
     explicit HierarchyTreeModel(Scene* scene, QObject* parent = nullptr);
     ~HierarchyTreeModel() override = default;
 
-    // QAbstractItemModel interface
     QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex& index) const override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -39,18 +37,14 @@ public:
     QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
     Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-    // Scene management
     void SetScene(Scene* scene);
     Scene* GetScene() const { return scene; }
 
-    // Rebuild hierarchy
     void Rebuild();
 
 private:
     Scene* scene;
     std::unique_ptr<HierarchyTreeItem> rootItem;
-
-    // Helper to build tree from scene structure
     void BuildTreeFromScene();
     void AddGameObjectAndChildren(HierarchyTreeItem* parentItem, GameObject* gameObj);
 };
