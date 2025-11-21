@@ -15,16 +15,14 @@ public:
         instance->SetProjectDirectory("C:/Users/rockl/Coding Projects/RockEngine");
         return instance;
     }
-
     explicit FileExplorerGui(QWidget *parent = nullptr);
-
-    // lets you set the project folder externally
     void SetProjectDirectory(const QString& dir);
     void Init();
 
 signals:
     void FileSelected(const QString& path);
     void FileDoubleClicked(const QString& path);
+    void RaiseFolderView();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;

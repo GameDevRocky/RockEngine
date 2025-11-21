@@ -16,7 +16,7 @@ add_library(EditorUtils STATIC ${EDITOR_UTILS_SRC})
 
 target_include_directories(EditorUtils
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}         # src/editor
+        ${CMAKE_CURRENT_SOURCE_DIR}        
 )
 
 target_link_libraries(EditorUtils
@@ -26,16 +26,15 @@ target_link_libraries(EditorUtils
         Qt6::Widgets
 )
 
-# --- Add GUI Submodules ---
 add_subdirectory(console-gui)
 add_subdirectory(hierarchy-gui)
 add_subdirectory(inspector-gui)
 add_subdirectory(sceneview-gui)
 add_subdirectory(gameview-gui)
-add_subdirectory(mainwindow-gui)
 add_subdirectory(fileexplorer-gui)
+add_subdirectory(folderview-gui)
+add_subdirectory(mainwindow-gui)
 
-# --- Main Editor Library ---
 add_library(Editor STATIC
     Editor.cpp
     Editor.hpp
@@ -61,6 +60,7 @@ target_link_libraries(Editor
         GameViewGui
         SceneViewGui
         FileExplorerGui
+        FolderViewGui
         MainWindowGui
         EditorUtils
 

@@ -1,5 +1,9 @@
 #include "FileExplorerGui.hpp"
 #include <QVBoxLayout>
+#include "FolderViewGui.hpp"
+#include "engine/debug/Console.hpp"
+#include "EditorUtils.hpp"
+
 
 FileExplorerGui::FileExplorerGui(QWidget *parent)
     : QWidget(parent)
@@ -11,6 +15,7 @@ FileExplorerGui::FileExplorerGui(QWidget *parent)
     model = new QFileSystemModel(this);
     model->setRootPath(""); // will be set later
     model->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+    model->setIconProvider(new EditorUtils::CustomIconProvider());
     
     
     tree = new QTreeView(this);
@@ -28,12 +33,16 @@ FileExplorerGui::FileExplorerGui(QWidget *parent)
 
     // When user selects a file/folder
     connect(tree, &QTreeView::clicked, [this](const QModelIndex& index) {
-        emit FileSelected(model->filePath(index));
+        FolderViewGui::Get()->Navigate(model->filePath(index).toStdString());
+        emit RaiseFolderView();
+        Console::Comment(model->filePath(index).toStdString());
     });
 
     // When user double-clicks a file/folder
     connect(tree, &QTreeView::doubleClicked, [this](const QModelIndex& index) {
-        emit FileDoubleClicked(model->filePath(index));
+        FolderViewGui::Get()->Navigate(model->filePath(index).toStdString());
+        emit RaiseFolderView();
+        Console::Comment(model->filePath(index).toStdString());
     });
 
     setLayout(layout);

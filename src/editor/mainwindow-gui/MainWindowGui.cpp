@@ -1,14 +1,11 @@
 #include "MainWindowGui.hpp"
-#include <QDockWidget>
-#include <QTabWidget>
-#include <QWidget>
-
 #include "ConsoleGui.hpp"
 #include "GameViewGui.hpp"
 #include "SceneViewGui.hpp"
 #include "HierarchyGui.hpp"
 #include "InspectorGui.hpp"
 #include "FileExplorerGui.hpp"
+#include "FolderViewGui.hpp"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent){}
 MainWindow::~MainWindow(){SaveLayout();}
@@ -22,6 +19,7 @@ void MainWindow::Init()
     HierarchyGui& hierarchy = *HierarchyGui::Get();
     InspectorGui& inspector = *InspectorGui::Get();
     FileExplorerGui& file_explorer = *FileExplorerGui::Get();
+    FolderViewGui& folder_view = *FolderViewGui::Get();
 
     console_widget.Init();
     game_view.Init();
@@ -29,35 +27,47 @@ void MainWindow::Init()
     hierarchy.Init();
     inspector.Init();
     file_explorer.Init();
+    folder_view.Init();
 
+    // Connect FileExplorer's RaiseFolderView signal to raise the dock
+    connect(&file_explorer, &FileExplorerGui::RaiseFolderView, this, [this]() {
+        folderViewDock->raise();
+    });
 
-    // --- Create central tabbed view for Scene and Game ---
-    QTabWidget* central_tabs = new QTabWidget(this);
+    central_tabs = new QTabWidget(this);
     central_tabs->addTab(&scene_view, "Scene");
     central_tabs->addTab(&game_view, "Game");
     setCentralWidget(central_tabs);
 
-    QDockWidget* hierarchyDock = new QDockWidget("Hierarchy", this);
+    hierarchyDock = new QDockWidget("Hierarchy", this);
     hierarchyDock->setWidget(&hierarchy);
     addDockWidget(Qt::LeftDockWidgetArea, hierarchyDock);
   
 
-    QDockWidget* inspectorDock = new QDockWidget("Inspector", this);
+    inspectorDock = new QDockWidget("Inspector", this);
     inspectorDock->setWidget(&inspector);
     addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
     inspectorDock->setObjectName("InspectorDock");
 
 
-    QDockWidget* fileExplorerDock = new QDockWidget("File Explorer", this);
+    fileExplorerDock = new QDockWidget("File Explorer", this);
     fileExplorerDock->setWidget(&file_explorer);
     addDockWidget(Qt::BottomDockWidgetArea, fileExplorerDock);
     fileExplorerDock->setObjectName("FileExplorerDock");
 
+    folderViewDock = new QDockWidget("Folder View", this);
+    folderViewDock->setWidget(&folder_view);
+    addDockWidget(Qt::BottomDockWidgetArea, folderViewDock);
+    folderViewDock->setObjectName("FolderViewDock");
 
-    QDockWidget* consoleDock = new QDockWidget("Console", this);
+
+    consoleDock = new QDockWidget("Console", this);
     consoleDock->setWidget(&console_widget);
     addDockWidget(Qt::BottomDockWidgetArea, consoleDock);
     consoleDock->setObjectName("ConsoleDock");
+
+    tabifyDockWidget(consoleDock, folderViewDock);
+    
 
     
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);

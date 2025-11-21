@@ -7,7 +7,16 @@
 #include <QEvent>
 #include <QEnterEvent>
 #include <QFont>
+#include <QFileIconProvider>
+#include <QFileInfo>
+
 namespace EditorUtils {
+
+// Custom icon provider for file system items
+class CustomIconProvider : public QFileIconProvider {
+public:
+    QIcon icon(const QFileInfo &info) const override;
+};
 
 // Open a file in VSCode
 void OpenInVSCode(const std::string& fullPath);

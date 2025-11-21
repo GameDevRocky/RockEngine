@@ -81,6 +81,9 @@
         "qpainter": "cpp",
         "qopenglshaderprogram": "cpp",
         "qspaceritem": "cpp",
-        "qevent": "cpp"
+        "qevent": "cpp",
+        "qwidget": "cpp",
+        "qtabwidget": "cpp",
+        "qfileiconprovider": "cpp"
     }
 }

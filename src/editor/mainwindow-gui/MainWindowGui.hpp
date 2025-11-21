@@ -1,6 +1,9 @@
 #pragma once
 #include <QMainWindow>
 #include <QSettings>
+#include <QDockWidget>
+#include <QTabWidget>
+#include <QWidget>
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -14,11 +17,19 @@ public:
     void Start();
     void Shutdown();
     void ClearLayout();
+    QTabWidget* central_tabs;
+    QDockWidget* hierarchyDock;
+    QDockWidget* inspectorDock;
+    QDockWidget* fileExplorerDock;
+    QDockWidget* folderViewDock;
+    QDockWidget* consoleDock;
+    
 private:
     explicit MainWindow(QWidget* parent = nullptr);
     void LoadLayout();
     void SaveLayout();
     ~MainWindow();
+
 
 
 };

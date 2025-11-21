@@ -2,9 +2,30 @@
 #include <QProcess>
 #include <QString>
 #include <QStringList>
+#include <QIcon>
 #include <vector>
 
 namespace EditorUtils {
+
+QIcon CustomIconProvider::icon(const QFileInfo &info) const {
+    if (info.isDir()) {
+        return QIcon("domain/assets/icons/folder_icon.png");
+    } else if (info.suffix() == "yaml") {
+        return QIcon("domain/assets/icons/yaml_icon.png");
+    } else if (info.suffix() == "cpp") {
+        return QIcon("domain/assets/icons/cpp_icon.png");
+    } else if (info.suffix() == "hpp") {
+        return QIcon("domain/assets/icons/cpp_icon.png");
+    } else if (info.suffix() == "h") {
+        return QIcon("domain/assets/icons/header_icon.png");
+    } else if (info.suffix() == "png" || info.suffix() == "jpg" || info.suffix() == "jpeg") {
+        // Load the actual image file as a thumbnail
+        return QIcon(info.absoluteFilePath());
+    }
+    // Fallback to default file icon
+    return QFileIconProvider::icon(info);
+}
+
 void OpenInVSCode(const std::string& fullPath)
 {
     std::string pathOnly = fullPath;
