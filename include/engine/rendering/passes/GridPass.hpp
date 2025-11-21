@@ -18,7 +18,6 @@ public:
 
     void Init() override
     {
-        // Fullscreen triangle (single triangle covers entire NDC)
         float vertices[] = {
             -1.0f, -1.0f, 0.0f,
              3.0f, -1.0f, 0.0f,
@@ -67,6 +66,7 @@ public:
         shader->SetMat4("uView", camera.GetViewMatrix());
         shader->SetMat4("uProj", camera.GetProjectionMatrix());
         shader->SetFloat("time", TimeManager::Get().ElapsedTime() );
+        shader->SetFloat("uZoom", camera.GetZoom());
 
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
@@ -76,6 +76,6 @@ private:
     GLuint vao = 0;
     GLuint vbo = 0;
     Shader* shader = nullptr;
-    int viewportWidth = 1;  // default width
-    int viewportHeight = 1;  // default height
+    int viewportWidth = 1;  
+    int viewportHeight = 1;
 };

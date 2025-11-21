@@ -14,8 +14,6 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath("")
     model->setRootPath("");
     model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     model->setIconProvider(new EditorUtils::CustomIconProvider());
-
-    // Create grid view
     gridView = new QListView(this);
     gridView->setModel(model);
     gridView->setViewMode(QListView::IconMode);
@@ -25,14 +23,23 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath("")
     gridView->setWrapping(true);
     gridView->setUniformItemSizes(true);
 
+    gridView->setDragEnabled(true);                    
+    gridView->setAcceptDrops(false);                  
+    gridView->setDropIndicatorShown(false);            
+    gridView->setDragDropMode(QAbstractItemView::DragOnly); 
+    gridView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    gridView->setSelectionMode(QAbstractItemView::SingleSelection);
+
     layout->addWidget(gridView);
     setLayout(layout);
 
-    // Connect double-click to navigate into folders
     connect(gridView, &QListView::doubleClicked, this, [this](const QModelIndex& index) {
         if (model->isDir(index)) {
             QString folderPath = model->filePath(index);
             Navigate(folderPath.toStdString());
+        }
+        else{
+            EditorUtils::OpenInVSCode(model->filePath(index).toStdString());
         }
     });
 }
