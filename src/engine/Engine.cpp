@@ -5,8 +5,12 @@
 #include "engine/rendering/Renderer.hpp"
 #include "engine/rendering/RenderManager.hpp"
 #include "engine/components/ComponentRegistrars.hpp"
+#include "Python.h"
+
 
 void Engine::Init() {
+    Py_Initialize();
+    PyRun_SimpleString("print('Hello from Python!')");
     RegisterComponentTypes();
     InputManager::Get().Init();
     TimeManager::Get().Init(); 
@@ -28,6 +32,8 @@ void Engine::Shutdown() {
     InputManager::Get().Shutdown();
     SceneManager::Get().Shutdown();
     TimeManager::Get().Shutdown();
+    Py_Finalize();
+
 }
 
 bool Engine::GetActive(){

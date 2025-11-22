@@ -10,3 +10,7 @@
 [submodule "external/glad"]
 	path = external/glad
 	url = https://github.com/Dav1dde/glad.git
+[submodule "external/pybind11"]
+	path = external/pybind11
+	url = ../../pybind/pybind11
+	branch = stable

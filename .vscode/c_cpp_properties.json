@@ -28,7 +28,8 @@
                 "C:/Qt/6.10.0/mingw_64/include/QtGui",
                 "C:/Qt/6.10.0/mingw_64/include/QtWidgets",
                 "C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets",
-                "C:/Qt/6.10.0/mingw_64/include/QtOpenGL"
+                "C:/Qt/6.10.0/mingw_64/include/QtOpenGL",
+                "C:/Users/rockl/AppData/Local/Programs/Python/Python314/include"
 
             ],
             "defines": [

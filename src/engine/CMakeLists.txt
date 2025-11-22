@@ -14,6 +14,7 @@ target_include_directories(Engine
         ${CMAKE_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 target_link_libraries(Engine
     PUBLIC
@@ -26,4 +27,6 @@ target_link_libraries(Engine
         glm::glm
         box2d
         yaml-cpp
+        Python3::Python
+        pybind11::embed
 )

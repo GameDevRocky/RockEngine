@@ -19,9 +19,11 @@ set(BOX2D_BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE)
 
 # Add Box2D
 add_subdirectory(box2d)
+set(PYBIND11_FINDPYTHON NEW)
+add_subdirectory(pybind11)
 
-# --- GLAD ---
 add_library(glad STATIC glad/src/glad.c)
+
 target_include_directories(glad 
     PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
