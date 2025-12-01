@@ -35,6 +35,18 @@ target_include_directories(RockEngine
         ${CMAKE_SOURCE_DIR}/src
 )
 
+option(EMBED_APP_ICON "Embed Windows .ico into executable resource" OFF)
+
+
+set(APP_RC "${CMAKE_SOURCE_DIR}/domain/assets/icons/RockEngine_Icon.rc")
+set(APP_ICO "${CMAKE_SOURCE_DIR}/domain/assets/icons/RockEngine_Icon.ico")
+
+if(EMBED_APP_ICON AND EXISTS ${APP_RC} AND EXISTS ${APP_ICO})
+    target_sources(RockEngine PRIVATE "${APP_RC}")
+    message(STATUS "Embedding Windows icon: ${APP_ICO}")
+else()
+    message(STATUS "EMBED_APP_ICON is ${EMBED_APP_ICON}. If you want the EXE to contain an embedded icon, create ${APP_ICO} and ${APP_RC} and set -DEMBED_APP_ICON=ON when configuring CMake.")
+endif()
 
 target_link_libraries(RockEngine
     PRIVATE

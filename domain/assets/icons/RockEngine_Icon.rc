@@ -1,0 +1,5 @@
+// RockEngine_Icon.rc
+// Windows resource script to embed the application icon into the EXE.
+// The ICO file should be placed next to this .rc file: RockEngine_Icon.ico
+
+APP_ICON ICON "RockEngine_Icon.ico"

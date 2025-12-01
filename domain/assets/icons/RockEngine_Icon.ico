@@ -1,0 +1,7 @@
+/*
+This is a placeholder .ico file used so the project explorer shows icon resources.
+Please replace this file with a valid Windows .ico file (recommended sizes: 16x16, 32x32, 48x48, 256x256) before enabling embedding.
+You can create an .ico from your existing PNG (domain/assets/icons/RockEngine_Icon.png) using ImageMagick or an icon editor.
+Example ImageMagick command:
+    magick convert domain/assets/icons/RockEngine_Icon.png -define icon:auto-resize=256,128,64,48,32,16 domain/assets/icons/RockEngine_Icon.ico
+*/
