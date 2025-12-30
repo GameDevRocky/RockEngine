@@ -69,7 +69,9 @@ public:
                 continue;
             }
 
-            if (!transform->GetParent()) transform->Rotate(0.5f);
+            if (!transform->GetParent()){
+                transform->Rotate(0.5f);
+            }
             
             Material* mat = sprite->GetMaterial();
             if (!mat) mat = SharedResources::Get().GetMaterialByName("default");
