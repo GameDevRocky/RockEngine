@@ -28,8 +28,8 @@ public:
             return nullptr;
 
         const std::string& comp_id = it->second;
-        Serializable* s = Registry::Get().Find(comp_id);
-        return dynamic_cast<T*>(s);
+        T* comp = Registry::Find<T>(comp_id);
+        return comp;
     }
 
 
@@ -38,10 +38,12 @@ public:
     void PostDeserialize() override;
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
-    void Link() override{};
     std::string GetName() {return name;}
     void SetScene(const std::string& id);
     Scene* GetScene();
+    void Update();
+    void FixedUpdate();
+    void LateUpdate();
 
     
     private:

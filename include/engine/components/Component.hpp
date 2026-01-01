@@ -17,16 +17,15 @@ public:
     virtual void OnEnabled(){}
     virtual void OnDisabled(){}
     void SetEnabled(bool e);
-    virtual void Link(){}
     virtual void Awake(){}
     virtual void Start() {}
     virtual void Update() {}
     virtual void LateUpdate(){}
     virtual void FixedUpdate(){}
     virtual void OnDestroy() {}
-
-
     virtual std::string GetTypeName() const = 0;
+    virtual Component* Create(){return nullptr;} 
+    
     
 private:
 std::string gameobject_id = "";

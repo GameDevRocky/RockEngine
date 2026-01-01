@@ -20,8 +20,7 @@ YAML::Node GameObject::Serialize() {
 }
 
 void GameObject::AddComponent(const std::string& comp_id) {
-        Serializable* s = Registry::Get().Find(comp_id);
-        Component* comp = dynamic_cast<Component*>(s);
+        Component* comp = Registry::Find<Component>(comp_id);
         if (!comp) return;
         component_ids[comp->GetTypeName()] = comp_id;       
 }
@@ -36,16 +35,14 @@ void GameObject::Deserialize(const YAML::Node& node) {
 }
 
 void GameObject::SetScene(const std::string& id){
-    Serializable* s = Registry::Get().Find(id);
-    Scene* scene = dynamic_cast<Scene*>(s);
+    Scene* scene = Registry::Find<Scene>(id);
     if (scene){
         scene_id = id;
     }
     Notify(); 
 }
 Scene* GameObject::GetScene(){
-    Serializable* s = Registry::Get().Find(scene_id);
-    Scene* scene = dynamic_cast<Scene*>(s);
+    Scene* scene = Registry::Get().Find<Scene>(scene_id);
     if (!scene) return nullptr;
     return scene;
 }
@@ -54,6 +51,24 @@ Transform* GameObject::GetTransform(){
     return GetComponent<Transform>();
 }
 
+void GameObject::Update() {
+    for (auto& [type, comp_id] : component_ids){
+        Component* comp = Registry::Find<Component>(comp_id);
+        comp->Update();
+    }
+}
+void GameObject::FixedUpdate() {
+    for (auto& [type, comp_id] : component_ids){
+        Component* comp = Registry::Find<Component>(comp_id);
+        comp->FixedUpdate();
+    }
+}
+void GameObject::LateUpdate() {
+    for (auto& [type, comp_id] : component_ids){
+        Component* comp = Registry::Find<Component>(comp_id);
+        comp->LateUpdate();
+    }
+}
 void GameObject::PostDeserialize() {
     for (auto& comp_id : temp_ids){
         AddComponent(comp_id);

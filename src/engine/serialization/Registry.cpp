@@ -1,5 +1,5 @@
 #include "engine/serialization/Registry.hpp"
-#include "engine/serialization/Serializable.hpp" // ✅ required for GetID()
+#include "engine/serialization/Serializable.hpp" 
 #include <algorithm>
 #include "engine/debug/Console.hpp"
 
@@ -31,13 +31,10 @@ void Registry::Unregister(Serializable* obj) {
         serializables.erase(it);
 }
 
-Serializable* Registry::Find(const std::string& id) {
-    auto it = serializables.find(id);
-    return (it != serializables.end()) ? it->second : nullptr;
-}
+
 
 void Registry::DeferLink(const std::string& targetUUID, std::function<void(Serializable*)> setter) {
-    if (auto* obj = Find(targetUUID)) {
+    if (auto* obj = Find<Serializable>(targetUUID)) {
         setter(obj);
         return;
     }

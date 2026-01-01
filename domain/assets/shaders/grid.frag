@@ -10,7 +10,7 @@ const float BASE_SPACING = 0.25f;
 const int MAJOR_SKIP = 2;        
 const vec3 uMinorColor = vec3(0.2f);
 const vec3 uMajorColor = vec3(0.5f);
-const vec3 uBackground = vec3(0.1f); 
+const vec3 uBackground = vec3(0.01f); 
 
 const float FADE_IN_PIXELS  = 4.0;   
 const float HIDE_PIXELS     = 500.0; 
@@ -40,9 +40,7 @@ void main()
         float spacing = BASE_SPACING * pow(2.0, float(i));
         float pixelsPerCell = spacing * uZoom;
 
-        if (pixelsPerCell > HIDE_PIXELS) {
-            break;
-        }
+        if (pixelsPerCell > HIDE_PIXELS) break;
 
         float fadeIn  = smoothstep(1.0, FADE_IN_PIXELS, pixelsPerCell);
         float fadeOut = 1.0 - smoothstep(FADE_OUT_PIXELS, HIDE_PIXELS, pixelsPerCell);
@@ -50,7 +48,6 @@ void main()
 
         if (fade < 0.001) continue;
 
-       
         float distX = distanceToNearestLine(WorldPos.x, spacing);
         float distY = distanceToNearestLine(WorldPos.y, spacing);
         float dist = min(distX, distY); 
@@ -64,13 +61,11 @@ void main()
         if (isMajor) {
             majorIntensity = max(majorIntensity, currentIntensity);
         } else {
-            minorIntensity = clamp(minorIntensity + currentIntensity, 0.0, 1.0);
+            minorIntensity = max(minorIntensity, currentIntensity);
         }
     }
-
-
-    vec3 color = mix(uBackground, uMinorColor, minorIntensity);
-    color = mix(color, uMajorColor, majorIntensity);
-
-    FragColor = vec4(color, 1.0);
+    vec3 finalRGB = mix(uMinorColor, uMajorColor, majorIntensity);
+    float alpha = max(majorIntensity, minorIntensity);
+    FragColor = vec4(finalRGB, alpha);
+    if (alpha < 0.001) discard;
 }

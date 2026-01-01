@@ -12,8 +12,8 @@ private:
     std::unordered_map<std::string, Serializable*> serializables;
 
     Registry() = default; // private constructor for Singleton
+
 public:
-    // Singleton accessor
     static Registry& Get() {
         static Registry instance;
         return instance;
@@ -31,7 +31,15 @@ public:
 
     void Unregister(Serializable* obj);
 
-    Serializable* Find(const std::string& id);
+    template<typename T = Serializable> 
+    static T* Find(const std::string& id) {
+        auto it = Get().serializables.find(id);
+        if (it != Get().serializables.end()) {
+            // dynamic_cast ensures the Serializable* is actually a T*
+            return dynamic_cast<T*>(it->second);
+        }
+        return nullptr;
+    }
 
     void DeferLink(const std::string& targetUUID, std::function<void(Serializable*)> setter);
 

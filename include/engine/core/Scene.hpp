@@ -14,6 +14,8 @@ public:
 
     void Init();
     void Update();
+    void FixedUpdate();
+    void LateUpdate();
     void Shutdown();
 
     YAML::Node Serialize() override;

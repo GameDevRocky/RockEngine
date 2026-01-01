@@ -7,7 +7,7 @@ class Serializable;
 
 class SerializableFactory {
 public:
-    using Creator = std::function<Serializable*()>;  // Creator returns raw pointer
+    using Creator = std::function<Serializable*()>;
 
     static void RegisterType(const std::string& name, Creator creator);
     static Serializable* Create(const std::string& name);
@@ -19,10 +19,3 @@ private:
     }
 };
 
-// Fixed macro to use `new` instead of `make_shared`
-#define REGISTER_SERIALIZABLE_TYPE(TYPE) \
-    static struct TYPE##Registrar { \
-        TYPE##Registrar() { \
-            SerializableFactory::RegisterType(#TYPE, []() {return new TYPE(); }); \
-        } \
-    } TYPE##RegistrarInstance;

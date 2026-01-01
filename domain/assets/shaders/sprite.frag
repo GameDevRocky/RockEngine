@@ -11,8 +11,6 @@ uniform vec4 uColor;
 void main()
 {
     vec4 texColor = texture(uTexture, vTexCoord);
-
-    // Alpha discard optional
     if (texColor.a <= 0.01)
         discard;
 

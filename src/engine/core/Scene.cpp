@@ -13,7 +13,25 @@ void Scene::Init() {
 }
 
 void Scene::Update() {
-    std::cout << "Updating scene" << std::endl;
+    for (auto& obj_id : gameobject_ids){
+        GameObject* obj = Registry::Find<GameObject>(obj_id);
+        obj->Update();
+
+    } 
+}
+void Scene::FixedUpdate() {
+    for (auto& obj_id : gameobject_ids){
+        GameObject* obj = Registry::Find<GameObject>(obj_id);
+        obj->FixedUpdate();
+
+    } 
+}
+void Scene::LateUpdate() {
+    for (auto& obj_id : gameobject_ids){
+        GameObject* obj = Registry::Find<GameObject>(obj_id);
+        obj->LateUpdate();
+
+    } 
 }
 
 void Scene::Shutdown() {
@@ -92,7 +110,7 @@ std::vector<GameObject*> Scene::GetRootObjects() {
     std::vector<GameObject*> result;
 
     for (const std::string& id : root_object_ids) {
-        if (auto* obj = dynamic_cast<GameObject*>(Registry::Get().Find(id)))
+        if (auto* obj = dynamic_cast<GameObject*>(Registry::Find<GameObject>(id)))
             result.push_back(obj);
     }
 
@@ -103,7 +121,7 @@ std::vector<GameObject*> Scene::GetAllGameObjects() {
     std::vector<GameObject*> result;
 
     for (const std::string& id : gameobject_ids) {
-        if (auto* obj = dynamic_cast<GameObject*>(Registry::Get().Find(id)))
+        if (auto* obj = Registry::Find<GameObject>(id))
             result.push_back(obj);
     }
 

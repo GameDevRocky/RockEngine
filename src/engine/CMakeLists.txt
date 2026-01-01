@@ -27,6 +27,4 @@ target_link_libraries(Engine
         glm::glm
         box2d
         yaml-cpp
-        Python3::Python
-        pybind11::embed
 )
