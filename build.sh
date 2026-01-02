@@ -49,4 +49,5 @@ JOBS=$(nproc 2>/dev/null || echo 4)
 cmake --build "$BUILD_DIR" -- -j$JOBS
 
 # Run executable
-"$BUILD_DIR/RockEngine.exe" hello world
+echo "Build complete! Running: $BUILD_DIR/bin/RockEngineLauncher.exe"
+"$BUILD_DIR/bin/RockEngineLauncher.exe"

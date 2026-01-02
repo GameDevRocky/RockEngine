@@ -3,43 +3,22 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/include",
-                "${workspaceFolder}/src",
-                "${workspaceFolder}/src/editor/utils",  
-
-                "${workspaceFolder}/src/editor/console-gui", 
-                "${workspaceFolder}/src/editor/inspector-gui", 
-                "${workspaceFolder}/src/editor/hierarchy-gui", 
-                "${workspaceFolder}/src/editor/gameview-gui", 
-                "${workspaceFolder}/src/editor/sceneview-gui", 
-                "${workspaceFolder}/src/editor/mainwindow-gui", 
-                "${workspaceFolder}/src/editor/fileexplorer-gui", 
-                "${workspaceFolder}/src/editor/folderview-gui", 
-
-                "${workspaceFolder}/external/glm",
-                "${workspaceFolder}/external/stb",
-                "${workspaceFolder}/external/yaml/include",
-                "${workspaceFolder}/external/box2d/include",
-                "${workspaceFolder}/external/glad/include",
-                
-
-                "C:/Qt/6.10.0/mingw_64/include",
-                "C:/Qt/6.10.0/mingw_64/include/QtCore",
-                "C:/Qt/6.10.0/mingw_64/include/QtGui",
-                "C:/Qt/6.10.0/mingw_64/include/QtWidgets",
-                "C:/Qt/6.10.0/mingw_64/include/QtOpenGLWidgets",
-                "C:/Qt/6.10.0/mingw_64/include/QtOpenGL",
+                "${workspaceFolder}/**",
+                "C:/Qt/6.10.0/mingw_64/include/**",
                 "C:/Users/rockl/AppData/Local/Programs/Python/Python314/include"
-
             ],
             "defines": [
                 "_DEBUG",
-                "UNICODE"
+                "UNICODE",
+                "QT_WIDGETS_LIB",
+                "QT_GUI_LIB",
+                "QT_CORE_LIB"
             ],
             "compilerPath": "C:/Qt/Tools/mingw1310_64/bin/g++.exe",
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "intelliSenseMode": "windows-gcc-x64"
+            "intelliSenseMode": "windows-gcc-x64",
+            "configurationProvider": "ms-vscode.cmake-tools"
         }
     ],
     "version": 4

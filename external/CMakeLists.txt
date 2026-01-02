@@ -22,11 +22,28 @@ add_subdirectory(box2d)
 set(PYBIND11_FINDPYTHON NEW)
 add_subdirectory(pybind11)
 
-add_library(glad STATIC glad/src/glad.c)
+add_library(glad SHARED glad/src/glad.c)
 
 target_include_directories(glad 
     PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/glad/src
+)
+
+# Create ExternalLibs interface library to aggregate all external dependencies
+add_library(ExternalLibs INTERFACE)
+
+target_link_libraries(ExternalLibs
+    INTERFACE
+        glm
+        yaml-cpp
+        box2d
+        glad
+)
+
+target_include_directories(ExternalLibs
+    INTERFACE
+        ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/stb
 )
