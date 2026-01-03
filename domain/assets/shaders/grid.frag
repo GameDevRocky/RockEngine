@@ -67,5 +67,5 @@ void main()
     vec3 finalRGB = mix(uMinorColor, uMajorColor, majorIntensity);
     float alpha = max(majorIntensity, minorIntensity);
     FragColor = vec4(finalRGB, alpha);
-    if (alpha < 0.001) discard;
+    if (alpha < 0.0001) discard;
 }
