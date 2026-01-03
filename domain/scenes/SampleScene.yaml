@@ -22,7 +22,7 @@ components:
     type: "SpriteRenderer"
     gameobject: "o1"
     material_id: "m1"
-    texture_id: "t2"
+    texture_id: "t1"
     color: [1,1,1,1]
     flipX: false
     flipY: false
@@ -31,7 +31,7 @@ components:
     type: "SpriteRenderer"
     gameobject: "o2"
     material_id: "m1"
-    texture_id: "t1"
+    texture_id: "t2"
     color: [0.5,1,0.5,1]
     flipX: false
     flipY: false

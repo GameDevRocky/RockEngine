@@ -1,6 +1,8 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/debug/Console.hpp"
+
+
 void Material::Deserialize(const YAML::Node& node){
     Serializable::Deserialize(node);
     name = node["name"].as<std::string>();

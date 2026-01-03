@@ -3,17 +3,11 @@ Resources:
   Textures:
     - id: "t1"
       name: "main_texture"
-      path: "Domain/assets/textures/smiley_texture.png"
+      path: "Domain/assets/textures/main_texture.png"
       filtering: "linear"
       wrap: "clamp"
 
     - id: "t2"
-      name: "smiley_texture"
-      path: "Domain/assets/textures/smiley_texture.png" 
-      filtering: "linear"
-      wrap: "repeat"
-
-    - id: "t3"
       name: "smiley_texture"
       path: "Domain/assets/textures/smiley_texture.png" 
       filtering: "linear"

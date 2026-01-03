@@ -16,8 +16,6 @@ void Scene::Update() {
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = Registry::Find<GameObject>(obj_id);
         obj->Update();
-        obj->GetTransform()->Rotate(0.5f);
-
     } 
 }
 void Scene::FixedUpdate() {

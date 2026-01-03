@@ -20,20 +20,37 @@ void SpriteRenderer::Deserialize(const YAML::Node& node)
     flipY = node["flipY"].as<bool>();
 }
 
+Material* SpriteRenderer::GetMaterial(){
+
+    Material* mat = SharedResources::Get().GetMaterial(material_id);
+    if (!mat){
+        Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s material");
+        return nullptr;
+    }
+    return mat;
+
+}
+
+Texture2D* SpriteRenderer::GetTexture(){
+
+    Texture2D* tex = SharedResources::Get().GetTexture(texture_id);
+    if (!tex){
+        Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s texture");
+        return nullptr;
+    }
+    return tex;
+
+}
+
 void SpriteRenderer::PostDeserialize()
 {
-    material = SharedResources::Get().GetMaterial(material_id);
-    texture = SharedResources::Get().GetTexture(texture_id);
-    if(!material) Console::Alert("No Material Loaded");
-    if(!texture) Console::Alert("No Texture Loaded"); 
+    
 }
 
 void SpriteRenderer::SetTexture(Texture2D* tex){
     if (!tex){
         Console::Alert("Unable to set Texture");
     }
-
-    texture = tex;
     texture_id = tex->GetID();
 
 }
@@ -44,7 +61,6 @@ void SpriteRenderer::SetMaterial(Material* mat){
         Console::Alert("Unable to set Material");
     }
 
-    material = mat;
     material_id = mat->GetID();
 
 }

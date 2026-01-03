@@ -70,7 +70,10 @@ public:
             }
 
             Material* mat = sprite->GetMaterial();
-            if (!mat) mat = SharedResources::Get().GetMaterialByName("default");
+            if (!mat){
+                mat = SharedResources::Get().GetMaterialByName("default"); 
+                Console::Alert("Assigning Default Material to " + transform->GetGameObject()->GetName());
+                }
             if (!mat || !mat->GetShader()) continue; 
 
             Shader* shader = mat->GetShader();

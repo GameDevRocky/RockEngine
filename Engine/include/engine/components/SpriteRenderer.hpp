@@ -18,8 +18,8 @@ public:
     std::string GetTypeName() const override { return "SpriteRenderer"; }
 
     // ---------------- Material ----------------
-    Material* GetMaterial() const { return material; }
-    Texture2D* GetTexture() const { return texture; }
+    Material* GetMaterial();
+    Texture2D* GetTexture();
     void SetMaterial(Material* mat);
     void SetTexture(Texture2D* tex);
 
@@ -37,10 +37,6 @@ public:
     void SetFlipY(bool v) { flipY = v; }
 
 private:
-
-    Material* material = nullptr;
-    Texture2D* texture = nullptr;
-
     std::string material_id;
     std::string texture_id;
 
