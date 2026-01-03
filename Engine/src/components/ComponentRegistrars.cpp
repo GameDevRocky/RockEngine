@@ -36,7 +36,6 @@ void RegisterDllComponent(const fs::path& dllPath) {
 void RegisterComponentTypes() {
     SerializableFactory::RegisterType("Transform", []() { return new Transform(); });
     SerializableFactory::RegisterType("SpriteRenderer", []() { return new SpriteRenderer(); });
-
     fs::path dllFolder = fs::current_path() / "dlls";
 
     if (fs::exists(dllFolder) && fs::is_directory(dllFolder)) {

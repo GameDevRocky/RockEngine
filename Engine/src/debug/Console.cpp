@@ -20,10 +20,13 @@ void Console::CreateMessage(std::string text, std::string type, const std::sourc
     std::string key = text + type;
     auto it = instance.messages.find(key);
     
+    
+    
     if (it == instance.messages.end()) {
         // Create new message if it doesn't exist
         Message* msg = new Message(text, type, function, file_name, std::to_string(line), time_stamp);
         instance.messages[key] = msg;
+        
         msg->Notify();
     } else {
         // Update existing message
@@ -64,4 +67,5 @@ void Console::Clear(){
     Get().messages.clear();
     Get().Notify();
     Console::Warn("Cleared");
+
 }

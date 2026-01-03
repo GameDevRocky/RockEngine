@@ -1,7 +1,7 @@
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/debug/Console.hpp"
 
-#define RESOURCES_CONFIG_PATH "domain/resources_config.yaml"
+#define RESOURCES_CONFIG_PATH "Domain/resources_config.yaml"
 
 void SharedResources::Init()
 {
@@ -13,6 +13,7 @@ void SharedResources::Init()
         Texture2D* texture = new Texture2D();
         texture->Deserialize(texNode);
         AddTexture(texture);
+        std::cout << texture->GetName() << std::endl;
     }
 
     for (auto& shadNode : data["Shaders"])

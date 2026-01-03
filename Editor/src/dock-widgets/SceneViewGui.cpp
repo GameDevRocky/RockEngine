@@ -1,15 +1,8 @@
 #include "dock-widgets/SceneViewGui.hpp"
 #include "engine/rendering/RenderManager.hpp" 
 #include <QDebug>
-#include <QOpenGLContext>
-#include <glad/glad.h>
 #include "engine/debug/Console.hpp"
 #include "engine/rendering/cameras/SceneCamera.hpp"
-
-// Helper for GLAD loader
-static void* GetProcAddress(const char* name) {
-    return (void*)QOpenGLContext::currentContext()->getProcAddress(name);
-}
 
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
@@ -27,19 +20,8 @@ SceneViewGui::~SceneViewGui()
     doneCurrent();
 }
 void SceneViewGui::initializeGL() {
-    
     initializeOpenGLFunctions();
-    
-    // Load GLAD using Qt's context
-    static bool glad_loaded = false;
-    if (!glad_loaded) {
-        gladLoadGLLoader((GLADloadproc)GetProcAddress);
-        glad_loaded = true;
-    }
-    
-    std::cout << "Initialize GL Scene View FUNCTIONS" << std::endl;
     RenderManager::Get().Init();
-    
     
 
     // Ensure pipeline FBO matches the real GL framebuffer size (consider HiDPI)
@@ -60,11 +42,8 @@ void SceneViewGui::initializeGL() {
          1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
          1.0f,  1.0f, 0.0f, 1.0f, 1.0f
     };
-    
 
-    std::cout << "before glGenVertexArrays func call " << std::endl;
     glGenVertexArrays(1, &quadVAO);
-    std::cout << "glGenVertexArrays func call complete" << std::endl;
     glGenBuffers(1, &quadVBO);
     glBindVertexArray(quadVAO);
     glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
@@ -76,8 +55,6 @@ void SceneViewGui::initializeGL() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
     glBindVertexArray(0);
-        
-
 
     // Shader for displaying the FBO texture
     const char* quadVert = R"(#version 460 core
@@ -261,5 +238,5 @@ glm::vec2 SceneViewGui::ScreenToWorld(const QPoint& p)
 
 
 void SceneViewGui::Init(){
+    
 }
-

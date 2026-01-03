@@ -6,6 +6,7 @@
 #include "engine/core/SceneManager.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/rendering/cameras/SceneCamera.hpp"
+#include <glad/glad.h>
 
 void RenderManager::Init(){
 
@@ -47,13 +48,13 @@ void RenderManager::SetUpGamePipeline(){
 void RenderManager::Update(){
     SceneCamera::Get().Update();
     const auto& shader = SharedResources::Get().GetShaderByName("grid");
-   
+    
+    
 }
 
 void RenderManager::Render(){
     auto& scene_manager = SceneManager::Get();
     for (auto& scene : scene_manager.GetScenes()){
         editor_pipeline->Render(SceneCamera::Get(), *scene);
-        
     }
 }

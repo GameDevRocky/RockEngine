@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 file(GLOB_RECURSE ENGINE_SOURCES "src/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADERS "include/*.hpp")
 
-add_library(RockEngineCore SHARED ${ENGINE_SOURCES} ${ENGINE_HEADERS})
+add_library(RockEngineCore STATIC ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 target_include_directories(RockEngineCore 
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -21,6 +21,7 @@ target_link_libraries(RockEngineCore
 )
 
 # 5. Compile Definitions
+# Note: Keep the export define for now; it is harmless for STATIC builds.
 target_compile_definitions(RockEngineCore PRIVATE ROCK_ENGINE_EXPORT)
 
 # 6. Precompiled Headers (Kept the extra headers from your AI)

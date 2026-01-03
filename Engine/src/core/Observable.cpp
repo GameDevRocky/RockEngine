@@ -16,9 +16,12 @@ void Observable::Unsubscribe(int id) {
 }
 
 void Observable::Notify() {
-    for (auto& [priority, pair] : subscribers) {
-        auto& [id, cb] = pair;
-        if (cb) cb();
-    }
-}
+    std::vector<Callback> callbacks;
+    callbacks.reserve(subscribers.size());
 
+    for (auto& [_, pair] : subscribers)
+        callbacks.push_back(pair.second);
+
+    for (auto& cb : callbacks)
+        cb();
+}

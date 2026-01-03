@@ -3,7 +3,7 @@
 
 
 ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
-{
+{   
     content = new QScrollArea(this);
     QWidget* scrollWidget = new QWidget();
     scrollLayout = new QVBoxLayout(scrollWidget);
@@ -33,14 +33,17 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     mainLayout->addWidget(content_bar);
     mainLayout->setContentsMargins(0,0,0,0);
     setLayout(mainLayout);
-
     resize(720, 300);
-
-    Console::Get().Subscribe([this]() { GenerateWidgets(); });
+    Console::Get().Subscribe([this]() {        
+        GenerateWidgets(); 
+    });
 
     connect(clear_button, &QPushButton::clicked, [](bool) {
         Console::Clear();
+                
     });
+    
+    
     GenerateWidgets();
 }
 void ConsoleGui::Init(){
@@ -55,11 +58,19 @@ void ConsoleGui::resizeEvent(QResizeEvent* event)
 void ConsoleGui::GenerateWidgets()
 {
     auto& messages = Console::Get().GetMessages();
+    
+    
     for (auto& [key, msg] : messages) {
         if (message_widgets.find(key) == message_widgets.end()) {
             MessageGui* gui = new MessageGui(this, msg);
             scrollLayout->addWidget(gui);
             message_widgets.emplace(key, gui);
         }     
-    }  
+    }
+    
+    scrollLayout->parentWidget()->adjustSize();
+    scrollLayout->update();
+    content->updateGeometry();
+    
+    
 }
