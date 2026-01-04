@@ -22,7 +22,7 @@ public:
     void SetProjectDirectory(const QString& dir);
     void Init();
 
-signals:
+Q_SIGNALS:
     void FileSelected(const QString& path);
     void FileDoubleClicked(const QString& path);
     void RaiseFolderView();

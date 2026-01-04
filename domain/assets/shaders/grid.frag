@@ -4,6 +4,7 @@ in vec2 WorldPos;
 out vec4 FragColor;
 
 uniform float uZoom;      
+uniform float uTime;      
 const int MAX_LEVELS = 13; 
 
 const float BASE_SPACING = 0.25f; 

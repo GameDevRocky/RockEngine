@@ -19,7 +19,10 @@ set(BOX2D_BUILD_BENCHMARKS OFF CACHE BOOL "" FORCE)
 
 # Add Box2D
 add_subdirectory(box2d)
-set(PYBIND11_FINDPYTHON NEW)
+
+find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+
+set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(pybind11)
 
 add_library(glad SHARED glad/src/glad.c)

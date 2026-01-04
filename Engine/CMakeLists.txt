@@ -18,6 +18,7 @@ target_link_libraries(RockEngineCore
     PUBLIC 
         EngineAPI 
         ExternalLibs
+        pybind11::embed
 )
 
 # 5. Compile Definitions

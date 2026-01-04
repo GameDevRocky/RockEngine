@@ -9,6 +9,8 @@
 #include "dock-widgets/ConsoleGui.hpp"
 #include "dock-widgets/SceneViewGui.hpp"
 #include <QCoreApplication>
+
+
 Editor::Editor(){
     QCoreApplication::setOrganizationName("Rocklyn");
     QCoreApplication::setApplicationName("RockEngineEditor");

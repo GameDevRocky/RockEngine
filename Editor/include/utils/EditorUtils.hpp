@@ -53,7 +53,7 @@ public:
     void setFilePath(const QString& path) { filePath = path; }
     QString getFilePath() const { return filePath; }
 
-signals:
+Q_SIGNALS:
     void clicked();
     void doubleClicked();
 
@@ -62,13 +62,13 @@ protected:
 
     void mousePressEvent(QMouseEvent* event) override {
         if (event->button() == Qt::LeftButton)
-            emit clicked();
+            Q_EMIT clicked();
         QLabel::mousePressEvent(event);
     }
 
     void mouseDoubleClickEvent(QMouseEvent* event) override {
         if (event->button() == Qt::LeftButton)
-            emit doubleClicked();
+            Q_EMIT doubleClicked();
         QLabel::mouseDoubleClickEvent(event);
     }
 

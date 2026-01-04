@@ -11,21 +11,21 @@ QIcon CustomIconProvider::icon(const QFileInfo &info) const {
     const QString& name = info.fileName();
     
     if (info.isDir()) {
-        return QIcon("domain/assets/icons/folder_icon.png");
+        return QIcon("Domain/assets/icons/folder_icon.png");
     } 
     else if (name.startsWith("Cmake",  Qt::CaseInsensitive)){
-        return QIcon("domain/assets/icons/cmake_icon.png");
+        return QIcon("Domain/assets/icons/cmake_icon.png");
     }   
     else if (info.suffix() == "yaml") {
-        return QIcon("domain/assets/icons/yaml_icon.png");
+        return QIcon("Domain/assets/icons/yaml_icon.png");
     } else if (info.suffix() == "cpp") {
-        return QIcon("domain/assets/icons/cpp_icon.png");
+        return QIcon("Domain/assets/icons/cpp_icon.png");
     } else if (info.suffix() == "hpp") {
-        return QIcon("domain/assets/icons/hpp_icon.png");
+        return QIcon("Domain/assets/icons/hpp_icon.png");
     } else if (info.suffix() == "h") {
-        return QIcon("domain/assets/icons/hpp_icon.png");
+        return QIcon("Domain/assets/icons/hpp_icon.png");
     } else if (info.suffix() == "vert" || info.suffix() == "frag") {
-        return QIcon("domain/assets/icons/shader_icon.png");
+        return QIcon("Domain/assets/icons/shader_icon.png");
     
     } else if (info.suffix() == "png" || info.suffix() == "jpg" || info.suffix() == "jpeg") {
         // Load the actual image file as a thumbnail

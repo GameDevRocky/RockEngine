@@ -41,6 +41,7 @@ public:
     std::string GetName() {return name;}
     void SetScene(const std::string& id);
     Scene* GetScene();
+    void Awake();
     void Update();
     void FixedUpdate();
     void LateUpdate();

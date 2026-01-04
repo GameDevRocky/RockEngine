@@ -72,11 +72,15 @@ void Scene::Deserialize(const YAML::Node& data) {
 
     for (auto& obj : GetAllGameObjects()){    
         Transform* transform = obj->GetComponent<Transform>();
-        
         if (transform && !transform->GetParent()){
             std::cout << obj->GetName() << " root " << std::endl;
             AddRootObject(obj->GetID());
         }
+    }
+
+    for (auto& obj : GetAllGameObjects()){    
+        
+        obj->Awake();
     }
 }
 

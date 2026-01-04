@@ -10,10 +10,10 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glad/glad.h>
 
-class ScenePass : public RenderPass
+class GlowPass : public RenderPass
 {
 public:
-    ScenePass() = default;
+    GlowPass() = default;
 
     void Init() override
     {
@@ -29,9 +29,6 @@ public:
              0.5f,  0.5f, 1.0f, 1.0f,
             -0.5f,  0.5f, 0.0f, 1.0f
         };
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
         glGenVertexArrays(1, &vao);
         glGenBuffers(1, &vbo);
@@ -87,23 +84,16 @@ public:
             }
             shader->Bind();
             texture->Bind();
-            
             mat->SetMat4("uView", camera.GetViewMatrix());
             mat->SetMat4("uProj", camera.GetProjectionMatrix());
-            shader->SetFloat("uTime", TimeManager::Get().ElapsedTime() );
-            shader->SetFloat("uZoom", camera.GetZoom());
-
             glm::mat4 model(1.0f);
             model = transform->GetWorldMatrix();
-            float aspect = (float)texture->GetWidth() / (float)texture->GetHeight();
-            model = glm::scale(model, glm::vec3(aspect, 1.0f, 1.0f));
             mat->SetMat4("uModel", model);
             mat->SetVec4("uColor", sprite->GetColor());
             mat->ApplyUniforms();
             glDrawArrays(GL_TRIANGLES, 0, 6);
 
             shader->Unbind();
-            texture->Unbind();
         }
 
         glBindVertexArray(0);

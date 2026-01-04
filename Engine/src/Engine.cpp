@@ -4,9 +4,13 @@
 #include "engine/debug/Console.hpp"
 #include "engine/rendering/RenderManager.hpp"
 #include "engine/components/ComponentRegistrars.hpp"
+#include <pybind11/embed.h>
 
+namespace py = pybind11;
 
 void Engine::Init() {
+    py::scoped_interpreter guard{};
+
     RegisterComponentTypes();
     InputManager::Get().Init();
     TimeManager::Get().Init(); 

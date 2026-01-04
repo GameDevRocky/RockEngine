@@ -8,8 +8,8 @@ Resources:
       wrap: "clamp"
 
     - id: "t2"
-      name: "smiley_texture"
-      path: "Domain/assets/textures/smiley_texture.png" 
+      name: "mushroom_texture"
+      path: "Domain/assets/textures/mushroom_texture.png" 
       filtering: "linear"
       wrap: "repeat"
  
@@ -24,8 +24,18 @@ Resources:
       frag_path: "Domain/assets/shaders/grid.frag"
       name: "grid"
 
+    - id: "s3"
+      vert_path: "Domain/assets/shaders/sprite.vert"
+      frag_path: "Domain/assets/shaders/glow.frag"
+      name: "sprite"
+
   Materials:
     - id: "m1"
       name: "default"
       shader_id: "s1"
+      texture_id: "t1"
+
+    - id: "m2"
+      name: "glow"
+      shader_id: "s3"
       texture_id: "t1"

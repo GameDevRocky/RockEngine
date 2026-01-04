@@ -65,7 +65,7 @@ public:
         shader->Bind();
         shader->SetMat4("uView", camera.GetViewMatrix());
         shader->SetMat4("uProj", camera.GetProjectionMatrix());
-        shader->SetFloat("time", TimeManager::Get().ElapsedTime() );
+        shader->SetFloat("uTime", TimeManager::Get().ElapsedTime() );
         shader->SetFloat("uZoom", camera.GetZoom());
 
         glDrawArrays(GL_TRIANGLES, 0, 3);

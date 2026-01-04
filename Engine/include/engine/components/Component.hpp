@@ -24,7 +24,6 @@ public:
     virtual void FixedUpdate(){}
     virtual void OnDestroy() {}
     virtual std::string GetTypeName() const = 0;
-    virtual Component* Create(){return nullptr;} 
     
     
 private:

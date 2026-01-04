@@ -51,22 +51,31 @@ Transform* GameObject::GetTransform(){
     return GetComponent<Transform>();
 }
 
+void GameObject::Awake(){
+    for (auto& [type, comp_id] : component_ids){
+        Component* comp = Registry::Find<Component>(comp_id);
+        comp->Awake();
+    }
+
+}
+
 void GameObject::Update() {
     for (auto& [type, comp_id] : component_ids){
         Component* comp = Registry::Find<Component>(comp_id);
         comp->Update();
+
     }
 }
 void GameObject::FixedUpdate() {
     for (auto& [type, comp_id] : component_ids){
         Component* comp = Registry::Find<Component>(comp_id);
-        comp->FixedUpdate();
+        //comp->FixedUpdate();
     }
 }
 void GameObject::LateUpdate() {
     for (auto& [type, comp_id] : component_ids){
         Component* comp = Registry::Find<Component>(comp_id);
-        comp->LateUpdate();
+        //comp->LateUpdate();
     }
 }
 void GameObject::PostDeserialize() {

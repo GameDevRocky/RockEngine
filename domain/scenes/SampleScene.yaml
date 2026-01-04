@@ -10,41 +10,24 @@ components:
     localScale: [1, 1]
     parent_id: null
 
-  - id: "t2"
-    type: "Transform"
-    gameobject: "o2"
-    localPosition: [1, 0]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: "t1"
-
   - id: "s1"
     type: "SpriteRenderer"
     gameobject: "o1"
     material_id: "m1"
-    texture_id: "t1"
+    texture_id: "t2"
     color: [1,1,1,1]
     flipX: false
     flipY: false
 
-  - id: "s2"
-    type: "SpriteRenderer"
-    gameobject: "o2"
-    material_id: "m1"
-    texture_id: "t2"
-    color: [0.5,1,0.5,1]
-    flipX: false
-    flipY: false
+  - id: "sc1"
+    type: "ScriptComponent"
+    gameobject: "o1"
+    module: "Test"
+    class: "TestScript"
+
 
 gameobjects:
   - id: "o1"
     type: "GameObject"
     name: "Parent"
-    component_ids: ["t1", "s1"]
-
-  - id: "o2"
-    type: "GameObject"
-    name: "Child"
-    component_ids: ["t2", "s2"]
-
-  
+    component_ids: ["t1", "s1", "sc1"]
