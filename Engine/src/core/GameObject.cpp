@@ -69,13 +69,13 @@ void GameObject::Update() {
 void GameObject::FixedUpdate() {
     for (auto& [type, comp_id] : component_ids){
         Component* comp = Registry::Find<Component>(comp_id);
-        //comp->FixedUpdate();
+        comp->FixedUpdate();
     }
 }
 void GameObject::LateUpdate() {
     for (auto& [type, comp_id] : component_ids){
         Component* comp = Registry::Find<Component>(comp_id);
-        //comp->LateUpdate();
+        comp->LateUpdate();
     }
 }
 void GameObject::PostDeserialize() {

@@ -9,10 +9,10 @@
 namespace py = pybind11;
 
 void Engine::Init() {
-    py::scoped_interpreter guard{};
-
+    static auto* guard = new py::scoped_interpreter();
+    static auto* release = new py::gil_scoped_release();
     RegisterComponentTypes();
-    InputManager::Get().Init();
+    InputManager::Get().Init(); 
     TimeManager::Get().Init(); 
     SceneManager::Get().Init();
 }
@@ -23,8 +23,6 @@ void Engine::Run() {
     TimeManager::Get().Update();
     SceneManager::Get().Update();
     RenderManager::Get().Update();
-    
-
 }
 
 void Engine::Shutdown() {

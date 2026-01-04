@@ -71,9 +71,6 @@ void Editor::Init() {
     //     qApp->setStyleSheet(file.readAll());
     // }
 
-
-
-    
     MainWindow& main_window = *MainWindow::Get();
     main_window.Init();
 }

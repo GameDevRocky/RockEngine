@@ -9,7 +9,7 @@ class TestScript(Script):
         print("Updating from test script")
     
     def fixed_update(self):
-        return super().fixed_update()
+        print("fixed updating")
 
     def late_update(self):
-        return super().late_update()
+        print("lates  updating")
