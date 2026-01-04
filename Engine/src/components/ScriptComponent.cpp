@@ -95,16 +95,16 @@ void ScriptComponent::CallIfExists(const char* funcName)
         return;
     }
 
-    // py::gil_scoped_acquire gil;
+    py::gil_scoped_acquire gil;
 
-    // if (!py::hasattr(scriptInstance, funcName))
-    //     return;
+    if (!py::hasattr(scriptInstance, funcName))
+        return;
 
-    // try {
-    //     scriptInstance.attr(funcName)();
-    // } catch (const py::error_already_set& e) {
-    //     std::cerr << "[ScriptComponent] Python error in "
-    //               << funcName << ":\n"
-    //               << e.what() << std::endl;
-    // }
+    try {
+        scriptInstance.attr(funcName)();
+    } catch (const py::error_already_set& e) {
+        std::cerr << "[ScriptComponent] Python error in "
+                  << funcName << ":\n"
+                  << e.what() << std::endl;
+    }
 }
