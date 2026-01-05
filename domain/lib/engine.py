@@ -12,8 +12,8 @@ class ScriptableComponent:
 
 
 class TransformHandle:
-    def __init__(self, entity_id):
-        self.id = entity_id
+    def __init__(self, obj_id):
+        self.id = obj_id
 
     @property
     def position(self):
