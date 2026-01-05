@@ -31,6 +31,26 @@ void Transform::Scale(const glm::vec2& delta) {
     Notify();
 }
 
+
+void Transform::SetPosition(const glm::vec2& pos) {
+    localPosition = pos;
+    MarkDirty();
+    Notify();
+}
+
+void Transform::SetRotation(float degrees) {
+    localRotation = degrees;
+    MarkDirty();
+    Notify();
+}
+
+void Transform::SetScale(const glm::vec2& scale) {
+    localScale = scale;
+    MarkDirty();
+    Notify();
+}
+
+
 glm::mat4 Transform::GetLocalMatrix() const {
     glm::mat4 m(1.0f);
     m = glm::translate(m, glm::vec3(localPosition, 0.0f));

@@ -22,7 +22,6 @@ set(CMAKE_AUTORCC ON)
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets)
 
 add_subdirectory(External)
-add_subdirectory(API)
 add_subdirectory(Engine)
 add_subdirectory(Editor)
 
@@ -33,5 +32,4 @@ target_link_libraries(RockEngineLauncher
     PRIVATE
         RockEngineCore
         RockEngineEditor
-        EngineAPI
 )

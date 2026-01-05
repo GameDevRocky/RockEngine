@@ -85,5 +85,9 @@
         "qwidget": "cpp",
         "qtabwidget": "cpp",
         "qfileiconprovider": "cpp"
+    },
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/*.pyc": true
     }
 }

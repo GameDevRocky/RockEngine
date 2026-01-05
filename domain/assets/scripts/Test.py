@@ -1,15 +1,18 @@
-from Domain.lib.engine import Script
+from Domain import *
 
-class TestScript(Script):
+class TestScript(ScriptableComponent):
+
     def awake(self):
-        print("Hello From Test script")
+        print(self.transform.position)
+        pass
         
-
     def update(self):
-        print("Updating from test script")
+        
+        pass
     
     def fixed_update(self):
-        print("fixed updating")
+        
+        pass
 
     def late_update(self):
-        print("lates  updating")
+        pass

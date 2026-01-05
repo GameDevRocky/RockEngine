@@ -1,1 +1,1 @@
-from .lib import Script
+from .lib import *

@@ -5,12 +5,13 @@
 #include "engine/rendering/RenderManager.hpp"
 #include "engine/components/ComponentRegistrars.hpp"
 #include <pybind11/embed.h>
-
+#include "engine/utils/pyBindings.hpp"
 namespace py = pybind11;
 
 void Engine::Init() {
     static auto* guard = new py::scoped_interpreter();
     static auto* release = new py::gil_scoped_release();
+    engine::RegisterPythonBindings();
     RegisterComponentTypes();
     InputManager::Get().Init(); 
     TimeManager::Get().Init(); 

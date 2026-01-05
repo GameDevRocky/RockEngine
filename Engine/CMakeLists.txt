@@ -16,7 +16,6 @@ target_include_directories(RockEngineCore
 # 4. Link Libraries
 target_link_libraries(RockEngineCore 
     PUBLIC 
-        EngineAPI 
         ExternalLibs
         pybind11::embed
 )
