@@ -39,6 +39,8 @@ public:
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
     std::string GetName() {return name;}
+    void SetActive(bool val){active = val;}
+    bool GetActive(){return active;}
     void SetScene(const std::string& id);
     Scene* GetScene();
     void Awake();
@@ -48,6 +50,7 @@ public:
 
     
     private:
+    bool active = true;
     std::map<std::string, std::string> component_ids;
     std::string transform_id;
     std::vector<std::string> temp_ids;

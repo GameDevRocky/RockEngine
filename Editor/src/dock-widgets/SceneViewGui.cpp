@@ -3,6 +3,8 @@
 #include <QDebug>
 #include "engine/debug/Console.hpp"
 #include "engine/rendering/cameras/SceneCamera.hpp"
+#include "engine/core/InputManager.hpp"
+#include <glm/glm.hpp>
 
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
@@ -124,6 +126,18 @@ void SceneViewGui::paintGL() {
     glUseProgram(0);
 }
 
+
+void SceneViewGui::keyPressEvent(QKeyEvent* event) {
+    InputManager::Get().SetKeyState(event->key(), true);
+    Console::Comment(std::to_string(event->key()));
+}
+
+void SceneViewGui::keyReleaseEvent(QKeyEvent* event) {
+    InputManager::Get().SetKeyState(event->key(), false);
+    Console::Comment(std::to_string(event->key()));
+}
+
+
 void SceneViewGui::wheelEvent(QWheelEvent* event)
 {
     QPoint mousePos = event->position().toPoint();
@@ -180,6 +194,9 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
     bool ctrlHeld = (e->modifiers() & Qt::ControlModifier);
     bool leftDragPan = (e->buttons() & Qt::LeftButton) && ctrlHeld;
     bool midDragPan  = (e->buttons() & Qt::MiddleButton);
+
+    glm::vec2 currentPos = { static_cast<float>(e->pos().x()), static_cast<float>(e->pos().y()) };
+    InputManager::Get().SetMousePosition(currentPos);
 
     if (!leftDragPan && !midDragPan) {
         lastMousePos = e->pos();

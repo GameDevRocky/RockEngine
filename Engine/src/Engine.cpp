@@ -5,7 +5,8 @@
 #include "engine/rendering/RenderManager.hpp"
 #include "engine/components/ComponentRegistrars.hpp"
 #include <pybind11/embed.h>
-#include "engine/utils/pyBindings.hpp"
+#include "engine/bindings/PythonBindings.hpp"
+
 namespace py = pybind11;
 
 void Engine::Init() {

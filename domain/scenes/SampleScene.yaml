@@ -19,23 +19,6 @@ components:
     flipX: false
     flipY: false
 
-  - id: "t2"
-    type: "Transform"
-    gameobject: "o2"
-    localPosition: [-1, 0]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: "t1"
-
-  - id: "s2"
-    type: "SpriteRenderer"
-    gameobject: "o2"
-    material_id: "m2"
-    texture_id: "t2"
-    color: [1,1,1,1]
-    flipX: false
-    flipY: false
-
   - id: "sc1"
     type: "ScriptComponent"
     gameobject: "o1"
@@ -49,7 +32,4 @@ gameobjects:
     name: "Parent"
     component_ids: ["t1", "s1", "sc1"]
 
-  - id: "o2"
-    type: "GameObject"
-    name: "Child"
-    component_ids: ["t2", "s2"]
+  

@@ -4,6 +4,11 @@
 #include <glm/glm.hpp>
 #include "engine/serialization/Serializable.hpp"
 
+struct UniformInfo {
+    GLenum type;
+    GLint location;
+};
+
 class Shader : public Serializable{
 public:
     Shader() = default;
@@ -27,7 +32,11 @@ public:
     void SetVec3(const std::string& name, const glm::vec3& value) const;
     void SetVec4(const std::string& name, const glm::vec4& value) const;
     void SetMat4(const std::string& name, const glm::mat4& value) const;
+    void SetTexture(const std::string& name, const GLint tex) const;
+    void ReflectUniforms();
 
+    const std::unordered_map<std::string, UniformInfo>& GetActiveUniforms() const { return active_uniforms; }
+    
     GLuint GetProgramID() const { return program_id; }
 
 private:
@@ -41,4 +50,8 @@ private:
     GLuint program_id = 0;
     GLuint CompileShader(GLenum type, const std::string& source);
     GLuint LinkProgram(GLuint vertexShader, GLuint fragmentShader);
+    std::unordered_map<std::string, UniformInfo> active_uniforms;
+
 };
+
+

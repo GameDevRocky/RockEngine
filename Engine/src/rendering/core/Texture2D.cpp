@@ -15,7 +15,8 @@ void Texture2D::ApplySettings() const
 {
     glBindTexture(GL_TEXTURE_2D, texture_id);
     
-    GLenum minFilter = (filter == TextureFilter::Linear) ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST;
+    // Change GL_LINEAR_MIPMAP_LINEAR to just GL_LINEAR
+    GLenum minFilter = (filter == TextureFilter::Linear) ? GL_LINEAR : GL_NEAREST;
     GLenum magFilter = (filter == TextureFilter::Linear) ? GL_LINEAR : GL_NEAREST;
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);

@@ -15,20 +15,20 @@ void Scene::Init() {
 void Scene::Update() {
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = Registry::Find<GameObject>(obj_id);
-        obj->Update();
+        if (obj->GetActive()) obj->Update();
     } 
 }
 void Scene::FixedUpdate() {
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = Registry::Find<GameObject>(obj_id);
-        obj->FixedUpdate();
+        if (obj->GetActive()) obj->FixedUpdate();
 
     } 
 }
 void Scene::LateUpdate() {
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = Registry::Find<GameObject>(obj_id);
-        obj->LateUpdate();
+        if (obj->GetActive()) obj->LateUpdate();
 
     } 
 }

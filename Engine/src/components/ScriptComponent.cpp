@@ -65,11 +65,13 @@ void ScriptComponent::InstantiateScript()
         py::module module = py::module::import(moduleName.c_str());
         py::object cls = module.attr(className.c_str());
         scriptInstance = cls();
+        scriptInstance.attr("_component_id") = GetID();
         GameObject* go = GetGameObject();
         if (go)
             scriptInstance.attr("_gameobject_id") = go->GetID();
         else
             std::cerr << "[ScriptComponent] Warning: GameObject not found for script.\n";
+
 
     } catch (const py::error_already_set& e) {
         std::cerr << "[ScriptComponent] Python error in InstantiateScript():\n"

@@ -17,6 +17,7 @@ public:
     virtual void OnEnabled(){}
     virtual void OnDisabled(){}
     void SetEnabled(bool e);
+    bool GetEnabled() {return enabled;}
     virtual void Awake(){}
     virtual void Start() {}
     virtual void Update() {}

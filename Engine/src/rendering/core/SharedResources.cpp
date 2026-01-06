@@ -32,6 +32,8 @@ void SharedResources::Init()
 
     std::vector<Serializable*> all;
 
+
+    // DO NOT CHANGE ORDER, TEXTURES -> SHADERS -> MATERIALS
     for (auto& kv : textures)  all.push_back(kv.second);
     for (auto& kv : shaders)   all.push_back(kv.second);
     for (auto& kv : materials) all.push_back(kv.second);
@@ -39,8 +41,6 @@ void SharedResources::Init()
     for (Serializable* obj : all)
         obj->PostDeserialize();
 
-    for (Serializable* obj : all)
-        Console::Comment("HEYYY");
     Console::Comment("Shared Resources Initialized");
     
 }

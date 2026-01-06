@@ -65,10 +65,9 @@ public:
             if (!obj) continue;
             Transform* transform = obj->GetComponent<Transform>();
             SpriteRenderer* sprite = obj->GetComponent<SpriteRenderer>();
-
-            
+      
             if (!transform || !sprite){
-                Console::Alert("Not Loading Transform or Sprite");
+                Console::Alert("No Loaded Transform or Sprite");
                 continue;
             }
 
@@ -80,30 +79,14 @@ public:
             if (!mat || !mat->GetShader()) continue; 
 
             Shader* shader = mat->GetShader();
-            Texture2D* texture = sprite->GetTexture();
-            if(!texture){
-                Console::Alert("Sprite has no assigned texture");
-                texture = mat->GetTexture();
-            }
             shader->Bind();
-            texture->Bind();
-            
-            mat->SetMat4("uView", camera.GetViewMatrix());
-            mat->SetMat4("uProj", camera.GetProjectionMatrix());
-            shader->SetFloat("uTime", TimeManager::Get().ElapsedTime() );
-            shader->SetFloat("uZoom", camera.GetZoom());
-
-            glm::mat4 model(1.0f);
-            model = transform->GetWorldMatrix();
-            float aspect = (float)texture->GetWidth() / (float)texture->GetHeight();
-            model = glm::scale(model, glm::vec3(aspect, 1.0f, 1.0f));
-            mat->SetMat4("uModel", model);
-            mat->SetVec4("uColor", sprite->GetColor());
+            shader->SetMat4("uView", camera.GetViewMatrix());
+            shader->SetMat4("uProj", camera.GetProjectionMatrix());
+            shader->SetMat4("uModel", transform->GetWorldMatrix());
+            shader->SetFloat("uTime", TimeManager::Get().ElapsedTime());
             mat->ApplyUniforms();
-            glDrawArrays(GL_TRIANGLES, 0, 6);
 
-            shader->Unbind();
-            texture->Unbind();
+            glDrawArrays(GL_TRIANGLES, 0, 6);
         }
 
         glBindVertexArray(0);

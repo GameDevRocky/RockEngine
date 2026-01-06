@@ -12,15 +12,13 @@ Shader::~Shader()
 
 
 void Shader::PostDeserialize(){
-    vert_src = EngineUtils::ReadShader(vert_path);
-    frag_src = EngineUtils::ReadShader(frag_path);
-    GLuint vertex = CompileShader(GL_VERTEX_SHADER, vert_src);
-    GLuint fragment = CompileShader(GL_FRAGMENT_SHADER, frag_src);
-    program_id = LinkProgram(vertex, fragment);
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
-    Console::Warn(GetID());
-
+    // vert_src = EngineUtils::ReadShader(vert_path);
+    // frag_src = EngineUtils::ReadShader(frag_path);
+    // GLuint vertex = CompileShader(GL_VERTEX_SHADER, vert_src);
+    // GLuint fragment = CompileShader(GL_FRAGMENT_SHADER, frag_src);
+    // program_id = LinkProgram(vertex, fragment);
+    // glDeleteShader(vertex);
+    // glDeleteShader(fragment);
 }
 
 Shader* Shader::LoadFromPath(const std::string& vert_path, const std::string& frag_path, const std::string& name){
@@ -32,6 +30,7 @@ Shader* Shader::LoadFromPath(const std::string& vert_path, const std::string& fr
     shader->program_id = shader->LinkProgram(vertex, fragment);
     glDeleteShader(vertex);
     glDeleteShader(fragment);
+    shader->ReflectUniforms();
     return shader;
 }
 
@@ -41,6 +40,14 @@ void Shader::Deserialize(const YAML::Node& node) {
     vert_path = node["vert_path"].as<std::string>();
     frag_path = node["frag_path"].as<std::string>();
     name = node["name"].as<std::string>();
+    vert_src = EngineUtils::ReadShader(vert_path);
+    frag_src = EngineUtils::ReadShader(frag_path);
+    GLuint vertex = CompileShader(GL_VERTEX_SHADER, vert_src);
+    GLuint fragment = CompileShader(GL_FRAGMENT_SHADER, frag_src);
+    program_id = LinkProgram(vertex, fragment);
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+    ReflectUniforms();
     
 }
 
@@ -107,4 +114,21 @@ void Shader::SetVec4(const std::string& name, const glm::vec4& value) const
 void Shader::SetMat4(const std::string& name, const glm::mat4& value) const
 {
     glUniformMatrix4fv(glGetUniformLocation(program_id, name.c_str()), 1, GL_FALSE, &value[0][0]);
+}
+void Shader::SetTexture(const std::string& name, const GLint tex) const
+{
+    glUniform1i(glGetUniformLocation(program_id, name.c_str()), tex);
+}
+void Shader::ReflectUniforms() {
+    active_uniforms.clear(); 
+    GLint count;
+    glGetProgramiv(program_id, GL_ACTIVE_UNIFORMS, &count);
+
+    for (GLint i = 0; i < count; i++) {
+        char name[256];
+        GLenum type;
+        GLint size;
+        glGetActiveUniform(program_id, i, sizeof(name), nullptr, &size, &type, name);
+        active_uniforms[name] = { type, glGetUniformLocation(program_id, name) };
+    }
 }
