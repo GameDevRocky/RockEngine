@@ -14,10 +14,14 @@ components:
     type: "SpriteRenderer"
     gameobject: "o1"
     material_id: "m1"
-    texture_id: "t2"
+    sprite_id: "sprite1"
     color: [1,1,1,1]
+    uvOffset: [1.0, 0.0]
+    uvScale: [1.0, 1.0]
+    sortingOrder: 1
     flipX: false
     flipY: false
+    visible: true
 
   - id: "sc1"
     type: "ScriptComponent"

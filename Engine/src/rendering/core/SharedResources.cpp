@@ -15,6 +15,13 @@ void SharedResources::Init()
         AddTexture(texture);
         std::cout << texture->GetName() << std::endl;
     }
+    for (auto& spriteNode : data["Sprites"])
+    {
+        Sprite* sprite = new Sprite();
+        sprite->Deserialize(spriteNode);
+        AddSprite(sprite);
+        std::cout << sprite->GetName() << std::endl;
+    }
 
     for (auto& shadNode : data["Shaders"])
     {
@@ -32,9 +39,8 @@ void SharedResources::Init()
 
     std::vector<Serializable*> all;
 
-
-    // DO NOT CHANGE ORDER, TEXTURES -> SHADERS -> MATERIALS
     for (auto& kv : textures)  all.push_back(kv.second);
+    for (auto& kv : sprites)  all.push_back(kv.second);
     for (auto& kv : shaders)   all.push_back(kv.second);
     for (auto& kv : materials) all.push_back(kv.second);
 
@@ -67,6 +73,12 @@ Material* SharedResources::GetMaterial(const std::string& id)
     return (it != materials.end()) ? it->second : nullptr;
 }
 
+Sprite* SharedResources::GetSprite(const std::string& id)
+{
+    auto it = sprites.find(id);
+    return (it != sprites.end()) ? it->second : nullptr;
+}
+
 // ----------------------
 // Lookup By Name
 // ----------------------
@@ -94,6 +106,13 @@ Material* SharedResources::GetMaterialByName(const std::string& name)
             return kv.second;
     return nullptr;
 }
+Sprite* SharedResources::GetSpriteByName(const std::string& name)
+{
+    for (auto& kv : sprites)
+        if (kv.second->GetName() == name)
+            return kv.second;
+    return nullptr;
+}
 
 // ----------------------
 // Add
@@ -107,6 +126,15 @@ void SharedResources::AddShader(Shader* shader)
         return;
     }
     shaders[shader->GetID()] = shader;
+}
+void SharedResources::AddSprite(Sprite* sprite)
+{
+    if (!sprite)
+    {
+        Console::Alert("Failed to add sprite");
+        return;
+    }
+    sprites[sprite->GetID()] = sprite;
 }
 
 void SharedResources::AddTexture(Texture2D* texture)

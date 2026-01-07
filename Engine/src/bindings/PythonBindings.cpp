@@ -12,13 +12,14 @@ void BindGameObject(py::module_& m);
 void BindComponent(py::module_& m);
 void BindTransform(py::module_& m);
 void BindInput(py::module_& m);
-
+void BindSpriteRenderer(py::module_& m);
 
 PYBIND11_EMBEDDED_MODULE(engine_api, m) {
     m.doc() = "C++ Core Logic for Python Handles"; 
     BindGameObject(m);
     BindComponent(m);
     BindTransform(m);
+    BindSpriteRenderer(m);
     BindInput(m);
 
 

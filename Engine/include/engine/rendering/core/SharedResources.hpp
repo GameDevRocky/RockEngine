@@ -7,6 +7,7 @@
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/Material.hpp"
+#include "engine/rendering/core/Sprite.hpp"
 
 class SharedResources : public System
 {
@@ -23,16 +24,19 @@ public:
     Shader* GetShader(const std::string& id);
     Texture2D* GetTexture(const std::string& id);
     Material* GetMaterial(const std::string& id);
+    Sprite* GetSprite(const std::string& id);
 
     // --- Lookup by Name ---
     Shader* GetShaderByName(const std::string& name);
     Texture2D* GetTextureByName(const std::string& name);
     Material* GetMaterialByName(const std::string& name);
+    Sprite* GetSpriteByName(const std::string& name);
 
     // --- Add ---
     void AddShader(Shader* shader);
     void AddTexture(Texture2D* texture);
     void AddMaterial(Material* material);
+    void AddSprite(Sprite* sprite);
 
 private:
     SharedResources() = default;
@@ -40,4 +44,5 @@ private:
     std::unordered_map<std::string, Shader*> shaders;
     std::unordered_map<std::string, Texture2D*> textures;
     std::unordered_map<std::string, Material*> materials;
+    std::unordered_map<std::string, Sprite*> sprites;
 };

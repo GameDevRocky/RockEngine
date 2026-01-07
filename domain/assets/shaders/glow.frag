@@ -7,12 +7,10 @@ uniform sampler2D uTexture;
 uniform float uTime;
 
 #define EdgeColor vec3(0.2, 0.2, 0.15)
-
+uniform vec4 uColor; // Added to match your YAML and C++
 void main()
 {
     vec4 tex = texture(uTexture, vTexCoord);
-
-    // Preserve transparency early
     if (tex.a <= 0.001)
     {
         FragColor = vec4(0.0);
@@ -21,15 +19,8 @@ void main()
 
     vec3 color = tex.rgb;
     float alpha = tex.a;
-
-    // --- IMPORTANT ---
-    // Do NOT trust edge mask where alpha is low
     float edge = mix(1.0, tex.r, alpha);
-
-    // Luminance from color
     float luminance = dot(color, vec3(0.299, 0.587, 0.114));
-
-    // Subtle toon animation
     float pulse = sin(uTime * 1.5) * 0.05;
     float threshold = 0.35 + pulse;
 

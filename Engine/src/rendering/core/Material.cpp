@@ -32,6 +32,18 @@ void Material::Deserialize(const YAML::Node& node) {
             SetVec2(pair.first.as<std::string>(), glm::vec2(v[0].as<float>(), v[1].as<float>()));
         }
     }
+    if (uniforms["vec3"] && uniforms["vec3"].IsMap()) {
+        for (auto pair : uniforms["vec3"]) {
+            YAML::Node v = pair.second;
+            SetVec3(pair.first.as<std::string>(), glm::vec3(v[0].as<float>(), v[1].as<float>(), v[2].as<float>() ));
+        }
+    }
+    if (uniforms["vec4"] && uniforms["vec4"].IsMap()) {
+        for (auto pair : uniforms["vec4"]) {
+            YAML::Node v = pair.second;
+            SetVec4(pair.first.as<std::string>(), glm::vec4(v[0].as<float>(), v[1].as<float>(), v[2].as<float>(), v[2].as<float>() ));
+        }
+    }
 }
 
 void Material::PostDeserialize(){

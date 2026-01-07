@@ -64,14 +64,15 @@ public:
         {
             if (!obj) continue;
             Transform* transform = obj->GetComponent<Transform>();
-            SpriteRenderer* sprite = obj->GetComponent<SpriteRenderer>();
+            SpriteRenderer* renderer = obj->GetComponent<SpriteRenderer>();
       
-            if (!transform || !sprite){
+            if (!transform || !renderer){
                 Console::Alert("No Loaded Transform or Sprite");
                 continue;
             }
+            if (!renderer->GetVisible()) continue;
 
-            Material* mat = sprite->GetMaterial();
+            Material* mat = renderer->GetMaterial();
             if (!mat){
                 mat = SharedResources::Get().GetMaterialByName("default"); 
                 Console::Alert("Assigning Default Material to " + transform->GetGameObject()->GetName());
@@ -85,6 +86,7 @@ public:
             shader->SetMat4("uModel", transform->GetWorldMatrix());
             shader->SetFloat("uTime", TimeManager::Get().ElapsedTime());
             mat->ApplyUniforms();
+            renderer->OverrideUniforms();
 
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }

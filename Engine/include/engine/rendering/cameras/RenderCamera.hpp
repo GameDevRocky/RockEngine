@@ -42,7 +42,7 @@ protected:
     
     glm::vec2 position = {0.0f, 0.0f};
     float rotationDeg = 0.0f;      
-    float zoom = 1.0f;              
+    float zoom = 0.1f;              
     float orthoSize = 5.0f;
 
 

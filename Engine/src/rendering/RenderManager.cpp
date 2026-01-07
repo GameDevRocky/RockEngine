@@ -46,10 +46,7 @@ void RenderManager::SetUpGamePipeline(){
 }
 
 void RenderManager::Update(){
-    SceneCamera::Get().Update();
-    const auto& shader = SharedResources::Get().GetShaderByName("grid");
-    
-    
+    SceneCamera::Get().Update();    
 }
 
 void RenderManager::Render(){

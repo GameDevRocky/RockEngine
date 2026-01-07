@@ -1,10 +1,12 @@
 import engine_api
 from .math import Vector2
+from typing import Type, TypeVar, Optional
 
 # Global registry to ensure one ID = one Python Object
 _GO_REGISTRY = {}
+T = TypeVar('T')  # generic type placeholder
 
-def get_gameobject(obj_id):
+def get_gameobject(obj_id) -> GameObject:
     if obj_id not in _GO_REGISTRY:
         _GO_REGISTRY[obj_id] = GameObject(obj_id)
     return _GO_REGISTRY[obj_id]
@@ -26,8 +28,7 @@ class GameObject:
     def transform(self):
         return self.get_component(Transform)
 
-
-    def get_component(self, cls):
+    def get_component(self, cls: Type[T]) -> Optional[T]:
         # cls is the Class type (e.g., Transform)
         if cls in self._comp_cache:
             return self._comp_cache[cls]
@@ -60,16 +61,11 @@ class Component:
         if isinstance(val, bool) and self._component_id:
             engine_api.set_enabled(self._component_id, val)
     
-    def get_component(self, cls) -> Component:
+    def get_component(self, cls: Type[T]) -> Optional[T]:
         return self.gameobject.get_component(cls)
 
 class ScriptableComponent(Component):
     def __init__(self, obj_id=None):
-        super().__init__(obj_id)
-
-
-class ScriptableComponent(Component):
-    def __init__(self, obj_id= None):
         super().__init__(obj_id)
     
 
@@ -107,3 +103,35 @@ class Transform(Component):
     def scale(self, value):
         value = Vector2(value)
         engine_api.set_scale(self._gameobject_id, float(value.x), float(value.y))
+
+
+class SpriteRenderer(Component):
+    def __init__(self, obj_id= None):
+        super().__init__(obj_id)
+
+    @property
+    def transform(self):
+        return self.gameobject.transform
+    
+    @property 
+    def flipX(self):
+        x, _ = engine_api.get_flip(self._gameobject_id)
+        return x
+
+    @flipX.setter
+    def flipX(self, val):
+        _, y = engine_api.get_flip(self._gameobject_id)
+        engine_api.set_flip(self._gameobject_id, val, y)
+
+    @property
+    def flipY(self):
+        _, y = engine_api.get_flip(self._gameobject_id)
+        return y
+
+    @flipY.setter
+    def flipY(self, val):
+        x, _ = engine_api.get_flip(self._gameobject_id)
+        engine_api.set_flip(self._gameobject_id, x, val)
+
+    
+

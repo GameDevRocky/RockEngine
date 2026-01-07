@@ -4,45 +4,52 @@
 #include "yaml-cpp/yaml.h"
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
+#include "engine/rendering/core/Sprite.hpp"
 #include <glm/glm.hpp>
 
 class SpriteRenderer : public Component
 {
 public:
-    // ---------------- Serialization ----------------
-    YAML::Node Serialize() override;
+
+YAML::Node Serialize() override;
+
     void Deserialize(const YAML::Node& node) override;
     void PostDeserialize() override;
-
-    // ---------------- Component Info ----------------
-    std::string GetTypeName() const override { return "SpriteRenderer"; }
-
-    // ---------------- Material ----------------
+    
     Material* GetMaterial();
-    Texture2D* GetTexture();
-    void SetMaterial(Material* mat);
-    void SetTexture(Texture2D* tex);
-
-    // ---------------- Sprite Properties ----------------
+    void SetMaterial(std::string& id);
+    
+    Sprite* GetSprite();
+    void SetSprite(std::string& id);
+    
+    void SetColor(const glm::vec4& c) { color = c; }
     glm::vec4 GetColor() const { return color; }
-    glm::vec4 GetUVRect() const { return uvRect; }
+    
+    void SetSortingOrder(int order) { sortingOrder = order; }
     int GetSortingOrder() const { return sortingOrder; }
+    
+    void SetVisible(bool& value);
+    bool GetVisible(){return visible;};
+    
     bool GetFlipX() const { return flipX; }
     bool GetFlipY() const { return flipY; }
-
-    void SetColor(const glm::vec4& c) { color = c; }
-    void SetUVRect(const glm::vec4& uv) { uvRect = uv; }
-    void SetSortingOrder(int order) { sortingOrder = order; }
+    
     void SetFlipX(bool v) { flipX = v; }
     void SetFlipY(bool v) { flipY = v; }
 
+    void OverrideUniforms();
+
+    std::string GetTypeName() const override { return "SpriteRenderer"; }
+
 private:
     std::string material_id;
-    std::string texture_id;
-
-    glm::vec4 uvRect = glm::vec4(0, 0, 1, 1);
+    std::string sprite_id;
+    glm::vec2 uvOffset;
+    glm::vec2 uvScale;
     glm::vec4 color = glm::vec4(1, 1, 1, 1);
+
     int sortingOrder = 0;
     bool flipX = false;
     bool flipY = false;
+    bool visible = true;
 };

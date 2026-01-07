@@ -27,7 +27,7 @@ public:
     void SetVec2(const std::string& name, const glm::vec2& value){vec2Uniforms[name] = value;}
     void SetVec3(const std::string& name, const glm::vec3& value){vec3Uniforms[name] = value;}
     void SetVec4(const std::string& name, const glm::vec4& value){vec4Uniforms[name] = value;}
-    void SetTexture(const std::string& name, const std::string& text_id){texUniforms[name] = text_id;}
+    void SetTexture(const std::string& name, const std::string& tex_id){texUniforms[name] = tex_id;}
     void ApplyUniforms();
 
 private:

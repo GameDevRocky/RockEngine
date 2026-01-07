@@ -5,8 +5,35 @@
 #include <random>
 #include <sstream>
 #include <string_view>
+#include <glm/glm.hpp>
 
 namespace EngineUtils{
+
+
+    namespace RenderUtils{
+
+    constexpr float PixelsPerUnit = 64.0f;
+    
+    inline float PixelsToWorld(float pixels) {
+        return pixels / PixelsPerUnit;
+    }
+    
+    inline glm::vec2 PixelsToWorld(const glm::vec2& pixels) {
+        return pixels / PixelsPerUnit;
+    }
+    
+    inline float WorldToPixels(float units) {
+        return units * PixelsPerUnit;
+    }
+    
+    inline glm::vec2 WorldToPixels(const glm::vec2& units) {
+        return units * PixelsPerUnit;
+    }
+    
+    }
+
+
+
 
 
 std::string GenerateUUID();
@@ -28,6 +55,11 @@ constexpr std::string_view TypeName() {
     auto end = n.find('>', start);
     return n.substr(start, end - start);
 #endif
+
+
+
+
+
 }
 
 }
