@@ -19,13 +19,6 @@ public:
         return instance;
     }
 
-    struct LinkRequest {
-        std::function<void(Serializable*)> setter; 
-        std::string targetUUID;                   
-    };
-    using LinkCallback = std::function<void(Serializable*)>;
-
-    std::vector<LinkRequest> deferredLinks;
 
     void Register(Serializable* obj);
 
@@ -41,9 +34,7 @@ public:
         return nullptr;
     }
 
-    void DeferLink(const std::string& targetUUID, std::function<void(Serializable*)> setter);
 
-    void ResolveLinks();
 
     // Optional helper
     std::unordered_map<std::string, Serializable*>& GetAll() { return serializables; }

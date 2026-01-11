@@ -127,7 +127,6 @@ void SpriteRenderer::OverrideUniforms()
     // Convert pixels → world units
     glm::vec2 worldSize = PixelsToWorld(pixelSize);
 
-    Console::Comment(std::to_string(worldSize.x) + " " + std::to_string(worldSize.y));
 
     shader->SetVec2("uSize", worldSize);
     shader->SetVec2("uPivot", sprite->GetPivot());

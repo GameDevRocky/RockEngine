@@ -7,13 +7,13 @@ uniform float uZoom;
 uniform float uTime;      
 const int MAX_LEVELS = 13; 
 
-const float BASE_SPACING = 0.25f; 
+const float BASE_SPACING = .5f; 
 const int MAJOR_SKIP = 2;        
 const vec3 uMinorColor = vec3(0.2f);
 const vec3 uMajorColor = vec3(0.5f);
 const vec3 uBackground = vec3(0.01f); 
 
-const float FADE_IN_PIXELS  = 4.0;   
+const float FADE_IN_PIXELS  = 6.0;   
 const float HIDE_PIXELS     = 500.0; 
 const float FADE_OUT_PIXELS = 300.0; 
 

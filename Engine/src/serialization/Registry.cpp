@@ -8,19 +8,6 @@ void Registry::Register(Serializable* obj) {
 
     std::string id = obj->GetID();
     serializables[id] = obj;
-
-    // Try to resolve any pending link requests that target this object
-    auto it = std::remove_if(deferredLinks.begin(), deferredLinks.end(),
-        [&](LinkRequest& req) {
-            if (req.targetUUID == id) {
-                req.setter(obj);
-                return true; // remove from deferred list
-            }
-            return false;
-        });
-
-    if (it != deferredLinks.end())
-        deferredLinks.erase(it, deferredLinks.end());
 }
  
 void Registry::Unregister(Serializable* obj) {
@@ -32,25 +19,3 @@ void Registry::Unregister(Serializable* obj) {
 }
 
 
-
-void Registry::DeferLink(const std::string& targetUUID, std::function<void(Serializable*)> setter) {
-    if (auto* obj = Find<Serializable>(targetUUID)) {
-        setter(obj);
-        return;
-    }
-
-    deferredLinks.push_back({setter, targetUUID});
-}
-
-void Registry::ResolveLinks() {
-    if (deferredLinks.empty()) {
-        Console::Comment("All links resolved");
-        return;
-    }
-
-    std::cerr << "Unresolved links remaining:\n";
-    for (auto& link : deferredLinks) {
-        std::cerr << "  - Missing target UUID: " << link.targetUUID << std::endl;
-    }
-    deferredLinks.clear();
-}
