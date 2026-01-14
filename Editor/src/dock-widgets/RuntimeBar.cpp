@@ -2,6 +2,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QStyle>
+#include "Engine.hpp"
 
 void RuntimeBar::Init() {
     setFixedHeight(24);
@@ -17,6 +18,10 @@ void RuntimeBar::Init() {
     playButton = new QPushButton("", this);
     playButton->setIcon(playIcon);
     playButton->setFixedWidth(64);
+
+    connect(playButton, &QPushButton::clicked, []() {
+        Engine::Get()->Toggle();
+    });
     
     QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);
     pauseButton = new QPushButton("", this);

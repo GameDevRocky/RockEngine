@@ -17,10 +17,23 @@ void Engine::Init() {
     RegisterComponentTypes();
 
     editorContainer = new Container();
+    runtimeContainer = new Container();
     activeContainer = editorContainer;
     
     editorContainer->Init();
     editorContainer->PostInit();
+
+    activeContainer = runtimeContainer;
+
+    runtimeContainer->Init();
+    runtimeContainer->PostInit();
+
+    activeContainer = editorContainer;
+}
+
+void Engine::Toggle(){
+    if (activeContainer == editorContainer) activeContainer = runtimeContainer;
+    else if (activeContainer == runtimeContainer) activeContainer = editorContainer;
 }
 
 

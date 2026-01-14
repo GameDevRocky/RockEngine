@@ -17,6 +17,7 @@ public:
     void Init();
     void Update();
     void Shutdown();
+    void Toggle();
 
     void EnterPlayMode();
     void ExitPlayMode();
