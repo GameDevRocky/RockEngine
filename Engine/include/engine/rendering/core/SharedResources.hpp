@@ -41,6 +41,8 @@ public:
 private:
     SharedResources() = default;
 
+    bool initialized = false;
+
     std::unordered_map<std::string, Shader*> shaders;
     std::unordered_map<std::string, Texture2D*> textures;
     std::unordered_map<std::string, Material*> materials;

@@ -26,6 +26,8 @@ public:
     QDockWidget* fileExplorerDock;
     QDockWidget* folderViewDock;
     QDockWidget* consoleDock;
+    QDockWidget* runtimeBarDock;
+
     class SceneViewGui* scene_view;
     class GameViewGui* game_view;
     

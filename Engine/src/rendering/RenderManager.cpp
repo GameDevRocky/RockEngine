@@ -9,23 +9,18 @@
 #include <glad/glad.h>
 
 void RenderManager::Init(){
-
-    
     if (!gladLoadGL()) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
     }
     glEnable(GL_DEPTH_TEST);
-    Console::Comment("RenderManager Initialized");
-
-    SharedResources::Get().Init();
-    
     
     editor_pipeline = new RenderPipeline();
     game_pipeline = new RenderPipeline();
     
-    SceneCamera::Get().Init();
+    // SceneCamera::Get().Init();
 
     SetUpEditorPipeline();
+    SetUpGamePipeline();
 }
 
 
@@ -46,12 +41,12 @@ void RenderManager::SetUpGamePipeline(){
 }
 
 void RenderManager::Update(){
-    SceneCamera::Get().Update();    
+    // SceneCamera::Get().Update();    
 }
 
 void RenderManager::Render(){
-    auto& scene_manager = SceneManager::Get();
-    for (auto& scene : scene_manager.GetScenes()){
-        editor_pipeline->Render(SceneCamera::Get(), *scene);
-    }
+    // auto& scene_manager = SceneManager::Get();
+    // for (auto& scene : scene_manager.GetScenes()){
+    //     editor_pipeline->Render(SceneCamera::Get(), *scene);
+    // }
 }

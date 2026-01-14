@@ -8,6 +8,7 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/core/Scene.hpp"
 #include <iostream>
+#include "Engine.hpp"
 
 class Component;
 class Transform;
@@ -25,10 +26,12 @@ public:
         std::string type = std::string(EngineUtils::TypeName<T>());
         auto it = component_ids.find(type);
         if (it == component_ids.end())
-            return nullptr;
-
+        return nullptr;
+        
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->GetRegistry();
         const std::string& comp_id = it->second;
-        T* comp = Registry::Find<T>(comp_id);
+        T* comp = registry->Find<T>(comp_id);
         return comp;
     }
 

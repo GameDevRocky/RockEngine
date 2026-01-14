@@ -12,32 +12,35 @@ namespace py = pybind11;
 void Engine::Init() {
     static auto* guard = new py::scoped_interpreter();
     static auto* release = new py::gil_scoped_release();
+
     engine::RegisterPythonBindings();
     RegisterComponentTypes();
-    InputManager::Get().Init(); 
-    TimeManager::Get().Init(); 
-    SceneManager::Get().Init();
+
+    editorContainer = new Container();
+    activeContainer = editorContainer;
+    
+    editorContainer->Init();
+    editorContainer->PostInit();
 }
 
 
-void Engine::Run() {
-    InputManager::Get().Update();
-    TimeManager::Get().Update();
-    SceneManager::Get().Update();
-    RenderManager::Get().Update();
+void Engine::Update(){
+    activeContainer->Update();   
+}
+
+
+void Engine::EnterPlayMode(){
+    runtimeContainer = editorContainer->Copy();
+    activeContainer = runtimeContainer;
+    activeContainer->Init();
+    activeContainer->PostInit();
+}
+
+void Engine::ExitPlayMode(){
+    runtimeContainer->Shutdown();
+    activeContainer = editorContainer;
 }
 
 void Engine::Shutdown() {
-    InputManager::Get().Shutdown();
-    SceneManager::Get().Shutdown();
-    TimeManager::Get().Shutdown();
-
-}
-
-bool Engine::GetActive(){
-    return active;
-}
-
-void Engine::SetActive(bool active){
-    this->active = active;
+   
 }

@@ -4,6 +4,7 @@
 #include <QPoint>
 #include <QTreeView>
 #include "engine/core/SceneManager.hpp"
+#include "Engine.hpp"
 
 
 HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
@@ -72,8 +73,10 @@ void HierarchyGui::Init(){
     
 }
 
-void HierarchyGui::Start(){ 
-    std::vector<Scene*> scenes = SceneManager::Get().GetScenes();
+void HierarchyGui::Start(){
+    Engine* engine = Engine::Get();
+    SceneManager* sceneManager = engine->GetActiveContainer()->GetSceneManager();
+    std::vector<Scene*> scenes = sceneManager->GetScenes();
     if (!scenes.empty()) {
         SetScene(scenes[0]);
 

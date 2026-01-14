@@ -2,11 +2,9 @@
 #include <chrono>
 #include "engine/core/System.hpp"
 class TimeManager : public System {
+    
 public:
-    static TimeManager& Get() {
-        static TimeManager instance;
-        return instance;
-    }
+    TimeManager() = default;
 
     void Init() override;
     void PostInit() override {};
@@ -22,9 +20,8 @@ public:
     float TimeScale() const { return timeScale; }
 
     void SetTimeScale(float scale) { timeScale = scale; }
-
+    
 private:
-    TimeManager() = default;
 
     std::chrono::high_resolution_clock::time_point lastFrameTime;
 

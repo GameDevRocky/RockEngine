@@ -4,10 +4,6 @@
 
 class InputManager : public System {
 public:
-    static InputManager& Get() {
-        static InputManager instance;
-        return instance;
-    }
 
     void Init() override;
     void PostInit() override {};
@@ -19,11 +15,12 @@ public:
 
     void SetKeyState(int key, bool pressed) { m_keyStates[key] = pressed; }
     bool IsKeyDown(int key) { return m_keyStates[key]; }
+    
+    InputManager() = default;
+    ~InputManager() override = default;
 
 
 private:
-    InputManager() = default;
-    ~InputManager() override = default;
     std::unordered_map<int, bool> m_keyStates;
     glm::vec2 mouse_pos;
 };

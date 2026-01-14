@@ -1,4 +1,5 @@
 #pragma once
+#include <glad/glad.h>
 #include "engine/rendering/passes/RenderPass.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
@@ -8,7 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include <glad/glad.h>
+#include "Engine.hpp"
 
 class ScenePass : public RenderPass
 {
@@ -29,24 +30,24 @@ public:
              0.5f,  0.5f, 1.0f, 1.0f,
             -0.5f,  0.5f, 0.0f, 1.0f
         };
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glad_glEnable(GL_BLEND);
+        glad_glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
+        glad_glGenVertexArrays(1, &vao);
+        glad_glGenBuffers(1, &vbo);
 
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), quadVerts, GL_STATIC_DRAW);
+        glad_glBindVertexArray(vao);
+        glad_glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glad_glBufferData(GL_ARRAY_BUFFER, sizeof(quadVerts), quadVerts, GL_STATIC_DRAW);
 
-        glEnableVertexAttribArray(0); // pos
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+        glad_glEnableVertexAttribArray(0); // pos
+        glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
 
-        glEnableVertexAttribArray(1); // uv
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+        glad_glEnableVertexAttribArray(1); // uv
+        glad_glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
-        glBindVertexArray(0);
+        glad_glBindVertexArray(0);
     }
 
     void Resize(int width, int height) override
@@ -58,7 +59,7 @@ public:
     void Execute(RenderCamera& camera, Scene& scene) override
     {
         const auto& objects = scene.GetAllGameObjects();
-        glBindVertexArray(vao);
+        glad_glBindVertexArray(vao);
 
         for (auto* obj : objects)
         {
@@ -84,20 +85,21 @@ public:
             shader->SetMat4("uView", camera.GetViewMatrix());
             shader->SetMat4("uProj", camera.GetProjectionMatrix());
             shader->SetMat4("uModel", transform->GetWorldMatrix());
-            shader->SetFloat("uTime", TimeManager::Get().ElapsedTime());
+            TimeManager* timeManager = Engine::Get()->GetActiveContainer()->GetTimeManager();
+            shader->SetFloat("uTime", timeManager->ElapsedTime());
             mat->ApplyUniforms();
             renderer->OverrideUniforms();
 
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glad_glDrawArrays(GL_TRIANGLES, 0, 6);
         }
 
-        glBindVertexArray(0);
+        glad_glBindVertexArray(0);
     }
 
     void Shutdown() override
     {
-        if (vbo) glDeleteBuffers(1, &vbo);
-        if (vao) glDeleteVertexArrays(1, &vao);
+        if (vbo) glad_glDeleteBuffers(1, &vbo);
+        if (vao) glad_glDeleteVertexArrays(1, &vao);
     }
 
 private:

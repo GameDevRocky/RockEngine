@@ -11,7 +11,8 @@
 #include <QPoint>
 #include <QMouseEvent>
 #include <glm/glm.hpp>
-
+#include "engine/rendering/pipelines/RenderPipeline.hpp"
+#include "engine/rendering/cameras/RenderCamera.hpp"
 
 class SceneViewGui : public QOpenGLWidget, protected QOpenGLFunctions {
     Q_OBJECT
@@ -25,12 +26,13 @@ public:
         return instance;
     }
 
-    explicit SceneViewGui(QWidget* parent = nullptr);
     ~SceneViewGui() override;
-
+    
     void Init();
+    void Render();
+    
+    protected:
 
-protected:
     void initializeGL() override;
     void resizeGL(int w, int h) override;
     void paintGL() override;
@@ -41,12 +43,19 @@ protected:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     glm::vec2 ScreenToWorld(const QPoint& p);
-private:
 
+    void initializeRenderPipeline();
+
+    private:
+    explicit SceneViewGui(QWidget* parent = nullptr);
+
+    RenderPipeline* renderPipeline = nullptr;
+    RenderCamera* camera = nullptr;
+
+    
     QPoint lastMousePos;
     bool isPanning = false;
-
-
+    
     QOpenGLShaderProgram program;
     QOpenGLBuffer vbo{QOpenGLBuffer::VertexBuffer};
     QOpenGLVertexArrayObject vao;

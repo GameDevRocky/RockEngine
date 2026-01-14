@@ -3,6 +3,7 @@
 #include "engine/core/GameObject.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/serialization/Registry.hpp"
+#include "Engine.hpp"
 #include <algorithm>
 
 // HierarchyTreeItem implementation
@@ -116,7 +117,9 @@ QVariant HierarchyTreeModel::data(const QModelIndex& index, int role) const {
         return QVariant();
 
     // Find the GameObject in Registry
-    Serializable* serializable = Registry::Get().Find(item->gameObjectId);
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Serializable* serializable = registry->Find(item->gameObjectId);
     GameObject* gameObj = dynamic_cast<GameObject*>(serializable);
 
     if (gameObj)

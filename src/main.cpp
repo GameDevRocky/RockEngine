@@ -5,12 +5,13 @@
 
 int main(int argc, char *argv[]) {
 
-    Engine &engine = Engine::Get();
-    Editor &editor = Editor::Get();
-    engine.Init();
-    editor.Init();
-    editor.Start();
-    editor.Shutdown();
-    engine.Shutdown();
+    Engine* engine = Engine::Get();
+    Editor* editor = Editor::Get();
+    engine->Init();
+    editor->Init();
+    editor->Start();
+    std::cout << "editor start" << std::endl;
+    editor->Shutdown();
+    engine->Shutdown();
     return -1;
 }

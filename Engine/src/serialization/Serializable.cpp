@@ -5,7 +5,7 @@ Serializable::Serializable(){
 
 }
 Serializable::~Serializable(){
-    Registry::Get().Unregister(this);
+
 }
 
 

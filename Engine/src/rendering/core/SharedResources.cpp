@@ -5,9 +5,12 @@
 
 void SharedResources::Init()
 {
+    if (initialized)
+        return;
+
     const YAML::Node root = YAML::LoadFile(RESOURCES_CONFIG_PATH);
     const YAML::Node data = root["Resources"];
-
+    
     for (auto& texNode : data["Textures"])
     {
         Texture2D* texture = new Texture2D();
@@ -22,14 +25,14 @@ void SharedResources::Init()
         AddSprite(sprite);
         std::cout << sprite->GetName() << std::endl;
     }
-
+    
     for (auto& shadNode : data["Shaders"])
     {
         Shader* shader = new Shader();
         shader->Deserialize(shadNode);
         AddShader(shader);
     }
-
+    
     for (auto& matNode : data["Materials"])
     {
         Material* material = new Material();
@@ -48,6 +51,7 @@ void SharedResources::Init()
         obj->PostDeserialize();
 
     Console::Comment("Shared Resources Initialized");
+    initialized = true;
     
 }
 

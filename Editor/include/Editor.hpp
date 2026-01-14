@@ -6,8 +6,8 @@
 
 class Editor : public System {
 public:
-    static Editor& Get() {
-        static Editor instance;
+    static Editor* Get() {
+        static Editor* instance = new Editor();
         return instance;
     }
 

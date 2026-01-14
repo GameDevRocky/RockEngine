@@ -1,11 +1,14 @@
 #include "engine/debug/Console.hpp"
 #include <filesystem>
+#include "Engine.hpp"
 
 void Console::Update() {}
 void Console::Shutdown() {}
 
 void Console::CreateMessage(std::string text, std::string type, const std::source_location loc){
     Console& instance = Get();
+    Engine* engine = Engine::Get();
+    TimeManager* timeManager = engine->GetActiveContainer()->GetTimeManager();
     
     std::string full_path = loc.file_name();
     std::filesystem::path path(full_path);
@@ -15,7 +18,7 @@ void Console::CreateMessage(std::string text, std::string type, const std::sourc
 
     int line = loc.line();
     std::string function = loc.function_name();
-    float time_stamp = TimeManager::Get().ElapsedTime();
+    float time_stamp = timeManager->ElapsedTime();
 
     std::string key = text + type;
     auto it = instance.messages.find(key);

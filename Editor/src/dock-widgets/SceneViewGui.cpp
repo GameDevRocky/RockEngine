@@ -2,9 +2,14 @@
 #include "engine/rendering/RenderManager.hpp" 
 #include <QDebug>
 #include "engine/debug/Console.hpp"
-#include "engine/rendering/cameras/SceneCamera.hpp"
 #include "engine/core/InputManager.hpp"
 #include <glm/glm.hpp>
+#include "engine/rendering/passes/ClearPass.hpp"
+#include "engine/rendering/passes/ScenePass.hpp"
+#include "engine/rendering/passes/GridPass.hpp"
+#include "engine/rendering/core/SharedResources.hpp"
+#include "Engine.hpp"
+//#include "Engine.hpp";
 
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
@@ -18,24 +23,46 @@ setMouseTracking(true);
 SceneViewGui::~SceneViewGui()
 {
     makeCurrent();
-    RenderManager::Get().Shutdown();
     doneCurrent();
 }
-void SceneViewGui::initializeGL() {
-    initializeOpenGLFunctions();
-    RenderManager::Get().Init();
-    
 
-    // Ensure pipeline FBO matches the real GL framebuffer size (consider HiDPI)
+void SceneViewGui::initializeRenderPipeline(){
     int fbw = static_cast<int>(width() * devicePixelRatio());
     int fbh = static_cast<int>(height() * devicePixelRatio());
-    RenderManager::Get().editor_pipeline->Resize(fbw, fbh);
+    
+    renderPipeline = new RenderPipeline();
+    camera = new RenderCamera();
 
-    // -----------------------------
-    // Fullscreen quad setup
-    // -----------------------------
+    
+    ClearPass* clearPass = new ClearPass();
+    GridPass* gridPass = new GridPass();
+    ScenePass* scenePass = new ScenePass();
+    
+    renderPipeline->AddPass(clearPass);
+    renderPipeline->AddPass(gridPass);
+    renderPipeline->AddPass(scenePass);
+    
+    renderPipeline->Init();
+    camera->Init();
+
+    renderPipeline->Resize(fbw, fbh);
+    camera->Resize(fbw, fbh);
+}
+
+void SceneViewGui::initializeGL() {
+    initializeOpenGLFunctions();
+
+    // We use glad_gl* calls throughout the renderer/passes; GLAD must be loaded
+    // after a context is current (Qt makes the context current for initializeGL).
+    if (!gladLoadGL()) {
+        std::cerr << "Failed to initialize GLAD" << std::endl;
+        return;
+    }
+
+    SharedResources::Get().Init();
+    initializeRenderPipeline();
+
     float quadVertices[] = {
-        // positions   // texcoords
         -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
         -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
          1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
@@ -58,7 +85,6 @@ void SceneViewGui::initializeGL() {
 
     glBindVertexArray(0);
 
-    // Shader for displaying the FBO texture
     const char* quadVert = R"(#version 460 core
     layout(location = 0) in vec3 aPos;
     layout(location = 1) in vec2 aTexCoord;
@@ -76,7 +102,6 @@ void SceneViewGui::initializeGL() {
         FragColor = texture(uTexture, TexCoord);
     })";
 
-    // Compile & link
     quadShader = glCreateProgram();
     GLuint v = glCreateShader(GL_VERTEX_SHADER);
     GLuint f = glCreateShader(GL_FRAGMENT_SHADER);
@@ -93,25 +118,22 @@ void SceneViewGui::initializeGL() {
 
 
 void SceneViewGui::resizeGL(int w, int h) {
-    // Use actual framebuffer pixel size (widget size * devicePixelRatio)
     int fbw = static_cast<int>(w * devicePixelRatio());
     int fbh = static_cast<int>(h * devicePixelRatio());
 
-    RenderManager::Get().editor_pipeline->Resize(fbw, fbh);
-    SceneCamera::Get().Resize(fbw, fbh);
+    renderPipeline->Resize(fbw, fbh);
+    camera->Resize(fbw, fbh);
     glViewport(0, 0, fbw, fbh);
 }
 
 void SceneViewGui::paintGL() {
-    makeCurrent();
-    RenderManager::Get().Render();
-    GLuint tex = RenderManager::Get().editor_pipeline->GetOutputTexture();
 
-    // Ensure we're drawing to the Qt-provided default framebuffer (it may not be 0)
+    makeCurrent();
+    Render();
+    GLuint tex = renderPipeline->GetOutputTexture();
     GLuint qtFBO = static_cast<GLuint>(defaultFramebufferObject());
     glBindFramebuffer(GL_FRAMEBUFFER, qtFBO);
 
-    // Default framebuffer may also be scaled on HiDPI displays
     int fbw = static_cast<int>(width() * devicePixelRatio());
     int fbh = static_cast<int>(height() * devicePixelRatio());
     glViewport(0, 0, fbw, fbh);
@@ -126,14 +148,30 @@ void SceneViewGui::paintGL() {
     glUseProgram(0);
 }
 
+void SceneViewGui::Render(){
+    Engine* engine = Engine::Get();
+    auto* container = engine->GetActiveContainer();
+    SceneManager* sceneManager = container->GetSceneManager();
+
+    for (auto& scene : sceneManager->GetScenes()){
+        renderPipeline->Render(*camera, *scene);
+    }    
+}
+
 
 void SceneViewGui::keyPressEvent(QKeyEvent* event) {
-    InputManager::Get().SetKeyState(event->key(), true);
+    Engine* engine = Engine::Get();
+    auto* container = engine->GetActiveContainer();
+    InputManager* inputManager = container->GetInputManager();
+    inputManager->SetKeyState(event->key(), true);
     Console::Comment(std::to_string(event->key()));
 }
 
 void SceneViewGui::keyReleaseEvent(QKeyEvent* event) {
-    InputManager::Get().SetKeyState(event->key(), false);
+    Engine* engine = Engine::Get();
+    auto* container = engine->GetActiveContainer();
+    InputManager* inputManager = container->GetInputManager();
+    inputManager->SetKeyState(event->key(), false);
     Console::Comment(std::to_string(event->key()));
 }
 
@@ -147,15 +185,15 @@ void SceneViewGui::wheelEvent(QWheelEvent* event)
     float scroll = event->angleDelta().y();
     float factor = 1.0f + scroll / 1200.0f;
 
-    float newZoom = SceneCamera::Get().GetZoom() * factor;
-    SceneCamera::Get().SetZoom(newZoom);
+    float newZoom = camera->GetZoom() * factor;
+    camera->SetZoom(newZoom);
 
     glm::vec2 after = ScreenToWorld(mousePos);
 
     // Camera must shift so world point under cursor stays fixed
     glm::vec2 delta = before - after;
 
-    SceneCamera::Get().SetPosition(SceneCamera::Get().GetPosition() + delta);
+    camera->SetPosition(camera->GetPosition() + delta);
 
     event->accept();
 }
@@ -191,12 +229,16 @@ void SceneViewGui::mouseReleaseEvent(QMouseEvent* event)
 
 void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
 {
+    Engine* engine = Engine::Get();
+    auto* container = engine->GetActiveContainer();
+    InputManager* inputManager = container->GetInputManager();
+
     bool ctrlHeld = (e->modifiers() & Qt::ControlModifier);
     bool leftDragPan = (e->buttons() & Qt::LeftButton) && ctrlHeld;
     bool midDragPan  = (e->buttons() & Qt::MiddleButton);
 
     glm::vec2 currentPos = { static_cast<float>(e->pos().x()), static_cast<float>(e->pos().y()) };
-    InputManager::Get().SetMousePosition(currentPos);
+    inputManager->SetMousePosition(currentPos);
 
     if (!leftDragPan && !midDragPan) {
         lastMousePos = e->pos();
@@ -205,8 +247,8 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
 
     QPoint deltaPx = e->pos() - lastMousePos;
 
-    float zoom = SceneCamera::Get().GetZoom();
-    float ortho = SceneCamera::Get().GetOrthoSize(); // whatever you named it
+    float zoom = camera->GetZoom();
+    float ortho = camera->GetOrthoSize(); // whatever you named it
 
     float dpi = devicePixelRatioF();
     float viewportH = height() * dpi;
@@ -222,8 +264,8 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
          deltaPx.y() * unitsPerPixel
     );
 
-    SceneCamera::Get().SetPosition(
-        SceneCamera::Get().GetPosition() + worldDelta
+    camera->SetPosition(
+        camera->GetPosition() + worldDelta
     );
 
     lastMousePos = e->pos();
@@ -244,8 +286,8 @@ glm::vec2 SceneViewGui::ScreenToWorld(const QPoint& p)
     glm::vec4 clip(ndcX, ndcY, 0.0f, 1.0f);
 
     // Convert through inverse projection and inverse view
-    glm::mat4 invProj = glm::inverse(SceneCamera::Get().GetProjectionMatrix());
-    glm::mat4 invView = glm::inverse(SceneCamera::Get().GetViewMatrix());
+    glm::mat4 invProj = glm::inverse(camera->GetProjectionMatrix());
+    glm::mat4 invView = glm::inverse(camera->GetViewMatrix());
 
     glm::vec4 world = invView * (invProj * clip);
 

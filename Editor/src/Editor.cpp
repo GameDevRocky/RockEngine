@@ -17,9 +17,8 @@ Editor::Editor(){
 
 }
 
-
 void Editor::Init() {
-    // Set default OpenGL format before creating QApplication
+
     QSurfaceFormat format;
     format.setVersion(4, 6);
     format.setProfile(QSurfaceFormat::CoreProfile);
@@ -27,15 +26,17 @@ void Editor::Init() {
     format.setStencilBufferSize(8);
     format.setSamples(4);
     QSurfaceFormat::setDefaultFormat(format);
-    
+
     if (!QApplication::instance()) {
-        static int argc = 0;
-        static char* argv[] = { const_cast<char*>("RockEngineEditor") };
+        QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
+        static int argc = 1;
+        static char arg0[] = "RockEngineEditor";
+        static char* argv[] = { arg0, nullptr };
+
         app = new QApplication(argc, argv);
     } else {
         app = qobject_cast<QApplication*>(QApplication::instance());
     }
-    
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     QPalette darkPalette;
@@ -65,18 +66,12 @@ void Editor::Init() {
     darkPalette.setColor(QPalette::Link, QColor(100, 150, 255));
 
     qApp->setPalette(darkPalette);
-
-    // QFile file("domain/assets/styling/default.qss");  // put the file in your resources
-    // if (file.open(QFile::ReadOnly | QFile::Text)) {
-    //     qApp->setStyleSheet(file.readAll());
-    // }
-
     MainWindow& main_window = *MainWindow::Get();
     main_window.Init();
 }
 
 void Editor::Update(){
-
+    SceneViewGui::Get()->update();
     
 }
 
@@ -86,8 +81,8 @@ void Editor::Start() {
     MainWindow::Get()->Start();
 
     QObject::connect(timer, &QTimer::timeout, [this]() {
-        Engine::Get().Run();
-        SceneViewGui::Get()->update();
+        Engine::Get()->Update();
+        Editor::Get()->Update();
     });
     timer->start(16);
     app->exec();

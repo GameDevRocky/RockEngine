@@ -2,41 +2,51 @@
 #include <iostream>
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/TimeManager.hpp"
+#include "Engine.hpp"
 
 #define SAMPLE_SCENE_PATH "Domain/scenes/SampleScene.yaml"
 
 void SceneManager::Init(){
+    
+
+}
+void SceneManager::PostInit(){
     LoadScene(SAMPLE_SCENE_PATH); 
 }
-
 void SceneManager::Update(){
-    const float fixedDeltaTime = TimeManager::Get().FixedDeltaTime();
-    const float frameTime = TimeManager::Get().DeltaTime();
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    TimeManager* timeManager = engine->GetActiveContainer()->GetTimeManager();
+    const float fixedDeltaTime = timeManager->FixedDeltaTime();
+    const float frameTime = timeManager->DeltaTime();
     accumulator += frameTime;
     while (accumulator >= fixedDeltaTime){
         for(auto& scene_id : scene_ids){
-        Scene* scene = Registry::Find<Scene>(scene_id);
+        Scene* scene = registry->Find<Scene>(scene_id);
         scene->FixedUpdate();
         accumulator -= fixedDeltaTime;
         }
     }
 
     for(auto& scene_id : scene_ids){
-        Scene* scene = Registry::Find<Scene>(scene_id);
+        Scene* scene = registry->Find<Scene>(scene_id);
         scene->Update();
     }
     for(auto& scene_id : scene_ids){
-        Scene* scene = Registry::Find<Scene>(scene_id);
+        Scene* scene = registry->Find<Scene>(scene_id);
         scene->LateUpdate();
     }
 }
 
 
 Scene* SceneManager::LoadScene(const std::string& file_path){
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    std::cout << "engine get" << std::endl;
     Scene* scene = new Scene();
     YAML::Node root = YAML::LoadFile(file_path);
     scene->Deserialize(root);
-    Registry::Get().Register(scene);
+    registry->Register(scene);
     scene_ids.push_back(scene->GetID());
     Notify();
     return scene;
@@ -49,9 +59,11 @@ void SceneManager::RemoveScene(const std::string& scene_id) {
 }
 
 std::vector<Scene*> SceneManager::GetScenes() const {
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
     std::vector<Scene*> scenes;
     for (auto& s_id : scene_ids){
-        Scene* scene = Registry::Find<Scene>(s_id);
+        Scene* scene = registry->Find<Scene>(s_id);
         scenes.push_back(scene);
     }
     return scenes;

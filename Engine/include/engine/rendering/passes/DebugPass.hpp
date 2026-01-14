@@ -1,7 +1,7 @@
 #pragma once
+#include <glad/glad.h>
 #include "engine/rendering/passes/RenderPass.hpp"
 #include "engine/core/Scene.hpp"
-#include <glad/glad.h>
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -13,15 +13,15 @@ public:
     void Init() override
     {
         // Optionally setup VAO/VBO for debug lines
-        glGenVertexArrays(1, &vao);
-        glGenBuffers(1, &vbo);
-        glBindVertexArray(vao);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 1000, nullptr, GL_DYNAMIC_DRAW); // 1000 max points
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        glad_glGenVertexArrays(1, &vao);
+        glad_glGenBuffers(1, &vbo);
+        glad_glBindVertexArray(vao);
+        glad_glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glad_glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 2 * 1000, nullptr, GL_DYNAMIC_DRAW); // 1000 max points
+        glad_glEnableVertexAttribArray(0);
+        glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+        glad_glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glad_glBindVertexArray(0);
     }
 
     void Resize(int width, int height) override
@@ -36,8 +36,8 @@ public:
 
     void Shutdown() override
     {
-        if (vbo) glDeleteBuffers(1, &vbo);
-        if (vao) glDeleteVertexArrays(1, &vao);
+        if (vbo) glad_glDeleteBuffers(1, &vbo);
+        if (vao) glad_glDeleteVertexArrays(1, &vao);
     }
 
 private:
@@ -46,7 +46,7 @@ private:
 
     void DrawGrid()
     {
-        glBindVertexArray(vao);
+        glad_glBindVertexArray(vao);
         std::vector<float> lines;
 
         const float step = 0.1f; // grid spacing
@@ -69,11 +69,11 @@ private:
             lines.push_back(i * step);
         }
 
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, lines.size() * sizeof(float), lines.data());
-        glDrawArrays(GL_LINES, 0, lines.size() / 2);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        glad_glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        glad_glBufferSubData(GL_ARRAY_BUFFER, 0, lines.size() * sizeof(float), lines.data());
+        glad_glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(lines.size() / 2));
+        glad_glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glad_glBindVertexArray(0);
     }
 
 };

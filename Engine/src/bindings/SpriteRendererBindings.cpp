@@ -7,13 +7,15 @@
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/Shader.hpp"
-
+#include "Engine.hpp"
 #include <iostream>
 
 void BindSpriteRenderer(pybind11::module_& m) {
 
     m.def("set_flip", [](const std::string& id, bool x, bool y) {
-        GameObject* go = Registry::Get().Find<GameObject>(id); 
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        GameObject* go = registry->Find<GameObject>(id); 
         if (go) {
             if (auto* renderer = go->GetComponent<SpriteRenderer>()) {
                 renderer->SetFlipX(x);
@@ -22,7 +24,9 @@ void BindSpriteRenderer(pybind11::module_& m) {
         }
     });
     m.def("get_flip", [](const std::string& id) {
-        GameObject* go = Registry::Get().Find<GameObject>(id); 
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        GameObject* go = registry->Find<GameObject>(id); 
         if (go) {
             if (auto* renderer = go->GetComponent<SpriteRenderer>()) {
                 return std::make_tuple(renderer->GetFlipX(), renderer->GetFlipY());

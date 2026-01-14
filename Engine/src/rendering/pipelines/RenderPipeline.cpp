@@ -13,15 +13,12 @@ void RenderPipeline::AddPass(RenderPass* pass)
 {
     if (!pass)
         throw std::runtime_error("RenderPipeline::AddPass - pass is null");
-
     passes.push_back(pass);
+
 }
 
 void RenderPipeline::Init()
 {
-    // Create FBO before pass initialization
-    CreateOutputFBO(viewportWidth, viewportHeight);
-
     for (auto* pass : passes)
         pass->Init();
 }

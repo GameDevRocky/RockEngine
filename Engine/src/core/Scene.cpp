@@ -7,27 +7,34 @@
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/debug/Console.hpp"
 #include <algorithm> 
+#include "Engine.hpp"
 
 void Scene::Init() {
     std::cout << "Initializing scene: " << name << std::endl;
 }
 
 void Scene::Update() {
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
     for (auto& obj_id : gameobject_ids){
-        GameObject* obj = Registry::Find<GameObject>(obj_id);
+        GameObject* obj = registry->Find<GameObject>(obj_id);
         if (obj->GetActive()) obj->Update();
     } 
 }
 void Scene::FixedUpdate() {
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
     for (auto& obj_id : gameobject_ids){
-        GameObject* obj = Registry::Find<GameObject>(obj_id);
+        GameObject* obj = registry->Find<GameObject>(obj_id);
         if (obj->GetActive()) obj->FixedUpdate();
 
     } 
 }
 void Scene::LateUpdate() {
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
     for (auto& obj_id : gameobject_ids){
-        GameObject* obj = Registry::Find<GameObject>(obj_id);
+        GameObject* obj = registry->Find<GameObject>(obj_id);
         if (obj->GetActive()) obj->LateUpdate();
 
     } 
@@ -47,6 +54,8 @@ YAML::Node Scene::Serialize() {
 
 void Scene::Deserialize(const YAML::Node& data) {
     Serializable::Deserialize(data);
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
     if (data["name"]) 
         name = data["name"].as<std::string>();
     else
@@ -63,10 +72,11 @@ void Scene::Deserialize(const YAML::Node& data) {
         Serializable* created = SerializableFactory::Create(typeName);
         Component* comp = dynamic_cast<Component*>(created);
         comp->Deserialize(compNode);
-        Registry::Get().Register(comp);
+        
+        registry->Register(comp);
     }
     
-    for (auto& [id, obj] : Registry::Get().GetAll()){
+    for (auto& [id, obj] : registry->GetAll()){
         obj->PostDeserialize();
     }
 
@@ -87,9 +97,12 @@ void Scene::Deserialize(const YAML::Node& data) {
 void Scene::AddGameObject(GameObject* obj) {
     if (!obj)
         return;
+    
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
 
     std::string id = obj->GetID();
-    Registry::Get().Register(obj);
+    registry->Register(obj);
     if (std::find(gameobject_ids.begin(), gameobject_ids.end(), id) == gameobject_ids.end())
         gameobject_ids.push_back(id);
     obj->SetScene(GetID());
@@ -111,9 +124,10 @@ void Scene::RemoveRootObject(const std::string& obj_id) {
 
 std::vector<GameObject*> Scene::GetRootObjects() {
     std::vector<GameObject*> result;
-
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
     for (const std::string& id : root_object_ids) {
-        if (auto* obj = dynamic_cast<GameObject*>(Registry::Find<GameObject>(id)))
+        if (auto* obj = dynamic_cast<GameObject*>(registry->Find<GameObject>(id)))
             result.push_back(obj);
     }
 
@@ -122,9 +136,10 @@ std::vector<GameObject*> Scene::GetRootObjects() {
 
 std::vector<GameObject*> Scene::GetAllGameObjects() {
     std::vector<GameObject*> result;
-
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
     for (const std::string& id : gameobject_ids) {
-        if (auto* obj = Registry::Find<GameObject>(id))
+        if (auto* obj = registry->Find<GameObject>(id))
             result.push_back(obj);
     }
 

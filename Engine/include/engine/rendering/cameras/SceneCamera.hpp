@@ -5,12 +5,6 @@
 class SceneCamera : public RenderCamera
 {
 public:
-
-    static SceneCamera& Get(){
-        static SceneCamera instance;
-        return instance;
-    }
-
     // Editor input (WASD / mouse drag)
     void Update() override;
     void Init() override;

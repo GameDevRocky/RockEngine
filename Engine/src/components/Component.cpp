@@ -1,5 +1,6 @@
 #include "engine/components/Component.hpp"
 #include "engine/serialization/Registry.hpp"
+#include "Engine.hpp"
 
 void Component::Deserialize(const YAML::Node& node){
     Serializable::Deserialize(node);
@@ -10,8 +11,9 @@ void Component::Deserialize(const YAML::Node& node){
 
 GameObject* Component::GetGameObject(){
     if (gameobject_id.empty()) return nullptr;
-    Serializable* s = Registry::Get().Find(gameobject_id);
-    GameObject* gameobject = dynamic_cast<GameObject*>(s);
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    GameObject* gameobject = registry->Find<GameObject>(gameobject_id);
     if (!gameobject) return nullptr;
     return gameobject;
 }

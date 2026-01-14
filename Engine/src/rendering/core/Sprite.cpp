@@ -8,6 +8,7 @@ void Sprite::Deserialize(const YAML::Node& node){
     uvMax = {node["uvMax"][0].as<float>(), node["uvMax"][1].as<float>()};
     pivot = {node["pivot"][0].as<float>(), node["pivot"][1].as<float>()};
     texture_id = node["texture_id"].as<std::string>();
+    
 }
 
 Texture2D* Sprite::GetTexture(){

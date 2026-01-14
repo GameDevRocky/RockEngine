@@ -6,6 +6,8 @@
 #include "dock-widgets/InspectorGui.hpp"
 #include "dock-widgets/FileExplorerGui.hpp"
 #include "dock-widgets/FolderViewGui.hpp"
+#include "dock-widgets/RuntimeBar.hpp"
+#include "engine/rendering/core/SharedResources.hpp"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent){}
 MainWindow::~MainWindow(){SaveLayout();}
@@ -20,7 +22,7 @@ void MainWindow::Init()
     InspectorGui* inspector = InspectorGui::Get();
     FileExplorerGui* file_explorer = FileExplorerGui::Get();
     FolderViewGui* folder_view = FolderViewGui::Get();
-    
+    RuntimeBar* runtime_bar = RuntimeBar::Get();
 
     console_widget->Init();
     game_view->Init();
@@ -29,9 +31,8 @@ void MainWindow::Init()
     inspector->Init();
     file_explorer->Init();
     folder_view->Init();
+    runtime_bar->Init();
     
-
-    // Connect FileExplorer's RaiseFolderView signal to raise the dock
     connect(file_explorer, &FileExplorerGui::RaiseFolderView, this, [this]() {
         folderViewDock->raise();
     });
@@ -64,25 +65,22 @@ void MainWindow::Init()
     addDockWidget(Qt::BottomDockWidgetArea, folderViewDock);
     folderViewDock->setObjectName("FolderViewDock");
 
+    runtimeBarDock = new QDockWidget("", this);
+    runtimeBarDock->setWidget(runtime_bar);
+    addDockWidget(Qt::TopDockWidgetArea, runtimeBarDock);
+    runtimeBarDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     consoleDock = new QDockWidget("Console", this);
     consoleDock->setWidget(console_widget);
     addDockWidget(Qt::BottomDockWidgetArea, consoleDock);
-    consoleDock->setObjectName("ConsoleDock");
+    consoleDock->setObjectName("Console");
 
     tabifyDockWidget(consoleDock, folderViewDock);
-    
 
-    
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-    setCorner(Qt::TopRightCorner, Qt::RightDockWidgetArea);
-
-
+    setCorner(Qt::TopRightCorner, Qt::TopDockWidgetArea);
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks );
-    
     LoadLayout();
-    
-    setWindowTitle("My Game Engine");
 }
 
 void MainWindow::Start(){

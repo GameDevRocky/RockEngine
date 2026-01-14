@@ -6,11 +6,9 @@
 
 class SceneManager : public System {
 public:
-    static SceneManager& Get() {
-        static SceneManager instance;
-        return instance;
-    }
+    
     void Init() override;
+    void PostInit() override;
     Scene* LoadScene(const std::string& file_path);
     void RemoveScene(const std::string& scene_id);
     std::vector<Scene*> GetScenes() const;

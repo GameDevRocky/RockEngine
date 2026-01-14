@@ -2,14 +2,16 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include "engine/serialization/Registry.hpp"
 #include "engine/debug/Console.hpp"
+#include "Engine.hpp"
 
 void Transform::MarkDirty() {
     dirty = true;
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
 
     for (const std::string& id : children_ids) {
-        Serializable* s = Registry::Get().Find(id);
-        if (auto* c = dynamic_cast<Transform*>(s))
-            c->MarkDirty();
+        Transform* transform = registry->Find<Transform>(id);
+        if (transform) transform->MarkDirty();
     }
 }
 
@@ -81,8 +83,10 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
     glm::mat4 oldWorld = GetWorldMatrix();
 
     if (!parent_id.empty()) {
-        Serializable* s = Registry::Get().Find(parent_id);
-        if (auto* oldParent = dynamic_cast<Transform*>(s)) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Transform* oldParent = registry->Find<Transform>(parent_id);
+        if (oldParent) {
             auto& vec = oldParent->children_ids;
             vec.erase(std::remove(vec.begin(), vec.end(), GetID()), vec.end());
         }
@@ -124,9 +128,10 @@ std::vector<Transform*> Transform::GetChildren() {
     result.reserve(children_ids.size());
 
     for (const std::string& id : children_ids) {
-        Serializable* s = Registry::Get().Find(id);
-        if (auto* t = dynamic_cast<Transform*>(s))
-            result.push_back(t);
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Transform* child = registry->Find<Transform>(id);
+        if (child) result.push_back(child);
     }
 
     return result;
@@ -136,9 +141,9 @@ std::vector<Transform*> Transform::GetChildren() {
 Transform* Transform::GetParent() {
     if (parent_id.empty())
         return nullptr;
-
-    Serializable* serializable = Registry::Get().Find(parent_id);
-    Transform* transform = dynamic_cast<Transform*>(serializable);
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Transform* transform = registry->Find<Transform>(parent_id);
 
     if (!transform) {
         Console::Alert("Transform parent_id exists but is not a Transform");
@@ -182,8 +187,9 @@ void Transform::PostDeserialize() {
         return;
     }
 
-    Serializable* serializable = Registry::Get().Find(parent_id);
-    Transform* transform = dynamic_cast<Transform*>(serializable);
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Transform* transform = registry->Find<Transform>(parent_id);
 
     if (!transform) {
         Console::Warn("Unable to connect Transform parent");

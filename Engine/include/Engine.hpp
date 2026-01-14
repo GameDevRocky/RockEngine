@@ -4,28 +4,34 @@
 #include "engine/core/InputManager.hpp"
 #include "engine/core/SceneManager.hpp"
 #include <memory>
-
+#include "engine/core/Container.hpp"
 
 class Engine {
 public:
-    static Engine& Get() {
-        static Engine instance;
+    static Engine* Get() {
+        static Engine* instance = new Engine();
         return instance;
     }
     
     
     void Init();
-    void Init(char *args[]);
-    void Run();
+    void Update();
     void Shutdown();
-    
-    void SetActive(bool active);
-    bool GetActive();
-    
+
+    void EnterPlayMode();
+    void ExitPlayMode();
+
+    Container* GetActiveContainer(){ return activeContainer;}
+    Container* GetEditorContainer(){ return editorContainer;}
+    Container* GetRuntimeContainer(){ return runtimeContainer;}
     
     private:
-        bool active = true;
-        Engine() = default;
-        ~Engine() = default;
+    Engine() = default;
+    ~Engine() = default;
 
+    Container* editorContainer = nullptr;
+    Container* runtimeContainer = nullptr;
+    Container* activeContainer = nullptr;
+
+    
 };

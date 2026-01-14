@@ -3,6 +3,16 @@
 #include <algorithm>
 #include "engine/debug/Console.hpp"
 
+void Registry::Init(){
+    
+}
+void Registry::PostInit(){
+
+}
+void Registry::Shutdown(){
+
+}
+
 void Registry::Register(Serializable* obj) {
     if (!obj) return;
 
