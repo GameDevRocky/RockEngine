@@ -10,7 +10,7 @@ void BindGameObject(pybind11::module_& m) {
 
     m.def("set_active", [](const std::string& id, bool val) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id); 
         if (go) {
             go->SetActive(val);
@@ -19,7 +19,7 @@ void BindGameObject(pybind11::module_& m) {
 
     m.def("get_active", [](const std::string& id) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id); 
         if (go) {
             return go->GetActive();

@@ -8,7 +8,7 @@ void Console::Shutdown() {}
 void Console::CreateMessage(std::string text, std::string type, const std::source_location loc){
     Console& instance = Get();
     Engine* engine = Engine::Get();
-    TimeManager* timeManager = engine->GetActiveContainer()->GetTimeManager();
+    TimeManager* timeManager = engine->GetActiveContainer()->FindSystem<TimeManager>();
     
     std::string full_path = loc.file_name();
     std::filesystem::path path(full_path);

@@ -20,7 +20,11 @@ public:
     void Start();
     void Shutdown();
     void ClearLayout();
+
     QTabWidget* central_tabs;
+    QDockWidget* centralDock;
+    QDockWidget* sceneviewDock;
+    QDockWidget* gameviewDock;
     QDockWidget* hierarchyDock;
     QDockWidget* inspectorDock;
     QDockWidget* fileExplorerDock;

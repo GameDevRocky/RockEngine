@@ -66,7 +66,7 @@ public:
         shader->Bind();
         shader->SetMat4("uView", camera.GetViewMatrix());
         shader->SetMat4("uProj", camera.GetProjectionMatrix());
-        TimeManager* timeManager = Engine::Get()->GetActiveContainer()->GetTimeManager();
+        TimeManager* timeManager = Engine::Get()->GetActiveContainer()->FindSystem<TimeManager>();
         shader->SetFloat("uTime", timeManager->ElapsedTime());
         shader->SetFloat("uZoom", camera.GetZoom());
 

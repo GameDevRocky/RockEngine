@@ -5,6 +5,9 @@
 #include "engine/core/InputManager.hpp"
 #include "engine/core/SceneManager.hpp"
 
+#include <type_traits>
+#include <vector>
+
 class Container : public Observable {
 public:
 	enum class Mode {
@@ -29,18 +32,37 @@ public:
 	void Update();
 	void Shutdown();
 
-    SceneManager* GetSceneManager(){return sceneManager;}
-    TimeManager* GetTimeManager(){return timeManager;}
-    InputManager* GetInputManager(){return inputManager;}
-    Registry* GetRegistry(){return registry;}
+	std::vector<System*> GetAllSystems(){return systems;}
+
+	template <typename T>
+	void AddSystem(T* system) {
+		static_assert(std::is_base_of_v<System, T>, "T must derive from System");
+		if (!system) return;
+		if (FindSystem<T>() != nullptr) {
+			return;
+		}
+
+		systems.push_back(system);
+		system->Attach(this);
+	}
+
+	template <typename T>
+	T* FindSystem() { 
+		static_assert(std::is_base_of_v<System, T>, "T must derive from System");
+		for (System* system : systems) {
+			if (auto* casted = dynamic_cast<T*>(system))
+				return casted;
+		}
+		return nullptr;
+	}
+
+
 
 	Container* Copy();
 
 private:
     bool initialized = false;
 	Mode mode;
-    Registry* registry = nullptr;
-    SceneManager* sceneManager = nullptr;
-    TimeManager* timeManager = nullptr;
-    InputManager* inputManager = nullptr;
+	std::vector<System*> systems;
+
 };

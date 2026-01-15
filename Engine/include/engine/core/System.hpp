@@ -16,6 +16,7 @@ public:
     virtual void PostInit(){}
     virtual void Update() {}
     virtual void Shutdown() {}
+    virtual System* Copy(){};
 
 protected:
     Container* container = nullptr;

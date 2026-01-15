@@ -85,7 +85,7 @@ public:
             shader->SetMat4("uView", camera.GetViewMatrix());
             shader->SetMat4("uProj", camera.GetProjectionMatrix());
             shader->SetMat4("uModel", transform->GetWorldMatrix());
-            TimeManager* timeManager = Engine::Get()->GetActiveContainer()->GetTimeManager();
+            TimeManager* timeManager = Engine::Get()->GetActiveContainer()->FindSystem<TimeManager>();
             shader->SetFloat("uTime", timeManager->ElapsedTime());
             mat->ApplyUniforms();
             renderer->OverrideUniforms();

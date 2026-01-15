@@ -15,8 +15,8 @@ void SceneManager::PostInit(){
 }
 void SceneManager::Update(){
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
-    TimeManager* timeManager = engine->GetActiveContainer()->GetTimeManager();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+    TimeManager* timeManager = engine->GetActiveContainer()->FindSystem<TimeManager>();
     const float fixedDeltaTime = timeManager->FixedDeltaTime();
     const float frameTime = timeManager->DeltaTime();
     accumulator += frameTime;
@@ -41,7 +41,7 @@ void SceneManager::Update(){
 
 Scene* SceneManager::LoadScene(const std::string& file_path){
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     std::cout << "engine get" << std::endl;
     Scene* scene = new Scene();
     YAML::Node root = YAML::LoadFile(file_path);
@@ -60,11 +60,20 @@ void SceneManager::RemoveScene(const std::string& scene_id) {
 
 std::vector<Scene*> SceneManager::GetScenes() const {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     std::vector<Scene*> scenes;
     for (auto& s_id : scene_ids){
         Scene* scene = registry->Find<Scene>(s_id);
         scenes.push_back(scene);
     }
     return scenes;
+}
+
+
+SceneManager* SceneManager::Copy(){
+    SceneManager* copy = new SceneManager();
+    copy->scene_ids = scene_ids;
+    copy->accumulator = 0;
+    return copy;
+
 }

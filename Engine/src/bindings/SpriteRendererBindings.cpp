@@ -14,7 +14,7 @@ void BindSpriteRenderer(pybind11::module_& m) {
 
     m.def("set_flip", [](const std::string& id, bool x, bool y) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id); 
         if (go) {
             if (auto* renderer = go->GetComponent<SpriteRenderer>()) {
@@ -25,7 +25,7 @@ void BindSpriteRenderer(pybind11::module_& m) {
     });
     m.def("get_flip", [](const std::string& id) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id); 
         if (go) {
             if (auto* renderer = go->GetComponent<SpriteRenderer>()) {

@@ -7,7 +7,7 @@
 void Transform::MarkDirty() {
     dirty = true;
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
 
     for (const std::string& id : children_ids) {
         Transform* transform = registry->Find<Transform>(id);
@@ -84,7 +84,7 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
 
     if (!parent_id.empty()) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         Transform* oldParent = registry->Find<Transform>(parent_id);
         if (oldParent) {
             auto& vec = oldParent->children_ids;
@@ -129,7 +129,7 @@ std::vector<Transform*> Transform::GetChildren() {
 
     for (const std::string& id : children_ids) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         Transform* child = registry->Find<Transform>(id);
         if (child) result.push_back(child);
     }
@@ -142,7 +142,7 @@ Transform* Transform::GetParent() {
     if (parent_id.empty())
         return nullptr;
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     Transform* transform = registry->Find<Transform>(parent_id);
 
     if (!transform) {
@@ -172,7 +172,11 @@ YAML::Node Transform::Serialize() {
 
 void Transform::Deserialize(const YAML::Node& node) {
     Component::Deserialize(node);    
-    parent_id = !node["parent_id"].IsNull()?  node["parent_id"].as<std::string>() : "";
+    if (!node["parent_id"].IsNull()) {
+        parent_id = node["parent_id"].as<std::string>();
+    } else {
+        parent_id = "";
+    }
     localPosition.x = node["localPosition"][0].as<float>();
     localPosition.y = node["localPosition"][1].as<float>();
     localRotation = node["localRotation"].as<float>();
@@ -188,7 +192,7 @@ void Transform::PostDeserialize() {
     }
 
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     Transform* transform = registry->Find<Transform>(parent_id);
 
     if (!transform) {
@@ -198,4 +202,12 @@ void Transform::PostDeserialize() {
 
     SetParent(transform);
     Console::Comment("Transform parent connected");
+}
+
+Transform* Transform::Copy() {
+
+    Transform* copy = new Transform();
+    copy->parent_id = parent_id;
+    copy->children_ids = children_ids;
+    return copy;
 }

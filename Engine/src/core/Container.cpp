@@ -3,17 +3,15 @@
 
 Container::Container(Mode mode){
     SetMode(mode);
-
-    registry = new Registry();
-    sceneManager = new SceneManager();
-    inputManager = new InputManager();
-    timeManager = new TimeManager();
-
 }
 
 
 Container* Container::Copy(){
     Container* container = new Container(Mode::Runtime);
+    for (auto* system : systems){
+        auto* copy = system->Copy();
+        container->AddSystem(copy);
+    }
     return container;
 }
 
@@ -22,39 +20,30 @@ Container* Container::Copy(){
 void Container::Init(){
     if (initialized) return;
 
-    registry->Attach(this);
-    sceneManager->Attach(this);
-    timeManager->Attach(this);
-    inputManager->Attach(this);
-
-    registry->Init();
-    timeManager->Init();
-    inputManager->Init();
-    sceneManager->Init();
+    for (System* system : systems) {
+        system->Init();
+    }
 
     initialized = true;
 }
 
 void Container::PostInit(){
-    registry->PostInit();
-    sceneManager->PostInit();
-    timeManager->PostInit();
-    inputManager->PostInit();
+    for (System* system : systems) {
+        system->PostInit();
+    }
     
 }
 
 void Container::Update(){
-    
-    registry->Update();
-    sceneManager->Update();
-    timeManager->Update();
-    inputManager->Update();
+
+    for (System* system : systems) {
+        system->Update();
+    }
 
 }
 
 void Container::Shutdown(){
-    registry->Shutdown();
-    sceneManager->Shutdown();
-    timeManager->Shutdown();
-    inputManager->Shutdown();
+    for (System* system : systems) {
+        system->Shutdown();
+    }
 }

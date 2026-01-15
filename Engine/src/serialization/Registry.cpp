@@ -28,4 +28,15 @@ void Registry::Unregister(Serializable* obj) {
         serializables.erase(it);
 }
 
+Registry* Registry::Copy(){
 
+    Registry* registry = new Registry();
+    for (auto& pair : serializables){
+        auto* obj = pair.second;
+        std::cout << obj->GetTypeName() << std::endl;
+        std::cout << obj->GetID() << std::endl;
+        auto* copy = obj->Copy();
+        registry->Register(copy);
+    }
+    return registry;
+}

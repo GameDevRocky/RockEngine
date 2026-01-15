@@ -16,6 +16,8 @@ public:
     mutable bool dirty = true;
     mutable glm::mat4 worldMatrix = glm::mat4(1.0f);
 
+    Transform* Copy() override;
+
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
     void PostDeserialize() override;

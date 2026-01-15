@@ -9,9 +9,10 @@
 
 class SpriteRenderer : public Component
 {
-public:
-
-YAML::Node Serialize() override;
+    public:
+    
+    SpriteRenderer* Copy() override;
+    YAML::Node Serialize() override;
 
     void Deserialize(const YAML::Node& node) override;
     void PostDeserialize() override;

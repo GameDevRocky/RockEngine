@@ -8,6 +8,7 @@
 #include "dock-widgets/MainWindowGui.hpp"
 #include "dock-widgets/ConsoleGui.hpp"
 #include "dock-widgets/SceneViewGui.hpp"
+#include "dock-widgets/GameViewGui.hpp"
 #include <QCoreApplication>
 
 
@@ -72,6 +73,7 @@ void Editor::Init() {
 
 void Editor::Update(){
     SceneViewGui::Get()->update();
+    GameViewGui::Get()->update();
     
 }
 

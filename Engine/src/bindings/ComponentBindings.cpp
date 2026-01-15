@@ -10,7 +10,7 @@ void BindComponent(pybind11::module_& m) {
 
     m.def("set_enabled", [](const std::string& id, bool val) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         Component* comp = registry->Find<Component>(id); 
         if (comp) {
             comp->SetEnabled(val);
@@ -19,7 +19,7 @@ void BindComponent(pybind11::module_& m) {
 
     m.def("get_enabled", [](const std::string& id) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         Component* comp = registry->Find<Component>(id); 
         if (comp) {
             return comp->GetEnabled();

@@ -18,6 +18,8 @@ public:
     void LateUpdate();
     void Shutdown();
 
+    Scene* Copy() override;
+
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
     std::string GetTypeName() override { return "Scene"; }

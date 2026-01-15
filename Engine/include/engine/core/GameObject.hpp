@@ -29,7 +29,7 @@ public:
         return nullptr;
         
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         const std::string& comp_id = it->second;
         T* comp = registry->Find<T>(comp_id);
         return comp;
@@ -50,6 +50,8 @@ public:
     void Update();
     void FixedUpdate();
     void LateUpdate();
+
+    GameObject* Copy() override;
 
     
     private:

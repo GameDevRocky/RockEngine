@@ -12,7 +12,7 @@ void BindTransform(pybind11::module_& m) {
     // Set Position (vec2)
     m.def("set_position", [](const std::string& id, float x, float y) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
@@ -23,7 +23,7 @@ void BindTransform(pybind11::module_& m) {
 
     m.def("get_position", [](const std::string& id) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
@@ -35,7 +35,7 @@ void BindTransform(pybind11::module_& m) {
 
     m.def("set_rotation", [](const std::string& id, float degrees) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
@@ -46,7 +46,7 @@ void BindTransform(pybind11::module_& m) {
 
     m.def("get_rotation", [](const std::string& id) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
@@ -58,7 +58,7 @@ void BindTransform(pybind11::module_& m) {
 
     m.def("set_scale", [](const std::string& id, float x, float y) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
@@ -69,7 +69,7 @@ void BindTransform(pybind11::module_& m) {
 
     m.def("get_scale", [](const std::string& id) {
         Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->GetRegistry();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {

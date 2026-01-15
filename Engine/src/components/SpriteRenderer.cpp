@@ -138,3 +138,19 @@ void SpriteRenderer::OverrideUniforms()
 }
 
 
+SpriteRenderer* SpriteRenderer::Copy()
+{
+    SpriteRenderer* copy = new SpriteRenderer();
+    copy->material_id = material_id;
+    copy->sprite_id = sprite_id;
+    copy->uvOffset = uvOffset;
+    copy->uvScale = uvScale;
+    copy->color = color;
+    copy->sortingOrder = sortingOrder;
+    copy->flipX = flipX;
+    copy->flipY = flipY;
+    copy->visible = visible;
+    return copy;
+
+
+}

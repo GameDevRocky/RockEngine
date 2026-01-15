@@ -19,6 +19,8 @@ public:
     InputManager() = default;
     ~InputManager() override = default;
 
+    InputManager* Copy() override;
+
 
 private:
     std::unordered_map<int, bool> m_keyStates;

@@ -15,7 +15,7 @@
 #include "engine/rendering/cameras/RenderCamera.hpp"
 
 class SceneViewGui : public QOpenGLWidget, protected QOpenGLFunctions {
-    Q_OBJECT
+    Q_OBJECT 
 
 public:
     static SceneViewGui* Get() {

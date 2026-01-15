@@ -116,9 +116,9 @@ QVariant HierarchyTreeModel::data(const QModelIndex& index, int role) const {
     if (!item || item->gameObjectId.empty())
         return QVariant();
 
-    // Find the GameObject in Registry
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+
     Serializable* serializable = registry->Find(item->gameObjectId);
     GameObject* gameObj = dynamic_cast<GameObject*>(serializable);
 

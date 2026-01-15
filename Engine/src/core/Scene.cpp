@@ -15,7 +15,7 @@ void Scene::Init() {
 
 void Scene::Update() {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
         if (obj->GetActive()) obj->Update();
@@ -23,7 +23,7 @@ void Scene::Update() {
 }
 void Scene::FixedUpdate() {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
         if (obj->GetActive()) obj->FixedUpdate();
@@ -32,7 +32,7 @@ void Scene::FixedUpdate() {
 }
 void Scene::LateUpdate() {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
         if (obj->GetActive()) obj->LateUpdate();
@@ -55,7 +55,7 @@ YAML::Node Scene::Serialize() {
 void Scene::Deserialize(const YAML::Node& data) {
     Serializable::Deserialize(data);
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     if (data["name"]) 
         name = data["name"].as<std::string>();
     else
@@ -99,7 +99,7 @@ void Scene::AddGameObject(GameObject* obj) {
         return;
     
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
 
     std::string id = obj->GetID();
     registry->Register(obj);
@@ -125,7 +125,7 @@ void Scene::RemoveRootObject(const std::string& obj_id) {
 std::vector<GameObject*> Scene::GetRootObjects() {
     std::vector<GameObject*> result;
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (const std::string& id : root_object_ids) {
         if (auto* obj = dynamic_cast<GameObject*>(registry->Find<GameObject>(id)))
             result.push_back(obj);
@@ -137,11 +137,21 @@ std::vector<GameObject*> Scene::GetRootObjects() {
 std::vector<GameObject*> Scene::GetAllGameObjects() {
     std::vector<GameObject*> result;
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (const std::string& id : gameobject_ids) {
         if (auto* obj = registry->Find<GameObject>(id))
             result.push_back(obj);
     }
 
     return result;
+}
+
+
+Scene* Scene::Copy(){
+
+    Scene* copy = new Scene();
+    copy->name = name;
+    copy->root_object_ids = root_object_ids;
+    copy->gameobject_ids = gameobject_ids;
+    return copy;
 }

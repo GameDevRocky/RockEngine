@@ -22,9 +22,13 @@ public:
     void EnterPlayMode();
     void ExitPlayMode();
 
+    void CreateContainer();
+
     Container* GetActiveContainer(){ return activeContainer;}
     Container* GetEditorContainer(){ return editorContainer;}
     Container* GetRuntimeContainer(){ return runtimeContainer;}
+
+    
     
     private:
     Engine() = default;

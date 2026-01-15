@@ -17,6 +17,8 @@ public:
     SceneManager() = default;
     ~SceneManager() = default;
 
+    SceneManager* Copy() override;
+
 private:
     std::vector<std::string> scene_ids;
     float accumulator = 0.0f;

@@ -24,6 +24,8 @@ public:
     void LateUpdate() override;
     void OnDestroy() override;
 
+    ScriptComponent* Copy() override;
+
     std::string GetTypeName() const override { return "ScriptComponent"; }
 
 private:
@@ -31,10 +33,8 @@ private:
     void CallIfExists(const char* funcName);
 
 private:
-    // Serialized
-    std::string moduleName;   // e.g. "player_controller"
-    std::string className;    // e.g. "PlayerController"
 
-    // Runtime-only (NOT serialized)
+    std::string moduleName;  
+    std::string className;
     py::object scriptInstance;
 };

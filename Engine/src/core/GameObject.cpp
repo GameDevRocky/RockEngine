@@ -21,7 +21,7 @@ YAML::Node GameObject::Serialize() {
 
 void GameObject::AddComponent(const std::string& comp_id) {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     Component* comp = registry->Find<Component>(comp_id);
     if (!comp) return;
     component_ids[comp->GetTypeName()] = comp_id;       
@@ -39,7 +39,7 @@ void GameObject::Deserialize(const YAML::Node& node) {
 void GameObject::SetScene(const std::string& id){
     
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     Scene* scene = registry->Find<Scene>(scene_id);
     if (scene){
         scene_id = id;
@@ -48,7 +48,7 @@ void GameObject::SetScene(const std::string& id){
 }
 Scene* GameObject::GetScene(){
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     Scene* scene = registry->Find<Scene>(scene_id);
     if (!scene) return nullptr;
     return scene;
@@ -60,7 +60,7 @@ Transform* GameObject::GetTransform(){
 
 void GameObject::Awake(){
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     Scene* scene = registry->Find<Scene>(scene_id);
 
     for (auto& [type, comp_id] : component_ids){
@@ -72,7 +72,7 @@ void GameObject::Awake(){
 
 void GameObject::Update() {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
 
     for (auto& [type, comp_id] : component_ids){
         Component* comp = registry->Find<Component>(comp_id);
@@ -82,7 +82,7 @@ void GameObject::Update() {
 }
 void GameObject::FixedUpdate() {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (auto& [type, comp_id] : component_ids){
         Component* comp = registry->Find<Component>(comp_id);
         comp->FixedUpdate();
@@ -90,7 +90,7 @@ void GameObject::FixedUpdate() {
 }
 void GameObject::LateUpdate() {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->GetRegistry();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (auto& [type, comp_id] : component_ids){
         Component* comp = registry->Find<Component>(comp_id);
         comp->LateUpdate();
@@ -100,4 +100,14 @@ void GameObject::PostDeserialize() {
     for (auto& comp_id : temp_ids){
         AddComponent(comp_id);
     }
+}
+
+GameObject* GameObject::Copy(){
+    GameObject* copy = new GameObject();
+    copy->active = active;
+    copy->component_ids = component_ids;
+    copy->transform_id = transform_id;
+    copy->temp_ids = temp_ids;
+    copy->scene_id = scene_id;
+    return copy;
 }

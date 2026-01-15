@@ -22,3 +22,8 @@ void TimeManager::Update() {
 void TimeManager::Shutdown() {
 
 }
+
+TimeManager* TimeManager::Copy() {
+    TimeManager* copy = new TimeManager();
+    return copy;
+}

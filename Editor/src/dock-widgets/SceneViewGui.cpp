@@ -9,6 +9,7 @@
 #include "engine/rendering/passes/GridPass.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "Engine.hpp"
+
 //#include "Engine.hpp";
 
 SceneViewGui::SceneViewGui(QWidget* parent)
@@ -48,7 +49,7 @@ void SceneViewGui::initializeRenderPipeline(){
     renderPipeline->Resize(fbw, fbh);
     camera->Resize(fbw, fbh);
 }
-
+ 
 void SceneViewGui::initializeGL() {
     initializeOpenGLFunctions();
 
@@ -150,8 +151,7 @@ void SceneViewGui::paintGL() {
 
 void SceneViewGui::Render(){
     Engine* engine = Engine::Get();
-    auto* container = engine->GetActiveContainer();
-    SceneManager* sceneManager = container->GetSceneManager();
+    SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
 
     for (auto& scene : sceneManager->GetScenes()){
         renderPipeline->Render(*camera, *scene);
@@ -162,15 +162,15 @@ void SceneViewGui::Render(){
 void SceneViewGui::keyPressEvent(QKeyEvent* event) {
     Engine* engine = Engine::Get();
     auto* container = engine->GetActiveContainer();
-    InputManager* inputManager = container->GetInputManager();
+    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+
     inputManager->SetKeyState(event->key(), true);
     Console::Comment(std::to_string(event->key()));
 }
 
 void SceneViewGui::keyReleaseEvent(QKeyEvent* event) {
     Engine* engine = Engine::Get();
-    auto* container = engine->GetActiveContainer();
-    InputManager* inputManager = container->GetInputManager();
+    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
     inputManager->SetKeyState(event->key(), false);
     Console::Comment(std::to_string(event->key()));
 }
@@ -230,8 +230,7 @@ void SceneViewGui::mouseReleaseEvent(QMouseEvent* event)
 void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
 {
     Engine* engine = Engine::Get();
-    auto* container = engine->GetActiveContainer();
-    InputManager* inputManager = container->GetInputManager();
+    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
 
     bool ctrlHeld = (e->modifiers() & Qt::ControlModifier);
     bool leftDragPan = (e->buttons() & Qt::LeftButton) && ctrlHeld;

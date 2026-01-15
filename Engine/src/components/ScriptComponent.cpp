@@ -110,3 +110,12 @@ void ScriptComponent::CallIfExists(const char* funcName)
                   << e.what() << std::endl;
     }
 }
+
+
+ScriptComponent* ScriptComponent::Copy(){
+
+    ScriptComponent* copy = new ScriptComponent();
+    copy->moduleName = moduleName;
+    copy->className = className;
+    return copy;
+}

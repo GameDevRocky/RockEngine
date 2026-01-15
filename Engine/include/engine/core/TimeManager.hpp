@@ -10,6 +10,7 @@ public:
     void PostInit() override {};
     void Update() override;
     void Shutdown() override;
+    TimeManager* Copy() override;
 
     float DeltaTime() const { return deltaTime; }
     float FixedDeltaTime() const { return fixedDeltaTime; }

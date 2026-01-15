@@ -19,7 +19,8 @@ public:
     void Init() override;
     void PostInit() override;
     void Shutdown() override;
-
+    Registry* Copy() override;
+    
     void Register(Serializable* obj);
     void Unregister(Serializable* obj);
 

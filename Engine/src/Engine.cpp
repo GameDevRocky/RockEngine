@@ -12,27 +12,26 @@ namespace py = pybind11;
 void Engine::Init() {
     static auto* guard = new py::scoped_interpreter();
     static auto* release = new py::gil_scoped_release();
-
     engine::RegisterPythonBindings();
-    RegisterComponentTypes();
-
-    editorContainer = new Container();
-    runtimeContainer = new Container();
-    activeContainer = editorContainer;
-    
-    editorContainer->Init();
-    editorContainer->PostInit();
-
-    activeContainer = runtimeContainer;
-
-    runtimeContainer->Init();
-    runtimeContainer->PostInit();
-
-    activeContainer = editorContainer;
+    RegisterComponentTypes();    
+    CreateContainer();
 }
 
+void Engine::CreateContainer(){
+    editorContainer = new Container();
+    editorContainer->AddSystem(new Registry());
+    editorContainer->AddSystem(new SceneManager());
+    editorContainer->AddSystem(new TimeManager());
+    editorContainer->AddSystem(new InputManager());
+    activeContainer = editorContainer;
+    editorContainer->Init();
+    editorContainer->PostInit();
+}
+
+
+
 void Engine::Toggle(){
-    if (activeContainer == editorContainer) activeContainer = runtimeContainer;
+    if (activeContainer == editorContainer) EnterPlayMode();
     else if (activeContainer == runtimeContainer) activeContainer = editorContainer;
 }
 
@@ -45,8 +44,7 @@ void Engine::Update(){
 void Engine::EnterPlayMode(){
     runtimeContainer = editorContainer->Copy();
     activeContainer = runtimeContainer;
-    activeContainer->Init();
-    activeContainer->PostInit();
+    std::cout<< "Post Initialized" << std::endl;
 }
 
 void Engine::ExitPlayMode(){
