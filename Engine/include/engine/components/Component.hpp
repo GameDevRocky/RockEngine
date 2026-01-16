@@ -14,6 +14,7 @@ public:
     }
     virtual void Deserialize(const YAML::Node& node) override;
     GameObject* GetGameObject();
+    virtual void OnCreated(){};
     virtual void OnEnabled(){}
     virtual void OnDisabled(){}
     void SetEnabled(bool e);
@@ -26,10 +27,11 @@ public:
     virtual void OnDestroy() {}
     virtual std::string GetTypeName() const = 0;
     
-    
+protected:
+    std::string gameobject_id = "";
+    bool enabled = true;
+
 private:
-std::string gameobject_id = "";
-bool enabled;
 
 
 

@@ -17,12 +17,12 @@ public:
     void Init();
     void Update();
     void Shutdown();
-    void Toggle();
 
     void EnterPlayMode();
     void ExitPlayMode();
 
     void CreateContainer();
+    void LoadDefaultScene();
 
     Container* GetActiveContainer(){ return activeContainer;}
     Container* GetEditorContainer(){ return editorContainer;}

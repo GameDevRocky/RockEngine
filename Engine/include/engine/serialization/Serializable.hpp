@@ -17,7 +17,7 @@ public:
     virtual std::string GetTypeName();
     virtual void Link();
     const std::string& GetID() const { return id; }
-    Serializable* Copy() override {};
+    Serializable* Copy() override { return nullptr; };
 
 protected:
     std::string id;

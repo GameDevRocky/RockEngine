@@ -7,6 +7,8 @@
 #include <pybind11/embed.h>
 #include "engine/bindings/PythonBindings.hpp"
 
+#define SAMPLE_SCENE_PATH "Domain/scenes/SampleScene.yaml"
+
 namespace py = pybind11;
 
 void Engine::Init() {
@@ -15,6 +17,14 @@ void Engine::Init() {
     engine::RegisterPythonBindings();
     RegisterComponentTypes();    
     CreateContainer();
+    
+}
+
+void Engine::LoadDefaultScene(){
+    SceneManager* sceneManager = editorContainer->FindSystem<SceneManager>();
+    sceneManager->LoadScene(SAMPLE_SCENE_PATH);
+
+
 }
 
 void Engine::CreateContainer(){
@@ -25,18 +35,14 @@ void Engine::CreateContainer(){
     editorContainer->AddSystem(new InputManager());
     activeContainer = editorContainer;
     editorContainer->Init();
+    LoadDefaultScene();
     editorContainer->PostInit();
-}
-
-
-
-void Engine::Toggle(){
-    if (activeContainer == editorContainer) EnterPlayMode();
-    else if (activeContainer == runtimeContainer) activeContainer = editorContainer;
+    editorContainer->EnterPlayMode();
 }
 
 
 void Engine::Update(){
+    
     activeContainer->Update();   
 }
 
@@ -44,6 +50,10 @@ void Engine::Update(){
 void Engine::EnterPlayMode(){
     runtimeContainer = editorContainer->Copy();
     activeContainer = runtimeContainer;
+    
+    runtimeContainer->Init();
+    runtimeContainer->PostInit();
+    runtimeContainer->EnterPlayMode();
     std::cout<< "Post Initialized" << std::endl;
 }
 

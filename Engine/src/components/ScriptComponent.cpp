@@ -20,9 +20,13 @@ void ScriptComponent::Deserialize(const YAML::Node& node)
     className  = node["class"].as<std::string>();
 }
 
+void ScriptComponent::OnCreated(){
+    InstantiateScript();
+    CallIfExists("on_created");
+}
+
 void ScriptComponent::Awake()
 {
-    InstantiateScript();
     CallIfExists("awake");
 }
 
@@ -39,8 +43,10 @@ void ScriptComponent::OnDestroy()
 
 void ScriptComponent::InstantiateScript()
 {
-    if (moduleName.empty() || className.empty())
-        return;
+    if (moduleName.empty() || className.empty()){
+        std::cout << "Module or class empty" << std::endl;
+    }
+
 
     py::gil_scoped_acquire gil;
 
@@ -76,6 +82,7 @@ void ScriptComponent::InstantiateScript()
     } catch (const py::error_already_set& e) {
         std::cerr << "[ScriptComponent] Python error in InstantiateScript():\n"
                   << e.what() << std::endl;
+        
         scriptInstance = py::none();
     } catch (const std::exception& e) {
         std::cerr << "[ScriptComponent] C++ exception in InstantiateScript():\n"
@@ -115,6 +122,9 @@ void ScriptComponent::CallIfExists(const char* funcName)
 ScriptComponent* ScriptComponent::Copy(){
 
     ScriptComponent* copy = new ScriptComponent();
+    copy->id = id;
+    copy->enabled = enabled;
+    copy->gameobject_id = gameobject_id;
     copy->moduleName = moduleName;
     copy->className = className;
     return copy;

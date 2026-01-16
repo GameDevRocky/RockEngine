@@ -20,7 +20,7 @@ void RuntimeBar::Init() {
     playButton->setFixedWidth(64);
 
     connect(playButton, &QPushButton::clicked, []() {
-        Engine::Get()->Toggle();
+        Engine::Get()->EnterPlayMode();
     });
     
     QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);

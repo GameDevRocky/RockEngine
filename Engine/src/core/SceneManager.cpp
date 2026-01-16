@@ -4,38 +4,54 @@
 #include "engine/core/TimeManager.hpp"
 #include "Engine.hpp"
 
-#define SAMPLE_SCENE_PATH "Domain/scenes/SampleScene.yaml"
 
 void SceneManager::Init(){
     
 
 }
 void SceneManager::PostInit(){
-    LoadScene(SAMPLE_SCENE_PATH); 
+    
 }
 void SceneManager::Update(){
+    std::cout << "into update loop" << std::endl;
     Engine* engine = Engine::Get();
     Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     TimeManager* timeManager = engine->GetActiveContainer()->FindSystem<TimeManager>();
+    if (!registry || !timeManager) return;
     const float fixedDeltaTime = timeManager->FixedDeltaTime();
     const float frameTime = timeManager->DeltaTime();
     accumulator += frameTime;
     while (accumulator >= fixedDeltaTime){
         for(auto& scene_id : scene_ids){
-        Scene* scene = registry->Find<Scene>(scene_id);
-        scene->FixedUpdate();
-        accumulator -= fixedDeltaTime;
+            Scene* scene = registry->Find<Scene>(scene_id);
+            if (!scene) continue;
+            scene->FixedUpdate();
+            accumulator -= fixedDeltaTime;
         }
     }
+    std::cout << "after while loop" << std::endl;
 
     for(auto& scene_id : scene_ids){
         Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) continue;
         scene->Update();
     }
     for(auto& scene_id : scene_ids){
         Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) continue;
         scene->LateUpdate();
     }
+}
+
+void SceneManager::OnEnterPlayMode(){
+    Engine* engine = Engine::Get();
+    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+    for(auto& scene_id : scene_ids){
+        Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) continue;
+        scene->Init();
+    }
+
 }
 
 

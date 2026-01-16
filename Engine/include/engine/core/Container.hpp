@@ -27,6 +27,8 @@ public:
 		Notify();
 	}
 
+	void EnterPlayMode();
+
 	void Init();
     void PostInit();
 	void Update();
@@ -38,10 +40,7 @@ public:
 	void AddSystem(T* system) {
 		static_assert(std::is_base_of_v<System, T>, "T must derive from System");
 		if (!system) return;
-		if (FindSystem<T>() != nullptr) {
-			return;
-		}
-
+	
 		systems.push_back(system);
 		system->Attach(this);
 	}

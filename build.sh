@@ -38,8 +38,8 @@ if [ ! -f "$BUILD_DIR/CMakeCache.txt" ]; then
         -DCMAKE_MAKE_PROGRAM="C:/Qt/Tools/mingw1310_64/bin/mingw32-make.exe" \
         -DCMAKE_PREFIX_PATH="C:/Qt/6.10.0/mingw_64/lib/cmake" \
         -DCMAKE_SYSTEM_NAME=Windows \
-        -DCMAKE_C_FLAGS="-O2 -g" \
-        -DCMAKE_CXX_FLAGS="-O2 -g"
+    -DCMAKE_C_FLAGS_DEBUG="-Og -g3 -fno-omit-frame-pointer" \
+    -DCMAKE_CXX_FLAGS_DEBUG="-Og -g3 -fno-omit-frame-pointer"
 fi
 
 # Determine number of cores (default 4)

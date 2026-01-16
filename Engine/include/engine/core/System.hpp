@@ -12,11 +12,12 @@ public:
         OnAttach();
     }   
     virtual void OnAttach(){};
+    virtual void OnEnterPlayMode(){};
     virtual void Init() {}
     virtual void PostInit(){}
     virtual void Update() {}
     virtual void Shutdown() {}
-    virtual System* Copy(){};
+    virtual System* Copy(){ return nullptr; };
 
 protected:
     Container* container = nullptr;

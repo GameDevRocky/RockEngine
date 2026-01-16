@@ -1,6 +1,11 @@
 from Domain import *
 
 class TestScript(ScriptableComponent):
+
+    def on_created(self):
+        self.velocity = Vector2(0,0)
+        self.renderer = self.get_component(SpriteRenderer)
+
     
     def awake(self):
         self.velocity = Vector2(0,0)

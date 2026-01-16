@@ -10,7 +10,7 @@ public:
     int Subscribe(const Callback& cb, int priority = 0);
     void Unsubscribe(int id);
     void Notify();
-    virtual Observable* Copy(){};
+    virtual Observable* Copy(){ return nullptr; };
 
 private:
     std::multimap<int, std::pair<int, Callback>, std::greater<int>> subscribers;

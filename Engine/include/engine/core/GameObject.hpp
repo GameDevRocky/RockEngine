@@ -46,6 +46,7 @@ public:
     bool GetActive(){return active;}
     void SetScene(const std::string& id);
     Scene* GetScene();
+    void OnCreated();
     void Awake();
     void Update();
     void FixedUpdate();

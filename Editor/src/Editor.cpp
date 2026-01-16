@@ -83,6 +83,7 @@ void Editor::Start() {
     MainWindow::Get()->Start();
 
     QObject::connect(timer, &QTimer::timeout, [this]() {
+        
         Engine::Get()->Update();
         Editor::Get()->Update();
     });

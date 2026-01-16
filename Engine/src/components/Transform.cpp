@@ -207,7 +207,13 @@ void Transform::PostDeserialize() {
 Transform* Transform::Copy() {
 
     Transform* copy = new Transform();
+    copy->id = id;
+    copy->enabled = enabled;
+    copy->gameobject_id = gameobject_id;
     copy->parent_id = parent_id;
     copy->children_ids = children_ids;
+    copy->localPosition = localPosition;
+    copy->localRotation = localRotation;
+    copy->localScale= localScale;
     return copy;
 }

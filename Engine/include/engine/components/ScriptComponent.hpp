@@ -18,6 +18,7 @@ public:
 
     // --- Lifecycle ---
     void Awake() override;
+    void OnCreated() override;
     void Start() override;
     void Update() override;
     void FixedUpdate() override;

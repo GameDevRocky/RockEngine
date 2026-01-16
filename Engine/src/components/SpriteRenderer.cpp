@@ -141,6 +141,9 @@ void SpriteRenderer::OverrideUniforms()
 SpriteRenderer* SpriteRenderer::Copy()
 {
     SpriteRenderer* copy = new SpriteRenderer();
+    copy->id = id;
+    copy->enabled = enabled;
+    copy->gameobject_id = gameobject_id;
     copy->material_id = material_id;
     copy->sprite_id = sprite_id;
     copy->uvOffset = uvOffset;

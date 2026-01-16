@@ -11,6 +11,9 @@
 
 void Scene::Init() {
     std::cout << "Initializing scene: " << name << std::endl;
+    for (auto& obj : GetAllGameObjects()){
+        obj->Awake();
+    }
 }
 
 void Scene::Update() {
@@ -18,6 +21,7 @@ void Scene::Update() {
     Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
+        if (!obj) continue;
         if (obj->GetActive()) obj->Update();
     } 
 }
@@ -26,6 +30,7 @@ void Scene::FixedUpdate() {
     Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
+        if (!obj) continue;
         if (obj->GetActive()) obj->FixedUpdate();
 
     } 
@@ -35,6 +40,7 @@ void Scene::LateUpdate() {
     Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
+        if (!obj) continue;
         if (obj->GetActive()) obj->LateUpdate();
 
     } 
@@ -90,7 +96,7 @@ void Scene::Deserialize(const YAML::Node& data) {
 
     for (auto& obj : GetAllGameObjects()){    
         
-        obj->Awake();
+        obj->OnCreated();
     }
 }
 
@@ -150,6 +156,7 @@ std::vector<GameObject*> Scene::GetAllGameObjects() {
 Scene* Scene::Copy(){
 
     Scene* copy = new Scene();
+    copy->id = id;
     copy->name = name;
     copy->root_object_ids = root_object_ids;
     copy->gameobject_ids = gameobject_ids;

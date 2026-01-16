@@ -19,11 +19,11 @@ Container* Container::Copy(){
 
 void Container::Init(){
     if (initialized) return;
-
+    
     for (System* system : systems) {
         system->Init();
     }
-
+    
     initialized = true;
 }
 
@@ -34,11 +34,24 @@ void Container::PostInit(){
     
 }
 
-void Container::Update(){
+void Container::EnterPlayMode(){
+    SetMode(Mode::Runtime);
 
     for (System* system : systems) {
-        system->Update();
+        system->OnEnterPlayMode();
     }
+
+}
+
+void Container::Update(){
+    int count = 0;
+    for (System* system : systems) {
+        std::cout << system << std::endl;
+        system->Update();
+        std::cout << count << std::endl;
+        count ++;
+    }
+    
 
 }
 

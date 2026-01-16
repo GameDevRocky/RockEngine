@@ -13,7 +13,7 @@ public:
     void RemoveScene(const std::string& scene_id);
     std::vector<Scene*> GetScenes() const;
     void Update() override;
-    
+    void OnEnterPlayMode() override;
     SceneManager() = default;
     ~SceneManager() = default;
 
