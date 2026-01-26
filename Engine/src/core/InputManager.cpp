@@ -2,16 +2,20 @@
 #include <iostream>
 
 void InputManager::Init() {
-    std::cout << "InputManager initialized.\n";
     mouse_pos = {0, 0};
+    
+    std::cout << "InputManager Initialized" << std::endl;
 }
 
+void InputManager::PostInit(){
+    std::cout << "InputManager Post Initialized" << std::endl;
+}
 void InputManager::Update(){
-    
+
 }
 
 void InputManager::Shutdown() {
-    std::cout << "InputManager shutting down.\n";
+    std::cout << "InputManager shutting down" << std::endl;
 }
 
 InputManager* InputManager::Copy(){

@@ -69,6 +69,7 @@ void Editor::Init() {
     qApp->setPalette(darkPalette);
     MainWindow& main_window = *MainWindow::Get();
     main_window.Init();
+    std::cout << "Editor Initialized\n" << std::endl;
 }
 
 void Editor::Update(){
@@ -78,7 +79,7 @@ void Editor::Update(){
 }
 
 void Editor::Start() {
-
+    std::cout << "Editor Starting ..." << std::endl;
     timer = new QTimer();
     MainWindow::Get()->Start();
 

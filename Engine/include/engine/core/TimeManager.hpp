@@ -7,9 +7,11 @@ public:
     TimeManager() = default;
 
     void Init() override;
-    void PostInit() override {};
+    void PostInit() override;
     void Update() override;
     void Shutdown() override;
+    void OnEnterPlayMode() override {}
+    void OnExitPlayMode() override {}
     TimeManager* Copy() override;
 
     float DeltaTime() const { return deltaTime; }

@@ -1,0 +1,35 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 20,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "qt-mingw-debug",
+      "displayName": "Qt MinGW (Debug)",
+      "generator": "MinGW Makefiles",
+      "binaryDir": "${sourceDir}/build/qt-mingw-debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "C:/Qt/Tools/mingw1310_64/bin/gcc.exe",
+        "CMAKE_CXX_COMPILER": "C:/Qt/Tools/mingw1310_64/bin/g++.exe",
+        "CMAKE_MAKE_PROGRAM": "C:/Qt/Tools/mingw1310_64/bin/mingw32-make.exe",
+        "CMAKE_PREFIX_PATH": "C:/Qt/6.10.0/mingw_64",
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_C_FLAGS_DEBUG": "-Og -g3 -fno-omit-frame-pointer",
+        "CMAKE_CXX_FLAGS_DEBUG": "-Og -g3 -fno-omit-frame-pointer"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "qt-mingw-debug",
+      "displayName": "Build Qt MinGW (Debug)",
+      "configurePreset": "qt-mingw-debug",
+      "configuration": "Debug",
+      "jobs": 0
+    }
+  ]
+}

@@ -18,6 +18,7 @@ setMouseTracking(true);
 }
 void GameViewGui::Init(){ 
     resize(300, 500);
+    std::cout << "GameViewGui Initialized" << std::endl;
 }  
 
 void GameViewGui::initializeRenderPipeline(){

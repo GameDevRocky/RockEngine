@@ -8,9 +8,20 @@
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}", // Crucial for finding engine assets
+            "cwd": "${workspaceFolder}",
             "environment": [
-                { "name": "PATH", "value": "C:\\Qt\\Tools\\mingw1310_64\\bin;C:\\Qt\\6.10.0\\mingw_64\\bin;${env:PATH}" }
+                { 
+                    "name": "PATH", 
+                    "value": "C:\\Qt\\6.10.0\\mingw_64\\bin;C:\\Qt\\Tools\\mingw1310_64\\bin;C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314;${env:PATH}" 
+                },
+                {
+                    "name": "PYTHONHOME",
+                    "value": "C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314"
+                },
+                {
+                    "name": "PYTHONPATH",
+                    "value": "C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314\\Lib;${workspaceFolder}"
+                }
             ],
             "externalConsole": false,
             "MIMode": "gdb",
@@ -22,8 +33,7 @@
                     "ignoreFailures": true
                 }
             ],
-            "visualizerFile": "${workspaceFolder}/.vscode/qt6.natvis", // Optional: for better Qt variable viewing
-            "ignoreFailures": true
+            "visualizerFile": "${workspaceFolder}/.vscode/qt6.natvis"
         }
     ]
 }

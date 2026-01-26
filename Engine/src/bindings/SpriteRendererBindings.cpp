@@ -23,6 +23,7 @@ void BindSpriteRenderer(pybind11::module_& m) {
             }
         }
     });
+
     m.def("get_flip", [](const std::string& id) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
@@ -34,6 +35,31 @@ void BindSpriteRenderer(pybind11::module_& m) {
         }
         return std::make_tuple(false, false);
     });
+
+    m.def("set_color", [](const std::string& id, float r, float g, float b, float a) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* renderer = go->GetComponent<SpriteRenderer>()) {
+                renderer->SetColor(glm::vec4(r, g, b, a));
+            }
+        }
+    });
+
+    m.def("get_color", [](const std::string& id) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* renderer = go->GetComponent<SpriteRenderer>()) {
+                const glm::vec4 c = renderer->GetColor();
+                return std::make_tuple(c.r, c.g, c.b, c.a);
+            }
+        }
+        return std::make_tuple(1.0f, 1.0f, 1.0f, 1.0f);
+    });
+
 
     
 }

@@ -20,13 +20,9 @@ void ScriptComponent::Deserialize(const YAML::Node& node)
     className  = node["class"].as<std::string>();
 }
 
-void ScriptComponent::OnCreated(){
-    InstantiateScript();
-    CallIfExists("on_created");
-}
-
 void ScriptComponent::Awake()
 {
+    InstantiateScript();
     CallIfExists("awake");
 }
 

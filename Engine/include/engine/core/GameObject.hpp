@@ -9,12 +9,25 @@
 #include "engine/core/Scene.hpp"
 #include <iostream>
 #include "Engine.hpp"
+#include "engine/core/RuntimeObject.hpp"
 
 class Component;
 class Transform;
-class GameObject : public Serializable {
+class GameObject : public Serializable, public RuntimeObject {
+    
+    public:
+    void Awake();
+    void Update();
+    void FixedUpdate();
+    void LateUpdate();
+    void OnEnterPlayMode() override {};
+    void OnExitPlayMode() override {};
 
-public:
+    YAML::Node Serialize() override;
+    void Deserialize(const YAML::Node& node) override;
+    void PostDeserialize() override;
+    GameObject* Copy() override;
+
     std::string name;
     GameObject() = default;
     ~GameObject() =default;
@@ -28,17 +41,13 @@ public:
         if (it == component_ids.end())
         return nullptr;
         
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        Registry* registry = container->FindSystem<Registry>();
         const std::string& comp_id = it->second;
         T* comp = registry->Find<T>(comp_id);
         return comp;
     }
 
 
-    YAML::Node Serialize() override;
-    void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override;
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
     std::string GetName() {return name;}
@@ -46,14 +55,8 @@ public:
     bool GetActive(){return active;}
     void SetScene(const std::string& id);
     Scene* GetScene();
-    void OnCreated();
-    void Awake();
-    void Update();
-    void FixedUpdate();
-    void LateUpdate();
-
-    GameObject* Copy() override;
-
+    
+    
     
     private:
     bool active = true;

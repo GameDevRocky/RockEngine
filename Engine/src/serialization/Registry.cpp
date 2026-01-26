@@ -4,9 +4,11 @@
 #include "engine/debug/Console.hpp"
 
 void Registry::Init(){
+    std::cout << "Registry Initialized" << std::endl;
     
 }
 void Registry::PostInit(){
+    std::cout << "Registry Post Initialized" << std::endl;
 
 }
 void Registry::Shutdown(){
@@ -33,8 +35,7 @@ Registry* Registry::Copy(){
     Registry* registry = new Registry();
     for (auto& pair : serializables){
         auto* obj = pair.second;
-        std::cout << obj->GetTypeName() << std::endl;
-        std::cout << obj->GetID() << std::endl;
+
         auto* copy = obj->Copy();
         registry->Register(copy);
     }

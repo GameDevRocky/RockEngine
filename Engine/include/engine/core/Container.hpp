@@ -4,11 +4,12 @@
 #include "engine/core/TimeManager.hpp"
 #include "engine/core/InputManager.hpp"
 #include "engine/core/SceneManager.hpp"
+#include "engine/core/RuntimeObject.hpp"
 
 #include <type_traits>
 #include <vector>
 
-class Container : public Observable {
+class Container : public Observable, public RuntimeObject {
 public:
 	enum class Mode {
 		Editor,
@@ -27,7 +28,8 @@ public:
 		Notify();
 	}
 
-	void EnterPlayMode();
+	void OnEnterPlayMode() override;
+	void OnExitPlayMode() override;
 
 	void Init();
     void PostInit();
@@ -54,9 +56,7 @@ public:
 		}
 		return nullptr;
 	}
-
-
-
+	
 	Container* Copy();
 
 private:

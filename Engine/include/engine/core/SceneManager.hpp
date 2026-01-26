@@ -9,11 +9,16 @@ public:
     
     void Init() override;
     void PostInit() override;
-    Scene* LoadScene(const std::string& file_path);
-    void RemoveScene(const std::string& scene_id);
-    std::vector<Scene*> GetScenes() const;
     void Update() override;
+
     void OnEnterPlayMode() override;
+    void OnExitPlayMode() override;
+
+    void LoadScene(const std::string& file_path);
+    void RemoveScene(const std::string& scene_id);
+
+    std::vector<Scene*> GetScenes() const;
+
     SceneManager() = default;
     ~SceneManager() = default;
 

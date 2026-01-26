@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QWidget>
 #include "utils/EditorUtils.hpp"
+#include "iostream"
 
 FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath("C:/Users/rockl/Coding Projects/RockEngine"), projectDirectory("C:/Users/rockl/Coding Projects/RockEngine") {
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -73,6 +74,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath("C:
 
 void FolderViewGui::Init() {
     setMinimumWidth(400);
+    std::cout << "FolderViewGui Initialized" << std::endl;
 }
 
 void FolderViewGui::SetProjectDirectory(const std::string& projectDir) {

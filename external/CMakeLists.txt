@@ -25,7 +25,7 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(pybind11)
 
-add_library(glad SHARED glad/src/glad.c)
+add_library(glad STATIC glad/src/glad.c)
 
 target_include_directories(glad 
     PUBLIC 

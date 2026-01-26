@@ -53,8 +53,6 @@ void SceneViewGui::initializeRenderPipeline(){
 void SceneViewGui::initializeGL() {
     initializeOpenGLFunctions();
 
-    // We use glad_gl* calls throughout the renderer/passes; GLAD must be loaded
-    // after a context is current (Qt makes the context current for initializeGL).
     if (!gladLoadGL()) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return;
@@ -115,6 +113,7 @@ void SceneViewGui::initializeGL() {
     glLinkProgram(quadShader);
     glDeleteShader(v);
     glDeleteShader(f);
+    std::cout << "SceneViewGui OpenGl Initialized. " << std::endl;
 }
 
 
@@ -296,5 +295,5 @@ glm::vec2 SceneViewGui::ScreenToWorld(const QPoint& p)
 
 
 void SceneViewGui::Init(){
-    
+    std::cout << "SceneViewGui Initialized" << std::endl;
 }

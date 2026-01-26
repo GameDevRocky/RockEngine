@@ -8,10 +8,12 @@ Container::Container(Mode mode){
 
 Container* Container::Copy(){
     Container* container = new Container(Mode::Runtime);
+    
     for (auto* system : systems){
         auto* copy = system->Copy();
         container->AddSystem(copy);
     }
+
     return container;
 }
 
@@ -28,13 +30,14 @@ void Container::Init(){
 }
 
 void Container::PostInit(){
+    
     for (System* system : systems) {
         system->PostInit();
     }
     
 }
 
-void Container::EnterPlayMode(){
+void Container::OnEnterPlayMode(){
     SetMode(Mode::Runtime);
 
     for (System* system : systems) {
@@ -42,14 +45,18 @@ void Container::EnterPlayMode(){
     }
 
 }
+void Container::OnExitPlayMode(){
+    SetMode(Mode::Runtime);
+
+    for (System* system : systems) {
+        system->OnExitPlayMode();
+    }
+
+}
 
 void Container::Update(){
-    int count = 0;
     for (System* system : systems) {
-        std::cout << system << std::endl;
         system->Update();
-        std::cout << count << std::endl;
-        count ++;
     }
     
 

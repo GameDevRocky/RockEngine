@@ -11,7 +11,7 @@ class Sprite : public Serializable{
 public:
     Sprite() = default;
     
-    void Init();
+    void Init(){}
 
     YAML::Node Serialize() override { return YAML::Node(); }
     void Deserialize(const YAML::Node& node) override;

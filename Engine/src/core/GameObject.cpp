@@ -58,22 +58,9 @@ Transform* GameObject::GetTransform(){
     return GetComponent<Transform>();
 }
 
-void GameObject::OnCreated(){
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
-    Scene* scene = registry->Find<Scene>(scene_id);
-
-    for (auto& [type, comp_id] : component_ids){
-        Component* comp = registry->Find<Component>(comp_id);
-        if (!comp) continue;
-        comp->OnCreated();
-    }
-
-}
-
 void GameObject::Awake(){
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+
+    Registry* registry = container->FindSystem<Registry>();
     Scene* scene = registry->Find<Scene>(scene_id);
 
     for (auto& [type, comp_id] : component_ids){
@@ -86,7 +73,7 @@ void GameObject::Awake(){
 
 void GameObject::Update() {
     Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+    Registry* registry = container->FindSystem<Registry>();
 
     for (auto& [type, comp_id] : component_ids){
         Component* comp = registry->Find<Component>(comp_id);

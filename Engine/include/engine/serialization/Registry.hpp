@@ -16,8 +16,11 @@ public:
 
     Registry() = default;
 
+    
     void Init() override;
     void PostInit() override;
+    void OnEnterPlayMode() override {}
+    void OnExitPlayMode() override {}
     void Shutdown() override;
     Registry* Copy() override;
     

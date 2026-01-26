@@ -34,7 +34,7 @@ void RuntimeBar::Init() {
     layout->addWidget(pauseButton);
     layout->addStretch();      // Right spacer
 
-    
+    std::cout << "RuntimeBar Initialized" << std::endl;
 }
 
 RuntimeBar::RuntimeBar(QWidget* parent) : QWidget(parent) {

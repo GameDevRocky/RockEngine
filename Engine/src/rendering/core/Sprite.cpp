@@ -4,6 +4,7 @@
 
 void Sprite::Deserialize(const YAML::Node& node){
     Serializable::Deserialize(node);
+    name = node["name"].as<std::string>();
     uvMin = {node["uvMin"][0].as<float>(), node["uvMin"][1].as<float>()};
     uvMax = {node["uvMax"][0].as<float>(), node["uvMax"][1].as<float>()};
     pivot = {node["pivot"][0].as<float>(), node["pivot"][1].as<float>()};

@@ -19,6 +19,8 @@ public:
     }
 
     void Init() override;
+    void OnEnterPlayMode() override {}
+    void OnExitPlayMode() override {}
 
     // --- Lookup by ID ---
     Shader* GetShader(const std::string& id);

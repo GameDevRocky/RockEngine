@@ -21,7 +21,6 @@ public:
     void EnterPlayMode();
     void ExitPlayMode();
 
-    void CreateContainer();
     void LoadDefaultScene();
 
     Container* GetActiveContainer(){ return activeContainer;}

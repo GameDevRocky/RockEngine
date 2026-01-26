@@ -48,7 +48,7 @@ class Component:
         return get_gameobject(self._gameobject_id)
     
     @property 
-    def transform(self) -> Transform:
+    def transform(self) -> 'Transform':
         return self.gameobject.transform
 
     @property 
@@ -132,6 +132,18 @@ class SpriteRenderer(Component):
     def flipY(self, val):
         x, _ = engine_api.get_flip(self._gameobject_id)
         engine_api.set_flip(self._gameobject_id, x, val)
+
+    @property
+    def color(self):
+        # Returns (r, g, b, a)
+        return engine_api.get_color(self._gameobject_id)
+
+    @color.setter
+    def color(self, value):
+        r, g, b, a = value
+        engine_api.set_color(self._gameobject_id, float(r), float(g), float(b), float(a))
+
+    
 
     
 

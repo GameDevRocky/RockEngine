@@ -17,6 +17,8 @@ public:
     void AddPass(RenderPass* pass);
 
     void Init() override;
+    void OnEnterPlayMode() override {}
+    void OnExitPlayMode() override {}
     void Resize(int width, int height);
     void Render(RenderCamera& camera, Scene& scene);
     void Shutdown() override;

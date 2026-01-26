@@ -89,5 +89,8 @@
     "files.exclude": {
         "**/__pycache__": true,
         "**/*.pyc": true
-    }
+    },
+    "cmake.useCMakePresets": "always",
+    "cmake.configurePreset": "qt-mingw-debug",
+    "cmake.buildPreset": "qt-mingw-debug"
 }

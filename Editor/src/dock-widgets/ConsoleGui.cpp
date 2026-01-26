@@ -47,7 +47,7 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     GenerateWidgets();
 }
 void ConsoleGui::Init(){
-    
+    std::cout << "ConsoleGui Initialized" << std::endl;
 }
 
 void ConsoleGui::resizeEvent(QResizeEvent* event)

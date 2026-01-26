@@ -32,6 +32,8 @@ void MainWindow::Init()
     file_explorer->Init();
     folder_view->Init();
     runtime_bar->Init();
+
+    std::cout << "All Widgets Initialized" << std::endl;
     
     connect(file_explorer, &FileExplorerGui::RaiseFolderView, this, [this]() {
         folderViewDock->raise();
@@ -81,11 +83,15 @@ void MainWindow::Init()
     setCorner(Qt::TopRightCorner, Qt::TopDockWidgetArea);
     setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks );
     LoadLayout();
+
+    std::cout << "Main Window Initialized " << std::endl;
+
 }
 
 void MainWindow::Start(){
     HierarchyGui::Get()->Start();
     showMaximized();
+    std::cout << "MainWindow Started" << std::endl;
 }   
 
 void MainWindow::SaveLayout()

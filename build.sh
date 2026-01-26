@@ -18,7 +18,7 @@ done
 export CMAKE_PREFIX_PATH="C:/Qt/6.10.0/mingw_64/lib/cmake"
 export PATH="C:/Qt/Tools/mingw1310_64/bin:C:/Qt/6.10.0/mingw_64/bin:$PATH"
 
-BUILD_DIR="build"
+BUILD_DIR="build/qt-mingw-debug"
 
 # --- Remove build folder if --all flag is set ---
 if [ $ALL -eq 1 ]; then

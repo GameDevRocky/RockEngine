@@ -16,14 +16,14 @@ void SharedResources::Init()
         Texture2D* texture = new Texture2D();
         texture->Deserialize(texNode);
         AddTexture(texture);
-        std::cout << texture->GetName() << std::endl;
+        std::cout << "Loaded and Registered Texture: " + texture->GetName() << std::endl;
     }
     for (auto& spriteNode : data["Sprites"])
     {
         Sprite* sprite = new Sprite();
         sprite->Deserialize(spriteNode);
         AddSprite(sprite);
-        std::cout << sprite->GetName() << std::endl;
+        std::cout << "Loaded and Registered Sprite: " + sprite->GetName() << std::endl;
     }
     
     for (auto& shadNode : data["Shaders"])
@@ -31,6 +31,8 @@ void SharedResources::Init()
         Shader* shader = new Shader();
         shader->Deserialize(shadNode);
         AddShader(shader);
+        std::cout << "Loaded and Registered Shader: " + shader->GetName() << std::endl;
+        
     }
     
     for (auto& matNode : data["Materials"])
@@ -38,6 +40,7 @@ void SharedResources::Init()
         Material* material = new Material();
         material->Deserialize(matNode);
         AddMaterial(material);
+        std::cout << "Loaded and Registered Material: " + material->GetName() << std::endl;
     }
 
     std::vector<Serializable*> all;
@@ -50,14 +53,11 @@ void SharedResources::Init()
     for (Serializable* obj : all)
         obj->PostDeserialize();
 
-    Console::Comment("Shared Resources Initialized");
+    std::cout << "Shared Resources Initialized" << std::endl;
     initialized = true;
     
 }
 
-// ----------------------
-// Lookup By ID
-// ----------------------
 
 Shader* SharedResources::GetShader(const std::string& id)
 {

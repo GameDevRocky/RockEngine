@@ -5,6 +5,7 @@ class TestScript(ScriptableComponent):
     def on_created(self):
         self.velocity = Vector2(0,0)
         self.renderer = self.get_component(SpriteRenderer)
+        
 
     
     def awake(self):
@@ -21,7 +22,6 @@ class TestScript(ScriptableComponent):
         self.velocity += input * .5
         self.transform.position += self.velocity
         self.velocity *= 0.8
-
 
         
 

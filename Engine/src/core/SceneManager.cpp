@@ -6,14 +6,14 @@
 
 
 void SceneManager::Init(){
-    
+    std::cout << "SceneManager initialized" << std::endl;
+}
 
-}
 void SceneManager::PostInit(){
-    
+    std::cout << "SceneManager Post Initialized" << std::endl;
 }
+
 void SceneManager::Update(){
-    std::cout << "into update loop" << std::endl;
     Engine* engine = Engine::Get();
     Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     TimeManager* timeManager = engine->GetActiveContainer()->FindSystem<TimeManager>();
@@ -29,7 +29,6 @@ void SceneManager::Update(){
             accumulator -= fixedDeltaTime;
         }
     }
-    std::cout << "after while loop" << std::endl;
 
     for(auto& scene_id : scene_ids){
         Scene* scene = registry->Find<Scene>(scene_id);
@@ -44,34 +43,50 @@ void SceneManager::Update(){
 }
 
 void SceneManager::OnEnterPlayMode(){
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+    Registry* registry = container->FindSystem<Registry>();
     for(auto& scene_id : scene_ids){
         Scene* scene = registry->Find<Scene>(scene_id);
         if (!scene) continue;
-        scene->Init();
+        scene->OnEnterPlayMode();
+    }
+
+}
+void SceneManager::OnExitPlayMode(){
+    Registry* registry = container->FindSystem<Registry>();
+    for(auto& scene_id : scene_ids){
+        Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) continue;
+        scene->OnExitPlayMode();
     }
 
 }
 
+void SceneManager::LoadScene(const std::string& file_path){
+    std::cout << "Loading scene from path: " + file_path << std::endl;
 
-Scene* SceneManager::LoadScene(const std::string& file_path){
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
-    std::cout << "engine get" << std::endl;
+    Registry* registry = container->FindSystem<Registry>();
     Scene* scene = new Scene();
+
     YAML::Node root = YAML::LoadFile(file_path);
+    
+    scene->Attach(container);
+    std::cout << "Deserializing scene from path: " + file_path << std::endl;
     scene->Deserialize(root);
     registry->Register(scene);
+    std::cout << "Initializing scene from path: " + file_path << std::endl;
+    scene->Init();
+
+    if (container->GetMode() == Container::Mode::Runtime){
+        scene->OnEnterPlayMode();
+    }
+
     scene_ids.push_back(scene->GetID());
-    Notify();
-    return scene;
+    std::cout << "Completed loading scene from path: " + file_path << std::endl;
 }
 
 
 void SceneManager::RemoveScene(const std::string& scene_id) {
-    scene_ids.erase(std::remove(scene_ids.begin(), scene_ids.end(), scene_id), scene_ids.end());
-    Notify();
+    
 }
 
 std::vector<Scene*> SceneManager::GetScenes() const {

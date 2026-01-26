@@ -14,6 +14,8 @@ public:
     void Init() override;
     void Start();
     void Update() override;
+    void OnEnterPlayMode() override {}
+    void OnExitPlayMode() override {}
     void Shutdown() override;
     
     QApplication* App() const { return app; }

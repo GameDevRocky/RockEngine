@@ -27,7 +27,7 @@ Resources:
     - id: "s3"
       vert_path: "Domain/assets/shaders/sprite.vert"
       frag_path: "Domain/assets/shaders/glow.frag"
-      name: "sprite"
+      name: "glow"
 
   Materials:
     - id: "m1"

@@ -9,7 +9,8 @@ static Inspector& Get() {
         static Inspector instance;
         return instance;
     }
-
+void OnEnterPlayMode() override {}
+void OnExitPlayMode() override {}
 void SetGameObject(GameObject *gameobject);
 GameObject* GetGameObject();
 

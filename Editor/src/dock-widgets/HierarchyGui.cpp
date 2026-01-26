@@ -70,17 +70,17 @@ void HierarchyGui::CreateHeader(){
 }
 
 void HierarchyGui::Init(){ 
-    
+    std::cout << "HierarchyGui Initialized" << std::endl;
 }
 
 void HierarchyGui::Start(){
     Engine* engine = Engine::Get();
     SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
-
+    
     std::vector<Scene*> scenes = sceneManager->GetScenes();
     if (!scenes.empty()) {
         SetScene(scenes[0]);
-
+        
     }
     else{
         std::cout << "No Scenes" << std::endl;
