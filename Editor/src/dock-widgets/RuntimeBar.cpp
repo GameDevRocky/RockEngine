@@ -3,6 +3,7 @@
 #include <QPushButton>
 #include <QStyle>
 #include "Engine.hpp"
+#include "dock-widgets/MainWindowGui.hpp"
 
 void RuntimeBar::Init() {
     setFixedHeight(24);
@@ -21,6 +22,7 @@ void RuntimeBar::Init() {
 
     connect(playButton, &QPushButton::clicked, []() {
         Engine::Get()->EnterPlayMode();
+        MainWindow::Get()->central_tabs->setCurrentIndex(1);
     });
     
     QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);

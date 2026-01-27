@@ -5,6 +5,7 @@ class TestScript(ScriptableComponent):
     def awake(self):
         self.velocity = Vector2(0,0)
         self.renderer = self.get_component(SpriteRenderer)
+        self.renderer.color = [0.6, 0.54, 0.39, 1.0]
         pass
         
     def update(self):
