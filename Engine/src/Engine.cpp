@@ -23,11 +23,12 @@ void Engine::Init() {
     editorContainer->AddSystem(new SceneManager());
     editorContainer->AddSystem(new TimeManager());
     editorContainer->AddSystem(new InputManager());
-    
+
+    editorContainer->SetMode(Container::Mode::Editor);
     editorContainer->Init();
     editorContainer->PostInit();
-
     activeContainer = editorContainer;
+
 
     LoadDefaultScene();
     std::cout << "Engine Initialized\n" << std::endl;
@@ -42,9 +43,12 @@ void Engine::Update(){
 void Engine::EnterPlayMode(){
 
     runtimeContainer = editorContainer->Copy();
+    
+    runtimeContainer->SetMode(Container::Mode::Runtime);
+    runtimeContainer->Init();
+    runtimeContainer->PostInit();
 
     activeContainer = runtimeContainer;
-
     runtimeContainer->OnEnterPlayMode();
 }
 

@@ -17,6 +17,12 @@ public:
     virtual void Update() {}
     virtual void Shutdown() {}
     virtual System* Copy(){ return nullptr; };
+    System* Copy(Container* container) override {
+        System* copy = this->Copy();
+        if (copy)
+            copy->Attach(container);
+        return copy;
+    }
 
 protected:
     Container* container = nullptr;

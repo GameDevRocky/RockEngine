@@ -9,6 +9,7 @@ public:
 
     Container* GetContainer() const { return container; }
     virtual void Attach(Container* inContainer) { container = inContainer; }
+    virtual RuntimeObject* Copy(Container* container){ return nullptr; }
 
 protected:
     RuntimeObject() = default;

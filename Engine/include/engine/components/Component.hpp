@@ -7,6 +7,11 @@
 class Component : public Serializable, public RuntimeObject{
 public: 
 
+    using Serializable::Copy;
+
+    virtual void Init(){}
+    virtual void PostInit(){}
+
     virtual void Awake(){}
     virtual void Start() {}
     virtual void Update() {}
@@ -24,6 +29,8 @@ public:
 
     virtual void OnEnabled(){}
     virtual void OnDisabled(){}
+
+    Component* Copy(Container* container) override;
 
     GameObject* GetGameObject();
 

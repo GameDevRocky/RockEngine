@@ -1,6 +1,6 @@
 #pragma once
 #include <functional>
-#include <map>  // multimap lives here
+#include <map>
 #include <unordered_map>
 #include <atomic>
 

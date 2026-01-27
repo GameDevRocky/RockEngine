@@ -16,6 +16,8 @@ class Transform;
 class GameObject : public Serializable, public RuntimeObject {
     
     public:
+    void Init();
+    void PostInit();
     void Awake();
     void Update();
     void FixedUpdate();
@@ -27,6 +29,7 @@ class GameObject : public Serializable, public RuntimeObject {
     void Deserialize(const YAML::Node& node) override;
     void PostDeserialize() override;
     GameObject* Copy() override;
+    GameObject* Copy(Container* container) override;
 
     std::string name;
     GameObject() = default;

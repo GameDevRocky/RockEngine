@@ -13,18 +13,22 @@ public:
     Scene() = default;
     ~Scene() = default;
 
+    
     void Init();
+    void PostInit();
+    
+    void Awake();
     void Update();
-
-    void OnEnterPlayMode() override {}
-    void OnExitPlayMode() override {}
-
     void FixedUpdate();
     void LateUpdate();
-    
+
+    void OnEnterPlayMode() override;
+    void OnExitPlayMode() override {}
+
     void Shutdown();
 
     Scene* Copy() override;
+    Scene* Copy(Container* container) override;
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
@@ -44,6 +48,8 @@ public:
 
 private:
     std::string name;
+
+    bool initialized = false;
 
     std::vector<std::string> root_object_ids;
     std::vector<std::string> gameobject_ids;

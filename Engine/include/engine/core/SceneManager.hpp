@@ -23,6 +23,7 @@ public:
     ~SceneManager() = default;
 
     SceneManager* Copy() override;
+    SceneManager* Copy(Container* container) override;
 
 private:
     std::vector<std::string> scene_ids;

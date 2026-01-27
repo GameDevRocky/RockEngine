@@ -58,10 +58,31 @@ Transform* GameObject::GetTransform(){
     return GetComponent<Transform>();
 }
 
+void GameObject::Init(){
+    Registry* registry = container->FindSystem<Registry>();
+
+    for (auto& [type, comp_id] : component_ids){
+        Component* comp = registry->Find<Component>(comp_id);
+        if (!comp) continue;
+        comp->Init();
+    }
+    
+}
+
+void GameObject::PostInit(){
+    Registry* registry = container->FindSystem<Registry>();
+
+    for (auto& [type, comp_id] : component_ids){
+        Component* comp = registry->Find<Component>(comp_id);
+        if (!comp) continue;
+        comp->PostInit();
+    }
+
+}
+
 void GameObject::Awake(){
 
     Registry* registry = container->FindSystem<Registry>();
-    Scene* scene = registry->Find<Scene>(scene_id);
 
     for (auto& [type, comp_id] : component_ids){
         Component* comp = registry->Find<Component>(comp_id);
@@ -72,7 +93,6 @@ void GameObject::Awake(){
 }
 
 void GameObject::Update() {
-    Engine* engine = Engine::Get();
     Registry* registry = container->FindSystem<Registry>();
 
     for (auto& [type, comp_id] : component_ids){
@@ -115,5 +135,11 @@ GameObject* GameObject::Copy(){
     copy->transform_id = transform_id;
     copy->temp_ids = temp_ids;
     copy->scene_id = scene_id;
+    return copy;
+}
+
+GameObject* GameObject::Copy(Container* container) {
+    GameObject* copy = this->Copy();
+    copy->Attach(container);
     return copy;
 }

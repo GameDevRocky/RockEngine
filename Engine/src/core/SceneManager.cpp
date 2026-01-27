@@ -13,34 +13,38 @@ void SceneManager::PostInit(){
     std::cout << "SceneManager Post Initialized" << std::endl;
 }
 
-void SceneManager::Update(){
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
-    TimeManager* timeManager = engine->GetActiveContainer()->FindSystem<TimeManager>();
-    if (!registry || !timeManager) return;
+void SceneManager::Update() {
+    Registry* registry = container->FindSystem<Registry>();
+    TimeManager* timeManager = container->FindSystem<TimeManager>();
+
     const float fixedDeltaTime = timeManager->FixedDeltaTime();
     const float frameTime = timeManager->DeltaTime();
+
     accumulator += frameTime;
-    while (accumulator >= fixedDeltaTime){
-        for(auto& scene_id : scene_ids){
+
+    while (accumulator >= fixedDeltaTime) {
+        for (auto& scene_id : scene_ids) {
             Scene* scene = registry->Find<Scene>(scene_id);
             if (!scene) continue;
             scene->FixedUpdate();
-            accumulator -= fixedDeltaTime;
         }
+
+        accumulator -= fixedDeltaTime; 
     }
 
-    for(auto& scene_id : scene_ids){
+    for (auto& scene_id : scene_ids) {
         Scene* scene = registry->Find<Scene>(scene_id);
         if (!scene) continue;
         scene->Update();
     }
-    for(auto& scene_id : scene_ids){
+
+    for (auto& scene_id : scene_ids) {
         Scene* scene = registry->Find<Scene>(scene_id);
         if (!scene) continue;
         scene->LateUpdate();
     }
 }
+
 
 void SceneManager::OnEnterPlayMode(){
     Registry* registry = container->FindSystem<Registry>();
@@ -51,6 +55,7 @@ void SceneManager::OnEnterPlayMode(){
     }
 
 }
+
 void SceneManager::OnExitPlayMode(){
     Registry* registry = container->FindSystem<Registry>();
     for(auto& scene_id : scene_ids){
@@ -58,7 +63,6 @@ void SceneManager::OnExitPlayMode(){
         if (!scene) continue;
         scene->OnExitPlayMode();
     }
-
 }
 
 void SceneManager::LoadScene(const std::string& file_path){
@@ -74,10 +78,14 @@ void SceneManager::LoadScene(const std::string& file_path){
     scene->Deserialize(root);
     registry->Register(scene);
     std::cout << "Initializing scene from path: " + file_path << std::endl;
-    scene->Init();
 
     if (container->GetMode() == Container::Mode::Runtime){
         scene->OnEnterPlayMode();
+    } 
+    else{
+        scene->Init();
+        scene->PostInit();
+        scene->Awake();
     }
 
     scene_ids.push_back(scene->GetID());
@@ -100,11 +108,18 @@ std::vector<Scene*> SceneManager::GetScenes() const {
     return scenes;
 }
 
-
 SceneManager* SceneManager::Copy(){
     SceneManager* copy = new SceneManager();
     copy->scene_ids = scene_ids;
     copy->accumulator = 0;
     return copy;
-
+    
 }
+
+SceneManager* SceneManager::Copy(Container* container){
+    SceneManager* copy = this->Copy();
+    copy->Attach(container);
+    return copy;
+}
+
+

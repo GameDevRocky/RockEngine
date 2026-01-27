@@ -31,3 +31,10 @@ TimeManager* TimeManager::Copy() {
     TimeManager* copy = new TimeManager();
     return copy;
 }
+
+TimeManager* TimeManager::Copy(Container* container){
+    TimeManager* copy = this->Copy();
+    copy->Attach(container);
+    return copy;
+}
+

@@ -20,16 +20,15 @@ void ScriptComponent::Deserialize(const YAML::Node& node)
     className  = node["class"].as<std::string>();
 }
 
-void ScriptComponent::Awake()
-{
+void ScriptComponent::Init(){
     InstantiateScript();
-    CallIfExists("awake");
+    CallIfExists("init");
 }
-
-void ScriptComponent::Start()       { CallIfExists("start"); }
-void ScriptComponent::Update()      { CallIfExists("update"); }
-void ScriptComponent::FixedUpdate() { CallIfExists("fixed_update"); }
-void ScriptComponent::LateUpdate()  { CallIfExists("late_update"); }
+void ScriptComponent::PostInit()    { CallIfExists("post_init"); }
+void ScriptComponent::Awake()       { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("awake"); }
+void ScriptComponent::Update()      { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("update"); }
+void ScriptComponent::FixedUpdate() { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("fixed_update"); }
+void ScriptComponent::LateUpdate()  { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("late_update"); }
 
 void ScriptComponent::OnDestroy()
 {
@@ -40,9 +39,10 @@ void ScriptComponent::OnDestroy()
 void ScriptComponent::InstantiateScript()
 {
     if (moduleName.empty() || className.empty()){
-        std::cout << "Module or class empty" << std::endl;
+        std::cerr << "[ScriptComponent] Module or class empty\n";
+        scriptInstance = py::none();
+        return;
     }
-
 
     py::gil_scoped_acquire gil;
 
@@ -87,7 +87,6 @@ void ScriptComponent::InstantiateScript()
     }
 }
 
-
 void ScriptComponent::CallIfExists(const char* funcName)
 {
     if (!scriptInstance || scriptInstance.is_none()) {
@@ -114,9 +113,7 @@ void ScriptComponent::CallIfExists(const char* funcName)
     }
 }
 
-
 ScriptComponent* ScriptComponent::Copy(){
-
     ScriptComponent* copy = new ScriptComponent();
     copy->id = id;
     copy->enabled = enabled;

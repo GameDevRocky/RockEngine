@@ -9,8 +9,32 @@
 #include <algorithm> 
 #include "Engine.hpp"
 
+
+void Scene::OnEnterPlayMode() {
+    Init();
+    PostInit();
+    Awake();
+}
+
 void Scene::Init() {
+    if (initialized)
+        return;
+
     std::cout << "Initializing Scene: " << name << std::endl;
+    for (auto& obj : GetAllGameObjects()){
+        obj->Init();
+    }
+
+    initialized = true;
+}
+void Scene::PostInit() {
+    std::cout << "Post Initializing Scene: " << name << std::endl;
+    for (auto& obj : GetAllGameObjects()){
+        obj->PostInit();
+    }
+}
+void Scene::Awake() {
+    std::cout << "Awaking Scene: " << name << std::endl;
     for (auto& obj : GetAllGameObjects()){
         obj->Awake();
     }
@@ -144,6 +168,12 @@ Scene* Scene::Copy(){
     copy->name = name;
     copy->root_object_ids = root_object_ids;
     copy->gameobject_ids = gameobject_ids;
+    return copy;
+}
+
+Scene* Scene::Copy(Container* container) {
+    Scene* copy = this->Copy();
+    copy->Attach(container);
     return copy;
 }
 

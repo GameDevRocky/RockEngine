@@ -11,8 +11,7 @@ void Component::Deserialize(const YAML::Node& node){
 
 GameObject* Component::GetGameObject(){
     if (gameobject_id.empty()) return nullptr;
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+    Registry* registry = container->FindSystem<Registry>();
     GameObject* gameobject = registry->Find<GameObject>(gameobject_id);
     if (!gameobject) return nullptr;
     return gameobject;
@@ -23,4 +22,12 @@ void Component::SetEnabled(bool e) {
     enabled = e;
     if (enabled) OnEnabled();
     else OnDisabled();
+}
+
+Component* Component::Copy(Container* container) {
+    auto* copiedSerializable = static_cast<Serializable*>(this)->Copy();
+    auto* copiedComponent = dynamic_cast<Component*>(copiedSerializable);
+    if (copiedComponent)
+        copiedComponent->Attach(container);
+    return copiedComponent;
 }

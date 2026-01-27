@@ -8,7 +8,7 @@
 
 class Serializable;
 
-class Registry : public System{
+class Registry : public System {
 private:
     std::unordered_map<std::string, Serializable*> serializables;
 
@@ -23,6 +23,7 @@ public:
     void OnExitPlayMode() override {}
     void Shutdown() override;
     Registry* Copy() override;
+    Registry* Copy(Container* container) override;
     
     void Register(Serializable* obj);
     void Unregister(Serializable* obj);

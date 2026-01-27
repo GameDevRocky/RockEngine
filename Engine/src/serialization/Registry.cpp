@@ -2,6 +2,7 @@
 #include "engine/serialization/Serializable.hpp" 
 #include <algorithm>
 #include "engine/debug/Console.hpp"
+#include "engine/core/RuntimeObject.hpp"
 
 void Registry::Init(){
     std::cout << "Registry Initialized" << std::endl;
@@ -39,5 +40,30 @@ Registry* Registry::Copy(){
         auto* copy = obj->Copy();
         registry->Register(copy);
     }
+    return registry;
+}
+
+Registry* Registry::Copy(Container* container) {
+    Registry* registry = new Registry();
+
+    for (auto& pair : serializables){
+        auto* obj = pair.second;
+
+        if (auto* runtimeObj = dynamic_cast<RuntimeObject*>(obj)) {
+            auto* runtimeCopy = runtimeObj->Copy(container);
+            auto* serializableCopy = dynamic_cast<Serializable*>(runtimeCopy);
+            if (serializableCopy){
+                std::cout << "Copying Object" + serializableCopy->GetTypeName() << std::endl;
+                registry->Register(serializableCopy);
+            }
+            continue;
+        }
+
+        auto* copy = obj->Copy();
+        registry->Register(copy);
+    }
+
+    registry->Attach(container);
+
     return registry;
 }

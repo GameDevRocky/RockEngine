@@ -1,6 +1,9 @@
 #pragma once
 #include <chrono>
 #include "engine/core/System.hpp"
+
+class Container;
+
 class TimeManager : public System {
     
 public:
@@ -13,6 +16,7 @@ public:
     void OnEnterPlayMode() override {}
     void OnExitPlayMode() override {}
     TimeManager* Copy() override;
+    TimeManager* Copy(Container* container) override;
 
     float DeltaTime() const { return deltaTime; }
     float FixedDeltaTime() const { return fixedDeltaTime; }

@@ -10,7 +10,7 @@ Container* Container::Copy(){
     Container* container = new Container(Mode::Runtime);
     
     for (auto* system : systems){
-        auto* copy = system->Copy();
+        auto* copy = system->Copy(container);
         container->AddSystem(copy);
     }
 
@@ -46,11 +46,11 @@ void Container::OnEnterPlayMode(){
 
 }
 void Container::OnExitPlayMode(){
-    SetMode(Mode::Runtime);
-
+    
     for (System* system : systems) {
         system->OnExitPlayMode();
     }
+    SetMode(Mode::Editor);
 
 }
 
