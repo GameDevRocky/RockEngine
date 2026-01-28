@@ -1,7 +1,7 @@
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/debug/Console.hpp"
 
-#define RESOURCES_CONFIG_PATH "Domain/resources_config.yaml"
+#define RESOURCES_CONFIG_PATH "Domain/lib/configs/resources_config.yaml"
 
 void SharedResources::Init()
 {

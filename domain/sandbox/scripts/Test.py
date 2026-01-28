@@ -1,12 +1,13 @@
 from Domain import *
 
+
 class TestScript(ScriptableComponent):
 
     def awake(self):
         self.velocity = Vector2(0,0)
         self.renderer = self.get_component(SpriteRenderer)
-        pass
-        
+        self.renderer.color = [1,2,1,0.5]
+            
     def update(self):
         input = Vector2(int(Input.is_key_down(Keys.D) - Input.is_key_down(Keys.A)), int(Input.is_key_down(Keys.W) - Input.is_key_down(Keys.S)))
         if Input.is_key_down(Keys.D):

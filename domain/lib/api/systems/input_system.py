@@ -1,5 +1,5 @@
-import engine_api
-from  .math import Vector2
+from rock_engine.systems import input_module
+from  ...utils.re_math import Vector2
 class Keys:
     # --- Standard Keys (ASCII) ---
     SPACE        = 32
@@ -104,9 +104,9 @@ class Keys:
 class Input:
     @staticmethod
     def is_key_down(keycode):
-        return bool(engine_api.is_key_down(keycode))
+        return bool(input_module.is_key_down(keycode))
     
     @staticmethod
     def get_mouse_pos():
-        return Vector2(engine_api.get_mouse_pos())
+        return Vector2(input_module.get_mouse_pos())
 
