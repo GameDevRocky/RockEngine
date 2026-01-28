@@ -5,10 +5,9 @@ class TestScript(ScriptableComponent):
     def awake(self):
         self.velocity = Vector2(0,0)
         self.renderer = self.get_component(SpriteRenderer)
-        self.renderer.color = [0.6, 0.54, 0.39, 1.0]
-        pass
-        
-    def update(self):
+        self.renderer.color = [1,2,1,0.5]
+            
+    def fixed_update(self):
         input = Vector2(int(Input.is_key_down(Keys.D) - Input.is_key_down(Keys.A)), int(Input.is_key_down(Keys.W) - Input.is_key_down(Keys.S)))
         if Input.is_key_down(Keys.D):
             self.renderer.flipX = False

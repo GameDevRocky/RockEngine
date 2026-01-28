@@ -4,14 +4,16 @@
 #include "Engine.hpp"
 
 
-void BindInput(pybind11::module_& m) {
-
-    m.def("is_key_down", [](int keycode) {
+void BindInputManager(pybind11::module_& m) {
+    pybind11::module_ input_module = m.def_submodule("input_module", "InputManagerBindings");
+    
+    input_module.def("is_key_down", [](int keycode) {
         Engine* engine = Engine::Get();
         InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
         return inputManager->IsKeyDown(keycode);
     });
-    m.def("get_mouse_pos", []() {
+    
+    input_module.def("get_mouse_pos", []() {
         Engine* engine = Engine::Get();
         InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
         glm::vec2 val = inputManager->GetMousePosition();

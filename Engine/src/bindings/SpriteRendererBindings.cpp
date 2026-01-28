@@ -11,8 +11,9 @@
 #include <iostream>
 
 void BindSpriteRenderer(pybind11::module_& m) {
-
-    m.def("set_flip", [](const std::string& id, bool x, bool y) {
+    pybind11::module_ sprite_renderer_module = m.def_submodule("sprite_renderer_module", "Sprite Renderer Bindings");
+    
+    sprite_renderer_module.def("set_flip", [](const std::string& id, bool x, bool y) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id); 
@@ -24,7 +25,7 @@ void BindSpriteRenderer(pybind11::module_& m) {
         }
     });
 
-    m.def("get_flip", [](const std::string& id) {
+    sprite_renderer_module.def("get_flip", [](const std::string& id) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id); 
@@ -36,7 +37,7 @@ void BindSpriteRenderer(pybind11::module_& m) {
         return std::make_tuple(false, false);
     });
 
-    m.def("set_color", [](const std::string& id, float r, float g, float b, float a) {
+    sprite_renderer_module.def("set_color", [](const std::string& id, float r, float g, float b, float a) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
@@ -47,7 +48,7 @@ void BindSpriteRenderer(pybind11::module_& m) {
         }
     });
 
-    m.def("get_color", [](const std::string& id) {
+    sprite_renderer_module.def("get_color", [](const std::string& id) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);

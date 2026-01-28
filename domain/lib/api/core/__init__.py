@@ -1,0 +1,1 @@
+from .gameobject_handler import GameObject, get_gameobject

@@ -19,7 +19,7 @@ void ScriptComponent::Deserialize(const YAML::Node& node)
     moduleName = node["module"].as<std::string>();
     className  = node["class"].as<std::string>();
 }
-
+ 
 void ScriptComponent::Init(){
     InstantiateScript();
     CallIfExists("init");
@@ -49,7 +49,7 @@ void ScriptComponent::InstantiateScript()
     try {
         py::module sys = py::module::import("sys");
         py::list path = sys.attr("path");
-        fs::path scriptsFolder = fs::absolute("Domain/assets/scripts");
+        fs::path scriptsFolder = fs::absolute("Domain/sandbox/scripts");
         fs::path libFolder     = fs::absolute("Domain/lib");
         std::vector<std::string> folders = { scriptsFolder.string(), libFolder.string() };
         for (auto& folder : folders) {

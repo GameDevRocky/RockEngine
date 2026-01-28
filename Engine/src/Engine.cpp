@@ -7,7 +7,7 @@
 #include <pybind11/embed.h>
 #include "engine/bindings/PythonBindings.hpp"
 
-#define SAMPLE_SCENE_PATH "Domain/scenes/SampleScene.yaml"
+#define SAMPLE_SCENE_PATH "Domain/lib/configs/SampleScene.yaml"
 
 namespace py = pybind11;
 

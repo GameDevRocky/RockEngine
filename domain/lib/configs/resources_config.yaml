@@ -3,30 +3,30 @@ Resources:
   Textures:
     - id: "t1"
       name: "main_texture"
-      path: "Domain/assets/textures/main_texture.png"
+      path: "Domain/lib/assets/textures/main_texture.png"
       filtering: "linear"
       wrap: "clamp"
 
     - id: "t2"
       name: "mushroom_texture"
-      path: "Domain/assets/textures/mushroom_texture.png" 
+      path: "Domain/lib/assets/textures/mushroom_texture.png" 
       filtering: "linear"
       wrap: "repeat"
  
   Shaders:
     - id: "s1"
-      vert_path: "Domain/assets/shaders/sprite.vert"
-      frag_path: "Domain/assets/shaders/sprite.frag"
+      vert_path: "Domain/lib/assets/shaders/sprite.vert"
+      frag_path: "Domain/lib/assets/shaders/sprite.frag"
       name: "sprite"
 
     - id: "s2"
-      vert_path: "Domain/assets/shaders/grid.vert"
-      frag_path: "Domain/assets/shaders/grid.frag"
+      vert_path: "Domain/lib/assets/shaders/grid.vert"
+      frag_path: "Domain/lib/assets/shaders/grid.frag"
       name: "grid"
 
     - id: "s3"
-      vert_path: "Domain/assets/shaders/sprite.vert"
-      frag_path: "Domain/assets/shaders/glow.frag"
+      vert_path: "Domain/lib/assets/shaders/sprite.vert"
+      frag_path: "Domain/lib/assets/shaders/glow.frag"
       name: "glow"
 
   Materials:
