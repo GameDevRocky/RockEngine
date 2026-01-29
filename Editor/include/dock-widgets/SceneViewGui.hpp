@@ -32,6 +32,7 @@ public:
     void Render();
     
     protected:
+    void initializeRenderPipeline();
 
     void initializeGL() override;
     void resizeGL(int w, int h) override;
@@ -44,7 +45,6 @@ public:
     void mouseReleaseEvent(QMouseEvent* event) override;
     glm::vec2 ScreenToWorld(const QPoint& p);
 
-    void initializeRenderPipeline();
 
     private:
     explicit SceneViewGui(QWidget* parent = nullptr);

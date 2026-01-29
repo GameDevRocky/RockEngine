@@ -20,7 +20,7 @@ public:
 
     const std::string& GetID() const { return id; }
     
-    Serializable* Copy() override { return nullptr; }
+    virtual Serializable* Copy() { return nullptr; }
 
 protected:
     std::string id;

@@ -4,38 +4,40 @@
 #include <QStyle>
 #include "Engine.hpp"
 #include "dock-widgets/MainWindowGui.hpp"
+#include "dock-widgets/GameViewGui.hpp"
 
 void RuntimeBar::Init() {
     setFixedHeight(24);
     setContentsMargins(0,0,0,0);
 
-    // 1. Create the Layout
+
+
     QHBoxLayout* layout = new QHBoxLayout(this);
-    layout->setContentsMargins(5, 0, 5, 0);
-    layout->setSpacing(10);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(5);
+    
 
-    // 2. Create Buttons
-    QIcon playIcon = style()->standardIcon(QStyle::SP_MediaPlay);
+    QIcon* playIcon = new QIcon("Domain/lib/assets/icons/play_icon.png");
     playButton = new QPushButton("", this);
-    playButton->setIcon(playIcon);
-    playButton->setFixedWidth(64);
-
+    playButton->setIcon(*playIcon);
+    playButton->setFixedWidth(48);
+    
     connect(playButton, &QPushButton::clicked, []() {
         Engine::Get()->EnterPlayMode();
-        MainWindow::Get()->central_tabs->setCurrentIndex(1);
+        MainWindow::Get()->central_tabs->setCurrentWidget(GameViewGui::Get());
+        GameViewGui::Get()->setFocus();
     });
     
-    QIcon pauseIcon = style()->standardIcon(QStyle::SP_MediaPause);
+    QIcon* pauseIcon = new QIcon("Domain/lib/assets/icons/pause_icon.png");
     pauseButton = new QPushButton("", this);
-    pauseButton->setIcon(pauseIcon);
-    pauseButton->setFixedWidth(64);
+    pauseButton->setIcon(*pauseIcon);
+    pauseButton->setFixedWidth(48);
 
-    // 3. Setup Centering with Stretches
-    layout->addStretch();      // Left spacer
+    layout->addStretch();
     layout->addWidget(playButton);
     layout->addWidget(pauseButton);
-    layout->addStretch();      // Right spacer
-
+    layout->addStretch(); 
+    
     std::cout << "RuntimeBar Initialized" << std::endl;
 }
 

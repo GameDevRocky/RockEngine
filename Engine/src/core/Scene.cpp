@@ -17,8 +17,6 @@ void Scene::OnEnterPlayMode() {
 }
 
 void Scene::Init() {
-    if (initialized)
-        return;
 
     std::cout << "Initializing Scene: " << name << std::endl;
     for (auto& obj : GetAllGameObjects()){

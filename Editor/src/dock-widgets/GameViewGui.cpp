@@ -32,8 +32,8 @@ void GameViewGui::initializeRenderPipeline(){
     ClearPass* clearPass = new ClearPass();
     ScenePass* scenePass = new ScenePass();
     
-    renderPipeline->AddPass(clearPass);
-    renderPipeline->AddPass(scenePass);
+    renderPipeline->AddSetupPass(clearPass);
+    renderPipeline->AddScenePass(scenePass);
     
     renderPipeline->Init();
     camera->Init();
@@ -145,7 +145,47 @@ void GameViewGui::Render(){
     auto* container = engine->GetActiveContainer();
     SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
 
-    for (auto& scene : sceneManager->GetScenes()){
-        renderPipeline->Render(*camera, *scene);
-    }    
+    renderPipeline->Render(camera, sceneManager->GetScenes());
+    
+}
+
+void GameViewGui::keyPressEvent(QKeyEvent* event) {
+    Engine* engine = Engine::Get();
+    auto* container = engine->GetActiveContainer();
+    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+
+    inputManager->SetKeyState(event->key(), true);
+    Console::Comment(std::to_string(event->key()));
+}
+
+void GameViewGui::keyReleaseEvent(QKeyEvent* event) {
+    Engine* engine = Engine::Get();
+    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+    inputManager->SetKeyState(event->key(), false);
+    Console::Comment(std::to_string(event->key()));
+}
+
+
+void GameViewGui::wheelEvent(QWheelEvent* event)
+{
+    event->accept();
+}
+
+
+
+void GameViewGui::mousePressEvent(QMouseEvent* event)
+{
+    event->accept();
+}
+
+
+void GameViewGui::mouseReleaseEvent(QMouseEvent* event)
+{
+    event->accept();
+}
+
+
+void GameViewGui::mouseMoveEvent(QMouseEvent* e)
+{
+    e->accept();
 }

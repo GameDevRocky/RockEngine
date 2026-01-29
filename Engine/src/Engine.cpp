@@ -2,7 +2,6 @@
 #include "engine/core/TimeManager.hpp"
 #include <iostream>
 #include "engine/debug/Console.hpp"
-#include "engine/rendering/RenderManager.hpp"
 #include "engine/components/ComponentRegistrars.hpp"
 #include <pybind11/embed.h>
 #include "engine/bindings/PythonBindings.hpp"
@@ -34,6 +33,11 @@ void Engine::Init() {
     std::cout << "Engine Initialized\n" << std::endl;
 }
 
+void Engine::PostInit(){
+
+    
+}
+
 void Engine::Update(){
     activeContainer->Update();
        
@@ -41,13 +45,13 @@ void Engine::Update(){
 
 
 void Engine::EnterPlayMode(){
-
+    
     runtimeContainer = editorContainer->Copy();
     
     runtimeContainer->SetMode(Container::Mode::Runtime);
     runtimeContainer->Init();
     runtimeContainer->PostInit();
-
+    
     activeContainer = runtimeContainer;
     runtimeContainer->OnEnterPlayMode();
 }
@@ -58,7 +62,7 @@ void Engine::ExitPlayMode(){
 }
 
 void Engine::LoadDefaultScene(){
-    SceneManager* sceneManager = editorContainer->FindSystem<SceneManager>();
+    SceneManager* sceneManager = activeContainer->FindSystem<SceneManager>();
     sceneManager->LoadScene(SAMPLE_SCENE_PATH);
 }
 

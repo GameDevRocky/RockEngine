@@ -73,7 +73,7 @@ void HierarchyGui::Init(){
     std::cout << "HierarchyGui Initialized" << std::endl;
 }
 
-void HierarchyGui::Start(){
+void HierarchyGui::PostInit(){
     Engine* engine = Engine::Get();
     SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
     

@@ -25,7 +25,7 @@ public:
         return instance;
     }
     void Init();
-    void Start();
+    void PostInit();
     explicit HierarchyGui(QWidget* parent = nullptr);
     void SetScene(Scene* scene);
 

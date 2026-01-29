@@ -25,7 +25,9 @@ void SceneManager::Update() {
     while (accumulator >= fixedDeltaTime) {
         for (auto& scene_id : scene_ids) {
             Scene* scene = registry->Find<Scene>(scene_id);
-            if (!scene) continue;
+            if (!scene){
+                std::cout << "Error in Scene Manager, scene is null" << std::endl;
+            }
             scene->FixedUpdate();
         }
 
@@ -47,9 +49,7 @@ void SceneManager::Update() {
 
 
 void SceneManager::OnEnterPlayMode(){
-    Registry* registry = container->FindSystem<Registry>();
-    for(auto& scene_id : scene_ids){
-        Scene* scene = registry->Find<Scene>(scene_id);
+    for(auto& scene : GetScenes()){
         if (!scene) continue;
         scene->OnEnterPlayMode();
     }
@@ -70,7 +70,7 @@ void SceneManager::LoadScene(const std::string& file_path){
 
     Registry* registry = container->FindSystem<Registry>();
     Scene* scene = new Scene();
-
+ 
     YAML::Node root = YAML::LoadFile(file_path);
     
     scene->Attach(container);
@@ -78,15 +78,14 @@ void SceneManager::LoadScene(const std::string& file_path){
     scene->Deserialize(root);
     registry->Register(scene);
     std::cout << "Initializing scene from path: " + file_path << std::endl;
+    
+    scene->Init();
+    scene->PostInit();
+    scene->Awake();
 
     if (container->GetMode() == Container::Mode::Runtime){
         scene->OnEnterPlayMode();
     } 
-    else{
-        scene->Init();
-        scene->PostInit();
-        scene->Awake();
-    }
 
     scene_ids.push_back(scene->GetID());
     std::cout << "Completed loading scene from path: " + file_path << std::endl;
@@ -98,8 +97,7 @@ void SceneManager::RemoveScene(const std::string& scene_id) {
 }
 
 std::vector<Scene*> SceneManager::GetScenes() const {
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+    Registry* registry = container->FindSystem<Registry>();
     std::vector<Scene*> scenes;
     for (auto& s_id : scene_ids){
         Scene* scene = registry->Find<Scene>(s_id);

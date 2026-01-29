@@ -78,10 +78,10 @@ void Editor::Update(){
     
 }
 
-void Editor::Start() {
+void Editor::PostInit() {
     std::cout << "Editor Starting ..." << std::endl;
     timer = new QTimer();
-    MainWindow::Get()->Start();
+    MainWindow::Get()->PostInit();
 
     QObject::connect(timer, &QTimer::timeout, [this]() {
         

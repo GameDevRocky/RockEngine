@@ -12,7 +12,7 @@ public:
     }
 
     void Init() override;
-    void Start();
+    void PostInit() override;
     void Update() override;
     void OnEnterPlayMode() override {}
     void OnExitPlayMode() override {}

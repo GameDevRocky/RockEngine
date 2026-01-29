@@ -17,7 +17,7 @@ public:
         return instance;
     }
     void Init();
-    void Start();
+    void PostInit();
     void Shutdown();
     void ClearLayout();
 

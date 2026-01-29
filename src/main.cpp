@@ -9,8 +9,8 @@ int main(int argc, char *argv[]) {
     Editor* editor = Editor::Get();
     engine->Init();
     editor->Init();
-
-    editor->Start();
+    engine->PostInit();
+    editor->PostInit();
     editor->Shutdown();
     engine->Shutdown();
     return -1;

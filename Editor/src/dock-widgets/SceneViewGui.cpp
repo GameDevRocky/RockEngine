@@ -1,5 +1,4 @@
 #include "dock-widgets/SceneViewGui.hpp"
-#include "engine/rendering/RenderManager.hpp" 
 #include <QDebug>
 #include "engine/debug/Console.hpp"
 #include "engine/core/InputManager.hpp"
@@ -39,9 +38,10 @@ void SceneViewGui::initializeRenderPipeline(){
     GridPass* gridPass = new GridPass();
     ScenePass* scenePass = new ScenePass();
     
-    renderPipeline->AddPass(clearPass);
-    renderPipeline->AddPass(gridPass);
-    renderPipeline->AddPass(scenePass);
+    renderPipeline->AddSetupPass(clearPass);
+    renderPipeline->AddSetupPass(gridPass);
+
+    renderPipeline->AddScenePass(scenePass);
     
     renderPipeline->Init();
     camera->Init();
@@ -151,10 +151,9 @@ void SceneViewGui::paintGL() {
 void SceneViewGui::Render(){
     Engine* engine = Engine::Get();
     SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
-
-    for (auto& scene : sceneManager->GetScenes()){
-        renderPipeline->Render(*camera, *scene);
-    }    
+    
+    renderPipeline->Render(camera, sceneManager->GetScenes());
+    
 }
 
 

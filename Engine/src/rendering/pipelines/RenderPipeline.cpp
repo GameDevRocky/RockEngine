@@ -9,17 +9,35 @@ RenderPipeline::~RenderPipeline()
     Shutdown();
 }
 
-void RenderPipeline::AddPass(RenderPass* pass)
+void RenderPipeline::AddSetupPass(RenderPass* pass)
 {
     if (!pass)
         throw std::runtime_error("RenderPipeline::AddPass - pass is null");
-    passes.push_back(pass);
+    setupPasses.push_back(pass);
+
+}
+void RenderPipeline::AddScenePass(RenderPass* pass)
+{
+    if (!pass)
+        throw std::runtime_error("RenderPipeline::AddPass - pass is null");
+    scenePasses.push_back(pass);
+
+}
+void RenderPipeline::AddFinalizePass(RenderPass* pass)
+{
+    if (!pass)
+        throw std::runtime_error("RenderPipeline::AddPass - pass is null");
+    finalizePasses.push_back(pass);
 
 }
 
 void RenderPipeline::Init()
 {
-    for (auto* pass : passes)
+    for (auto* pass : setupPasses)
+        pass->Init();
+    for (auto* pass : scenePasses)
+        pass->Init();
+    for (auto* pass : finalizePasses)
         pass->Init();
 }
 
@@ -30,33 +48,45 @@ void RenderPipeline::Resize(int width, int height)
 
     CreateOutputFBO(width, height);
 
-    for (auto* pass : passes)
+    for (auto* pass : setupPasses)
+        pass->Resize(width, height);
+    for (auto* pass : scenePasses)
+        pass->Resize(width, height);
+    for (auto* pass : finalizePasses)
         pass->Resize(width, height);
 }
 
-void RenderPipeline::Render(RenderCamera& camera, Scene& scene)
+void RenderPipeline::Render(RenderCamera* camera, std::vector<Scene*> scenes)
 {
     // Save currently bound framebuffer so we can restore it (important when used inside
     // QOpenGLWidget where the default Qt FBO is not necessarily 0).
     GLint prevFBO = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, outputFBO); // ensure each pass draws to pipeline FBO
 
-    for (auto* pass : passes) {
-        glBindFramebuffer(GL_FRAMEBUFFER, outputFBO); // ensure each pass draws to pipeline FBO
-        glViewport(0, 0, viewportWidth, viewportHeight);
-        pass->Execute(camera, scene);
+    for (auto* pass : setupPasses)
+        pass->Execute(camera, nullptr);
 
-    }
+    for (auto* pass : scenePasses)
+        for (auto& scene : scenes){
+            pass->Execute(camera, scene);
+        }
+        
+    for (auto* pass : finalizePasses)
+        pass->Execute(camera, nullptr);
     
-    // Restore previously bound framebuffer (could be Qt's FBO)
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
 }
 
 void RenderPipeline::Shutdown()
 {
-    for (auto* pass : passes)
+    for (auto* pass : setupPasses)
         pass->Shutdown();
-
+    for (auto* pass : scenePasses)
+        pass->Shutdown();
+    for (auto* pass : finalizePasses)
+        pass->Shutdown();
+ 
     DestroyOutputFBO();
 }
 

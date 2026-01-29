@@ -5,8 +5,9 @@
 #include "engine/core/SceneManager.hpp"
 #include <memory>
 #include "engine/core/Container.hpp"
+#include "engine/core/Observable.hpp"
 
-class Engine {
+class Engine : public Observable {
 public:
     static Engine* Get() {
         static Engine* instance = new Engine();
@@ -15,6 +16,7 @@ public:
     
     
     void Init();
+    void PostInit();
     void Update();
     void Shutdown();
 
