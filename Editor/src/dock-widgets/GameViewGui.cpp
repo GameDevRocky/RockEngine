@@ -155,14 +155,12 @@ void GameViewGui::keyPressEvent(QKeyEvent* event) {
     InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
 
     inputManager->SetKeyState(event->key(), true);
-    Console::Comment(std::to_string(event->key()));
 }
 
 void GameViewGui::keyReleaseEvent(QKeyEvent* event) {
     Engine* engine = Engine::Get();
     InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
     inputManager->SetKeyState(event->key(), false);
-    Console::Comment(std::to_string(event->key()));
 }
 
 

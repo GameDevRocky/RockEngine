@@ -7,7 +7,8 @@ class TestScript(ScriptableComponent):
         self.renderer = self.get_component(SpriteRenderer)
         self.renderer.color = [1,1,1,0.5]
             
-    def fixed_update(self):
+    def update(self):
+        Console.comment(self.renderer.color)
         input = Vector2(int(Input.is_key_down(Keys.D) - Input.is_key_down(Keys.A)), int(Input.is_key_down(Keys.W) - Input.is_key_down(Keys.S)))
         if Input.is_key_down(Keys.D):
             self.renderer.flipX = False
