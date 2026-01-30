@@ -19,10 +19,10 @@ void Engine::Init() {
 
     editorContainer = new Container();
     editorContainer->AddSystem(new Registry());
-    editorContainer->AddSystem(new SceneManager());
     editorContainer->AddSystem(new TimeManager());
     editorContainer->AddSystem(new InputManager());
     editorContainer->AddSystem(new PhysicsSystem());
+    editorContainer->AddSystem(new SceneManager());
 
     editorContainer->SetMode(Container::Mode::Editor);
     editorContainer->Init();

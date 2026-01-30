@@ -79,14 +79,17 @@ void SceneManager::LoadScene(const std::string& file_path){
     std::cout << "Deserializing scene from path: " + file_path << std::endl;
     scene->Deserialize(root);
     registry->Register(scene);
-    std::cout << "Initializing scene from path: " + file_path << std::endl;
     
+    std::cout << "Initializing scene from path: " + file_path << std::endl;
+    // Always initialize structure (safe in both Editor and Runtime)
     scene->Init();
     scene->PostInit();
-
+    
+    // Only awaken if already in runtime mode
     if (container->GetMode() == Container::Mode::Runtime){
-        scene->OnEnterPlayMode();
-    } 
+        std::cout << "Awakening scene (Runtime mode): " + file_path << std::endl;
+        scene->Awake();
+    }
 
     scene_ids.push_back(scene->GetID());
     std::cout << "Completed loading scene from path: " + file_path << std::endl;

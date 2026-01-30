@@ -10,6 +10,13 @@ class GameObject;
 
 class Scene : public Serializable, public RuntimeObject{
 public:
+    enum class SceneState {
+        Unloaded,      // Fresh scene, not deserialized
+        Deserialized,  // Loaded from file, objects created
+        Initialized,   // Init() + PostInit() called
+        Active         // Awake() called, ready for gameplay
+    };
+
     Scene() = default;
     ~Scene() = default;
 
@@ -45,11 +52,12 @@ public:
 
     const std::string& GetName() const { return name; }
     void SetName(const std::string& newName) { name = newName; Notify(); }
+    
+    SceneState GetState() const { return state; }
 
 private:
     std::string name;
-
-    bool initialized = false;
+    SceneState state = SceneState::Unloaded;
 
     std::vector<std::string> root_object_ids;
     std::vector<std::string> gameobject_ids;

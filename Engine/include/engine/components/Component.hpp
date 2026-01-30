@@ -4,6 +4,7 @@
 #include "engine/serialization/Serializable.hpp"
 #include "engine/core/RuntimeObject.hpp"
 
+class Transform;
 class Component : public Serializable, public RuntimeObject{
 public: 
 
@@ -13,7 +14,6 @@ public:
     virtual void PostInit(){}
 
     virtual void Awake(){}
-    virtual void Start() {}
     virtual void Update() {}
     virtual void LateUpdate(){}
     virtual void FixedUpdate(){}
@@ -33,6 +33,17 @@ public:
     Component* Copy(Container* container) override;
 
     GameObject* GetGameObject();
+
+    template<typename T>
+    T* GetComponent(){
+        return GetGameObject()->GetComponent<T>();
+    }
+    template<typename T>
+    T* GetComponentInParent();
+
+    Transform* GetTransform(){
+        return GetGameObject()->GetTransform();
+    }
 
     void SetEnabled(bool e);
     bool GetEnabled() {return enabled;}

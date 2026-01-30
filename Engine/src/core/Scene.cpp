@@ -11,20 +11,31 @@
 
 
 void Scene::OnEnterPlayMode() {
-    Init();
+    // Ensure scene is initialized before awakening
+    if (state < SceneState::Initialized) {
+        Init();
+        PostInit();
+    }
     
-    PostInit();
-    Awake();
+    // Always awaken when entering play mode
+    if (state != SceneState::Active) {
+        Awake();
+        state = SceneState::Active;
+    }
 }
 
 void Scene::Init() {
+    if (state >= SceneState::Initialized) {
+        std::cout << "Scene already initialized: " << name << std::endl;
+        return;
+    }
 
     std::cout << "Initializing Scene: " << name << std::endl;
     for (auto& obj : GetAllGameObjects()){
         obj->Init();
     }
 
-    initialized = true;
+    state = SceneState::Initialized;
 }
 void Scene::PostInit() {
     std::cout << "Post Initializing Scene: " << name << std::endl;
@@ -37,6 +48,7 @@ void Scene::Awake() {
     for (auto& obj : GetAllGameObjects()){
         obj->Awake();
     }
+    state = SceneState::Active;
 }
 
 void Scene::Update() {
@@ -107,6 +119,8 @@ void Scene::Deserialize(const YAML::Node& data) {
             AddRootObject(obj->GetID());
         }
     }
+    
+    state = SceneState::Deserialized;
 }
 
 void Scene::AddGameObject(GameObject* obj) {
@@ -161,12 +175,12 @@ std::vector<GameObject*> Scene::GetAllGameObjects() {
 }
 
 Scene* Scene::Copy(){
-    
     Scene* copy = new Scene();
     copy->id = id;
     copy->name = name;
     copy->root_object_ids = root_object_ids;
     copy->gameobject_ids = gameobject_ids;
+    copy->state = SceneState::Deserialized; // Copied scenes start deserialized
     return copy;
 }
 

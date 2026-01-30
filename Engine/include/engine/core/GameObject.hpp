@@ -49,6 +49,9 @@ class GameObject : public Serializable, public RuntimeObject {
         T* comp = registry->Find<T>(comp_id);
         return comp;
     }
+    
+    template<typename T>
+    T* GetComponentInParent(); // Implemented in GameObjectImpl.hpp
 
 
     Transform* GetTransform();

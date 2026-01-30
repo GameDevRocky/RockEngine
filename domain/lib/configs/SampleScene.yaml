@@ -30,11 +30,15 @@ components:
     module: "Test"
     class: "TestScript"
 
+  - id: "r1"
+    type: "RigidBody"
+    gameobject: "o1"
+
 
 gameobjects:
   - id: "o1"
     type: "GameObject"
     name: "Parent"
-    component_ids: ["t1", "s1", "sc1"]
+    component_ids: ["t1", "s1", "sc1", "r1"]
 
   

@@ -3,6 +3,7 @@
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/ScriptComponent.hpp"
+#include "engine/components/RigidBody.hpp"
 #include <iostream>
 #include <filesystem>
 #include <windows.h>
@@ -12,5 +13,6 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("Transform", []() { return new Transform(); });
     SerializableFactory::RegisterType("SpriteRenderer", []() { return new SpriteRenderer(); });
     SerializableFactory::RegisterType("ScriptComponent", []() { return new ScriptComponent(); });
+    SerializableFactory::RegisterType("RigidBody", []() { return new RigidBody(); });
     
 }

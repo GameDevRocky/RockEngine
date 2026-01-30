@@ -7,10 +7,14 @@ public:
     void Init() override;
     void PostInit() override;
     void Step();
+    b2BodyId CreateRigidBody(b2BodyDef& definition);
     void Update() override;
     void Shutdown() override;
     void OnEnterPlayMode() override;
     void OnExitPlayMode() override;
+
+
+
     PhysicsSystem* Copy() override;
     PhysicsSystem* Copy(Container* container) override;
 
