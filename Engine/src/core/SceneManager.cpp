@@ -2,6 +2,7 @@
 #include <iostream>
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/TimeManager.hpp"
+#include "engine/core/PhysicsSystem.hpp"
 #include "Engine.hpp"
 
 
@@ -16,6 +17,7 @@ void SceneManager::PostInit(){
 void SceneManager::Update() {
     Registry* registry = container->FindSystem<Registry>();
     TimeManager* timeManager = container->FindSystem<TimeManager>();
+    PhysicsSystem* physicsSystem = container->FindSystem<PhysicsSystem>();
 
     const float fixedDeltaTime = timeManager->FixedDeltaTime();
     const float frameTime = timeManager->DeltaTime();
@@ -30,7 +32,7 @@ void SceneManager::Update() {
             }
             scene->FixedUpdate();
         }
-
+        physicsSystem->Step();
         accumulator -= fixedDeltaTime; 
     }
 
@@ -81,7 +83,6 @@ void SceneManager::LoadScene(const std::string& file_path){
     
     scene->Init();
     scene->PostInit();
-    scene->Awake();
 
     if (container->GetMode() == Container::Mode::Runtime){
         scene->OnEnterPlayMode();

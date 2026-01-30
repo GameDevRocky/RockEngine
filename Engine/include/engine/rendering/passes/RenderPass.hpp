@@ -11,9 +11,6 @@ public:
     virtual void Execute(RenderCamera* camera, Scene* scene){};
     virtual void Shutdown() = 0;
 
-    // Optional: passes that output a texture override this
-    virtual unsigned int GetOutputTexture() const { return 0; }
-
     virtual ~RenderPass() = default;
 
 protected: 

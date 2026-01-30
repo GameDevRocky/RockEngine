@@ -5,7 +5,7 @@
 #include "engine/components/ComponentRegistrars.hpp"
 #include <pybind11/embed.h>
 #include "engine/bindings/PythonBindings.hpp"
-
+#include "engine/core/PhysicsSystem.hpp"
 #define SAMPLE_SCENE_PATH "Domain/lib/configs/SampleScene.yaml"
 
 namespace py = pybind11;
@@ -22,6 +22,7 @@ void Engine::Init() {
     editorContainer->AddSystem(new SceneManager());
     editorContainer->AddSystem(new TimeManager());
     editorContainer->AddSystem(new InputManager());
+    editorContainer->AddSystem(new PhysicsSystem());
 
     editorContainer->SetMode(Container::Mode::Editor);
     editorContainer->Init();

@@ -29,6 +29,11 @@ Resources:
       frag_path: "Domain/lib/assets/shaders/glow.frag"
       name: "glow"
 
+    - id: "s4"
+      vert_path: "Domain/lib/assets/shaders/debug.vert"
+      frag_path: "Domain/lib/assets/shaders/debug.frag"
+      name: "debug"
+
   Materials:
     - id: "m1"
       name: "default"
@@ -46,4 +51,4 @@ Resources:
       texture_id: "t2"
       uvMin: [0.0, 0.0]       
       uvMax: [1.0, 1.0]       
-      pivot: [0, 0]        
+      pivot: [0, 0]     

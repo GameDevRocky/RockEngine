@@ -12,6 +12,7 @@
 
 void Scene::OnEnterPlayMode() {
     Init();
+    
     PostInit();
     Awake();
 }
