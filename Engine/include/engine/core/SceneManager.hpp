@@ -4,6 +4,10 @@
 #include "engine/core/Scene.hpp"
 #include "engine/core/System.hpp"
 
+class Registry;
+class TimeManager;
+class PhysicsSystem;
+
 class SceneManager : public System {
 public:
     
@@ -28,4 +32,9 @@ public:
 private:
     std::vector<std::string> scene_ids;
     float accumulator = 0.0f;
+
+    Registry* registry;
+    TimeManager* timeManager;
+    PhysicsSystem* physicsSystem;
+
 };

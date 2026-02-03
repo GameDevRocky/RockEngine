@@ -7,6 +7,8 @@
 #include <vector>
 #include <yaml-cpp/yaml.h>
 
+class Registry;
+
 class Transform : public Component {
 public:
     glm::vec2 localPosition = {0.0f, 0.0f};
@@ -17,16 +19,27 @@ public:
     mutable glm::mat4 worldMatrix = glm::mat4(1.0f);
 
     Transform* Copy() override;
+    void Init() override;
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
     void PostDeserialize() override;
     std::string GetTypeName() const override { return "Transform"; }
     
-    // Setters
+    // Local Setters
     void SetPosition(const glm::vec2& pos);
     void SetRotation(float degrees);
     void SetScale(const glm::vec2& scale);
+
+    // World Getters
+    glm::vec2 GetWorldPosition() const;
+    float GetWorldRotation() const;
+    glm::vec2 GetWorldScale() const;
+
+    // World Setters
+    void SetWorldPosition(const glm::vec2& pos);
+    void SetWorldRotation(float degrees);
+    void SetWorldScale(const glm::vec2& scale);
 
     // Transformations
     void Translate(const glm::vec2& delta);
@@ -44,4 +57,5 @@ private:
     void MarkDirty();
     std::string parent_id;
     std::vector<std::string> children_ids;
+    Registry* registry;
 };

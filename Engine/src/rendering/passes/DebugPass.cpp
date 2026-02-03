@@ -1,6 +1,7 @@
 #include "engine/rendering/passes/DebugPass.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
+#include "engine/components/BoxCollider.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "Engine.hpp"
@@ -42,7 +43,6 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
     debugShader->Bind();
     debugShader->SetMat4("uView", camera->GetViewMatrix());
     debugShader->SetMat4("uProj", camera->GetProjectionMatrix());
-    debugShader->SetVec4("uColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f)); // white
 
     // Render outline for each object with SpriteRenderer
     for (auto* obj : objects)
@@ -59,15 +59,37 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
         glm::vec2 size = glm::vec2(1.0f, 1.0f);
         glm::vec2 pivot = glm::vec2(0.5f, 0.5f);
         if (spr) {
-            size = PixelsToWorld(spr->GetPixelSize()); // Use same conversion as sprite rendering
+            size = PixelsToWorld(spr->GetPixelSize());
             pivot = spr->GetPivot();
         }
 
         debugShader->SetMat4("uModel", transform->GetWorldMatrix());
         debugShader->SetVec2("uSize", size);
         debugShader->SetVec2("uPivot", pivot);
+        debugShader->SetVec2("uOffset", glm::vec2(0.0f, 0.0f)); 
+        debugShader->SetVec4("uColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
         // Draw as line loop
+        glad_glDrawArrays(GL_LINE_LOOP, 0, 4);
+    }
+
+    for (auto* obj : objects)
+    {
+        if (!obj) continue;
+        Transform* transform = obj->GetComponent<Transform>();
+        BoxCollider* collider = obj->GetComponent<BoxCollider>();
+
+        if (!transform || !collider) continue;
+
+        glm::vec2 size = collider->GetSize();
+        glm::vec2 center = collider->GetCenter();
+
+        debugShader->SetMat4("uModel", transform->GetWorldMatrix());
+        debugShader->SetVec2("uSize", size);
+        debugShader->SetVec2("uPivot", glm::vec2(0.0f, 0.0f));
+        debugShader->SetVec2("uOffset", center);
+        debugShader->SetVec4("uColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
         glad_glDrawArrays(GL_LINE_LOOP, 0, 4);
     }
 

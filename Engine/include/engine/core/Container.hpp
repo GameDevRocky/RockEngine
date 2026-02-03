@@ -14,6 +14,7 @@ public:
 	enum class Mode {
 		Editor,
 		Runtime,
+		Paused
 	};
 
 	explicit Container(Mode mode = Mode::Editor);

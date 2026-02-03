@@ -4,6 +4,10 @@
 #include "engine/debug/Console.hpp"
 #include "Engine.hpp"
 
+void Transform::Init(){
+    registry = container->FindSystem<Registry>();
+}
+
 void Transform::MarkDirty() {
     dirty = true;
     Engine* engine = Engine::Get();
@@ -52,6 +56,58 @@ void Transform::SetScale(const glm::vec2& scale) {
     Notify();
 }
 
+glm::vec2 Transform::GetWorldPosition() const {
+    glm::mat4 world = GetWorldMatrix();
+    return glm::vec2(world[3]);
+}
+
+float Transform::GetWorldRotation() const {
+    glm::mat4 world = GetWorldMatrix();
+    return glm::degrees(atan2(world[1][0], world[0][0]));
+}
+
+glm::vec2 Transform::GetWorldScale() const {
+    glm::mat4 world = GetWorldMatrix();
+    return glm::vec2(glm::length(glm::vec2(world[0])), glm::length(glm::vec2(world[1])));
+}
+
+void Transform::SetWorldPosition(const glm::vec2& pos) {
+    Transform* parent = GetParent();
+    if (parent) {
+        glm::mat4 parentWorld = parent->GetWorldMatrix();
+        glm::vec4 localPos = glm::inverse(parentWorld) * glm::vec4(pos, 0.0f, 1.0f);
+        localPosition = glm::vec2(localPos);
+    } else {
+        localPosition = pos;
+    }
+    MarkDirty();
+    Notify();
+}
+
+void Transform::SetWorldRotation(float degrees) {
+    Transform* parent = GetParent();
+    if (parent) {
+        float parentRot = parent->GetWorldRotation();
+        localRotation = degrees - parentRot;
+    } else {
+        localRotation = degrees;
+    }
+    MarkDirty();
+    Notify();
+}
+
+void Transform::SetWorldScale(const glm::vec2& scale) {
+    Transform* parent = GetParent();
+    if (parent) {
+        glm::vec2 parentScale = parent->GetWorldScale();
+        localScale = scale / parentScale;
+    } else {
+        localScale = scale;
+    }
+    MarkDirty();
+    Notify();
+}
+
 
 glm::mat4 Transform::GetLocalMatrix() const {
     glm::mat4 m(1.0f);
@@ -83,8 +139,7 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
     glm::mat4 oldWorld = GetWorldMatrix();
 
     if (!parent_id.empty()) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        
         Transform* oldParent = registry->Find<Transform>(parent_id);
         if (oldParent) {
             auto& vec = oldParent->children_ids;
@@ -128,8 +183,6 @@ std::vector<Transform*> Transform::GetChildren() {
     result.reserve(children_ids.size());
 
     for (const std::string& id : children_ids) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         Transform* child = registry->Find<Transform>(id);
         if (child) result.push_back(child);
     }
@@ -141,8 +194,6 @@ std::vector<Transform*> Transform::GetChildren() {
 Transform* Transform::GetParent() {
     if (parent_id.empty())
         return nullptr;
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
     Transform* transform = registry->Find<Transform>(parent_id);
 
     if (!transform) {
@@ -190,9 +241,7 @@ void Transform::PostDeserialize() {
         SetParent(nullptr);
         return;
     }
-
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+    
     Transform* transform = registry->Find<Transform>(parent_id);
 
     if (!transform) {

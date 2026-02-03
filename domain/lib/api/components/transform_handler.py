@@ -6,6 +6,7 @@ class Transform(Component):
 
     def __init__(self, obj_id= None):
         super().__init__(obj_id)
+        self.scale = self.scale
 
     @property
     def transform(self):

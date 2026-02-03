@@ -12,13 +12,7 @@ Shader::~Shader()
 
 
 void Shader::PostDeserialize(){
-    // vert_src = EngineUtils::ReadShader(vert_path);
-    // frag_src = EngineUtils::ReadShader(frag_path);
-    // GLuint vertex = CompileShader(GL_VERTEX_SHADER, vert_src);
-    // GLuint fragment = CompileShader(GL_FRAGMENT_SHADER, frag_src);
-    // program_id = LinkProgram(vertex, fragment);
-    // glDeleteShader(vertex);
-    // glDeleteShader(fragment);
+
 }
 
 Shader* Shader::LoadFromPath(const std::string& vert_path, const std::string& frag_path, const std::string& name){

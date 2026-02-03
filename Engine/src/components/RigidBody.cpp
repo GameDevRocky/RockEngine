@@ -1,75 +1,207 @@
 #include "engine/components/RigidBody.hpp"
 #include "engine/core/PhysicsSystem.hpp"
 #include "engine/components/Transform.hpp"
+#include "engine/utils/EngineUtils.hpp"
+#include "engine/core/TimeManager.hpp"
 #include <iostream>
+
+using namespace EngineUtils::RenderUtils;
+using namespace EngineUtils::MathUtils;
 
 YAML::Node RigidBody::Serialize(){
     YAML::Node node = Component::Serialize();
-    // Add RigidBody-specific serialization here
     return node;
 }
 
 void RigidBody::Deserialize(const YAML::Node& node){
     Component::Deserialize(node);
-
+    std::string type = node["bodyType"].as<std::string>();
+    if (type == "Dynamic") SetBodyType(b2BodyType::b2_dynamicBody);
+    else if (type == "Kinematic") SetBodyType(b2BodyType::b2_kinematicBody);
+    else if (type == "Static") SetBodyType(b2BodyType::b2_staticBody);
+    SetUseGravity(node["useGravity"].as<bool>());
+    SetMass(node["mass"].as<float>());
 
 }
 void RigidBody::Init(){
     bodyId = b2_nullBodyId;
-
 }
 
 void RigidBody::PostInit(){
-
-
-
-}
-
-
-void RigidBody::Awake(){
+    Transform* transform = GetTransform();
+    // transform->Subscribe( [this](){
+    //     this->OnUpdateTransform();
+    // });
     physicsSystem = container->FindSystem<PhysicsSystem>();
-    
-    Transform* transform = GetTransform();
-    
-    b2BodyDef definition = b2DefaultBodyDef();
-    definition.type = b2BodyType::b2_dynamicBody;
-    
-    glm::vec2 pos = transform->localPosition;
-    definition.position = {pos.x / PTM, pos.y / PTM};
-    
-    
-    bodyId = physicsSystem->CreateRigidBody(definition);
-    
-    // Create a box shape so the body has mass and can be affected by gravity
-    b2ShapeDef shapeDef = b2DefaultShapeDef();
-    shapeDef.density = 0.1f;
-    
-    // Create a 1x1 meter box (will be 32x32 pixels when rendered)
-    b2Polygon box = b2MakeBox(0.5f, 0.5f);
-    b2CreatePolygonShape(bodyId, &shapeDef, &box);
+    b2BodyDef bodyDef = b2DefaultBodyDef();
+    bodyId = b2CreateBody(physicsSystem->GetWorldId(), &bodyDef);
+    SetMass(mass);
+    SetBodyType(bodyType);
+    SetUseGravity(useGravity);
+    OnUpdateTransform();
 }
 
+void RigidBody::OnUpdateTransform(){
+    Transform* transform = this->GetTransform();
+    glm::vec2 worldPos = transform->GetWorldPosition();
+    float worldRot = transform->GetWorldRotation();
+    b2Vec2 pos = {worldPos.x / PixelsPerUnit, worldPos.y / PixelsPerUnit};
+    b2Rot rot = b2MakeRot(worldRot * DEG_2_RAD);
+    b2Body_SetTransform(bodyId, pos, rot);
+}
 
-void RigidBody::Update() {
-    const float RAD_TO_DEG = 180.0f / 3.1415926535f;
-    Transform* transform = GetTransform();
-    if (!transform) return;
-
+void RigidBody::SetBodyType(b2BodyType type){
+    bodyType = type;
     if (b2Body_IsValid(bodyId)) {
-        b2Vec2 physicsPos = b2Body_GetPosition(bodyId);
-        b2Rot physicsRot = b2Body_GetRotation(bodyId);
-
-        float renderX = physicsPos.x * PTM;
-        float renderY = physicsPos.y * PTM;
-
-        float renderAngle = b2Rot_GetAngle(physicsRot) * RAD_TO_DEG;
-
-        transform->SetPosition({renderX, renderY});
-        transform->SetRotation(renderAngle);
+        b2Body_SetType(bodyId, type);
+        b2Body_SetAwake(bodyId, true);
     }
 }
 
+void RigidBody::SetMass(float newMass){
+    mass = newMass;
+    if (b2Body_IsValid(bodyId)) {
+        b2MassData currentMassData = b2Body_GetMassData(bodyId);
+        
+        if (currentMassData.mass > 0.0f) {
+            float massScale = newMass / currentMassData.mass;
+            b2MassData newMassData;
+            newMassData.mass = newMass;
+            newMassData.center = currentMassData.center;
+            newMassData.rotationalInertia = currentMassData.rotationalInertia * massScale;
+            
+            b2Body_SetMassData(bodyId, newMassData);
+        }
+    }
+}
 
+float RigidBody::GetMass() const {
+    if (b2Body_IsValid(bodyId)) {
+        return b2Body_GetMassData(bodyId).mass;
+    }
+    return mass;
+}
+
+void RigidBody::SetUseGravity(bool value){
+    useGravity = value;
+    if (b2Body_IsValid(bodyId)) {
+        b2Body_SetGravityScale(bodyId, value ? 1.0f : 0.0f);
+    }
+}
+
+bool RigidBody::GetUseGravity() const {
+    return useGravity;
+}
+
+void RigidBody::Awake(){
+    if (!b2Body_IsValid(bodyId)) return;
+    
+    SetBodyType(bodyType);
+    SetMass(mass);
+    SetUseGravity(useGravity);
+}
+
+
+void RigidBody::FixedUpdate() {
+    if (bodyType != b2_kinematicBody) return;
+    TimeManager* tm = container->FindSystem<TimeManager>();
+
+    Transform* transform = GetTransform();
+    if (!transform || !b2Body_IsValid(bodyId)) return;
+
+    glm::vec2 targetWorldPos = transform->GetWorldPosition();
+    b2Vec2 targetPos = { targetWorldPos.x / PixelsPerUnit, targetWorldPos.y / PixelsPerUnit };
+    b2Vec2 currentPos = b2Body_GetPosition(bodyId);   
+    b2Vec2 velocity = {
+        (targetPos.x - currentPos.x) / tm->FixedDeltaTime(),
+        (targetPos.y - currentPos.y) / tm->FixedDeltaTime()
+    };
+
+    b2Body_SetLinearVelocity(bodyId, velocity);
+    float targetRot = transform->GetWorldRotation() * DEG_2_RAD;
+    float currentRot = b2Rot_GetAngle(b2Body_GetRotation(bodyId));
+    b2Body_SetAngularVelocity(bodyId, (targetRot - currentRot) / tm->FixedDeltaTime());
+}
+
+void RigidBody::LateUpdate() {
+    if (bodyType != b2_dynamicBody) return;
+    
+    Transform* transform = GetTransform();
+    if (!transform || !b2Body_IsValid(bodyId)) return;
+
+    b2Vec2 physicsPos = b2Body_GetPosition(bodyId);
+    b2Rot physicsRot = b2Body_GetRotation(bodyId);
+
+    float renderX = physicsPos.x * PixelsPerUnit;
+    float renderY = physicsPos.y * PixelsPerUnit;
+    float renderAngle = b2Rot_GetAngle(physicsRot) * RAD_2_DEG;
+
+    transform->SetWorldPosition({renderX, renderY});
+    transform->SetWorldRotation(renderAngle);
+}
+
+void RigidBody::SetLinearVelocity(const glm::vec2& vel) {
+    if (b2Body_IsValid(bodyId)) {
+        b2Body_SetLinearVelocity(bodyId, {vel.x / PixelsPerUnit, vel.y / PixelsPerUnit});
+    }
+}
+
+glm::vec2 RigidBody::GetLinearVelocity() const {
+    if (b2Body_IsValid(bodyId)) {
+        b2Vec2 vel = b2Body_GetLinearVelocity(bodyId);
+        return {vel.x * PixelsPerUnit, vel.y * PixelsPerUnit};
+    }
+    return {0.0f, 0.0f};
+}
+
+void RigidBody::SetAngularVelocity(float vel) {
+    if (b2Body_IsValid(bodyId)) {
+        b2Body_SetAngularVelocity(bodyId, -vel * DEG_2_RAD);
+    }
+}
+
+float RigidBody::GetAngularVelocity() const {
+    if (b2Body_IsValid(bodyId)) {
+        return -b2Body_GetAngularVelocity(bodyId) * RAD_2_DEG;
+    }
+    return 0.0f;
+}
+
+void RigidBody::ApplyForce(const glm::vec2& force, const glm::vec2& point) {
+    if (b2Body_IsValid(bodyId)) {
+        b2Vec2 f = {force.x / PixelsPerUnit, force.y / PixelsPerUnit};
+        b2Vec2 p = {point.x / PixelsPerUnit, point.y / PixelsPerUnit};
+        b2Body_ApplyForce(bodyId, f, p, true);
+    }
+}
+
+void RigidBody::ApplyForceToCenter(const glm::vec2& force) {
+    if (b2Body_IsValid(bodyId)) {
+        b2Vec2 f = {force.x / PixelsPerUnit, force.y / PixelsPerUnit};
+        b2Body_ApplyForceToCenter(bodyId, f, true);
+    }
+}
+
+void RigidBody::ApplyImpulse(const glm::vec2& impulse, const glm::vec2& point) {
+    if (b2Body_IsValid(bodyId)) {
+        b2Vec2 i = {impulse.x / PixelsPerUnit, impulse.y / PixelsPerUnit};
+        b2Vec2 p = {point.x / PixelsPerUnit, point.y / PixelsPerUnit};
+        b2Body_ApplyLinearImpulse(bodyId, i, p, true);
+    }
+}
+
+void RigidBody::ApplyLinearImpulse(const glm::vec2& impulse) {
+    if (b2Body_IsValid(bodyId)) {
+        b2Vec2 i = {impulse.x / PixelsPerUnit, impulse.y / PixelsPerUnit};
+        b2Body_ApplyLinearImpulseToCenter(bodyId, i, true);
+    }
+}
+
+void RigidBody::ApplyAngularImpulse(float impulse) {
+    if (b2Body_IsValid(bodyId)) {
+        b2Body_ApplyAngularImpulse(bodyId, -impulse * DEG_2_RAD, true);
+    }
+}
 
 RigidBody* RigidBody::Copy(){
     RigidBody* copy = new RigidBody();
@@ -77,6 +209,9 @@ RigidBody* RigidBody::Copy(){
     copy->enabled = enabled;
     copy->gameobject_id = gameobject_id;
     copy->bodyId = b2_nullBodyId;
+    copy->bodyType = bodyType;
+    copy->useGravity = useGravity;
+    copy->mass = mass;
     return copy;
 }
 

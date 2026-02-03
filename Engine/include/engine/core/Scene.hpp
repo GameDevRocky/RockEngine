@@ -7,6 +7,7 @@
 #include "engine/core/RuntimeObject.hpp"
 
 class GameObject;
+class Registry;
 
 class Scene : public Serializable, public RuntimeObject{
 public:
@@ -61,4 +62,7 @@ private:
 
     std::vector<std::string> root_object_ids;
     std::vector<std::string> gameobject_ids;
+
+    Registry* registry;
+
 };

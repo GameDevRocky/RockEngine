@@ -11,14 +11,14 @@ void SceneManager::Init(){
 }
 
 void SceneManager::PostInit(){
+    registry = container->FindSystem<Registry>();
+    timeManager = container->FindSystem<TimeManager>();
+    physicsSystem = container->FindSystem<PhysicsSystem>();
+
     std::cout << "SceneManager Post Initialized" << std::endl;
 }
 
-void SceneManager::Update() {
-    Registry* registry = container->FindSystem<Registry>();
-    TimeManager* timeManager = container->FindSystem<TimeManager>();
-    PhysicsSystem* physicsSystem = container->FindSystem<PhysicsSystem>();
-
+void SceneManager::Update() { 
     const float fixedDeltaTime = timeManager->FixedDeltaTime();
     const float frameTime = timeManager->DeltaTime();
 
@@ -59,7 +59,6 @@ void SceneManager::OnEnterPlayMode(){
 }
 
 void SceneManager::OnExitPlayMode(){
-    Registry* registry = container->FindSystem<Registry>();
     for(auto& scene_id : scene_ids){
         Scene* scene = registry->Find<Scene>(scene_id);
         if (!scene) continue;
@@ -70,7 +69,6 @@ void SceneManager::OnExitPlayMode(){
 void SceneManager::LoadScene(const std::string& file_path){
     std::cout << "Loading scene from path: " + file_path << std::endl;
 
-    Registry* registry = container->FindSystem<Registry>();
     Scene* scene = new Scene();
  
     YAML::Node root = YAML::LoadFile(file_path);
@@ -81,12 +79,10 @@ void SceneManager::LoadScene(const std::string& file_path){
     registry->Register(scene);
     
     std::cout << "Initializing scene from path: " + file_path << std::endl;
-    // Always initialize structure (safe in both Editor and Runtime)
     scene->Init();
     scene->PostInit();
     
-    // Only awaken if already in runtime mode
-    if (container->GetMode() == Container::Mode::Runtime){
+    if (container->GetMode() == Container::Mode::Runtime || container->GetMode() == Container::Mode::Paused){
         std::cout << "Awakening scene (Runtime mode): " + file_path << std::endl;
         scene->Awake();
     }
@@ -101,7 +97,6 @@ void SceneManager::RemoveScene(const std::string& scene_id) {
 }
 
 std::vector<Scene*> SceneManager::GetScenes() const {
-    Registry* registry = container->FindSystem<Registry>();
     std::vector<Scene*> scenes;
     for (auto& s_id : scene_ids){
         Scene* scene = registry->Find<Scene>(s_id);

@@ -7,7 +7,7 @@ uniform float uZoom;
 uniform float uTime;      
 const int MAX_LEVELS = 13; 
 
-const float BASE_SPACING = .5f; 
+const float BASE_SPACING = 1.0f;  // 1 world unit = 64 pixels (PixelsPerUnit)
 const int MAJOR_SKIP = 2;        
 const vec3 uMinorColor = vec3(0.2f);
 const vec3 uMajorColor = vec3(0.5f);

@@ -12,24 +12,31 @@ namespace EngineUtils{
 
     namespace RenderUtils{
 
-    constexpr float PixelsPerUnit = 64.0f;
+        constexpr float PixelsPerUnit = 128.0f;
+        
+        inline float PixelsToWorld(float pixels) {
+            return pixels / PixelsPerUnit;
+        }
+        
+        inline glm::vec2 PixelsToWorld(const glm::vec2& pixels) {
+            return pixels / PixelsPerUnit;
+        }
+        
+        inline float WorldToPixels(float units) {
+            return units * PixelsPerUnit;
+        }
+        
+        inline glm::vec2 WorldToPixels(const glm::vec2& units) {
+            return units * PixelsPerUnit;
+        }
     
-    inline float PixelsToWorld(float pixels) {
-        return pixels / PixelsPerUnit;
     }
-    
-    inline glm::vec2 PixelsToWorld(const glm::vec2& pixels) {
-        return pixels / PixelsPerUnit;
-    }
-    
-    inline float WorldToPixels(float units) {
-        return units * PixelsPerUnit;
-    }
-    
-    inline glm::vec2 WorldToPixels(const glm::vec2& units) {
-        return units * PixelsPerUnit;
-    }
-    
+
+    namespace MathUtils{
+        constexpr float RAD_2_DEG = 180.0f / 3.14159265359f;
+        constexpr float DEG_2_RAD = 3.14159265359f / 180.0f;
+
+
     }
 
 

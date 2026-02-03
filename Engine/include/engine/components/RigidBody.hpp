@@ -9,7 +9,6 @@ class Container;
 class RigidBody : public Component{
 
 public:
-    static constexpr float PTM = 32.0f;
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
@@ -18,12 +17,31 @@ public:
     void Init() override;
     void PostInit() override;
     void Awake() override;
-    void Update() override;
-    void FixedUpdate() override{};
-    void LateUpdate() override{};
+    void Update() override {};
+    void FixedUpdate() override;
+    void LateUpdate() override;
     void OnDestroy() override{};
     void OnEnterPlayMode() override{};
     void OnExitPlayMode() override{}; 
+    void OnUpdateTransform();
+
+    void SetBodyType(b2BodyType type);
+    void SetMass(float mass);
+    float GetMass() const;
+    void SetUseGravity(bool value);
+    bool GetUseGravity() const;
+    b2BodyId GetBodyId(){return bodyId;}
+    
+    // Velocity and force methods
+    void SetLinearVelocity(const glm::vec2& vel);
+    glm::vec2 GetLinearVelocity() const;
+    void SetAngularVelocity(float vel);
+    float GetAngularVelocity() const;
+    void ApplyForce(const glm::vec2& force, const glm::vec2& point);
+    void ApplyForceToCenter(const glm::vec2& force);
+    void ApplyImpulse(const glm::vec2& impulse, const glm::vec2& point);
+    void ApplyLinearImpulse(const glm::vec2& impulse);
+    void ApplyAngularImpulse(float impulse);
     
     std::string GetTypeName() const override {return "RigidBody";}
 
@@ -34,8 +52,11 @@ public:
     ~RigidBody() = default;
 
 private:
-    b2BodyId bodyId = b2_nullBodyId;
     PhysicsSystem* physicsSystem = nullptr;
+    b2BodyId bodyId = b2_nullBodyId;
+    b2BodyType bodyType = b2BodyType::b2_staticBody;
+    float mass = 1.0;
+    bool useGravity = true;
 
 
 };

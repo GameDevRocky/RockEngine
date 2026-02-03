@@ -49,8 +49,7 @@ void HierarchyTreeItem::clear() {
 }
 
 // HierarchyTreeModel implementation
-HierarchyTreeModel::HierarchyTreeModel(Scene* scene, QObject* parent)
-    : QAbstractItemModel(parent), scene(scene),
+HierarchyTreeModel::HierarchyTreeModel(Scene* scene, QObject* parent) : QAbstractItemModel(parent), scene(scene),
       rootItem(std::make_unique<HierarchyTreeItem>("")) {
     if (scene) {
         BuildTreeFromScene();

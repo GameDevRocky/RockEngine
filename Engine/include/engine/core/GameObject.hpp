@@ -13,6 +13,8 @@
 
 class Component;
 class Transform;
+class Registry;
+
 class GameObject : public Serializable, public RuntimeObject {
     
     public:
@@ -53,7 +55,6 @@ class GameObject : public Serializable, public RuntimeObject {
     template<typename T>
     T* GetComponentInParent(); // Implemented in GameObjectImpl.hpp
 
-
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
     std::string GetName() {return name;}
@@ -65,9 +66,13 @@ class GameObject : public Serializable, public RuntimeObject {
     
     
     private:
+
     bool active = true;
     std::map<std::string, std::string> component_ids;
     std::string transform_id;
     std::vector<std::string> temp_ids;
     std::string scene_id;
+
+    Registry* registry = nullptr;
+
 };

@@ -29,6 +29,7 @@ void Scene::Init() {
         std::cout << "Scene already initialized: " << name << std::endl;
         return;
     }
+    registry = container->FindSystem<Registry>();
 
     std::cout << "Initializing Scene: " << name << std::endl;
     for (auto& obj : GetAllGameObjects()){
@@ -52,7 +53,6 @@ void Scene::Awake() {
 }
 
 void Scene::Update() {
-    Registry* registry = container->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
         if (!obj) continue;
@@ -60,7 +60,6 @@ void Scene::Update() {
     } 
 }
 void Scene::FixedUpdate() {
-    Registry* registry = container->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
         if (!obj) continue;
@@ -69,7 +68,6 @@ void Scene::FixedUpdate() {
     } 
 }
 void Scene::LateUpdate() {
-    Registry* registry = container->FindSystem<Registry>();
     for (auto& obj_id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(obj_id);
         if (!obj) continue;
@@ -123,7 +121,7 @@ void Scene::Deserialize(const YAML::Node& data) {
     state = SceneState::Deserialized;
 }
 
-void Scene::AddGameObject(GameObject* obj) {
+void Scene::AddGameObject(GameObject* obj) { 
     
     Registry* registry = container->FindSystem<Registry>();
     

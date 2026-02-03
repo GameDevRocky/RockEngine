@@ -28,9 +28,6 @@ void Engine::Init() {
     editorContainer->Init();
     editorContainer->PostInit();
     activeContainer = editorContainer;
-
-
-    LoadDefaultScene();
     std::cout << "Engine Initialized\n" << std::endl;
 }
 
