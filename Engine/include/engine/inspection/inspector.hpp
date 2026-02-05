@@ -2,22 +2,23 @@
 #pragma once
 #include "engine/core/System.hpp"
 #include "engine/core/GameObject.hpp"
+
+class Registry;
+
 class Inspector : public System {
 
 public:
-static Inspector& Get() {
-        static Inspector instance;
-        return instance;
-    }
-void OnEnterPlayMode() override {}
-void OnExitPlayMode() override {}
-void SetGameObject(GameObject *gameobject);
-GameObject* GetGameObject();
+    Inspector() = default;
+
+    void OnEnterPlayMode() override {}
+    void OnExitPlayMode() override {}
+    void SetGameObject(GameObject *gameobject){};
+    GameObject* GetGameObject(){return nullptr;};
 
 
 private:
-GameObject *gameobject = nullptr;
-Inspector();
-~Inspector() = default;
+    std::string selected_id = ""; 
+    Registry* registry = nullptr;
+    ~Inspector() = default;
 
 };

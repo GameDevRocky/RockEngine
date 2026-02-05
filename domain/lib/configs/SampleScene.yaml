@@ -3,7 +3,9 @@ created_at: "2025-10-17T21:00:00Z"
 id: "scene1"
 
 components:
+
   - id: "t1"
+    enabled: true
     type: "Transform"
     gameobject: "o1"
     localPosition: [0, 25]
@@ -12,6 +14,7 @@ components:
     parent_id: null
 
   - id: "s1"
+    enabled: true
     type: "SpriteRenderer"
     gameobject: "o1"
     material_id: "m1"
@@ -25,12 +28,14 @@ components:
     visible: true
 
   - id: "sc1"
+    enabled: true
     type: "ScriptComponent"
     gameobject: "o1"
     module: "Test"
     class: "TestScript"
 
   - id: "r1"
+    enabled: true
     type: "RigidBody"
     gameobject: "o1"
     bodyType: "Kinematic"
@@ -38,6 +43,7 @@ components:
     mass: 1.0
 
   - id: "b1"
+    enabled: true
     type: "BoxCollider"
     gameobject: "o1"
     isSensor: false
@@ -45,17 +51,19 @@ components:
     size: [0, 0]
 
   - id: "t2"
+    enabled: true
     type: "Transform"
     gameobject: "o2"
-    localPosition: [0, -25]
+    localPosition: [1, 0]
     localRotation: 0
-    localScale: [50, 10]
-    parent_id: null
+    localScale: [1, 1]
+    parent_id: "t1"
 
   - id: "s2"
+    enabled: true
     type: "SpriteRenderer"
     gameobject: "o2"
-    material_id: "m1"
+    material_id: "m2"
     sprite_id: "sprite1"
     color: [1,1,1,1]
     uvOffset: [1.0, 0.0]
@@ -66,50 +74,17 @@ components:
     visible: true
 
   - id: "r2"
+    enabled: true
     type: "RigidBody"
     gameobject: "o2"
-    bodyType: "Static"
-    useGravity: true
+    bodyType: "Dynamic"
+    useGravity: false
     mass: 1.0
 
   - id: "b2"
+    enabled: true
     type: "BoxCollider"
     gameobject: "o2"
-    isSensor: false
-    center: [0, 0]
-    size: [0, 0]
-
-  - id: "t3"
-    type: "Transform"
-    gameobject: "o3"
-    localPosition: [0, 50]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: null
-
-  - id: "s3"
-    type: "SpriteRenderer"
-    gameobject: "o3"
-    material_id: "m1"
-    sprite_id: "sprite2"
-    color: [1,1,1,1]
-    uvOffset: [1.0, 0.0]
-    uvScale: [1.0, 1.0]
-    sortingOrder: 1
-    flipX: false
-    flipY: false
-    visible: true
-
-  - id: "r3"
-    type: "RigidBody"
-    gameobject: "o3"
-    bodyType: "Dynamic"
-    useGravity: true
-    mass: 1.0
-
-  - id: "b3"
-    type: "BoxCollider"
-    gameobject: "o3"
     isSensor: false
     center: [0, 0]
     size: [0, 0]
@@ -122,12 +97,5 @@ gameobjects:
 
   - id: "o2"
     type: "GameObject"
-    name: "Ground"
+    name: "Child"
     component_ids: ["t2", "s2", "r2", "b2"]
-
-  - id: "o3"
-    type: "GameObject"
-    name: "box"
-    component_ids: ["t3", "s3", "r3", "b3"]
-
-  

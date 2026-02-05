@@ -8,6 +8,11 @@ void Transform::Init(){
     registry = container->FindSystem<Registry>();
 }
 
+void Transform::PostInit(){
+    // Parent-child relationships are already established in PostDeserialize
+    // This is just a placeholder for any future post-init logic
+}
+
 void Transform::MarkDirty() {
     dirty = true;
     Engine* engine = Engine::Get();
@@ -134,8 +139,6 @@ glm::mat4 Transform::GetWorldMatrix() const {
 
 
 void Transform::SetParent(Transform* newParent, bool keepWorld) {
-    Scene* scene = GetGameObject()->GetScene();
-
     glm::mat4 oldWorld = GetWorldMatrix();
 
     if (!parent_id.empty()) {
@@ -145,22 +148,14 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
             auto& vec = oldParent->children_ids;
             vec.erase(std::remove(vec.begin(), vec.end(), GetID()), vec.end());
         }
-
-        if (scene)
-            scene->RemoveRootObject(GetGameObject()->GetID());
     }
     if (newParent) {
         parent_id = newParent->GetID();
         newParent->children_ids.push_back(GetID());
 
-        if (scene)
-            scene->RemoveRootObject(GetGameObject()->GetID());
     }
     else {
         parent_id.clear();
-
-        if (scene)
-            scene->AddRootObject(GetGameObject()->GetID());
     }
 
     if (keepWorld) {
@@ -228,29 +223,35 @@ void Transform::Deserialize(const YAML::Node& node) {
     } else {
         parent_id = "";
     }
+    
+    // Clear children - they will be rebuilt in PostDeserialize
+    children_ids.clear();
+    
     localPosition.x = node["localPosition"][0].as<float>();
     localPosition.y = node["localPosition"][1].as<float>();
     localRotation = node["localRotation"].as<float>();
     localScale.x = node["localScale"][0].as<float>();
     localScale.y = node["localScale"][1].as<float>();
+    registry = container->FindSystem<Registry>();
     MarkDirty();
 }
 
 void Transform::PostDeserialize() {
     if (parent_id.empty()) {
-        SetParent(nullptr);
         return;
     }
     
-    Transform* transform = registry->Find<Transform>(parent_id);
+    Registry* registry = container->FindSystem<Registry>();
+    Transform* parentTransform = registry->Find<Transform>(parent_id);
 
-    if (!transform) {
-        Console::Warn("Unable to connect Transform parent");
+    if (!parentTransform) {
+        Console::Warn("Unable to find Transform parent during PostDeserialize");
         return;
     }
 
-    SetParent(transform);
-    Console::Comment("Transform parent connected");
+    // Set up the parent-child relationship
+    parentTransform->children_ids.push_back(GetID());
+    Console::Comment("Transform parent-child relationship established");
 }
 
 Transform* Transform::Copy() {

@@ -11,13 +11,11 @@
 
 
 void Scene::OnEnterPlayMode() {
-    // Ensure scene is initialized before awakening
     if (state < SceneState::Initialized) {
         Init();
         PostInit();
     }
     
-    // Always awaken when entering play mode
     if (state != SceneState::Active) {
         Awake();
         state = SceneState::Active;
@@ -32,70 +30,64 @@ void Scene::Init() {
     registry = container->FindSystem<Registry>();
 
     std::cout << "Initializing Scene: " << name << std::endl;
-    for (auto& obj : GetAllGameObjects()){
-        obj->Init();
+    
+    for (auto& root : GetRootObjects()) {
+        root->recurseTopDown([&](auto* obj){ obj->Init();});
     }
 
     state = SceneState::Initialized;
 }
 void Scene::PostInit() {
     std::cout << "Post Initializing Scene: " << name << std::endl;
-    for (auto& obj : GetAllGameObjects()){
-        obj->PostInit();
+    for (auto& root : GetRootObjects()) {
+        root->recurseTopDown([&](GameObject* obj){ obj->PostInit();});
     }
+
 }
 void Scene::Awake() {
     std::cout << "Awaking Scene: " << name << std::endl;
-    for (auto& obj : GetAllGameObjects()){
-        obj->Awake();
+    for (auto& root : GetRootObjects()) {
+        root->recurseTopDown([&](GameObject* obj){ obj->Awake();});
     }
+
     state = SceneState::Active;
 }
 
 void Scene::Update() {
-    for (auto& obj_id : gameobject_ids){
-        GameObject* obj = registry->Find<GameObject>(obj_id);
-        if (!obj) continue;
-        if (obj->GetActive()) obj->Update();
-    } 
+    for (auto& root : GetRootObjects()) {
+        root->recurseTopDown([&](GameObject* obj){ obj->Update();});
+    }
+
 }
 void Scene::FixedUpdate() {
-    for (auto& obj_id : gameobject_ids){
-        GameObject* obj = registry->Find<GameObject>(obj_id);
-        if (!obj) continue;
-        if (obj->GetActive()) obj->FixedUpdate();
-
-    } 
+    for (auto& root : GetRootObjects()) {
+        root->recurseTopDown([&](GameObject* obj){ obj->FixedUpdate();});
+    }
 }
 void Scene::LateUpdate() {
-    for (auto& obj_id : gameobject_ids){
-        GameObject* obj = registry->Find<GameObject>(obj_id);
-        if (!obj) continue;
-        if (obj->GetActive()) obj->LateUpdate();
-
-    } 
+    for (auto& root : GetRootObjects()) {
+        root->recurseTopDown([&](GameObject* obj){ obj->LateUpdate();});
+    }
 }
-
 
 YAML::Node Scene::Serialize() {
     YAML::Node node = Serializable::Serialize();
     node["name"] = name;
-    node["root_objects"] = root_object_ids;
-    node["objects"] = gameobject_ids;
+    node["root_objects"] = rootobject_ids;
     return node;
 }
 
 void Scene::Deserialize(const YAML::Node& data) {
     Serializable::Deserialize(data);
     name = data["name"].as<std::string>();
-
-    Registry* registry = container->FindSystem<Registry>();
+    registry = container->FindSystem<Registry>();
     
     for (const auto& goNode : data["gameobjects"]) {
         GameObject* obj = new GameObject();
         obj->Attach(container);
         obj->Deserialize(goNode);
-        AddGameObject(obj);
+        temp_objs.push_back(obj);
+
     }
     
     for (const auto& compNode : data["components"]) {
@@ -104,71 +96,65 @@ void Scene::Deserialize(const YAML::Node& data) {
         Component* comp = dynamic_cast<Component*>(created);
         comp->Attach(container);
         comp->Deserialize(compNode);
-        registry->Register(comp);
-    }
-    
-    for (auto& [id, obj] : registry->GetAll()){
-        obj->PostDeserialize();
-    }
-    
-    for (auto& obj : GetAllGameObjects()){    
-        Transform* transform = obj->GetComponent<Transform>();
-        if (transform && !transform->GetParent()){
-            AddRootObject(obj->GetID());
-        }
+        temp_comps.push_back(comp);
     }
     
     state = SceneState::Deserialized;
 }
+void Scene::PostDeserialize() {
+    for (auto* comp : temp_comps){
+        comp->PostDeserialize();
+        registry->Register(comp);
+    }
+    
+    for (auto* obj : temp_objs){
+        obj->PostDeserialize();
+        registry->Register(obj);
+        obj->SetScene(this->GetID());
+        Transform* transform = obj->GetTransform();
+        if (transform && !transform->GetParent()) {
+            rootobject_ids.push_back(obj->GetID());
+        }
+    }
+
+}
 
 void Scene::AddGameObject(GameObject* obj) { 
-    
-    Registry* registry = container->FindSystem<Registry>();
-    
-    std::string id = obj->GetID();
-    
     registry->Register(obj);
+    obj->SetScene(this->GetID());
+
+    Transform* transform = obj->GetTransform();
+    if (transform && !transform->GetParent()) {
+        rootobject_ids.push_back(obj->GetID());
+    }
+
+    if (state >= SceneState::Initialized) {
+        obj->Init();
+        obj->PostInit();
+    }
     
-    gameobject_ids.push_back(id);
-
-    obj->SetScene(GetID());
-}
-
-
-void Scene::AddRootObject(const std::string& obj_id) {
-    if (std::find(root_object_ids.begin(), root_object_ids.end(), obj_id) != root_object_ids.end())
-    return;
-    
-    root_object_ids.push_back(obj_id);
-}
-
-void Scene::RemoveRootObject(const std::string& obj_id) {
-    auto it = std::find(root_object_ids.begin(), root_object_ids.end(), obj_id);
-    if (it != root_object_ids.end())
-    root_object_ids.erase(it);
+    if (state >= SceneState::Active) {
+        obj->Awake();
+    }
 }
 
 std::vector<GameObject*> Scene::GetRootObjects() {
     std::vector<GameObject*> result;
-    Registry* registry = container->FindSystem<Registry>();
-
-    for (const std::string& id : root_object_ids) {
+    for (const std::string& id : rootobject_ids) {
         if (auto* obj = registry->Find<GameObject>(id))
         result.push_back(obj);
     }
-    
+
     return result;
 }
 
 std::vector<GameObject*> Scene::GetAllGameObjects() {
     std::vector<GameObject*> result;
-
-    Registry* registry = container->FindSystem<Registry>();
-    for (const std::string& id : gameobject_ids) {
-        if (auto* obj = registry->Find<GameObject>(id))
-        result.push_back(obj);
+    for (auto* root : GetRootObjects()){
+        root->recurseTopDown([&](GameObject* obj){
+            result.push_back(obj);
+        });
     }
-    
     return result;
 }
 
@@ -176,9 +162,8 @@ Scene* Scene::Copy(){
     Scene* copy = new Scene();
     copy->id = id;
     copy->name = name;
-    copy->root_object_ids = root_object_ids;
-    copy->gameobject_ids = gameobject_ids;
-    copy->state = SceneState::Deserialized; // Copied scenes start deserialized
+    copy->rootobject_ids = rootobject_ids;
+    copy->state = SceneState::Deserialized;
     return copy;
 }
 
@@ -186,8 +171,4 @@ Scene* Scene::Copy(Container* container) {
     Scene* copy = this->Copy();
     copy->Attach(container);
     return copy;
-}
-
-void Scene::Shutdown() {
-    std::cout << "Shutting down scene: " << name << std::endl;
 }

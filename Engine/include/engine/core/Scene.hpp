@@ -7,6 +7,7 @@
 #include "engine/core/RuntimeObject.hpp"
 
 class GameObject;
+class Component;
 class Registry;
 
 class Scene : public Serializable, public RuntimeObject{
@@ -20,7 +21,6 @@ public:
 
     Scene() = default;
     ~Scene() = default;
-
     
     void Init();
     void PostInit();
@@ -32,37 +32,36 @@ public:
 
     void OnEnterPlayMode() override;
     void OnExitPlayMode() override {}
-
-    void Shutdown();
-
-    Scene* Copy() override;
-    Scene* Copy(Container* container) override;
-
+    
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
+    void PostDeserialize() override ;
     std::string GetTypeName() override { return "Scene"; }
-
+    
     void AddGameObject(GameObject* obj);
-    void RemoveGameObject(const std::string& obj_id){};
-
-    void AddRootObject(const std::string& obj_id);
-    void RemoveRootObject(const std::string& obj_id);
-
+    void RemoveGameObject(GameObject* obj){};
+    
     std::vector<GameObject*> GetRootObjects();
     std::vector<GameObject*> GetAllGameObjects();
-
+    
     const std::string& GetName() const { return name; }
     void SetName(const std::string& newName) { name = newName; Notify(); }
     
+    Scene* Copy() override;
+    Scene* Copy(Container* container) override;
     SceneState GetState() const { return state; }
 
 private:
+    
+    std::vector<std::string> rootobject_ids;
     std::string name;
     SceneState state = SceneState::Unloaded;
-
-    std::vector<std::string> root_object_ids;
-    std::vector<std::string> gameobject_ids;
-
     Registry* registry;
+
+
+
+    std::vector<GameObject*> temp_objs;
+    std::vector<Component*> temp_comps;
+
 
 };

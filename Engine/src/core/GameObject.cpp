@@ -19,11 +19,9 @@ YAML::Node GameObject::Serialize() {
     return node;
 }
 
-void GameObject::AddComponent(const std::string& comp_id) {
-    
-    Component* comp = registry->Find<Component>(comp_id);
-    if (!comp) return;
-    component_ids[comp->GetTypeName()] = comp_id;       
+void GameObject::AddComponent(Component* comp) {
+    if(!comp) return;
+    component_ids[comp->GetTypeName()] = comp->GetID();       
 }
 
 void GameObject::Deserialize(const YAML::Node& node) {
@@ -60,22 +58,19 @@ Transform* GameObject::GetTransform(){
 void GameObject::Init(){
     registry = container->FindSystem<Registry>();
 
-    for (auto& comp_id : temp_ids){
-        AddComponent(comp_id);
-    }
-
-    for (auto& [type, comp_id] : component_ids){
-        Component* comp = registry->Find<Component>(comp_id);
+    for (auto& [type, id] : component_ids){
+        Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->Init();
     }
     
 }
 
+
 void GameObject::PostInit(){
 
-    for (auto& [type, comp_id] : component_ids){
-        Component* comp = registry->Find<Component>(comp_id);
+    for (auto& [type, id] : component_ids){
+        Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->PostInit();
     }
@@ -85,13 +80,13 @@ void GameObject::PostInit(){
 void GameObject::Awake(){
 
 
-    for (auto& [type, comp_id] : component_ids){
-        Component* comp = registry->Find<Component>(comp_id);
+    for (auto& [type, id] : component_ids){
+        Component* comp = registry->Find<Component>(id);
         if (!comp) {
-            std::cout << "GameObject::Awake - Component not found: " << comp_id << " (type: " << type << ")" << std::endl;
+            std::cout << "GameObject::Awake - Component not found: " << id << " (type: " << type << ")" << std::endl;
             continue;
         }
-        std::cout << "GameObject::Awake - Calling Awake on: " << type << " (id: " << comp_id << ")" << std::endl;
+        std::cout << "GameObject::Awake - Calling Awake on: " << type << " (id: " << id << ")" << std::endl;
         comp->Awake();
     } 
 
@@ -99,29 +94,33 @@ void GameObject::Awake(){
 
 void GameObject::Update() {
 
-    for (auto& [type, comp_id] : component_ids){
-        Component* comp = registry->Find<Component>(comp_id);
+    for (auto& [type, id] : component_ids){
+        Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->Update();
 
     }
 }
 void GameObject::FixedUpdate() {
-    for (auto& [type, comp_id] : component_ids){
-        Component* comp = registry->Find<Component>(comp_id);
+    for (auto& [type, id] : component_ids){
+        Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->FixedUpdate();
     }
 }
 void GameObject::LateUpdate() {
-    for (auto& [type, comp_id] : component_ids){
-        Component* comp = registry->Find<Component>(comp_id);
+    for (auto& [type, id] : component_ids){
+        Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->LateUpdate();
     }
 }
 void GameObject::PostDeserialize() {
-    
+    auto* registry = container->FindSystem<Registry>();
+    for (auto& id : temp_ids){
+        Component* comp = registry->Find<Component>(id);
+        AddComponent(comp);
+    }
 }
 
 GameObject* GameObject::Copy(){

@@ -20,6 +20,7 @@ public:
 
     Transform* Copy() override;
     void Init() override;
+    void PostInit() override;
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;

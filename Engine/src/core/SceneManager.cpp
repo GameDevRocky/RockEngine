@@ -76,6 +76,7 @@ void SceneManager::LoadScene(const std::string& file_path){
     scene->Attach(container);
     std::cout << "Deserializing scene from path: " + file_path << std::endl;
     scene->Deserialize(root);
+    scene->PostDeserialize();
     registry->Register(scene);
     
     std::cout << "Initializing scene from path: " + file_path << std::endl;

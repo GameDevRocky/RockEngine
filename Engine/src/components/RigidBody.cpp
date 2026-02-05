@@ -124,7 +124,7 @@ void RigidBody::FixedUpdate() {
 }
 
 void RigidBody::LateUpdate() {
-    if (bodyType != b2_dynamicBody) return;
+    if (bodyType != b2_dynamicBody && bodyType != b2_staticBody) return;
     
     Transform* transform = GetTransform();
     if (!transform || !b2Body_IsValid(bodyId)) return;

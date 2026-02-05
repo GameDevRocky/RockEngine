@@ -43,7 +43,6 @@ void Engine::Update(){
 
 
 void Engine::EnterPlayMode(){
-    
     runtimeContainer = editorContainer->Copy();
     
     runtimeContainer->SetMode(Container::Mode::Runtime);

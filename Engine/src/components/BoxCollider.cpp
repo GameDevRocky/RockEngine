@@ -4,6 +4,7 @@
 #include "engine/core/GameObjectImpl.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/utils/EngineUtils.hpp"
+#include "engine/debug/Console.hpp"
 
 using namespace EngineUtils::RenderUtils;
 YAML::Node BoxCollider::Serialize(){
@@ -32,14 +33,22 @@ void BoxCollider::PostInit(){
 
     if (size.x <= 0.0f || size.y <= 0.0f) {
         SpriteRenderer* renderer = GetComponent<SpriteRenderer>();
+        std::cout << "BoxCollider::PostInit - GameObject: " << GetGameObject()->GetName() 
+                  << ", Found local SpriteRenderer: " << (renderer != nullptr) << std::endl;
+        
         if (!renderer) {
             renderer = GetComponentInParent<SpriteRenderer>();
+            std::cout << "BoxCollider::PostInit - Found parent SpriteRenderer: " << (renderer != nullptr) << std::endl;
         }
         
         if (renderer && renderer->GetSprite()) {
-            size = PixelsToWorld(renderer->GetSprite()->GetPixelSize());
+            glm::vec2 pixelSize = renderer->GetSprite()->GetPixelSize();
+            size = PixelsToWorld(pixelSize);
+            std::cout << "BoxCollider::PostInit - Sprite pixel size: " << pixelSize.x << "x" << pixelSize.y 
+                      << ", World size: " << size.x << "x" << size.y << std::endl;
         } else {
             size = glm::vec2(1.0f, 1.0f);
+            std::cout << "BoxCollider::PostInit - Using default size" << std::endl;
         }
     }
     
@@ -55,19 +64,26 @@ void BoxCollider::Awake(){
     glm::vec2 worldScale = transform->GetWorldScale();
     glm::vec2 scaledSize = size * worldScale;
     
-    b2Vec2 physicsCenter = {center.x / PixelsPerUnit, center.y / PixelsPerUnit};
-    float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerUnit);
-    float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerUnit);
+    std::cout << "BoxCollider::Awake - GameObject: " << GetGameObject()->GetName()
+              << ", size: " << size.x << "x" << size.y
+              << ", worldScale: " << worldScale.x << "x" << worldScale.y
+              << ", scaledSize: " << scaledSize.x << "x" << scaledSize.y << std::endl;
     
-    b2Polygon dynamicBox = b2MakeOffsetBox(physicsHalfWidth, physicsHalfHeight, physicsCenter, b2Rot_identity);
-
+    b2Vec2 physicsCenter = {center.x / PixelsPerUnit, center.y / PixelsPerUnit};
+    
     RigidBody* rigidBody;
     if (GetComponent<RigidBody>()){
         rigidBody = GetComponent<RigidBody>();
     }
     else if (GetComponentInParent<RigidBody>()) {
         rigidBody = GetComponentInParent<RigidBody>();
+        
     }
+    
+    float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerUnit);
+    float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerUnit);
+    
+    b2Polygon dynamicBox = b2MakeOffsetBox(physicsHalfWidth, physicsHalfHeight, physicsCenter, b2Rot_identity);
     bodyId = rigidBody->GetBodyId();
     shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &dynamicBox);
     b2Shape_SetRestitution(shapeId, 0.1);

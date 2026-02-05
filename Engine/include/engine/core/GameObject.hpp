@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <unordered_map>
 #include <type_traits>
 #include <typeinfo>
 #include <string>
@@ -10,6 +11,7 @@
 #include <iostream>
 #include "Engine.hpp"
 #include "engine/core/RuntimeObject.hpp"
+#include <algorithm> 
 
 class Component;
 class Transform;
@@ -27,18 +29,20 @@ class GameObject : public Serializable, public RuntimeObject {
     void OnEnterPlayMode() override {};
     void OnExitPlayMode() override {};
 
+    
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
     void PostDeserialize() override;
     GameObject* Copy() override;
     GameObject* Copy(Container* container) override;
-
+    
     std::string name;
     GameObject() = default;
     ~GameObject() =default;
-
-    void AddComponent(const std::string& comp_id);
-
+    
+    void AddComponent(Component* comp);
+    
+    
     template<typename T>
     T* GetComponent() {
         std::string type = std::string(EngineUtils::TypeName<T>());
@@ -54,7 +58,7 @@ class GameObject : public Serializable, public RuntimeObject {
     
     template<typename T>
     T* GetComponentInParent(); // Implemented in GameObjectImpl.hpp
-
+    
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
     std::string GetName() {return name;}
@@ -63,7 +67,21 @@ class GameObject : public Serializable, public RuntimeObject {
     void SetScene(const std::string& id);
     Scene* GetScene();
     
-    
+    template<typename T>
+    void recurseTopDown(T callback) {
+        callback(this); // Execute on Parent FIRST
+        for (auto& child : GetTransform()->GetChildren()) {
+            child->GetGameObject()->recurseTopDown(callback);
+        }
+    }
+
+    template<typename T>
+    void recurseBottomUp(T callback) {
+        for (auto& child : GetTransform()->GetChildren()) {
+            child->GetGameObject()->recurseBottomUp(callback);
+        }
+        callback(this); // Execute on Parent LAST
+    }
     
     private:
 

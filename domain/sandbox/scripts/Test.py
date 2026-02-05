@@ -11,7 +11,7 @@ class TestScript(ScriptableComponent):
         
         input = Vector2(int(Input.is_key_down(Keys.D) - Input.is_key_down(Keys.A)), int(Input.is_key_down(Keys.W) - Input.is_key_down(Keys.S)))
         
-        self.velocity += input * .5
+        self.velocity += input * .05
         self.transform.position += self.velocity
         self.velocity *= 0.8
 

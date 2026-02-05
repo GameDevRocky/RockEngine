@@ -5,6 +5,7 @@
 void Component::Deserialize(const YAML::Node& node){
     Serializable::Deserialize(node);
     gameobject_id = node["gameobject"].as<std::string>();
+    enabled = node["enabled"].as<bool>();
 
 }
 
