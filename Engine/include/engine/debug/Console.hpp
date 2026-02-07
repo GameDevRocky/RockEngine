@@ -16,8 +16,6 @@ public:
     ~Console() = default;
     void Init() override {}
     void Update() override;
-    void OnEnterPlayMode() override {}
-    void OnExitPlayMode() override {}
     void Shutdown() override;
 
     static void Clear();

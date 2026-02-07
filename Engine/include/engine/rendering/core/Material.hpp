@@ -1,25 +1,25 @@
 #pragma once
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
-#include "engine/serialization/Serializable.hpp"
+#include "engine/rendering/core/Resource.hpp"
 #include <unordered_map>
 #include <string>
 #include <glm/glm.hpp>
 #include "yaml-cpp/yaml.h"
 
-class Material : public Serializable
+class Material : public Resource
 {
 public:
     Material() = default;
 
     YAML::Node Serialize() override { return YAML::Node(); }
-
     void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override; 
+    void Awake() override;
+
     std::string GetTypeName() override {return "Material";};
     std::string GetName() {return name;};
 
-    void Init();
+
     void SetShader(std::string& id);
     Shader* GetShader();
     void Validate();
@@ -28,7 +28,7 @@ public:
     void SetVec3(const std::string& name, const glm::vec3& value){vec3Uniforms[name] = value;}
     void SetVec4(const std::string& name, const glm::vec4& value){vec4Uniforms[name] = value;}
     void SetTexture(const std::string& name, const std::string& tex_id){texUniforms[name] = tex_id;}
-    void ApplyUniforms();
+    void ApplyUniforms(); 
 
 private:
 

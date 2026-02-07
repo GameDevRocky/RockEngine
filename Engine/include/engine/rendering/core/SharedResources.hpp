@@ -17,24 +17,20 @@ public:
         static SharedResources instance;
         return instance;
     }
-
+    void Deserialize(const YAML::Node& node) override;
     void Init() override;
-    void OnEnterPlayMode() override {}
-    void OnExitPlayMode() override {}
+    void Awake() override;
 
-    // --- Lookup by ID ---
     Shader* GetShader(const std::string& id);
     Texture2D* GetTexture(const std::string& id);
     Material* GetMaterial(const std::string& id);
     Sprite* GetSprite(const std::string& id);
 
-    // --- Lookup by Name ---
     Shader* GetShaderByName(const std::string& name);
     Texture2D* GetTextureByName(const std::string& name);
     Material* GetMaterialByName(const std::string& name);
     Sprite* GetSpriteByName(const std::string& name);
 
-    // --- Add ---
     void AddShader(Shader* shader);
     void AddTexture(Texture2D* texture);
     void AddMaterial(Material* material);
@@ -42,8 +38,6 @@ public:
 
 private:
     SharedResources() = default;
-
-    bool initialized = false;
 
     std::unordered_map<std::string, Shader*> shaders;
     std::unordered_map<std::string, Texture2D*> textures;

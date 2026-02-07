@@ -13,6 +13,7 @@ YAML::Node BoxCollider::Serialize(){
 }
 
 void BoxCollider::Deserialize(const YAML::Node& node){
+    if (state >= State::Loaded) return;
     Component::Deserialize(node);
     isSensor = node["isSensor"].as<bool>();
     float x = node["center"][0].as<float>();
@@ -21,42 +22,53 @@ void BoxCollider::Deserialize(const YAML::Node& node){
     float h = node["size"][1].as<float> ();
     center = {x, y};
     size = {w, h};
+    state = State::Loaded;
 }
 
 void BoxCollider::Init(){
-
-
-
-
 }
-void BoxCollider::PostInit(){
 
+void BoxCollider::PostInit(){
+    if (state >= State::PostInitialized) return;
     if (size.x <= 0.0f || size.y <= 0.0f) {
         SpriteRenderer* renderer = GetComponent<SpriteRenderer>();
-        std::cout << "BoxCollider::PostInit - GameObject: " << GetGameObject()->GetName() 
-                  << ", Found local SpriteRenderer: " << (renderer != nullptr) << std::endl;
         
         if (!renderer) {
             renderer = GetComponentInParent<SpriteRenderer>();
-            std::cout << "BoxCollider::PostInit - Found parent SpriteRenderer: " << (renderer != nullptr) << std::endl;
         }
         
         if (renderer && renderer->GetSprite()) {
             glm::vec2 pixelSize = renderer->GetSprite()->GetPixelSize();
             size = PixelsToWorld(pixelSize);
-            std::cout << "BoxCollider::PostInit - Sprite pixel size: " << pixelSize.x << "x" << pixelSize.y 
-                      << ", World size: " << size.x << "x" << size.y << std::endl;
         } else {
             size = glm::vec2(1.0f, 1.0f);
-            std::cout << "BoxCollider::PostInit - Using default size" << std::endl;
         }
     }
+    state = State::PostInitialized;
     
 }
 
-void BoxCollider::Awake(){
-
-    b2BodyId bodyId;
+void BoxCollider::Start(){
+    if (state >= State::Started) return;
+    
+    RigidBody* rigidBody = GetComponent<RigidBody>();
+    if (!rigidBody) {
+        rigidBody = GetComponentInParent<RigidBody>();
+    }
+    
+    if (!rigidBody) {
+        std::cerr << "BoxCollider::Start - No RigidBody found on GameObject: " << GetGameObject()->GetName() << std::endl;
+        state = State::Started;
+        return;
+    }
+    
+    b2BodyId bodyId = rigidBody->GetBodyId();
+    if (!b2Body_IsValid(bodyId)) {
+        std::cerr << "BoxCollider::Start - RigidBody has invalid bodyId on GameObject: " << GetGameObject()->GetName() << std::endl;
+        state = State::Started;
+        return;
+    }
+    
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.isSensor = isSensor;
    
@@ -64,29 +76,25 @@ void BoxCollider::Awake(){
     glm::vec2 worldScale = transform->GetWorldScale();
     glm::vec2 scaledSize = size * worldScale;
     
-    std::cout << "BoxCollider::Awake - GameObject: " << GetGameObject()->GetName()
+    std::cout << "BoxCollider::Start - GameObject: " << GetGameObject()->GetName()
               << ", size: " << size.x << "x" << size.y
               << ", worldScale: " << worldScale.x << "x" << worldScale.y
               << ", scaledSize: " << scaledSize.x << "x" << scaledSize.y << std::endl;
     
     b2Vec2 physicsCenter = {center.x / PixelsPerUnit, center.y / PixelsPerUnit};
     
-    RigidBody* rigidBody;
-    if (GetComponent<RigidBody>()){
-        rigidBody = GetComponent<RigidBody>();
-    }
-    else if (GetComponentInParent<RigidBody>()) {
-        rigidBody = GetComponentInParent<RigidBody>();
-        
-    }
-    
     float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerUnit);
     float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerUnit);
     
     b2Polygon dynamicBox = b2MakeOffsetBox(physicsHalfWidth, physicsHalfHeight, physicsCenter, b2Rot_identity);
-    bodyId = rigidBody->GetBodyId();
     shapeId = b2CreatePolygonShape(bodyId, &shapeDef, &dynamicBox);
     b2Shape_SetRestitution(shapeId, 0.1);
+    state = State::Started;
+}
+
+void BoxCollider::Awake(){
+    if (state >= State::Awakened) return;
+    state = State::Awakened;
 }
 
 void BoxCollider::Update(){
@@ -117,6 +125,7 @@ BoxCollider* BoxCollider::Copy(){
     copy->isSensor = isSensor;
     copy->center = center;
     copy->size = size;
+    copy->state = State::Loaded;
     return copy;
 }
 

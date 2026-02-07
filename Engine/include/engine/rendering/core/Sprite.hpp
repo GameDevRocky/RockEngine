@@ -1,21 +1,21 @@
 #pragma once
 #include "engine/serialization/Serializable.hpp"
-#include "engine/rendering/core/Texture2D.hpp"
+#include "engine/rendering/core/Resource.hpp"
 #include <unordered_map>
 #include <string>
 #include <glm/glm.hpp>
 #include "yaml-cpp/yaml.h"
 
-class Sprite : public Serializable{
+class Texture2D;
+
+class Sprite : public Resource {
 
 public:
     Sprite() = default;
     
-    void Init(){}
-
     YAML::Node Serialize() override { return YAML::Node(); }
     void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override; 
+    void Awake() override; 
 
     std::string GetTypeName() override {return "Sprite";};
     std::string GetName() {return name;}
@@ -29,9 +29,6 @@ public:
     void SetUVMax(glm::vec2 max);
     void SetPivot(glm::vec2 pivot);
     
-
-    
-
     Texture2D* GetTexture();
     void SetTexture(std::string& id);
 

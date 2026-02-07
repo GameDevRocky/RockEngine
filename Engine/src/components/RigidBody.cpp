@@ -14,6 +14,7 @@ YAML::Node RigidBody::Serialize(){
 }
 
 void RigidBody::Deserialize(const YAML::Node& node){
+    if (state >= State::Loaded) return;
     Component::Deserialize(node);
     std::string type = node["bodyType"].as<std::string>();
     if (type == "Dynamic") SetBodyType(b2BodyType::b2_dynamicBody);
@@ -21,13 +22,16 @@ void RigidBody::Deserialize(const YAML::Node& node){
     else if (type == "Static") SetBodyType(b2BodyType::b2_staticBody);
     SetUseGravity(node["useGravity"].as<bool>());
     SetMass(node["mass"].as<float>());
-
+    state = State::Loaded;
 }
 void RigidBody::Init(){
+    if (state >= State::Initialized) return;
     bodyId = b2_nullBodyId;
+    state = State::Initialized;
 }
 
 void RigidBody::PostInit(){
+    if (state >= State::PostInitialized) return;
     Transform* transform = GetTransform();
     // transform->Subscribe( [this](){
     //     this->OnUpdateTransform();
@@ -39,6 +43,7 @@ void RigidBody::PostInit(){
     SetBodyType(bodyType);
     SetUseGravity(useGravity);
     OnUpdateTransform();
+    state = State::PostInitialized;
 }
 
 void RigidBody::OnUpdateTransform(){
@@ -94,11 +99,12 @@ bool RigidBody::GetUseGravity() const {
 }
 
 void RigidBody::Awake(){
-    if (!b2Body_IsValid(bodyId)) return;
+    if (state >= State::Awakened) return;
     
     SetBodyType(bodyType);
     SetMass(mass);
     SetUseGravity(useGravity);
+    state = State::Awakened;
 }
 
 
@@ -212,6 +218,7 @@ RigidBody* RigidBody::Copy(){
     copy->bodyType = bodyType;
     copy->useGravity = useGravity;
     copy->mass = mass;
+    copy->state = State::Loaded;
     return copy;
 }
 

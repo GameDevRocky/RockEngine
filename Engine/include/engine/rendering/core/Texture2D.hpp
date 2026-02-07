@@ -2,6 +2,7 @@
 #include <string>
 #include <glad/glad.h>
 #include "engine/serialization/Serializable.hpp"
+#include "engine/rendering/core/Resource.hpp"
 #include <yaml-cpp/yaml.h>
 
 
@@ -15,20 +16,18 @@ enum class TextureWrap {
     Clamp
 };
 
-class Texture2D : public Serializable{
+class Texture2D : public Resource {
 public:
-    Texture2D() = default;
+    
+    void Deserialize(const YAML::Node& node) override;
 
-    ~Texture2D();
+    void Awake() override;
 
     void Bind(unsigned int slot = 0) const;
     void Unbind() const;
-    void Init(){};
-    void ApplySettings() const;
-    YAML::Node Serialize() override { return YAML::Node(); }
 
-    void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override;
+    void ApplySettings() const;
+
     std::string GetTypeName() {return "Texture2D";};
     std::string GetName() {return name;};
 
@@ -38,6 +37,9 @@ public:
     std::string GetPath() const {return path;}
 
     GLuint GetTextureID() const { return texture_id; }
+
+    Texture2D() = default;
+    ~Texture2D();
 
 private:
     GLuint texture_id = 0;

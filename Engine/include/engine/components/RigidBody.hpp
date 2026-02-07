@@ -12,7 +12,6 @@ public:
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override{};
 
     void Init() override;
     void PostInit() override;
@@ -21,8 +20,6 @@ public:
     void FixedUpdate() override;
     void LateUpdate() override;
     void OnDestroy() override{};
-    void OnEnterPlayMode() override{};
-    void OnExitPlayMode() override{}; 
     void OnUpdateTransform();
 
     void SetBodyType(b2BodyType type);

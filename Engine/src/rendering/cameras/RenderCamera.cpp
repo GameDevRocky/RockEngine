@@ -72,6 +72,52 @@ void RenderCamera::RecalculateView()
     viewDirty = false;
 }
 
+// ───────────────────────────────────────────────────────
+// 5. Coordinate Conversion
+// ───────────────────────────────────────────────────────
+glm::vec2 RenderCamera::ScreenToWorld(const glm::vec2& screenPos) const
+{
+    // Convert screen coordinates to NDC (Normalized Device Coordinates)
+    // Screen space: (0,0) at top-left, (width, height) at bottom-right
+    // NDC: (-1, -1) at bottom-left, (1, 1) at top-right
+    
+    float ndcX = (2.0f * screenPos.x) / viewportWidth - 1.0f;
+    float ndcY = 1.0f - (2.0f * screenPos.y) / viewportHeight; // Flip Y
+    
+    glm::vec4 ndcPos = glm::vec4(ndcX, ndcY, 0.0f, 1.0f);
+    
+    // Get inverse of projection and view matrices
+    glm::mat4 invProj = glm::inverse(const_cast<RenderCamera*>(this)->GetProjectionMatrix());
+    glm::mat4 invView = glm::inverse(const_cast<RenderCamera*>(this)->GetViewMatrix());
+    
+    // Transform from NDC -> clip space -> view space -> world space
+    glm::vec4 viewPos = invProj * ndcPos;
+    glm::vec4 worldPos = invView * viewPos;
+    
+    return glm::vec2(worldPos.x, worldPos.y);
+}
+
+glm::vec2 RenderCamera::ScreenToWorld(const glm::vec2& screenPos, int widgetWidth, int widgetHeight) const
+{
+    // Convert screen coordinates using widget dimensions to NDC
+    // This accounts for devicePixelRatio when widget size != viewport size
+    
+    float ndcX = (2.0f * screenPos.x) / widgetWidth - 1.0f;
+    float ndcY = 1.0f - (2.0f * screenPos.y) / widgetHeight; // Flip Y
+    
+    glm::vec4 ndcPos = glm::vec4(ndcX, ndcY, 0.0f, 1.0f);
+    
+    // Get inverse of projection and view matrices
+    glm::mat4 invProj = glm::inverse(const_cast<RenderCamera*>(this)->GetProjectionMatrix());
+    glm::mat4 invView = glm::inverse(const_cast<RenderCamera*>(this)->GetViewMatrix());
+    
+    // Transform from NDC -> clip space -> view space -> world space
+    glm::vec4 viewPos = invProj * ndcPos;
+    glm::vec4 worldPos = invView * viewPos;
+    
+    return glm::vec2(worldPos.x, worldPos.y);
+}
+
 void RenderCamera::RecalculateProjection()
 {
     float aspect = (float)viewportWidth / (float)viewportHeight;

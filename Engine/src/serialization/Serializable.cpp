@@ -1,15 +1,6 @@
 #include "engine/serialization/Serializable.hpp"
 #include "engine/serialization/Registry.hpp"
 
-Serializable::Serializable(){
-
-}
-Serializable::~Serializable(){
-
-}
-
-
-
 YAML::Node Serializable::Serialize() {
     YAML::Node node;
     node["id"] = id;
@@ -20,8 +11,4 @@ YAML::Node Serializable::Serialize() {
 void Serializable::Deserialize(const YAML::Node& node) {
     if (node["id"])
         id = node["id"].as<std::string>();
-}
-
-std::string Serializable::GetTypeName(){
-    return "Serializable";
 }

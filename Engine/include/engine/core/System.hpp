@@ -4,27 +4,14 @@
 
 class Container;
 
-class System : public Observable, public RuntimeObject{
+class System : public RuntimeObject{
 public:
+
+    virtual System* Copy(){ return nullptr; }
+    virtual System* Copy(Container* container){ return nullptr; }
+    
+    System() = default; 
     virtual ~System() = default;
 
-    virtual void Attach(Container* container){
-        this->container = container;
-    }   
-
-    virtual void Init() {}
-    virtual void PostInit(){}
-    virtual void Update() {}
-    virtual void Shutdown() {}
-    virtual System* Copy(){ return nullptr; };
-    System* Copy(Container* container) override {
-        System* copy = this->Copy();
-        if (copy)
-            copy->Attach(container);
-        return copy;
-    }
-
 protected:
-    Container* container = nullptr;
-    System() = default; 
 };

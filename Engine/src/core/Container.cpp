@@ -8,58 +8,41 @@ Container::Container(Mode mode){
 
 Container* Container::Copy(){
     Container* container = new Container(Mode::Runtime);
-    
     for (auto* system : systems){
         auto* copy = system->Copy(container);
         container->AddSystem(copy);
     }
-
     return container;
 }
 
-
-
-void Container::Init(){
-    if (initialized) return;
-    
+void Container::Init(){    
     for (System* system : systems) {
         system->Init();
     }
-    
-    initialized = true;
 }
 
 void Container::PostInit(){
-    
     for (System* system : systems) {
         system->PostInit();
-    }
-    
+    }   
 }
 
-void Container::OnEnterPlayMode(){
-    SetMode(Mode::Runtime);
-
+void Container::Awake(){
     for (System* system : systems) {
-        system->OnEnterPlayMode();
-    }
-
+        system->Awake();
+    }   
 }
-void Container::OnExitPlayMode(){
-    
-    for (System* system : systems) {
-        system->OnExitPlayMode();
-    }
-    SetMode(Mode::Editor);
 
+void Container::Start(){
+    for (System* system : systems) {
+        system->Start();
+    }   
 }
 
 void Container::Update(){
     for (System* system : systems) {
         system->Update();
     }
-    
-
 }
 
 void Container::Shutdown(){

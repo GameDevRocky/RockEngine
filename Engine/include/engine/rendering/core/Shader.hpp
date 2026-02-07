@@ -3,29 +3,23 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include "engine/serialization/Serializable.hpp"
+#include "engine/rendering/core/Resource.hpp"
 
 struct UniformInfo {
     GLenum type;
     GLint location;
 };
 
-class Shader : public Serializable{
+class Shader : public Resource{
 public:
-    Shader() = default;
-    static Shader* LoadFromPath(const std::string& vert_path, const std::string& frag_path, const std::string& name = "Unnamed Shader");
-    ~Shader();
+    void Deserialize(const YAML::Node& node) override;
 
     void Bind() const;
     void Unbind() const;
-    void Init(){};
-    YAML::Node Serialize() override { return YAML::Node(); }
 
-    void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override;
     std::string GetTypeName() {return "Shader";};
     std::string GetName() {return name;};
 
-    // Uniform setters
     void SetInt(const std::string& name, int value) const;
     void SetFloat(const std::string& name, float value) const;
     void SetVec2(const std::string& name, const glm::vec2& value) const;
@@ -36,8 +30,11 @@ public:
     void ReflectUniforms();
 
     const std::unordered_map<std::string, UniformInfo>& GetActiveUniforms() const { return active_uniforms; }
-    
+
     GLuint GetProgramID() const { return program_id; }
+
+    Shader() = default;
+    ~Shader();
 
 private:
     std::string name;

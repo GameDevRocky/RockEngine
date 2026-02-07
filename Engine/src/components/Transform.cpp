@@ -5,12 +5,25 @@
 #include "Engine.hpp"
 
 void Transform::Init(){
+    if (state >= State::Initialized) return; 
     registry = container->FindSystem<Registry>();
+    
+    state = State::Initialized; 
 }
 
 void Transform::PostInit(){
-    // Parent-child relationships are already established in PostDeserialize
-    // This is just a placeholder for any future post-init logic
+    if (state >= State::PostInitialized) return; 
+    Transform* parentTransform = registry->Find<Transform>(parent_id);
+
+    if (!parentTransform) {
+        Console::Warn("Unable to find Transform parent during PostDeserialize");
+        return;
+    }
+
+    // Set up the parent-child relationship
+    parentTransform->children_ids.push_back(GetID());
+    Console::Comment("Transform parent-child relationship established");
+    state = State::PostInitialized; 
 }
 
 void Transform::MarkDirty() {
@@ -195,7 +208,6 @@ Transform* Transform::GetParent() {
         Console::Alert("Transform parent_id exists but is not a Transform");
         return nullptr;
     }
-
     return transform;
 }
 
@@ -223,8 +235,6 @@ void Transform::Deserialize(const YAML::Node& node) {
     } else {
         parent_id = "";
     }
-    
-    // Clear children - they will be rebuilt in PostDeserialize
     children_ids.clear();
     
     localPosition.x = node["localPosition"][0].as<float>();
@@ -232,26 +242,7 @@ void Transform::Deserialize(const YAML::Node& node) {
     localRotation = node["localRotation"].as<float>();
     localScale.x = node["localScale"][0].as<float>();
     localScale.y = node["localScale"][1].as<float>();
-    registry = container->FindSystem<Registry>();
     MarkDirty();
-}
-
-void Transform::PostDeserialize() {
-    if (parent_id.empty()) {
-        return;
-    }
-    
-    Registry* registry = container->FindSystem<Registry>();
-    Transform* parentTransform = registry->Find<Transform>(parent_id);
-
-    if (!parentTransform) {
-        Console::Warn("Unable to find Transform parent during PostDeserialize");
-        return;
-    }
-
-    // Set up the parent-child relationship
-    parentTransform->children_ids.push_back(GetID());
-    Console::Comment("Transform parent-child relationship established");
 }
 
 Transform* Transform::Copy() {
@@ -265,5 +256,6 @@ Transform* Transform::Copy() {
     copy->localPosition = localPosition;
     copy->localRotation = localRotation;
     copy->localScale= localScale;
+    state = State::Loaded;
     return copy;
 }

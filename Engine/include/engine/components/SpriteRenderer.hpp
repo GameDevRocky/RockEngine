@@ -15,7 +15,6 @@ class SpriteRenderer : public Component
     YAML::Node Serialize() override;
 
     void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override;
     
     Material* GetMaterial();
     void SetMaterial(std::string& id);

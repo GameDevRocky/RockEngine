@@ -50,7 +50,8 @@ void Engine::EnterPlayMode(){
     runtimeContainer->PostInit();
     
     activeContainer = runtimeContainer;
-    runtimeContainer->OnEnterPlayMode();
+    runtimeContainer->Awake();
+    runtimeContainer->Start();
 }
 
 void Engine::ExitPlayMode(){

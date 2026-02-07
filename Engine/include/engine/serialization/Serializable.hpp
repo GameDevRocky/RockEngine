@@ -9,18 +9,19 @@ class Registry;
 
 class Serializable : public Observable {
 public:
-    Serializable();
-    virtual ~Serializable(); 
     virtual YAML::Node Serialize();
 
     virtual void Deserialize(const YAML::Node& node);
-    virtual void PostDeserialize(){} 
 
-    virtual std::string GetTypeName();
+    virtual std::string GetTypeName(){return "Serializable";};
 
     const std::string& GetID() const { return id; }
-    
+
     virtual Serializable* Copy() { return nullptr; }
+
+    Serializable() = default;
+
+    virtual ~Serializable() = default; 
 
 protected:
     std::string id;

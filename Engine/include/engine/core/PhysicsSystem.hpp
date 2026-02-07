@@ -7,12 +7,10 @@ class TimeManager;
 class PhysicsSystem : public System{
 public:
     void Init() override;
-    void PostInit() override;
-    void Step();
+    void Awake() override;
     void Update() override;
     void Shutdown() override;
-    void OnEnterPlayMode() override;
-    void OnExitPlayMode() override;
+    void Step();
 
     b2WorldId GetWorldId(){return worldId;}
 

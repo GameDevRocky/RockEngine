@@ -46,24 +46,6 @@ void GridPass::Resize(int w, int h){
     viewportHeight = h;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void GridPass::Shutdown(){
     if (vbo) glad_glDeleteBuffers(1, &vbo);
         if (vao) glad_glDeleteVertexArrays(1, &vao);

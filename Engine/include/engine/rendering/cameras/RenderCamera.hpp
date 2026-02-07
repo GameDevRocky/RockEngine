@@ -30,6 +30,13 @@ public:
     // ───────────────────────────────────────────────────────
     const glm::mat4& GetViewMatrix();
     const glm::mat4& GetProjectionMatrix();
+    
+    // ───────────────────────────────────────────────────────
+    // 4. Coordinate Conversion
+    // ───────────────────────────────────────────────────────
+    glm::vec2 ScreenToWorld(const glm::vec2& screenPos) const;
+    glm::vec2 ScreenToWorld(const glm::vec2& screenPos, int widgetWidth, int widgetHeight) const;
+    
     int viewportWidth  = 1;
     int viewportHeight = 1;
 

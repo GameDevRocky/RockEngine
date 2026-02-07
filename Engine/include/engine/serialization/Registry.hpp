@@ -6,35 +6,29 @@
 #include <iostream>
 #include "engine/core/System.hpp"
 
-class Serializable;
+class RuntimeObject;
 
 class Registry : public System {
 private:
-    std::unordered_map<std::string, Serializable*> serializables;
+    std::unordered_map<std::string, RuntimeObject*> runtimeObjects;
 
 public:
 
     Registry() = default;
-
     
-    void Init() override;
-    void PostInit() override;
-    void OnEnterPlayMode() override {}
-    void OnExitPlayMode() override {}
-    void Shutdown() override;
     Registry* Copy() override;
     Registry* Copy(Container* container) override;
     
-    void Register(Serializable* obj);
-    void Unregister(Serializable* obj);
+    void Register(RuntimeObject* obj);
+    void Unregister(RuntimeObject* obj);
 
-    template<typename T = Serializable> 
+    template<typename T = RuntimeObject> 
     T* Find(const std::string& id) {
-        auto it = serializables.find(id);
-        if (it != serializables.end()) {
+        auto it = runtimeObjects.find(id);
+        if (it != runtimeObjects.end()) {
             return dynamic_cast<T*>(it->second);
         }
         return nullptr;
     }
-    std::unordered_map<std::string, Serializable*>& GetAll() { return serializables; }
+    std::unordered_map<std::string, RuntimeObject*>& GetAll() { return runtimeObjects; }
 };

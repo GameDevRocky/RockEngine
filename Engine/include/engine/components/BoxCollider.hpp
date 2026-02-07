@@ -12,6 +12,7 @@ public:
     void Init() override ;
     void PostInit() override;
     void Awake() override;
+    void Start() override;
     void Update() override;
     void OnDestroy() override;
     void SetIsSensor(bool val);

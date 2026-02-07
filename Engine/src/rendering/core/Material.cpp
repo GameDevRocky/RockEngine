@@ -1,5 +1,6 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
+#include "engine/serialization/Serializable.hpp"
 #include "engine/debug/Console.hpp"
 
 
@@ -46,19 +47,14 @@ void Material::Deserialize(const YAML::Node& node) {
     }
 }
 
-void Material::PostDeserialize(){
+
+void Material::Awake(){
     SetShader(shader_id);
     Shader* shader = GetShader();
     if (!shader) {
         std::cout << "Shader not Gotten" << std::endl;
         return;
     }
-}
-
-void Material::Init(){
-    
-
-
 }
 
 void Material::Validate() {

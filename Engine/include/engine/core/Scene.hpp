@@ -10,32 +10,21 @@ class GameObject;
 class Component;
 class Registry;
 
-class Scene : public Serializable, public RuntimeObject{
+class Scene : public RuntimeObject{
 public:
-    enum class SceneState {
-        Unloaded,      // Fresh scene, not deserialized
-        Deserialized,  // Loaded from file, objects created
-        Initialized,   // Init() + PostInit() called
-        Active         // Awake() called, ready for gameplay
-    };
 
-    Scene() = default;
-    ~Scene() = default;
-    
-    void Init();
-    void PostInit();
-    
-    void Awake();
-    void Update();
-    void FixedUpdate();
-    void LateUpdate();
-
-    void OnEnterPlayMode() override;
-    void OnExitPlayMode() override {}
-    
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override ;
+
+    void Init() override;
+    void PostInit() override;
+    void Awake() override;
+    void Start() override;
+
+    void Update() override;
+    void FixedUpdate();
+    void LateUpdate();
+    
     std::string GetTypeName() override { return "Scene"; }
     
     void AddGameObject(GameObject* obj);
@@ -49,19 +38,15 @@ public:
     
     Scene* Copy() override;
     Scene* Copy(Container* container) override;
-    SceneState GetState() const { return state; }
+
+    Scene() = default;
+    ~Scene() = default;
 
 private:
     
-    std::vector<std::string> rootobject_ids;
     std::string name;
-    SceneState state = SceneState::Unloaded;
-    Registry* registry;
-
-
-
-    std::vector<GameObject*> temp_objs;
-    std::vector<Component*> temp_comps;
+    std::vector<std::string> rootobject_ids;
+    Registry* registry = nullptr;
 
 
 };

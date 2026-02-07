@@ -5,20 +5,14 @@
 #include "engine/core/RuntimeObject.hpp"
 
 class Transform;
-class Component : public Serializable, public RuntimeObject{
+class Component : public RuntimeObject{
 public: 
 
     using Serializable::Copy;
 
-    virtual void Init(){}
-    virtual void PostInit(){}
-
-    virtual void Awake(){}
-    virtual void Update() {}
+    
     virtual void LateUpdate(){}
     virtual void FixedUpdate(){}
-    virtual void OnEnterPlayMode() override {}
-    virtual void OnExitPlayMode() override {}
     virtual void OnDestroy() {}
     
     virtual YAML::Node Serialize(){

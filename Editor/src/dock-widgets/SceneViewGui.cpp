@@ -10,7 +10,7 @@
 #include "engine/rendering/core/SharedResources.hpp"
 #include "Engine.hpp"
 
-//#include "Engine.hpp";
+#define RESOURCES_CONFIG_PATH "Domain/lib/configs/resources_config.yaml"
 
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
@@ -60,8 +60,10 @@ void SceneViewGui::initializeGL() {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return;
     }
-
+    
+    SharedResources::Get().Deserialize(YAML::LoadFile(RESOURCES_CONFIG_PATH));
     SharedResources::Get().Init();
+    SharedResources::Get().Awake();
     initializeRenderPipeline();
 
     float quadVertices[] = {
@@ -235,8 +237,14 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
     bool leftDragPan = (e->buttons() & Qt::LeftButton) && ctrlHeld;
     bool midDragPan  = (e->buttons() & Qt::MiddleButton);
 
-    glm::vec2 currentPos = { static_cast<float>(e->pos().x()), static_cast<float>(e->pos().y()) };
-    inputManager->SetMousePosition(currentPos);
+    // Get screen coordinates
+    glm::vec2 screenPos = { static_cast<float>(e->pos().x()), static_cast<float>(e->pos().y()) };
+    
+    // Convert to world coordinates using widget dimensions (not framebuffer dimensions)
+    glm::vec2 worldPos = camera->ScreenToWorld(screenPos, width(), height());
+    
+    // Set the world position in InputManager
+    inputManager->SetMousePosition(worldPos);
 
     if (!leftDragPan && !midDragPan) {
         lastMousePos = e->pos();

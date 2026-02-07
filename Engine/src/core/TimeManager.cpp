@@ -9,9 +9,7 @@ void TimeManager::Init() {
     unscaledDeltaTime = 0.0f;
     std::cout << "TimeManager Initialized" << std::endl;
 }
-void TimeManager::PostInit() {
-    std::cout << "TimeManager Post Initialized" << std::endl;
-}
+
 
 void TimeManager::Update() {
     using namespace std::chrono;

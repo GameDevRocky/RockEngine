@@ -1,5 +1,6 @@
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/Texture2D.hpp"
 #include <iostream>
 
 void Sprite::Deserialize(const YAML::Node& node){
@@ -23,7 +24,7 @@ void Sprite::SetTexture(std::string& id){
 
 }
 
-void Sprite::PostDeserialize()
+void Sprite::Awake()
 {
     Texture2D* tex = GetTexture();
     if (!tex)

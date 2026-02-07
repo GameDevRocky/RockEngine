@@ -33,6 +33,7 @@ class Vector2:
             return Vector2(self.x - other.x, self.y - other.y)
         return Vector2(self.x - other[0], self.y - other[1])
 
+
     def __iadd__(self, other):
         if isinstance(other, Vector2):
             self.x += other.x

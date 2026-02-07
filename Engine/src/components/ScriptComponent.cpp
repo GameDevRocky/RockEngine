@@ -18,14 +18,27 @@ void ScriptComponent::Deserialize(const YAML::Node& node)
     Component::Deserialize(node);
     moduleName = node["module"].as<std::string>();
     className  = node["class"].as<std::string>();
+    state = State::Loaded;
 }
  
 void ScriptComponent::Init(){
     InstantiateScript();
-    CallIfExists("init");
+    state = State::Initialized;
 }
-void ScriptComponent::PostInit()    { CallIfExists("post_init"); }
-void ScriptComponent::Awake()       { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("awake"); }
+void ScriptComponent::Awake(){ 
+    if (state >= State::Awakened) return;
+    if (container->GetMode() == Container::Mode::Runtime){ 
+        CallIfExists("awake");
+    } 
+    state = State::Awakened;
+}
+void ScriptComponent::Start(){ 
+    if (state >= State::Started) return;
+    if (container->GetMode() == Container::Mode::Runtime){ 
+        CallIfExists("start");
+    } 
+    state = State::Started;
+}
 void ScriptComponent::Update()      { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("update"); }
 void ScriptComponent::FixedUpdate() { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("fixed_update"); }
 void ScriptComponent::LateUpdate()  { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("late_update"); }

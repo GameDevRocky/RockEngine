@@ -54,17 +54,17 @@ components:
     enabled: true
     type: "Transform"
     gameobject: "o2"
-    localPosition: [1, 0]
+    localPosition: [25, 0]
     localRotation: 0
     localScale: [1, 1]
-    parent_id: "t1"
+    parent_id: null
 
   - id: "s2"
     enabled: true
     type: "SpriteRenderer"
     gameobject: "o2"
     material_id: "m2"
-    sprite_id: "sprite1"
+    sprite_id: "sprite2"
     color: [1,1,1,1]
     uvOffset: [1.0, 0.0]
     uvScale: [1.0, 1.0]
@@ -78,7 +78,7 @@ components:
     type: "RigidBody"
     gameobject: "o2"
     bodyType: "Dynamic"
-    useGravity: false
+    useGravity: true
     mass: 1.0
 
   - id: "b2"
@@ -93,9 +93,18 @@ gameobjects:
   - id: "o1"
     type: "GameObject"
     name: "Parent"
-    component_ids: ["t1", "s1", "sc1", "r1", "b1"]
+    component_ids:
+      Transform: "t1"
+      SpriteRenderer: "s1"
+      ScriptComponent: "sc1"
+      RigidBody: "r1"
+      BoxCollider: "b1"
 
   - id: "o2"
     type: "GameObject"
     name: "Child"
-    component_ids: ["t2", "s2", "r2", "b2"]
+    component_ids:
+      Transform: "t2"
+      SpriteRenderer: "s2"
+      RigidBody: "r2"
+      BoxCollider: "b2"

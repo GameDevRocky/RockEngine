@@ -1,13 +1,9 @@
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/debug/Console.hpp"
-
+#include "engine/rendering/core/Resource.hpp"
 #define RESOURCES_CONFIG_PATH "Domain/lib/configs/resources_config.yaml"
 
-void SharedResources::Init()
-{
-    if (initialized)
-        return;
-
+void SharedResources::Deserialize(const YAML::Node& node){
     const YAML::Node root = YAML::LoadFile(RESOURCES_CONFIG_PATH);
     const YAML::Node data = root["Resources"];
     
@@ -42,20 +38,32 @@ void SharedResources::Init()
         AddMaterial(material);
         std::cout << "Loaded and Registered Material: " + material->GetName() << std::endl;
     }
-
-    std::vector<Serializable*> all;
-
+}
+void SharedResources::Init()
+{    
+    
+    std::vector<Resource*> all;
+    
     for (auto& kv : textures)  all.push_back(kv.second);
     for (auto& kv : sprites)  all.push_back(kv.second);
     for (auto& kv : shaders)   all.push_back(kv.second);
     for (auto& kv : materials) all.push_back(kv.second);
-
-    for (Serializable* obj : all)
-        obj->PostDeserialize();
-
-    std::cout << "Shared Resources Initialized" << std::endl;
-    initialized = true;
     
+    for (Resource* obj : all) obj->Init();
+    
+    std::cout << "Shared Resources Initialized" << std::endl;
+    
+}
+void SharedResources::Awake(){
+
+    std::vector<Resource*> all;
+    
+    for (auto& kv : textures)  all.push_back(kv.second);
+    for (auto& kv : sprites)  all.push_back(kv.second);
+    for (auto& kv : shaders)   all.push_back(kv.second);
+    for (auto& kv : materials) all.push_back(kv.second);
+    
+    for (Resource* obj : all) obj->Awake();
 }
 
 

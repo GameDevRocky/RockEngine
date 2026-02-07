@@ -11,24 +11,6 @@ Shader::~Shader()
 }
 
 
-void Shader::PostDeserialize(){
-
-}
-
-Shader* Shader::LoadFromPath(const std::string& vert_path, const std::string& frag_path, const std::string& name){
-    Shader* shader = new Shader();
-    shader->vert_src = EngineUtils::ReadShader(vert_path);
-    shader->frag_src = EngineUtils::ReadShader(frag_path);
-    GLuint vertex = shader->CompileShader(GL_VERTEX_SHADER, shader->vert_src);
-    GLuint fragment = shader->CompileShader(GL_FRAGMENT_SHADER, shader->frag_src);
-    shader->program_id = shader->LinkProgram(vertex, fragment);
-    glad_glDeleteShader(vertex);
-    glad_glDeleteShader(fragment);
-    shader->ReflectUniforms();
-    return shader;
-}
-
-
 void Shader::Deserialize(const YAML::Node& node) {
     Serializable::Deserialize(node);
 

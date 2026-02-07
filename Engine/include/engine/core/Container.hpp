@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <vector>
 
-class Container : public Observable, public RuntimeObject {
+class Container : public RuntimeObject {
 public:
 	enum class Mode {
 		Editor,
@@ -29,11 +29,10 @@ public:
 		Notify();
 	}
 
-	void OnEnterPlayMode() override;
-	void OnExitPlayMode() override;
-
-	void Init();
-    void PostInit();
+	void Init() override;
+	void PostInit() override;
+	void Awake() override;
+	void Start() override;
 	void Update();
 	void Shutdown();
 

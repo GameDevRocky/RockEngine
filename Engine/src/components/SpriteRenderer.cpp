@@ -24,11 +24,7 @@ void SpriteRenderer::Deserialize(const YAML::Node& node)
     flipY = node["flipY"].as<bool>();
     visible = node["visible"].as<bool>();
     sortingOrder = node["sortingOrder"].as<int>();
-}
-
-void SpriteRenderer::PostDeserialize()
-{
-    
+    state = State::Loaded;
 }
 
 Material* SpriteRenderer::GetMaterial(){

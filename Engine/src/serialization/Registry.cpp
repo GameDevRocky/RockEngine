@@ -4,37 +4,26 @@
 #include "engine/debug/Console.hpp"
 #include "engine/core/RuntimeObject.hpp"
 
-void Registry::Init(){
-    std::cout << "Registry Initialized" << std::endl;
-    
-}
-void Registry::PostInit(){
-    std::cout << "Registry Post Initialized" << std::endl;
-
-}
-void Registry::Shutdown(){
-
-}
-
-void Registry::Register(Serializable* obj) {
+void Registry::Register(RuntimeObject* obj) {
     if (!obj) return;
+    auto result = runtimeObjects.insert({obj->GetID(), obj});
 
-    std::string id = obj->GetID();
-    serializables[id] = obj;
+    if (!result.second) {
+        printf("Warning: Object with ID %s already registered. Skipping.\n", obj->GetID().c_str());
+    }
 }
- 
-void Registry::Unregister(Serializable* obj) {
+void Registry::Unregister(RuntimeObject* obj) {
     if (!obj) return;
-    auto it = std::find_if(serializables.begin(), serializables.end(),
+    auto it = std::find_if(runtimeObjects.begin(), runtimeObjects.end(),
         [&](auto& pair) { return pair.second == obj; });
-    if (it != serializables.end())
-        serializables.erase(it);
+    if (it != runtimeObjects.end())
+        runtimeObjects.erase(it);
 }
 
 Registry* Registry::Copy(){
 
     Registry* registry = new Registry();
-    for (auto& pair : serializables){
+    for (auto& pair : runtimeObjects){
         auto* obj = pair.second;
 
         auto* copy = obj->Copy();
@@ -44,26 +33,11 @@ Registry* Registry::Copy(){
 }
 
 Registry* Registry::Copy(Container* container) {
-    Registry* registry = new Registry();
-
-    for (auto& pair : serializables){
-        auto* obj = pair.second;
-
-        if (auto* runtimeObj = dynamic_cast<RuntimeObject*>(obj)) {
-            auto* runtimeCopy = runtimeObj->Copy(container);
-            auto* serializableCopy = dynamic_cast<Serializable*>(runtimeCopy);
-            if (serializableCopy){
-                std::cout << "Copying Object" + serializableCopy->GetTypeName() << std::endl;
-                registry->Register(serializableCopy);
-            }
-            continue;
-        }
-
-        auto* copy = obj->Copy();
-        registry->Register(copy);
+    Registry* copy = this->Copy();
+    for (auto& kv : copy->runtimeObjects){
+        RuntimeObject* obj = kv.second;
+        obj->Attach(container);
     }
-
-    registry->Attach(container);
-
-    return registry;
+    copy->Attach(container);
+    return copy;
 }

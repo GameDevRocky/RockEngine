@@ -9,9 +9,6 @@ class Inspector : public System {
 
 public:
     Inspector() = default;
-
-    void OnEnterPlayMode() override {}
-    void OnExitPlayMode() override {}
     void SetGameObject(GameObject *gameobject){};
     GameObject* GetGameObject(){return nullptr;};
 

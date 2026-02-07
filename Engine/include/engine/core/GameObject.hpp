@@ -17,22 +17,20 @@ class Component;
 class Transform;
 class Registry;
 
-class GameObject : public Serializable, public RuntimeObject {
+class GameObject : public RuntimeObject {
     
     public:
-    void Init();
-    void PostInit();
-    void Awake();
-    void Update();
+    void Deserialize(const YAML::Node& node) override;
+
+    void Init() override;
+    void PostInit() override;
+    void Awake() override;
+    void Start() override;
+    void Update() override;
+    
     void FixedUpdate();
     void LateUpdate();
-    void OnEnterPlayMode() override {};
-    void OnExitPlayMode() override {};
 
-    
-    YAML::Node Serialize() override;
-    void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override;
     GameObject* Copy() override;
     GameObject* Copy(Container* container) override;
     
@@ -58,6 +56,9 @@ class GameObject : public Serializable, public RuntimeObject {
     
     template<typename T>
     T* GetComponentInParent(); // Implemented in GameObjectImpl.hpp
+
+    template<typename T> 
+    T* RequireComponent();
     
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}

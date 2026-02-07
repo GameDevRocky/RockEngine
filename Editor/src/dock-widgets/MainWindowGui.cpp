@@ -89,7 +89,7 @@ void MainWindow::Init()
 }
 
 void MainWindow::PostInit(){
-    HierarchyGui::Get()->PostInit();
+    //HierarchyGui::Get()->PostInit();
     showMaximized();
     std::cout << "MainWindow Started" << std::endl;
 }   

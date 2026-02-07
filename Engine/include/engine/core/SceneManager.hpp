@@ -13,10 +13,9 @@ public:
     
     void Init() override;
     void PostInit() override;
+    void Awake() override;
+    void Start() override;
     void Update() override;
-
-    void OnEnterPlayMode() override;
-    void OnExitPlayMode() override;
 
     void LoadScene(const std::string& file_path);
     void RemoveScene(const std::string& scene_id);

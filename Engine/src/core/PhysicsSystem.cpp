@@ -11,18 +11,7 @@ void PhysicsSystem::Init(){
     std::cout << "PhysicsSystem: World created, valid=" << B2_IS_NON_NULL(worldId) << std::endl;
 }
 
-void PhysicsSystem::PostInit(){
-
-
-}
-void PhysicsSystem::OnEnterPlayMode(){
-    
-}
-
-void PhysicsSystem::OnExitPlayMode(){
-    if (B2_IS_NON_NULL(worldId)) {
-        Shutdown();
-    }
+void PhysicsSystem::Awake(){
 }
 
 void PhysicsSystem::Update(){

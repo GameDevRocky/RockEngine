@@ -24,7 +24,6 @@ public:
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
-    void PostDeserialize() override;
     std::string GetTypeName() const override { return "Transform"; }
     
     // Local Setters

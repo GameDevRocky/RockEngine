@@ -10,6 +10,7 @@ public:
     using Creator = std::function<Serializable*()>;
 
     static void RegisterType(const std::string& name, Creator creator);
+    
     static Serializable* Create(const std::string& name);
 
 private:

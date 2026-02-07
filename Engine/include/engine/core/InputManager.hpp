@@ -6,10 +6,7 @@ class InputManager : public System {
 public:
 
     void Init() override;
-    void PostInit() override;
     void Update() override;
-    void OnEnterPlayMode() override {}
-    void OnExitPlayMode() override {}
     void Shutdown() override;
 
     glm::vec2 GetMousePosition(){return mouse_pos;}
@@ -22,6 +19,7 @@ public:
     ~InputManager() override = default;
 
     InputManager* Copy() override;
+    InputManager* Copy(Container* container) override;
 
 
 private:

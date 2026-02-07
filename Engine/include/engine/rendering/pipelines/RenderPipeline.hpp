@@ -19,8 +19,6 @@ public:
     void AddScenePass(RenderPass* pass);
     void AddFinalizePass(RenderPass* pass);
     void Init() override;
-    void OnEnterPlayMode() override {}
-    void OnExitPlayMode() override {}
     void Resize(int width, int height);
     void Render(RenderCamera* camera, std::vector<Scene*> scenes);
     void Shutdown() override;

@@ -27,7 +27,7 @@ void Texture2D::ApplySettings() const
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
 }
 
-void Texture2D::PostDeserialize(){
+void Texture2D::Awake(){
     stbi_set_flip_vertically_on_load(true);
 
     unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);

@@ -185,5 +185,22 @@ void GameViewGui::mouseReleaseEvent(QMouseEvent* event)
 
 void GameViewGui::mouseMoveEvent(QMouseEvent* e)
 {
+    Engine* engine = Engine::Get();
+    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+    
+    if (!inputManager || !camera) {
+        e->accept();
+        return;
+    }
+    
+    // Get screen coordinates
+    glm::vec2 screenPos = { static_cast<float>(e->pos().x()), static_cast<float>(e->pos().y()) };
+    
+    // Convert to world coordinates using widget dimensions (not framebuffer dimensions)
+    glm::vec2 worldPos = camera->ScreenToWorld(screenPos, width(), height());
+    
+    // Set the world position in InputManager
+    inputManager->SetMousePosition(worldPos);
+    
     e->accept();
 }

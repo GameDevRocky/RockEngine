@@ -9,13 +9,12 @@
 using namespace EngineUtils::RenderUtils;
 
 void DebugPass::Init(){
-    // Line loop for outline: 4 corners of the quad
+
     float lineVerts[] = {
-        // Corners of the quad (no UVs needed for debug)
-        -0.5f, -0.5f,  // bottom-left
-         0.5f, -0.5f,  // bottom-right
-         0.5f,  0.5f,  // top-right
-        -0.5f,  0.5f   // top-left
+        -0.5f, -0.5f,  
+         0.5f, -0.5f, 
+         0.5f,  0.5f, 
+        -0.5f,  0.5f  
     };
 
     glad_glGenVertexArrays(1, &vao);
@@ -25,7 +24,7 @@ void DebugPass::Init(){
     glad_glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glad_glBufferData(GL_ARRAY_BUFFER, sizeof(lineVerts), lineVerts, GL_STATIC_DRAW);
 
-    glad_glEnableVertexAttribArray(0); // position only
+    glad_glEnableVertexAttribArray(0); 
     glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
     glad_glBindVertexArray(0);
