@@ -78,7 +78,7 @@ components:
     type: "RigidBody"
     gameobject: "o2"
     bodyType: "Dynamic"
-    useGravity: true
+    useGravity: false
     mass: 1.0
 
   - id: "b2"

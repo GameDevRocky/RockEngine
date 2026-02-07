@@ -38,9 +38,9 @@ void Scene::PostInit() {
 
     registry = container->FindSystem<Registry>();
 
-    std::cout << "Initializing Scene: " << name << std::endl;
+    std::cout << "Post Initializing Scene: " << name << std::endl;
     for (auto& root : GetRootObjects()) {
-        root->recurseTopDown([&](auto* obj){ obj->Init();});
+        root->recurseTopDown([&](auto* obj){ obj->PostInit();});
     }
     state = State::PostInitialized;
 }

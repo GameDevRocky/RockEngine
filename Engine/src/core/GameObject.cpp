@@ -62,7 +62,7 @@ void GameObject::PostInit(){
     for (auto& [type, id] : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
-        comp->Init();
+        comp->PostInit();
     }
 }
 
@@ -84,10 +84,10 @@ void GameObject::Start(){
     for (auto& [type, id] : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) {
-            std::cout << "GameObject::Awake - Component not found: " << id << " (type: " << type << ")" << std::endl;
+            std::cout << "GameObject::Start - Component not found: " << id << " (type: " << type << ")" << std::endl;
             continue;
         }
-        std::cout << "GameObject::Awake - Calling Awake on: " << type << " (id: " << id << ")" << std::endl;
+        std::cout << "GameObject::Start - Calling Start on: " << type << " (id: " << id << ")" << std::endl;
         comp->Start();
     } 
 }

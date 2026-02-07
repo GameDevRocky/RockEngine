@@ -25,10 +25,10 @@ void BoxCollider::Deserialize(const YAML::Node& node){
     state = State::Loaded;
 }
 
-void BoxCollider::Init(){
-}
+
 
 void BoxCollider::PostInit(){
+
     if (state >= State::PostInitialized) return;
     if (size.x <= 0.0f || size.y <= 0.0f) {
         SpriteRenderer* renderer = GetComponent<SpriteRenderer>();
@@ -49,6 +49,7 @@ void BoxCollider::PostInit(){
 }
 
 void BoxCollider::Start(){
+    
     if (state >= State::Started) return;
     
     RigidBody* rigidBody = GetComponent<RigidBody>();

@@ -9,7 +9,6 @@ class BoxCollider  : public Collider{
 public:
     void Deserialize(const YAML::Node& node) override;
     YAML::Node Serialize() override;
-    void Init() override ;
     void PostInit() override;
     void Awake() override;
     void Start() override;

@@ -22,16 +22,11 @@ void RigidBody::Deserialize(const YAML::Node& node){
     else if (type == "Static") SetBodyType(b2BodyType::b2_staticBody);
     SetUseGravity(node["useGravity"].as<bool>());
     SetMass(node["mass"].as<float>());
+    bodyId = b2_nullBodyId;
     state = State::Loaded;
 }
 void RigidBody::Init(){
     if (state >= State::Initialized) return;
-    bodyId = b2_nullBodyId;
-    state = State::Initialized;
-}
-
-void RigidBody::PostInit(){
-    if (state >= State::PostInitialized) return;
     Transform* transform = GetTransform();
     // transform->Subscribe( [this](){
     //     this->OnUpdateTransform();
@@ -43,7 +38,7 @@ void RigidBody::PostInit(){
     SetBodyType(bodyType);
     SetUseGravity(useGravity);
     OnUpdateTransform();
-    state = State::PostInitialized;
+    state = State::Initialized;
 }
 
 void RigidBody::OnUpdateTransform(){

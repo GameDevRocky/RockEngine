@@ -14,7 +14,6 @@ public:
     void Deserialize(const YAML::Node& node) override;
 
     void Init() override;
-    void PostInit() override;
     void Awake() override;
     void Update() override {};
     void FixedUpdate() override;
