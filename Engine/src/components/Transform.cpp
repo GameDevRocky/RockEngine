@@ -25,7 +25,6 @@ void Transform::PostInit(){
             return;
         }
         
-        // Set up the parent-child relationship
         parentTransform->children_ids.push_back(GetID());
         Console::Comment("Transform parent-child relationship established: child '" + GetID() + "' -> parent '" + parent_id + "'");
     }

@@ -5,6 +5,7 @@
 #include "engine/components/ScriptComponent.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/BoxCollider.hpp"
+#include "engine/components/CircleCollider.hpp"
 #include <iostream>
 #include <filesystem>
 #include <windows.h>
@@ -16,5 +17,6 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("ScriptComponent", []() { return new ScriptComponent(); });
     SerializableFactory::RegisterType("RigidBody", []() { return new RigidBody(); });
     SerializableFactory::RegisterType("BoxCollider", []() { return new BoxCollider(); });
+    SerializableFactory::RegisterType("CircleCollider", []() { return new CircleCollider(); });
     
 }

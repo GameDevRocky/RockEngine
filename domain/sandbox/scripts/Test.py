@@ -8,7 +8,6 @@ class TestScript(ScriptableComponent):
             
     def fixed_update(self):
         self.transform.position = Input.get_mouse_pos()
-        self.transform.scale += (0.1,0.1)
 
         
 

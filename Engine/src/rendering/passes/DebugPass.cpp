@@ -2,9 +2,12 @@
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/BoxCollider.hpp"
+#include "engine/components/CircleCollider.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "Engine.hpp"
+#include <vector>
+#include <cmath>
 
 using namespace EngineUtils::RenderUtils;
 
@@ -25,6 +28,27 @@ void DebugPass::Init(){
     glad_glBufferData(GL_ARRAY_BUFFER, sizeof(lineVerts), lineVerts, GL_STATIC_DRAW);
 
     glad_glEnableVertexAttribArray(0); 
+    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+
+    glad_glBindVertexArray(0);
+
+    // Create circle vertices
+    const int segments = 32;
+    std::vector<float> circleVerts;
+    for (int i = 0; i < segments; ++i) {
+        float angle = (2.0f * 3.14159265f * i) / segments;
+        circleVerts.push_back(cos(angle));
+        circleVerts.push_back(sin(angle));
+    }
+
+    glad_glGenVertexArrays(1, &circleVao);
+    glad_glGenBuffers(1, &circleVbo);
+
+    glad_glBindVertexArray(circleVao);
+    glad_glBindBuffer(GL_ARRAY_BUFFER, circleVbo);
+    glad_glBufferData(GL_ARRAY_BUFFER, circleVerts.size() * sizeof(float), circleVerts.data(), GL_STATIC_DRAW);
+
+    glad_glEnableVertexAttribArray(0);
     glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 
     glad_glBindVertexArray(0);
@@ -92,6 +116,28 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
         glad_glDrawArrays(GL_LINE_LOOP, 0, 4);
     }
 
+    // Render circles for CircleColliders
+    glad_glBindVertexArray(circleVao);
+    for (auto* obj : objects)
+    {
+        if (!obj) continue;
+        Transform* transform = obj->GetComponent<Transform>();
+        CircleCollider* collider = obj->GetComponent<CircleCollider>();
+
+        if (!transform || !collider) continue;
+
+        float radius = collider->GetRadius();
+        glm::vec2 center = collider->GetCenter();
+
+        debugShader->SetMat4("uModel", transform->GetWorldMatrix());
+        debugShader->SetVec2("uSize", glm::vec2(radius, radius));
+        debugShader->SetVec2("uPivot", glm::vec2(0.0f, 0.0f));
+        debugShader->SetVec2("uOffset", center);
+        debugShader->SetVec4("uColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+        glad_glDrawArrays(GL_LINE_LOOP, 0, 32);
+    }
+
     glad_glBindVertexArray(0);
 }
 
@@ -103,5 +149,7 @@ void DebugPass::Resize(int width, int height){
 void DebugPass::Shutdown(){
     if (vbo) glad_glDeleteBuffers(1, &vbo);
     if (vao) glad_glDeleteVertexArrays(1, &vao);
+    if (circleVbo) glad_glDeleteBuffers(1, &circleVbo);
+    if (circleVao) glad_glDeleteVertexArrays(1, &circleVao);
     if (debugShader) delete debugShader;
 }

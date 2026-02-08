@@ -58,10 +58,10 @@ components:
     enabled: true
     type: "Transform"
     gameobject: "o2"
-    localPosition: [5, 0]
+    localPosition: [10, 0]
     localRotation: 0
     localScale: [1, 1]
-    parent_id: "t1"
+    parent_id: null
 
   - id: "s2"
     enabled: true
@@ -85,17 +85,17 @@ components:
     useGravity: false
     mass: 1.0
 
-  - id: "b2"
+  - id: "c2"
     enabled: true
-    type: "BoxCollider"
+    type: "CircleCollider"
     gameobject: "o2"
-    center : [5, 0]
+    center : [0, 0]
     isSensor: false
     density : 1.0
     friction : 0.0
     bounciness : 0.0
     rollingResistance : 0.0
-    size: [0, 0]
+    radius: 0.0
 
 gameobjects:
   - id: "o1"
@@ -117,4 +117,4 @@ gameobjects:
       Transform: "t2"
       SpriteRenderer: "s2"
       RigidBody: "r2"
-      BoxCollider: "b2"
+      CircleCollider: "c2"

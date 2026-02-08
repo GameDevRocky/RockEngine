@@ -22,6 +22,8 @@ public:
 private:
     unsigned int vao = 0;
     unsigned int vbo = 0;
+    unsigned int circleVao = 0;
+    unsigned int circleVbo = 0;
     Shader* debugShader = nullptr;
     int viewportWidth = 0;
     int viewportHeight = 0;
