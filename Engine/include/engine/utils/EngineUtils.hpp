@@ -35,6 +35,7 @@ namespace EngineUtils{
     namespace MathUtils{
         constexpr float RAD_2_DEG = 180.0f / 3.14159265359f;
         constexpr float DEG_2_RAD = 3.14159265359f / 180.0f;
+        constexpr float PI = 3.14159265359f;
 
 
     }

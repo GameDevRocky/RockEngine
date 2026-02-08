@@ -5,7 +5,7 @@
 
 
 
-class CapsuleCollider : public Collider{
+class CapsuleCollider : public Collider {
 
 public:
     void Deserialize(const YAML::Node& node);
@@ -14,11 +14,19 @@ public:
     std::string GetTypeName() const override {return "CapsuleCollider";}
     virtual void CreateShape();
 
+    void SetHeight(float height);
+    float GetHeight(){return height;}
+
+    void SetRadius(float radius);
+    float GetRadius(){return radius;}
+
     CapsuleCollider* Copy() override;
     CapsuleCollider* Copy(Container* container) override;
+
+
     
-
-
-
+private:
+    float radius = 1.0f;
+    float height = 1.0f;
 
 };

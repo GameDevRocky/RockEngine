@@ -6,6 +6,7 @@
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
+#include "engine/components/CapsuleCollider.hpp"
 #include <iostream>
 #include <filesystem>
 #include <windows.h>
@@ -18,5 +19,6 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("RigidBody", []() { return new RigidBody(); });
     SerializableFactory::RegisterType("BoxCollider", []() { return new BoxCollider(); });
     SerializableFactory::RegisterType("CircleCollider", []() { return new CircleCollider(); });
+    SerializableFactory::RegisterType("CapsuleCollider", []() { return new CapsuleCollider(); });
     
 }
