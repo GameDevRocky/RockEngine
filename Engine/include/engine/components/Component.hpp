@@ -1,10 +1,11 @@
 #pragma once
 #include <string>
-#include "engine/core/GameObject.hpp"
 #include "engine/serialization/Serializable.hpp"
 #include "engine/core/RuntimeObject.hpp"
+#include "engine/core/GameObject.hpp"
 
 class Transform;
+
 class Component : public RuntimeObject{
 public: 
 
@@ -25,18 +26,26 @@ public:
     virtual void OnDisabled(){}
 
     Component* Copy(Container* container) override;
-
+    void SetGameObject(GameObject* obj);
     GameObject* GetGameObject();
+    
+    template<typename T>
+    T* RequireComponent(){
+        return GetGameObject()->RequireComponent<T>();
+    }
 
     template<typename T>
     T* GetComponent(){
         return GetGameObject()->GetComponent<T>();
     }
+
     template<typename T>
     T* GetComponentInParent();
 
     Transform* GetTransform(){
-        return GetGameObject()->GetTransform();
+        GameObject* obj = GetGameObject();
+        Transform* transform = obj->GetTransform();
+        return transform;
     }
 
     void SetEnabled(bool e);

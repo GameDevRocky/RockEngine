@@ -15,6 +15,7 @@ public:
 
     virtual std::string GetTypeName(){return "Serializable";};
 
+    void SetID(const std::string& id) { this->id = id; }
     const std::string& GetID() const { return id; }
 
     virtual Serializable* Copy() { return nullptr; }

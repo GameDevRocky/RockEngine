@@ -3,6 +3,7 @@
 #include "box2d/box2d.h"
 #include "yaml-cpp/yaml.h"
 
+class TimeManager;
 class PhysicsSystem;
 class Container;
 
@@ -14,12 +15,11 @@ public:
     void Deserialize(const YAML::Node& node) override;
 
     void Init() override;
+    void PostInit() override;
     void Awake() override;
-    void Update() override {};
     void FixedUpdate() override;
     void LateUpdate() override;
-    void OnDestroy() override{};
-    void OnUpdateTransform();
+    void UpdateTransform();
 
     void SetBodyType(b2BodyType type);
     void SetMass(float mass);
@@ -49,9 +49,9 @@ public:
 
 private:
     PhysicsSystem* physicsSystem = nullptr;
+    TimeManager* timeManager;
     b2BodyId bodyId = b2_nullBodyId;
-    b2BodyType bodyType = b2BodyType::b2_staticBody;
-    float mass = 1.0;
+    b2BodyType bodyType = b2BodyType::b2_dynamicBody;
     bool useGravity = true;
 
 

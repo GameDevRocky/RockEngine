@@ -9,6 +9,14 @@ void Component::Deserialize(const YAML::Node& node){
 
 }
 
+void Component::SetGameObject(GameObject* obj){
+    if (!obj){
+        std::cout << "Unable to set " << this->GetTypeName() << " Component to GameObject" << std::endl;
+        return;
+    }
+    this->gameobject_id = obj->GetID();
+    Notify();
+}
 
 GameObject* Component::GetGameObject(){
     if (gameobject_id.empty()) return nullptr;

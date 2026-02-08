@@ -17,31 +17,37 @@ void RigidBody::Deserialize(const YAML::Node& node){
     if (state >= State::Loaded) return;
     Component::Deserialize(node);
     std::string type = node["bodyType"].as<std::string>();
-    if (type == "Dynamic") SetBodyType(b2BodyType::b2_dynamicBody);
-    else if (type == "Kinematic") SetBodyType(b2BodyType::b2_kinematicBody);
-    else if (type == "Static") SetBodyType(b2BodyType::b2_staticBody);
-    SetUseGravity(node["useGravity"].as<bool>());
-    SetMass(node["mass"].as<float>());
+    if (type == "Dynamic") bodyType = b2BodyType::b2_dynamicBody;
+    else if (type == "Kinematic") bodyType = b2BodyType::b2_kinematicBody;
+    else if (type == "Static") bodyType = b2BodyType::b2_staticBody;
+    useGravity = node["useGravity"].as<bool>();
     bodyId = b2_nullBodyId;
     state = State::Loaded;
 }
+
+
 void RigidBody::Init(){
     if (state >= State::Initialized) return;
-    Transform* transform = GetTransform();
-    // transform->Subscribe( [this](){
-    //     this->OnUpdateTransform();
-    // });
     physicsSystem = container->FindSystem<PhysicsSystem>();
+    timeManager = container->FindSystem<TimeManager>();
+    Transform* transform = GetTransform();
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyId = b2CreateBody(physicsSystem->GetWorldId(), &bodyDef);
-    SetMass(mass);
     SetBodyType(bodyType);
     SetUseGravity(useGravity);
-    OnUpdateTransform();
+    UpdateTransform();
     state = State::Initialized;
 }
 
-void RigidBody::OnUpdateTransform(){
+
+void RigidBody::PostInit(){
+    if (state >= State::PostInitialized) return;
+
+    
+    state = State::PostInitialized;
+}
+
+void RigidBody::UpdateTransform(){
     Transform* transform = this->GetTransform();
     glm::vec2 worldPos = transform->GetWorldPosition();
     float worldRot = transform->GetWorldRotation();
@@ -56,30 +62,6 @@ void RigidBody::SetBodyType(b2BodyType type){
         b2Body_SetType(bodyId, type);
         b2Body_SetAwake(bodyId, true);
     }
-}
-
-void RigidBody::SetMass(float newMass){
-    mass = newMass;
-    if (b2Body_IsValid(bodyId)) {
-        b2MassData currentMassData = b2Body_GetMassData(bodyId);
-        
-        if (currentMassData.mass > 0.0f) {
-            float massScale = newMass / currentMassData.mass;
-            b2MassData newMassData;
-            newMassData.mass = newMass;
-            newMassData.center = currentMassData.center;
-            newMassData.rotationalInertia = currentMassData.rotationalInertia * massScale;
-            
-            b2Body_SetMassData(bodyId, newMassData);
-        }
-    }
-}
-
-float RigidBody::GetMass() const {
-    if (b2Body_IsValid(bodyId)) {
-        return b2Body_GetMassData(bodyId).mass;
-    }
-    return mass;
 }
 
 void RigidBody::SetUseGravity(bool value){
@@ -97,39 +79,37 @@ void RigidBody::Awake(){
     if (state >= State::Awakened) return;
     
     SetBodyType(bodyType);
-    SetMass(mass);
     SetUseGravity(useGravity);
     state = State::Awakened;
 }
 
 
 void RigidBody::FixedUpdate() {
-    if (bodyType != b2_kinematicBody) return;
-    TimeManager* tm = container->FindSystem<TimeManager>();
-
+    if (bodyType == b2_dynamicBody || bodyType == b2_staticBody) return;
+    if (!b2Body_IsValid(bodyId)) return;
     Transform* transform = GetTransform();
-    if (!transform || !b2Body_IsValid(bodyId)) return;
 
     glm::vec2 targetWorldPos = transform->GetWorldPosition();
     b2Vec2 targetPos = { targetWorldPos.x / PixelsPerUnit, targetWorldPos.y / PixelsPerUnit };
     b2Vec2 currentPos = b2Body_GetPosition(bodyId);   
     b2Vec2 velocity = {
-        (targetPos.x - currentPos.x) / tm->FixedDeltaTime(),
-        (targetPos.y - currentPos.y) / tm->FixedDeltaTime()
+        (targetPos.x - currentPos.x) / timeManager->FixedDeltaTime(),
+        (targetPos.y - currentPos.y) / timeManager->FixedDeltaTime()
     };
 
-    b2Body_SetLinearVelocity(bodyId, velocity);
     float targetRot = transform->GetWorldRotation() * DEG_2_RAD;
     float currentRot = b2Rot_GetAngle(b2Body_GetRotation(bodyId));
-    b2Body_SetAngularVelocity(bodyId, (targetRot - currentRot) / tm->FixedDeltaTime());
+
+    b2Body_SetLinearVelocity(bodyId, velocity);
+    b2Body_SetAngularVelocity(bodyId, (targetRot - currentRot) / timeManager->FixedDeltaTime());
 }
 
 void RigidBody::LateUpdate() {
-    if (bodyType != b2_dynamicBody && bodyType != b2_staticBody) return;
+    if (bodyType == b2_kinematicBody) return;
     
     Transform* transform = GetTransform();
     if (!transform || !b2Body_IsValid(bodyId)) return;
-
+    
     b2Vec2 physicsPos = b2Body_GetPosition(bodyId);
     b2Rot physicsRot = b2Body_GetRotation(bodyId);
 
@@ -209,10 +189,9 @@ RigidBody* RigidBody::Copy(){
     copy->id = id;
     copy->enabled = enabled;
     copy->gameobject_id = gameobject_id;
-    copy->bodyId = b2_nullBodyId;
     copy->bodyType = bodyType;
     copy->useGravity = useGravity;
-    copy->mass = mass;
+    copy->bodyId = b2_nullBodyId;
     copy->state = State::Loaded;
     return copy;
 }

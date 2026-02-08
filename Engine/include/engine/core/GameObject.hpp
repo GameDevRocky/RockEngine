@@ -70,7 +70,7 @@ class GameObject : public RuntimeObject {
     
     template<typename T>
     void recurseTopDown(T callback) {
-        callback(this); // Execute on Parent FIRST
+        callback(this);
         for (auto& child : GetTransform()->GetChildren()) {
             child->GetGameObject()->recurseTopDown(callback);
         }

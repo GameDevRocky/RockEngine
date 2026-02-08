@@ -13,8 +13,9 @@ template<typename T>
 T* GameObject::RequireComponent() {
     T* comp = GetComponent<T>();
     if (comp) return comp;
-    comp = T();
+    comp = new T();
     comp->SetID(EngineUtils::GenerateUUID());
+    
     AddComponent(comp);
     return comp;
 }

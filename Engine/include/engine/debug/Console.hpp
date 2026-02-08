@@ -14,7 +14,6 @@ public:
         return instance;
     }
     ~Console() = default;
-    void Init() override {}
     void Update() override;
     void Shutdown() override;
 

@@ -46,8 +46,12 @@ components:
     enabled: true
     type: "BoxCollider"
     gameobject: "o1"
+    center : [0, 0]
     isSensor: false
-    center: [0, 0]
+    density : 1.0
+    friction : 0.0
+    bounciness : 0.0
+    rollingResistance : 0.0
     size: [0, 0]
 
   - id: "t2"
@@ -73,20 +77,16 @@ components:
     flipY: false
     visible: true
 
-  - id: "r2"
-    enabled: true
-    type: "RigidBody"
-    gameobject: "o2"
-    bodyType: "Dynamic"
-    useGravity: false
-    mass: 1.0
-
   - id: "b2"
     enabled: true
     type: "BoxCollider"
     gameobject: "o2"
+    center : [0, 0]
     isSensor: false
-    center: [0, 0]
+    density : 1.0
+    friction : 0.0
+    bounciness : 0.0
+    rollingResistance : 0.0
     size: [0, 0]
 
 gameobjects:

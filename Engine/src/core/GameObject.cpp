@@ -10,6 +10,7 @@ void GameObject::AddComponent(Component* comp) {
     if(!comp) return;
     Registry* registry = container->FindSystem<Registry>();
     comp->Attach(this->container);
+    comp->SetGameObject(this);
     registry->Register(comp);
     component_ids[comp->GetTypeName()] = comp->GetID(); 
 }
