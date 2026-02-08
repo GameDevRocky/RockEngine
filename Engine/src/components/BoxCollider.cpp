@@ -24,8 +24,8 @@ void BoxCollider::Deserialize(const YAML::Node& node){
 }
 
 void BoxCollider::PostInit(){
-
     if (state >= State::PostInitialized) return;
+    Collider::PostInit();
     if (size.x <= 0.0f || size.y <= 0.0f) {
         SpriteRenderer* renderer = GetComponent<SpriteRenderer>();
         if (!renderer) {
@@ -93,7 +93,7 @@ void BoxCollider::CreateShape(){
 
     glm::vec2 worldScale = transform->GetWorldScale();
     glm::vec2 scaledSize = size * worldScale;
-    b2Vec2 physicsCenter = {center.x / PixelsPerUnit, center.y / PixelsPerUnit};
+    b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit , center.y * worldScale.x / PixelsPerUnit};
     
     float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerUnit);
     float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerUnit);

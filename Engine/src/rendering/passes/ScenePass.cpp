@@ -46,6 +46,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
     for (auto* obj : objects)
     {
         if (!obj) continue;
+        
         Transform* transform = obj->GetComponent<Transform>();
         SpriteRenderer* renderer = obj->GetComponent<SpriteRenderer>();
     

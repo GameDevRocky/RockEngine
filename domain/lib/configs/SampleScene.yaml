@@ -58,10 +58,10 @@ components:
     enabled: true
     type: "Transform"
     gameobject: "o2"
-    localPosition: [25, 0]
+    localPosition: [5, 0]
     localRotation: 0
     localScale: [1, 1]
-    parent_id: null
+    parent_id: "t1"
 
   - id: "s2"
     enabled: true
@@ -77,11 +77,19 @@ components:
     flipY: false
     visible: true
 
+  - id: "r2"
+    enabled: true
+    type: "RigidBody"
+    gameobject: "o2"
+    bodyType: "Dynamic"
+    useGravity: false
+    mass: 1.0
+
   - id: "b2"
     enabled: true
     type: "BoxCollider"
     gameobject: "o2"
-    center : [0, 0]
+    center : [5, 0]
     isSensor: false
     density : 1.0
     friction : 0.0
@@ -93,6 +101,7 @@ gameobjects:
   - id: "o1"
     type: "GameObject"
     name: "Parent"
+    isRootObject : true
     component_ids:
       Transform: "t1"
       SpriteRenderer: "s1"
@@ -103,6 +112,7 @@ gameobjects:
   - id: "o2"
     type: "GameObject"
     name: "Child"
+    isRootObject : false
     component_ids:
       Transform: "t2"
       SpriteRenderer: "s2"

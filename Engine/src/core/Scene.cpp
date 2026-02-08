@@ -13,23 +13,19 @@
 void Scene::Init() {
 
     if(state >= State::Initialized) return;
-
     registry = container->FindSystem<Registry>();
-    rootobject_ids.clear();
+
+    std::cout << "Initializing Scene: " << name << std::endl;
+    
+    // Initialize all GameObjects flatly first to establish the Transform hierarchy
     for (auto& pair : registry->GetAll()){
-        Transform* transform = dynamic_cast<Transform*>(pair.second);
-        if (transform){
-            if (!transform->GetParent())
-            {
-                rootobject_ids.push_back(transform->GetGameObject()->GetID());
-            }
+        GameObject* obj = dynamic_cast<GameObject*>(pair.second);
+        if (obj) {
+            obj->Init();
         }
     }
 
-    std::cout << "Initializing Scene: " << name << std::endl;
-    for (auto& root : GetRootObjects()) {
-        root->recurseTopDown([&](auto* obj){ obj->Init();});
-    }
+    
     state = State::Initialized;
 }
 
@@ -39,9 +35,29 @@ void Scene::PostInit() {
     registry = container->FindSystem<Registry>();
 
     std::cout << "Post Initializing Scene: " << name << std::endl;
-    for (auto& root : GetRootObjects()) {
-        root->recurseTopDown([&](auto* obj){ obj->PostInit();});
+    
+    // PostInit all GameObjects flatly to ensure all are called
+    for (auto& pair : registry->GetAll()){
+        GameObject* obj = dynamic_cast<GameObject*>(pair.second);
+        if (obj) {
+            obj->PostInit();
+        }
     }
+
+    rootobject_ids.clear();
+    for (auto& pair : registry->GetAll()){
+        Transform* transform = dynamic_cast<Transform*>(pair.second);
+        if (transform){
+            if (!transform->GetParent())
+            {
+                GameObject* obj = transform->GetGameObject();
+                if (obj) {
+                    rootobject_ids.push_back(obj->GetID());
+                }
+            }
+        }
+    }
+    
     state = State::PostInitialized;
 }
 

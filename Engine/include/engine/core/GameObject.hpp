@@ -65,6 +65,10 @@ class GameObject : public RuntimeObject {
     std::string GetName() {return name;}
     void SetActive(bool val){active = val;}
     bool GetActive(){return active;}
+
+    void SetIsRootObject(bool val){isRootObject = val;}
+    bool GetIsRootObject(){return isRootObject;}
+
     void SetScene(const std::string& id);
     Scene* GetScene();
     
@@ -87,6 +91,7 @@ class GameObject : public RuntimeObject {
     private:
 
     bool active = true;
+    bool isRootObject = false;
     std::map<std::string, std::string> component_ids;
     std::string transform_id;
     std::vector<std::string> temp_ids;

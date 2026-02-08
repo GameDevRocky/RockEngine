@@ -12,17 +12,23 @@ void Transform::Init(){
 }
 
 void Transform::PostInit(){
-    if (state >= State::PostInitialized) return; 
-    Transform* parentTransform = registry->Find<Transform>(parent_id);
+    if (state >= State::PostInitialized) return;
+    
+    Console::Comment("Transform::PostInit called for " + GetID() + ", parent_id: '" + parent_id + "'");
+    
+    if (!parent_id.empty()){
 
-    if (!parentTransform) {
-        Console::Warn("Unable to find Transform parent during PostDeserialize");
-        return;
+        Transform* parentTransform = registry->Find<Transform>(parent_id);
+        
+        if (!parentTransform) {
+            Console::Warn("Unable to find Transform parent during PostDeserialize");
+            return;
+        }
+        
+        // Set up the parent-child relationship
+        parentTransform->children_ids.push_back(GetID());
+        Console::Comment("Transform parent-child relationship established: child '" + GetID() + "' -> parent '" + parent_id + "'");
     }
-
-    // Set up the parent-child relationship
-    parentTransform->children_ids.push_back(GetID());
-    Console::Comment("Transform parent-child relationship established");
     state = State::PostInitialized; 
 }
 
@@ -190,6 +196,11 @@ std::vector<Transform*> Transform::GetChildren() {
     std::vector<Transform*> result;
     result.reserve(children_ids.size());
 
+    if (!registry) {
+        Console::Alert("Transform::GetChildren called but registry is null (not initialized?)");
+        return result;
+    }
+
     for (const std::string& id : children_ids) {
         Transform* child = registry->Find<Transform>(id);
         if (child) result.push_back(child);
@@ -202,6 +213,12 @@ std::vector<Transform*> Transform::GetChildren() {
 Transform* Transform::GetParent() {
     if (parent_id.empty())
         return nullptr;
+    
+    if (!registry) {
+        Console::Alert("Transform::GetParent called but registry is null (not initialized?)");
+        return nullptr;
+    }
+    
     Transform* transform = registry->Find<Transform>(parent_id);
 
     if (!transform) {

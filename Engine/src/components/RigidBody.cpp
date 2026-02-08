@@ -33,9 +33,6 @@ void RigidBody::Init(){
     Transform* transform = GetTransform();
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyId = b2CreateBody(physicsSystem->GetWorldId(), &bodyDef);
-    SetBodyType(bodyType);
-    SetUseGravity(useGravity);
-    UpdateTransform();
     state = State::Initialized;
 }
 
@@ -43,7 +40,9 @@ void RigidBody::Init(){
 void RigidBody::PostInit(){
     if (state >= State::PostInitialized) return;
 
-    
+    SetBodyType(bodyType);
+    SetUseGravity(useGravity);
+    UpdateTransform();
     state = State::PostInitialized;
 }
 

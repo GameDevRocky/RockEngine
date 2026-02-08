@@ -18,6 +18,7 @@ void GameObject::AddComponent(Component* comp) {
 void GameObject::Deserialize(const YAML::Node& node) {
     Serializable::Deserialize(node);
     name = node["name"].as<std::string>();
+    isRootObject = node["isRootObject"].as<bool>();
     if (node["component_ids"] && node["component_ids"].IsMap()) {
         for (auto pair : node["component_ids"]) {
             std::string typeName = pair.first.as<std::string>();
@@ -122,6 +123,7 @@ GameObject* GameObject::Copy(){
     GameObject* copy = new GameObject();
     copy->id = id;
     copy->name = name;
+    copy->isRootObject = isRootObject;
     copy->active = active;
     copy->component_ids = component_ids;
     copy->transform_id = transform_id;

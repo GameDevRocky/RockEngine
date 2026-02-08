@@ -9,6 +9,7 @@ class Collider : public Component{
 public:
     void Deserialize(const YAML::Node& node);
     virtual void Init() override;
+    virtual void PostInit() override;
     
     virtual void CreateShape(){};
     
@@ -19,6 +20,8 @@ public:
     virtual void SetIsSensor(bool val);
     virtual void SetFriction(float friction);
     virtual void SetRollingResistance(float rollingResistance);
+
+    virtual void OnTransformUpdated();
 
     glm::vec2 GetCenter(){return center;}
     float GetDensity(){return density;}
@@ -38,4 +41,6 @@ protected:
     float friction = 0.0f;
     float bounciness = 0.0f;
     float rollingResistance = 0.0f;
+
+    glm::vec2 cachedScale = {1, 1};
 };

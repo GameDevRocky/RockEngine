@@ -22,6 +22,16 @@ void Collider::Init(){
     state = State::Initialized;
 }
 
+void Collider::PostInit(){
+    if (state >= State::PostInitialized) return;
+    Transform* transform = this->GetComponent<Transform>();
+    cachedScale = transform->GetWorldScale();
+    transform->Subscribe([&](){
+        OnTransformUpdated();
+    });
+    state = State::PostInitialized;
+}
+
 void Collider::SetIsSensor(bool isSensor){
     this->isSensor = isSensor;
     this->CreateShape();
@@ -52,5 +62,13 @@ void Collider::SetRollingResistance(float rollingResistance){
     CreateShape();
 }
 
+void Collider::OnTransformUpdated(){
+    Transform* transform = GetComponent<Transform>();
+    glm::vec2 worldScale = transform->GetWorldScale();
+    if (cachedScale != transform->GetWorldScale()){
+        CreateShape();
+        cachedScale = transform->GetWorldScale();
+    }
 
+}
 
