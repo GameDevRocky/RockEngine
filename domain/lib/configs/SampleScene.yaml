@@ -42,17 +42,17 @@ components:
     useGravity: true
     mass: 1.0
 
-  - id: "b1"
+  - id: "c1"
     enabled: true
-    type: "BoxCollider"
+    type: "CircleCollider"
     gameobject: "o1"
     center : [0, 0]
     isSensor: false
     density : 1.0
-    friction : 0.0
+    friction : 1.0
     bounciness : 0.0
     rollingResistance : 0.0
-    size: [0, 0]
+    radius: 0.0
 
   - id: "t2"
     enabled: true
@@ -92,7 +92,7 @@ components:
     center : [0, 0]
     isSensor: false
     density : 1.0
-    friction : 0.0
+    friction : 1.0
     bounciness : 0.0
     rollingResistance : 0.0
     radius: 0.0
@@ -107,7 +107,7 @@ gameobjects:
       SpriteRenderer: "s1"
       ScriptComponent: "sc1"
       RigidBody: "r1"
-      BoxCollider: "b1"
+      CircleCollider: "c1"
 
   - id: "o2"
     type: "GameObject"
