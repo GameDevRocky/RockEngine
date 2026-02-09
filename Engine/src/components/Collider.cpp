@@ -1,7 +1,7 @@
 #include "engine/components/Collider.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/core/GameObjectImpl.hpp"
-#include "yaml-cpp/yaml.h"
+#include "yaml-cpp/yaml.h" 
 
 void Collider::Deserialize(const YAML::Node& node){
     Component::Deserialize(node);

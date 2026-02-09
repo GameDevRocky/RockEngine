@@ -10,6 +10,7 @@ using namespace EngineUtils::MathUtils;
 
 YAML::Node RigidBody::Serialize(){
     YAML::Node node = Component::Serialize();
+    node["lockRotation"] = lockRotation;
     return node;
 }
 
@@ -21,6 +22,7 @@ void RigidBody::Deserialize(const YAML::Node& node){
     else if (type == "Kinematic") bodyType = b2BodyType::b2_kinematicBody;
     else if (type == "Static") bodyType = b2BodyType::b2_staticBody;
     useGravity = node["useGravity"].as<bool>();
+    lockRotation = node["lockRotation"].as<bool>();
     bodyId = b2_nullBodyId;
     state = State::Loaded;
 }
@@ -42,6 +44,7 @@ void RigidBody::PostInit(){
 
     SetBodyType(bodyType);
     SetUseGravity(useGravity);
+    SetLockRotation(lockRotation);
     UpdateTransform();
     state = State::PostInitialized;
 }
@@ -74,11 +77,24 @@ bool RigidBody::GetUseGravity() const {
     return useGravity;
 }
 
+void RigidBody::SetLockRotation(bool value){
+    lockRotation = value;
+    b2MotionLocks locks = b2Body_GetMotionLocks(bodyId);
+    locks.angularZ = value;
+    b2Body_SetMotionLocks(bodyId, locks);
+    
+}
+
+bool RigidBody::GetLockRotation() const {
+    return lockRotation;
+}
+
 void RigidBody::Awake(){
     if (state >= State::Awakened) return;
     
     SetBodyType(bodyType);
     SetUseGravity(useGravity);
+    SetLockRotation(lockRotation);
     state = State::Awakened;
 }
 
@@ -100,7 +116,8 @@ void RigidBody::FixedUpdate() {
     float currentRot = b2Rot_GetAngle(b2Body_GetRotation(bodyId));
 
     b2Body_SetLinearVelocity(bodyId, velocity);
-    b2Body_SetAngularVelocity(bodyId, (targetRot - currentRot) / timeManager->FixedDeltaTime());
+    if (lockRotation) b2Body_SetAngularVelocity(bodyId, 0);
+    else b2Body_SetAngularVelocity(bodyId, (targetRot - currentRot) / timeManager->FixedDeltaTime());
 }
 
 void RigidBody::LateUpdate() {
@@ -191,6 +208,7 @@ RigidBody* RigidBody::Copy(){
     copy->bodyType = bodyType;
     copy->useGravity = useGravity;
     copy->bodyId = b2_nullBodyId;
+    copy->lockRotation = lockRotation;
     copy->state = State::Loaded;
     return copy;
 }

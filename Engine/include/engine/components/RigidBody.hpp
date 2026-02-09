@@ -10,7 +10,7 @@ class Container;
 class RigidBody : public Component{
 
 public:
-
+ 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
 
@@ -26,6 +26,8 @@ public:
     float GetMass() const;
     void SetUseGravity(bool value);
     bool GetUseGravity() const;
+    void SetLockRotation(bool value);
+    bool GetLockRotation() const;
     b2BodyId GetBodyId(){return bodyId;}
     
     // Velocity and force methods
@@ -53,6 +55,6 @@ private:
     b2BodyId bodyId = b2_nullBodyId;
     b2BodyType bodyType = b2BodyType::b2_dynamicBody;
     bool useGravity = true;
-
+    bool lockRotation = false;
 
 };

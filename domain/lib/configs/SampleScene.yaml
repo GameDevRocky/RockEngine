@@ -40,6 +40,7 @@ components:
     gameobject: "o1"
     bodyType: "Kinematic"
     useGravity: true
+    lockRotation: false
     mass: 1.0
 
   - id: "b1"
@@ -83,6 +84,7 @@ components:
     gameobject: "o2"
     bodyType: "Dynamic"
     useGravity: false
+    lockRotation: true
     mass: 1.0
 
   - id: "c2"
