@@ -18,7 +18,12 @@ void Collider::Deserialize(const YAML::Node& node){
 
 void Collider::Init(){
     if (state >= State::Initialized) return;
-    rigidBody = this->RequireComponent<RigidBody>();
+    rigidBody = GetComponent<RigidBody>();
+    if (!rigidBody){
+        rigidBody = this->RequireComponent<RigidBody>();
+        rigidBody->SetBodyType(b2_kinematicBody);
+
+    }
     state = State::Initialized;
 }
 

@@ -122,8 +122,9 @@ void RenderCamera::RecalculateProjection()
 {
     float aspect = (float)viewportWidth / (float)viewportHeight;
 
+    // orthoSize is in world units, zoom is the zoom multiplier
+    // Higher zoom = zoomed in (smaller view)
     float halfHeight = orthoSize / zoom;
-
     float halfWidth  = halfHeight * aspect;    // maintain aspect ratio
 
     projectionMatrix = glm::ortho(

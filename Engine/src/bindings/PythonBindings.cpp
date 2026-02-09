@@ -20,6 +20,7 @@ void BindGameObject(py::module_& m);
 void BindComponent(py::module_& m);
 void BindTransform(py::module_& m);
 void BindSpriteRenderer(py::module_& m);
+void BindRigidBody(py::module_& m);
 
 
 PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
@@ -39,6 +40,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindComponent(components);
     BindTransform(components);
     BindSpriteRenderer(components);
+    BindRigidBody(components);
 
 
 } 

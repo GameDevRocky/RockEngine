@@ -12,7 +12,7 @@ namespace EngineUtils{
 
     namespace RenderUtils{
 
-        constexpr float PixelsPerUnit = 128.0f;
+        constexpr float PixelsPerUnit = 32.0f;
         
         inline float PixelsToWorld(float pixels) {
             return pixels / PixelsPerUnit;

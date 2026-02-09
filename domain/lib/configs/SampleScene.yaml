@@ -8,9 +8,9 @@ components:
     enabled: true
     type: "Transform"
     gameobject: "o1"
-    localPosition: [0, 25]
+    localPosition: [0, 100]
     localRotation: 0
-    localScale: [10, 10]
+    localScale: [1, 1]
     parent_id: null
 
   - id: "s1"
@@ -18,7 +18,7 @@ components:
     type: "SpriteRenderer"
     gameobject: "o1"
     material_id: "m1"
-    sprite_id: "sprite1"
+    sprite_id: "sprite2"
     color: [1,1,1,1]
     uvOffset: [1.0, 0.0]
     uvScale: [1.0, 1.0]
@@ -38,30 +38,31 @@ components:
     enabled: true
     type: "RigidBody"
     gameobject: "o1"
-    bodyType: "Kinematic"
+    bodyType: "Dynamic"
     useGravity: true
-    lockRotation: false
+    lockRotation: true
     mass: 1.0
 
-  - id: "b1"
+  - id: "cs1"
     enabled: true
-    type: "BoxCollider"
+    type: "CapsuleCollider"
     gameobject: "o1"
     center : [0, 0]
     isSensor: false
     density : 1.0
-    friction : 1.0
-    bounciness : 0.0
+    friction : 0.1
+    bounciness : 0.2
     rollingResistance : 0.0
-    size: [0.0, 0.0]
+    radius: 32.0
+    height: 20.0
 
   - id: "t2"
     enabled: true
     type: "Transform"
     gameobject: "o2"
-    localPosition: [10, 0]
+    localPosition: [0, 0]
     localRotation: 0
-    localScale: [1, 1]
+    localScale: [100, 20]
     parent_id: null
 
   - id: "s2"
@@ -69,7 +70,7 @@ components:
     type: "SpriteRenderer"
     gameobject: "o2"
     material_id: "m2"
-    sprite_id: "sprite2"
+    sprite_id: "sprite1"
     color: [1,1,1,1]
     uvOffset: [1.0, 0.0]
     uvScale: [1.0, 1.0]
@@ -78,27 +79,17 @@ components:
     flipY: false
     visible: true
 
-  - id: "r2"
+  - id: "b2"
     enabled: true
-    type: "RigidBody"
-    gameobject: "o2"
-    bodyType: "Dynamic"
-    useGravity: false
-    lockRotation: true
-    mass: 1.0
-
-  - id: "c2"
-    enabled: true
-    type: "CapsuleCollider"
+    type: "BoxCollider"
     gameobject: "o2"
     center : [0, 0]
     isSensor: false
     density : 1.0
-    friction : 1.0
-    bounciness : 0.0
+    friction : 0.1
+    bounciness : 0.1
     rollingResistance : 0.0
-    height: 0.0
-    radius: 0.0
+    size: [0.0, 0.0]
 
 gameobjects:
   - id: "o1"
@@ -110,7 +101,7 @@ gameobjects:
       SpriteRenderer: "s1"
       ScriptComponent: "sc1"
       RigidBody: "r1"
-      BoxCollider: "b1"
+      CapsuleCollider: "cs1"
 
   - id: "o2"
     type: "GameObject"
@@ -120,4 +111,4 @@ gameobjects:
       Transform: "t2"
       SpriteRenderer: "s2"
       RigidBody: "r2"
-      CapsuleCollider: "c2"
+      BoxCollider: "b2"

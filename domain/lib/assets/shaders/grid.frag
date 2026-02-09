@@ -7,15 +7,15 @@ uniform float uZoom;
 uniform float uTime;      
 const int MAX_LEVELS = 13; 
 
-const float BASE_SPACING = 1.0f;  // 1 world unit = 64 pixels (PixelsPerUnit)
+const float BASE_SPACING = 32.0f;  // 1 world unit = 32 pixels (PixelsPerUnit)
 const int MAJOR_SKIP = 2;        
 const vec3 uMinorColor = vec3(0.2f);
 const vec3 uMajorColor = vec3(0.5f);
 const vec3 uBackground = vec3(0.01f); 
 
-const float FADE_IN_PIXELS  = 6.0;   
-const float HIDE_PIXELS     = 500.0; 
-const float FADE_OUT_PIXELS = 300.0; 
+const float FADE_IN_PIXELS  = 2.0;   
+const float HIDE_PIXELS     = 30.0; 
+const float FADE_OUT_PIXELS = 10.0; 
 
 
 float distanceToNearestLine(float p, float spacing)
@@ -39,7 +39,7 @@ void main()
     for (int i = 0; i < MAX_LEVELS; i++)
     {
         float spacing = BASE_SPACING * pow(2.0, float(i));
-        float pixelsPerCell = spacing * uZoom;
+        float pixelsPerCell = spacing * uZoom * 0.01;
 
         if (pixelsPerCell > HIDE_PIXELS) break;
 

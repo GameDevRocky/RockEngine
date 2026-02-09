@@ -2,7 +2,7 @@
 
 #include <glm/glm.hpp>
 
-
+#include "engine/utils/EngineUtils.hpp"
 class RenderCamera
 {
 public:
@@ -49,8 +49,8 @@ protected:
     
     glm::vec2 position = {0.0f, 0.0f};
     float rotationDeg = 0.0f;      
-    float zoom = 0.1f;              
-    float orthoSize = 5.0f;
+    float zoom = 1.0f;  // 1.0 = normal zoom, higher = zoomed in              
+    float orthoSize = 360.0f;  // Half-height in world units (pixels / PixelsPerUnit)
 
 
     glm::mat4 viewMatrix      = glm::mat4(1.0f);
