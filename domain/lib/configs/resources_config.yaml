@@ -34,6 +34,11 @@ Resources:
       frag_path: "Domain/lib/assets/shaders/debug.frag"
       name: "debug"
 
+    - id: "s5"
+      vert_path: "Domain/lib/assets/shaders/picking.vert"
+      frag_path: "Domain/lib/assets/shaders/picking.frag"
+      name: "picking"
+
   Materials:
     - id: "m1"
       name: "default"

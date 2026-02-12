@@ -29,6 +29,11 @@ public:
     explicit HierarchyGui(QWidget* parent = nullptr);
     void SetScene(Scene* scene);
 
+protected:
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
 
 private:
     ~HierarchyGui() override = default;

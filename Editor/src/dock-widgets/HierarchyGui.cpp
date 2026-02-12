@@ -22,7 +22,7 @@ HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
     treeView = new QTreeView(this);
     treeView->setHeaderHidden(true);
     layout->addWidget(treeView);
-
+    this->acceptDrops();
 }
 
 void HierarchyGui::CreateHeader(){

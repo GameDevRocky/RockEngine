@@ -27,6 +27,9 @@ void Transform::PostInit(){
         
         parentTransform->children_ids.push_back(GetID());
         Console::Comment("Transform parent-child relationship established: child '" + GetID() + "' -> parent '" + parent_id + "'");
+        
+        // Mark dirty since parent relationship affects world matrix
+        MarkDirty();
     }
     state = State::PostInitialized; 
 }
@@ -86,7 +89,9 @@ glm::vec2 Transform::GetWorldPosition() const {
 
 float Transform::GetWorldRotation() const {
     glm::mat4 world = GetWorldMatrix();
-    return glm::degrees(atan2(world[1][0], world[0][0]));
+    // Correct extraction: atan2(sin(θ), cos(θ))
+    // For column-major GLM: world[0][1] = sin(θ), world[0][0] = cos(θ)
+    return glm::degrees(atan2(world[0][1], world[0][0]));
 }
 
 glm::vec2 Transform::GetWorldScale() const {
@@ -181,7 +186,7 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
         glm::mat4 newLocal = glm::inverse(parentWorld) * oldWorld;
 
         localPosition = glm::vec2(newLocal[3]);
-        localRotation = glm::degrees(atan2(newLocal[1][0], newLocal[0][0]));
+        localRotation = glm::degrees(atan2(newLocal[0][1], newLocal[0][0]));
         localScale = glm::vec2(glm::length(glm::vec2(newLocal[0])),
                                glm::length(glm::vec2(newLocal[1])));
     }

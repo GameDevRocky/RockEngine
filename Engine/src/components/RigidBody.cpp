@@ -155,13 +155,13 @@ glm::vec2 RigidBody::GetLinearVelocity() const {
 
 void RigidBody::SetAngularVelocity(float vel) {
     if (b2Body_IsValid(bodyId)) {
-        b2Body_SetAngularVelocity(bodyId, -vel * DEG_2_RAD);
+        b2Body_SetAngularVelocity(bodyId, vel * DEG_2_RAD);
     }
 }
 
 float RigidBody::GetAngularVelocity() const {
     if (b2Body_IsValid(bodyId)) {
-        return -b2Body_GetAngularVelocity(bodyId) * RAD_2_DEG;
+        return b2Body_GetAngularVelocity(bodyId) * RAD_2_DEG;
     }
     return 0.0f;
 }
@@ -198,7 +198,7 @@ void RigidBody::ApplyLinearImpulse(const glm::vec2& impulse) {
 
 void RigidBody::ApplyAngularImpulse(float impulse) {
     if (b2Body_IsValid(bodyId)) {
-        b2Body_ApplyAngularImpulse(bodyId, -impulse * DEG_2_RAD, true);
+        b2Body_ApplyAngularImpulse(bodyId, impulse * DEG_2_RAD, true);
     }
 }
 

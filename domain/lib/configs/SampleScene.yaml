@@ -9,7 +9,7 @@ components:
     type: "Transform"
     gameobject: "o1"
     localPosition: [0, 100]
-    localRotation: 0
+    localRotation: 25
     localScale: [1, 1]
     parent_id: null
 

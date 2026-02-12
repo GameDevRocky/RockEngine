@@ -13,6 +13,7 @@
 #include <glm/glm.hpp>
 #include "engine/rendering/pipelines/RenderPipeline.hpp"
 #include "engine/rendering/cameras/RenderCamera.hpp"
+#include "engine/rendering/passes/PickingPass.hpp"
 
 class SceneViewGui : public QOpenGLWidget, protected QOpenGLFunctions {
     Q_OBJECT 
@@ -51,6 +52,7 @@ public:
 
     RenderPipeline* renderPipeline = nullptr;
     RenderCamera* camera = nullptr;
+    PickingPass* pickingPass = nullptr;
 
     
     QPoint lastMousePos;

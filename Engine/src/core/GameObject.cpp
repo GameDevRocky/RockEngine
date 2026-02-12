@@ -6,6 +6,15 @@
 #include "engine/debug/Console.hpp"
 #include "engine/core/Scene.hpp"
 
+std::atomic<uint32_t> GameObject::next_id{1};
+
+GameObject::GameObject(){
+    pickingId = next_id++;
+}
+
+
+
+
 void GameObject::AddComponent(Component* comp) {
     if(!comp) return;
     Registry* registry = container->FindSystem<Registry>();

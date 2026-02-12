@@ -12,6 +12,7 @@
 #include "Engine.hpp"
 #include "engine/core/RuntimeObject.hpp"
 #include <algorithm> 
+#include <atomic>
 
 class Component;
 class Transform;
@@ -35,7 +36,7 @@ class GameObject : public RuntimeObject {
     GameObject* Copy(Container* container) override;
     
     std::string name;
-    GameObject() = default;
+    GameObject();
     ~GameObject() =default;
     
     void AddComponent(Component* comp);
@@ -88,7 +89,11 @@ class GameObject : public RuntimeObject {
         callback(this); // Execute on Parent LAST
     }
     
+    uint32_t GetPickingID() const { return pickingId; }
+
     private:
+    static std::atomic<uint32_t> next_id;
+    uint32_t pickingId;
 
     bool active = true;
     bool isRootObject = false;
@@ -96,7 +101,7 @@ class GameObject : public RuntimeObject {
     std::string transform_id;
     std::vector<std::string> temp_ids;
     std::string scene_id;
-
+    
     Registry* registry = nullptr;
 
 };

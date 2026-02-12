@@ -7,6 +7,7 @@
 #include "engine/rendering/passes/ScenePass.hpp"
 #include "engine/rendering/passes/GridPass.hpp"
 #include "engine/rendering/passes/DebugPass.hpp"
+#include "engine/rendering/passes/PickingPass.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "Engine.hpp"
 
@@ -39,12 +40,14 @@ void SceneViewGui::initializeRenderPipeline(){
     GridPass* gridPass = new GridPass();
     ScenePass* scenePass = new ScenePass();
     DebugPass* debugPass = new DebugPass();
+    pickingPass = new PickingPass();
     
     renderPipeline->AddSetupPass(clearPass);
     renderPipeline->AddSetupPass(gridPass);
 
     renderPipeline->AddScenePass(scenePass);
     renderPipeline->AddScenePass(debugPass);
+    renderPipeline->AddScenePass(pickingPass);
     
     renderPipeline->Init();
     camera->Init();
