@@ -75,6 +75,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath("C:
 void FolderViewGui::Init() {
     setMinimumWidth(400);
     std::cout << "FolderViewGui Initialized" << std::endl;
+    this->SetProjectDirectory("C:/Users/rockl/Coding Projects/RockEngine/Domain");
 }
 
 void FolderViewGui::SetProjectDirectory(const std::string& projectDir) {

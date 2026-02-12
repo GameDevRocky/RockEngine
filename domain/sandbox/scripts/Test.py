@@ -7,4 +7,4 @@ class TestScript(ScriptableComponent):
         self.rb = self.get_component(Rigidbody)
             
     def fixed_update(self):
-        self.transform.position = Input.get_mouse_pos()  
+        self.transform.position = Input.get_mouse_pos()

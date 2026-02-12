@@ -9,7 +9,7 @@ components:
     type: "Transform"
     gameobject: "o1"
     localPosition: [0, 100]
-    localRotation: 25
+    localRotation: 0
     localScale: [1, 1]
     parent_id: null
 
@@ -26,13 +26,6 @@ components:
     flipX: false
     flipY: false
     visible: true
-
-  - id: "sc1"
-    enabled: true
-    type: "ScriptComponent"
-    gameobject: "o1"
-    module: "Test"
-    class: "TestScript"
 
   - id: "r1"
     enabled: true
@@ -60,7 +53,7 @@ components:
     enabled: true
     type: "Transform"
     gameobject: "o2"
-    localPosition: [0, 0]
+    localPosition: [0, -100]
     localRotation: 0
     localScale: [100, 20]
     parent_id: null
@@ -90,6 +83,36 @@ components:
     bounciness : 0.1
     rollingResistance : 0.0
     size: [0.0, 0.0]
+  
+  - id: "t3"
+    enabled: true
+    type: "Transform"
+    gameobject: "o3"
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: null
+  
+  - id: "sc3"
+    enabled: true
+    type: "ScriptComponent"
+    gameobject: "o3"
+    module: "Test"
+    class: "TestScript"
+
+  - id: "b3"
+    enabled: true
+    type: "BoxCollider"
+    gameobject: "o3"
+    center : [0, 0]
+    isSensor: false
+    density : 1.0
+    friction : 0.1
+    bounciness : 0.1
+    rollingResistance : 0.0
+    size: [20.0, 20.0]
+
+
 
 gameobjects:
   - id: "o1"
@@ -99,7 +122,6 @@ gameobjects:
     component_ids:
       Transform: "t1"
       SpriteRenderer: "s1"
-      ScriptComponent: "sc1"
       RigidBody: "r1"
       CapsuleCollider: "cs1"
 
@@ -112,3 +134,12 @@ gameobjects:
       SpriteRenderer: "s2"
       RigidBody: "r2"
       BoxCollider: "b2"
+
+  - id: "o3"
+    type: "GameObject"
+    name: "Block"
+    isRootObject : false
+    component_ids:
+      Transform: "t3"
+      BoxCollider: "b3"
+      ScriptComponent: "sc3"
