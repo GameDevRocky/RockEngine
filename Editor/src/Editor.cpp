@@ -1,9 +1,10 @@
 #include "Editor.hpp"
 #include <QApplication>
 #include <QStyleFactory>
-#include <QPalette>
 #include <QTimer>
 #include <QFile>
+#include <QFileInfo>
+#include <QStringList>
 #include <QSurfaceFormat>
 #include "dock-widgets/MainWindowGui.hpp"
 #include "dock-widgets/ConsoleGui.hpp"
@@ -19,7 +20,11 @@ Editor::Editor(){
 }
 
 void Editor::Init() {
+    QStringList styles = QStyleFactory::keys();
+    for (auto& s : styles){
 
+        std::cout << s.toStdString() << std::endl;
+    }
     QSurfaceFormat format;
     format.setVersion(4, 6);
     format.setProfile(QSurfaceFormat::CoreProfile);
@@ -40,33 +45,30 @@ void Editor::Init() {
     }
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
-    QPalette darkPalette;
+    const QStringList styleCandidates = {
+        "Domain/lib/assets/styling/default.qss",
+        QCoreApplication::applicationDirPath() + "/../../../Domain/lib/assets/styling/default.qss",
+        QCoreApplication::applicationDirPath() + "/../../../../Domain/lib/assets/styling/default.qss"
+    };
 
-    // Window background
-    darkPalette.setColor(QPalette::Window, QColor(20, 20, 20));
-    darkPalette.setColor(QPalette::WindowText, Qt::white);
+    bool styleLoaded = false;
+    for (const QString& stylePath : styleCandidates) {
+        QFileInfo styleInfo(stylePath);
+        if (!styleInfo.exists())
+            continue;
 
-    // Input fields
-    darkPalette.setColor(QPalette::Base, QColor(20, 20, 20));
-    darkPalette.setColor(QPalette::AlternateBase, QColor(25, 25, 25));
-    darkPalette.setColor(QPalette::Text, QColor(230, 230, 230));
+        QFile styleFile(styleInfo.absoluteFilePath());
+        if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+            app->setStyleSheet(QString::fromUtf8(styleFile.readAll()));
+            styleLoaded = true;
+            break;
+        }
+    }
 
-    // Buttons
-    darkPalette.setColor(QPalette::Button, QColor(25, 25, 25));
-    darkPalette.setColor(QPalette::ButtonText, Qt::white);
+    if (!styleLoaded) {
+        std::cout << "Failed to load stylesheet: Domain/lib/assets/styling/default.qss" << std::endl;
+    }
 
-    // Highlights (selection, hover)
-    darkPalette.setColor(QPalette::Highlight, QColor(80, 80, 80));   // bluish accent
-    darkPalette.setColor(QPalette::HighlightedText, Qt::white);
-
-    // Tooltips
-    darkPalette.setColor(QPalette::ToolTipBase, QColor(40, 40, 40));
-    darkPalette.setColor(QPalette::ToolTipText, Qt::white);
-
-    // Links
-    darkPalette.setColor(QPalette::Link, QColor(100, 150, 255));
-
-    qApp->setPalette(darkPalette);
     MainWindow& main_window = *MainWindow::Get();
     main_window.Init();
     std::cout << "Editor Initialized\n" << std::endl;

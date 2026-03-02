@@ -37,3 +37,31 @@ class Transform(Component):
     def scale(self, value):
         value = Vector2(value)
         transform_module.set_scale(self._gameobject_id, float(value.x), float(value.y))
+
+    @property
+    def world_position(self) -> Vector2:
+        return Vector2(transform_module.get_world_position(self._gameobject_id))
+
+    @world_position.setter
+    def world_position(self, value : Vector2):
+        value = Vector2(value)
+        transform_module.set_world_position(self._gameobject_id, float(value.x), float(value.y))
+
+    @property
+    def world_rotation(self):
+        return transform_module.get_world_rotation(self._gameobject_id)
+
+    @world_rotation.setter
+    def world_rotation(self, value):
+        transform_module.set_world_rotation(self._gameobject_id, float(value))
+
+    @property
+    def world_scale(self):
+        return Vector2(transform_module.get_world_scale(self._gameobject_id))
+
+    @world_scale.setter
+    def world_scale(self, value):
+        value = Vector2(value)
+        transform_module.set_world_scale(self._gameobject_id, float(value.x), float(value.y))
+
+    

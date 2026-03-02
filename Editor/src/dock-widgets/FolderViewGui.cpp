@@ -39,7 +39,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath("C:
     model = new QFileSystemModel(this);
     model->setRootPath(projectDirectory);
     model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    model->setIconProvider(new EditorUtils::CustomIconProvider());
+    //model->setIconProvider(new EditorUtils::CustomIconProvider());
     gridView = new QListView(this);
     gridView->setModel(model);
     gridView->setViewMode(QListView::IconMode);

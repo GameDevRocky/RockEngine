@@ -11,7 +11,7 @@ const float BASE_SPACING = 32.0f;  // 1 world unit = 32 pixels (PixelsPerUnit)
 const int MAJOR_SKIP = 2;        
 const vec3 uMinorColor = vec3(0.2f);
 const vec3 uMajorColor = vec3(0.5f);
-const vec3 uBackground = vec3(0.01f); 
+const vec3 uBackground = vec3(1.01f); 
 
 const float FADE_IN_PIXELS  = 2.0;   
 const float HIDE_PIXELS     = 30.0; 

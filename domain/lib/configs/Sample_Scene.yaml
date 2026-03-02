@@ -100,9 +100,9 @@ components:
     module: "Test"
     class: "TestScript"
 
-  - id: "b3"
+  - id: "c3"
     enabled: true
-    type: "BoxCollider"
+    type: "CircleCollider"
     gameobject: "o3"
     center : [0, 0]
     isSensor: false
@@ -110,7 +110,7 @@ components:
     friction : 0.1
     bounciness : 0.1
     rollingResistance : 0.0
-    size: [20.0, 20.0]
+    radius: 20.0
 
 
 
@@ -141,5 +141,5 @@ gameobjects:
     isRootObject : false
     component_ids:
       Transform: "t3"
-      BoxCollider: "b3"
+      CircleCollider: "c3"
       ScriptComponent: "sc3"

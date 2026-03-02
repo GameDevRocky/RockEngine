@@ -17,8 +17,6 @@
 
 HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
     setMinimumWidth(300);
-    
-    
     layout = new QVBoxLayout();
     setLayout(layout);
     layout->setContentsMargins(0,0,0,0);
@@ -26,9 +24,8 @@ HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
     CreateHeader();
     layout->addWidget(header);
 
-    // Create tree view
     treeView = new QTreeView(this);
-    treeView->setHeaderHidden(true);
+    //treeView->setHeaderHidden(true);
     layout->addWidget(treeView);
     setAcceptDrops(true);
 }
@@ -57,7 +54,7 @@ void HierarchyGui::CreateHeader(){
     filter->setPlaceholderText("Filter GameObjects...");
     
     QPushButton* menuButton = new QPushButton();
-    menuButton->setIcon(QIcon("domain/assets/icons/hamburger_icon.png"));
+    menuButton->setIcon(QIcon("Domain/lib/assets/icons/hamburger_icon.png"));
     menuButton->setFixedSize(32,32);
     menuButton->setFlat(true);
 
@@ -136,7 +133,6 @@ void HierarchyGui::dragEnterEvent(QDragEnterEvent* event) {
 }
 
 void HierarchyGui::dragMoveEvent(QDragMoveEvent* event) {
-    // Only accept if it contains YAML files
     if (event->mimeData()->hasUrls()) {
         bool hasYamlFile = false;
         for (const QUrl& url : event->mimeData()->urls()) {

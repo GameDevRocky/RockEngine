@@ -18,7 +18,17 @@ void BindTransform(pybind11::module_& m) {
             }
         }
     });
-
+    transform_module.def("set_world_position", [](const std::string& id, float x, float y) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* t = go->GetComponent<Transform>()) {
+                t->SetWorldPosition({x, y});
+            }
+        }
+    });
+    
     transform_module.def("get_position", [](const std::string& id) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
@@ -26,6 +36,19 @@ void BindTransform(pybind11::module_& m) {
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
                 return std::make_tuple(t->localPosition.x, t->localPosition.y);
+            }
+        }
+        return std::make_tuple(0.0f, 0.0f);
+    });
+
+    transform_module.def("get_world_position", [](const std::string& id) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* t = go->GetComponent<Transform>()) {
+                const auto& pos = t->GetWorldPosition();
+                return std::make_tuple(pos.x, pos.y);
             }
         }
         return std::make_tuple(0.0f, 0.0f);
@@ -42,6 +65,17 @@ void BindTransform(pybind11::module_& m) {
         }
     });
 
+    transform_module.def("set_world_rotation", [](const std::string& id, float degrees) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* t = go->GetComponent<Transform>()) {
+                t->SetWorldRotation(degrees);
+            }
+        }
+    });
+
     transform_module.def("get_rotation", [](const std::string& id) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
@@ -49,6 +83,18 @@ void BindTransform(pybind11::module_& m) {
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
                 return t->localRotation;
+            }
+        }
+        return 0.0f;
+    });
+
+    transform_module.def("get_world_rotation", [](const std::string& id) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* t = go->GetComponent<Transform>()) {
+                return t->GetWorldRotation();
             }
         }
         return 0.0f;
@@ -65,6 +111,17 @@ void BindTransform(pybind11::module_& m) {
         }
     });
 
+    transform_module.def("set_world_scale", [](const std::string& id, float x, float y) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* t = go->GetComponent<Transform>()) {
+                t->SetWorldScale({x, y});
+            }
+        }
+    });
+
     transform_module.def("get_scale", [](const std::string& id) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
@@ -72,6 +129,19 @@ void BindTransform(pybind11::module_& m) {
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
                 return std::make_tuple(t->localScale.x, t->localScale.y);
+            }
+        }
+        return std::make_tuple(1.0f, 1.0f);
+    });
+
+    transform_module.def("get_world_scale", [](const std::string& id) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* t = go->GetComponent<Transform>()) {
+                const auto& scale = t->GetWorldScale();
+                return std::make_tuple(scale.x, scale.y);
             }
         }
         return std::make_tuple(1.0f, 1.0f);
