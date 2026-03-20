@@ -7,11 +7,8 @@
 #include "dock-widgets/GameViewGui.hpp"
 
 void RuntimeBar::Init() {
-    setFixedHeight(24);
+    setObjectName("RuntimeBar");
     setContentsMargins(0,0,0,0);
-
-
-
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(5);
@@ -37,6 +34,9 @@ void RuntimeBar::Init() {
     layout->addWidget(playButton);
     layout->addWidget(pauseButton);
     layout->addStretch(); 
+
+    const int contentHeight = pauseButton->sizeHint().height();
+    setFixedHeight(contentHeight);
     
     std::cout << "RuntimeBar Initialized" << std::endl;
 }

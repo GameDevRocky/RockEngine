@@ -6,7 +6,7 @@
 #include <pybind11/embed.h>
 #include "engine/bindings/PythonBindings.hpp"
 #include "engine/core/PhysicsSystem.hpp"
-#define SAMPLE_SCENE_PATH "Domain/lib/configs/SampleScene.yaml"
+#define SAMPLE_SCENE_PATH "Domain/lib/configs/Sample_Scene.yaml"
 
 namespace py = pybind11;
 
@@ -32,7 +32,6 @@ void Engine::Init() {
 }
 
 void Engine::PostInit(){
-
     
 }
 

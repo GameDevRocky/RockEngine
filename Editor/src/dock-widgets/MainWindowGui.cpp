@@ -7,6 +7,7 @@
 #include "dock-widgets/FileExplorerGui.hpp"
 #include "dock-widgets/FolderViewGui.hpp"
 #include "dock-widgets/RuntimeBar.hpp"
+#include "dock-widgets/MenuBar.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent){}
@@ -23,6 +24,7 @@ void MainWindow::Init()
     FileExplorerGui* file_explorer = FileExplorerGui::Get();
     FolderViewGui* folder_view = FolderViewGui::Get();
     RuntimeBar* runtime_bar = RuntimeBar::Get();
+    MenuBar* menu_bar = MenuBar::Get();
 
     console_widget->Init();
     game_view->Init();
@@ -32,6 +34,9 @@ void MainWindow::Init()
     file_explorer->Init();
     folder_view->Init();
     runtime_bar->Init();
+    menu_bar->Init();
+
+    setMenuBar(menu_bar);
 
     std::cout << "All Widgets Initialized" << std::endl;
     
@@ -48,32 +53,39 @@ void MainWindow::Init()
 
     hierarchyDock = new QDockWidget("Hierarchy", this);
     hierarchyDock->setWidget(hierarchy);
+    hierarchyDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::BottomDockWidgetArea);
     addDockWidget(Qt::LeftDockWidgetArea, hierarchyDock);
   
 
     inspectorDock = new QDockWidget("Inspector", this);
     inspectorDock->setWidget(inspector);
+    inspectorDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
     addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
     inspectorDock->setObjectName("InspectorDock");
 
 
     fileExplorerDock = new QDockWidget("File Explorer", this);
     fileExplorerDock->setWidget(file_explorer);
+    fileExplorerDock->setAllowedAreas(Qt::BottomDockWidgetArea);
     addDockWidget(Qt::BottomDockWidgetArea, fileExplorerDock);
     fileExplorerDock->setObjectName("FileExplorerDock");
 
     folderViewDock = new QDockWidget("Folder View", this);
     folderViewDock->setWidget(folder_view);
+    folderViewDock->setAllowedAreas(Qt::BottomDockWidgetArea);
     addDockWidget(Qt::BottomDockWidgetArea, folderViewDock);
     folderViewDock->setObjectName("FolderViewDock");
 
     runtimeBarDock = new QDockWidget("", this);
     runtimeBarDock->setWidget(runtime_bar);
+    runtimeBarDock->setAllowedAreas(Qt::TopDockWidgetArea);
+    runtimeBarDock->setContentsMargins(0, 0, 0, 0);
     addDockWidget(Qt::TopDockWidgetArea, runtimeBarDock);
     runtimeBarDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     consoleDock = new QDockWidget("Console", this);
     consoleDock->setWidget(console_widget);
+    consoleDock->setAllowedAreas(Qt::BottomDockWidgetArea);
     addDockWidget(Qt::BottomDockWidgetArea, consoleDock);
     consoleDock->setObjectName("Console");
 
@@ -81,7 +93,8 @@ void MainWindow::Init()
 
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::TopDockWidgetArea);
-    setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::AllowTabbedDocks );
+    setDockNestingEnabled(false);
+    setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::ForceTabbedDocks);
     LoadLayout();
 
     std::cout << "Main Window Initialized " << std::endl;

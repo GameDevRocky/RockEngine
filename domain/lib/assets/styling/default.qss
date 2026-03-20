@@ -13,6 +13,11 @@ QWidget
     font-size: 14px;
 }
 
+#RuntimeBar
+{
+    background: rgb(18, 18, 18);
+}
+
 
 /*===========================================================================
  * QPushButton
@@ -29,7 +34,7 @@ QPushButton
 
 QPushButton:hover
 {
-    border: 2px solid rgba(0, 0, 0, 102);
+    background: rgb(52, 52, 52);
 }
 
 QPushButton:pressed
@@ -38,16 +43,6 @@ QPushButton:pressed
     background: rgba(0, 0, 0, 102);
 }
 
-QPushButton:checked:!pressed:enabled
-{
-	background: rgb(0, 99, 177);
-    color: rgb(255, 255, 255);
-}
-
-QPushButton:checked:!pressed:hover:enabled
-{
-	border: 2px solid  rgb(0, 0, 0);
-}
 
 
 
@@ -252,8 +247,7 @@ CToggleSwitch::indicator::checked
  *===========================================================================*/
  QMenuBar
  {
-    background: palette(midlight);
-    padding-bottom: 2px;
+    background: rgb(27, 27, 27);
  }
 
 
