@@ -3,6 +3,7 @@
 #include <QMenu>
 #include <QPoint>
 #include <QTreeView>
+#include <QHeaderView>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
@@ -23,8 +24,6 @@ HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
     setLayout(layout);
 
     treeView = new QTreeView(this);
-    treeView->setHeaderHidden(true);
-    
     layout->addWidget(treeView);
     setAcceptDrops(true);
 }
@@ -34,39 +33,18 @@ void HierarchyGui::Init(){
 }
 
 void HierarchyGui::PostInit(){
-    Engine* engine = Engine::Get();
-    SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
-    
-    std::vector<Scene*> scenes = sceneManager->GetScenes();
-    if (!scenes.empty()) {
-        SetScene(scenes[0]);
-        
-    }
-    else{
-        std::cout << "No Scenes" << std::endl;
-    }
+    auto* engine = Engine::Get();
+    SceneManager* manager = engine->GetActiveContainer()->FindSystem<SceneManager>();
+    manager->Subscribe([]{
+
+
+    });
+    std::cout << "Hierarchy Post Initialized" << std::endl;
 }
 
-void HierarchyGui::SetScene(Scene* scene) {
-    if (!scene || scene == currentScene)
-        return;
-
-    currentScene = scene;
-
-    
-    if (!treeModel) {
-        treeModel = new HierarchyTreeModel(scene, this);
-        treeView->setModel(treeModel);
-    } else {
-        // Update existing model with new scene
-        treeModel->SetScene(scene);
-    }
-}
 
 void HierarchyGui::dragEnterEvent(QDragEnterEvent* event) {
-    // Check if the drag contains file URLs
     if (event->mimeData()->hasUrls()) {
-        // Check if any of the URLs is a .yaml file
         bool hasYamlFile = false;
         for (const QUrl& url : event->mimeData()->urls()) {
             if (url.isLocalFile()) {
@@ -143,9 +121,6 @@ void HierarchyGui::dropEvent(QDropEvent* event) {
                 
                 // Update hierarchy to show the new scene
                 std::vector<Scene*> scenes = sceneManager->GetScenes();
-                if (!scenes.empty()) {
-                    SetScene(scenes.back()); // Set to the newly loaded scene
-                }
                 
                 event->acceptProposedAction();
                 return;
@@ -161,7 +136,5 @@ void HierarchyGui::dropEvent(QDropEvent* event) {
 }
 
 void HierarchyGui::dragLeaveEvent(QDragLeaveEvent* event) {
-    // Clear visual feedback
-    setStyleSheet("");
     event->accept();
 }

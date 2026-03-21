@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QTreeView>
+#include "utils/SceneTree.hpp"
 
 class HierarchyTreeModel;
 class Scene;
@@ -27,7 +28,6 @@ public:
     void Init();
     void PostInit();
     explicit HierarchyGui(QWidget* parent = nullptr);
-    void SetScene(Scene* scene);
 
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;
@@ -37,14 +37,8 @@ protected:
 
 private:
     ~HierarchyGui() override = default;
-    void CreateHeader();
 
-    QTextEdit* filter = nullptr;
     QVBoxLayout* layout = nullptr;
     QTreeView* treeView = nullptr;
-    HierarchyTreeModel* treeModel = nullptr;
-    Scene* currentScene = nullptr;
-
-    QWidget* header = nullptr;
-
+    std::vector<SceneTree*> sceneTrees;
 };

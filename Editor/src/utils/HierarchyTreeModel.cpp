@@ -127,6 +127,17 @@ QVariant HierarchyTreeModel::data(const QModelIndex& index, int role) const {
     return QString::fromStdString(item->gameObjectId);
 }
 
+QVariant HierarchyTreeModel::headerData(int section, Qt::Orientation orientation, int role) const {
+    if (role == Qt::DisplayRole && orientation == Qt::Horizontal && section == 0) {
+        if (scene && !scene->GetName().empty()) {
+            return QString::fromStdString(scene->GetName());
+        }
+        return QString("Scene");
+    }
+
+    return QAbstractItemModel::headerData(section, orientation, role);
+}
+
 Qt::ItemFlags HierarchyTreeModel::flags(const QModelIndex& index) const {
     if (!index.isValid())
         return Qt::NoItemFlags;
@@ -145,6 +156,7 @@ void HierarchyTreeModel::SetScene(Scene* newScene) {
         BuildTreeFromScene();
     }
     endResetModel();
+    emit headerDataChanged(Qt::Horizontal, 0, 0);
 }
 
 void HierarchyTreeModel::Rebuild() {
@@ -154,6 +166,7 @@ void HierarchyTreeModel::Rebuild() {
         BuildTreeFromScene();
     }
     endResetModel();
+    emit headerDataChanged(Qt::Horizontal, 0, 0);
 }
 
 void HierarchyTreeModel::BuildTreeFromScene() {

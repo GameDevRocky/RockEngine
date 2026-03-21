@@ -19,7 +19,7 @@ void MainWindow::Init()
     ConsoleGui* console_widget = ConsoleGui::Get();
     GameViewGui* game_view = GameViewGui::Get();
     SceneViewGui* scene_view = SceneViewGui::Get();
-    HierarchyGui* hierarchy = HierarchyGui::Get();
+    //HierarchyGui* hierarchy = HierarchyGui::Get();
     InspectorGui* inspector = InspectorGui::Get();
     FileExplorerGui* file_explorer = FileExplorerGui::Get();
     FolderViewGui* folder_view = FolderViewGui::Get();
@@ -29,7 +29,7 @@ void MainWindow::Init()
     console_widget->Init();
     game_view->Init();
     scene_view->Init();
-    hierarchy->Init();
+    //hierarchy->Init();
     inspector->Init();
     file_explorer->Init();
     folder_view->Init();
@@ -52,7 +52,7 @@ void MainWindow::Init()
     setCentralWidget(central_tabs);
 
     hierarchyDock = new QDockWidget("Hierarchy", this);
-    hierarchyDock->setWidget(hierarchy);
+    hierarchyDock->setWidget(new QWidget());
     hierarchyDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::BottomDockWidgetArea);
     addDockWidget(Qt::LeftDockWidgetArea, hierarchyDock);
   

@@ -9,6 +9,12 @@
 
 namespace EngineUtils{
 
+    enum EventType{
+        UNDEFINED,
+        NAME_CHANGED,
+
+
+    };
 
     namespace RenderUtils{
 
