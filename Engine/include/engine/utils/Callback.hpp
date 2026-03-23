@@ -9,9 +9,9 @@ class Observable;
 
 
 class Callback{
-    using func = std::function<void()>;
+    using function = std::function<void()>;
     public:
-        Callback(const func& function);
+        Callback(const function* cb);
         ~Callback() = default;
 
         void Init(Observable* instance);
@@ -20,5 +20,6 @@ class Callback{
     
     private:
         std::weak_ptr<Observable> instance;
+        function* cb = nullptr;
 
 };

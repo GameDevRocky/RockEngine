@@ -14,6 +14,7 @@
 #include <algorithm> 
 #include <atomic>
 
+
 class Component;
 class Transform;
 class Registry;
@@ -21,6 +22,7 @@ class Registry;
 class GameObject : public RuntimeObject {
     
     public:
+
     void Deserialize(const YAML::Node& node) override;
 
     void Init() override;
@@ -67,9 +69,6 @@ class GameObject : public RuntimeObject {
     void SetActive(bool val){active = val;}
     bool GetActive(){return active;}
 
-    void SetIsRootObject(bool val){isRootObject = val;}
-    bool GetIsRootObject(){return isRootObject;}
-
     void SetScene(const std::string& id);
     Scene* GetScene();
     
@@ -89,14 +88,9 @@ class GameObject : public RuntimeObject {
         callback(this); // Execute on Parent LAST
     }
     
-    uint32_t GetPickingID() const { return pickingId; }
 
     private:
-    static std::atomic<uint32_t> next_id;
-    uint32_t pickingId;
-
     bool active = true;
-    bool isRootObject = false;
     std::map<std::string, std::string> component_ids;
     std::string transform_id;
     std::vector<std::string> temp_ids;

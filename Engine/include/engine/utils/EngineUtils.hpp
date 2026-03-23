@@ -9,13 +9,6 @@
 
 namespace EngineUtils{
 
-    enum EventType{
-        UNDEFINED,
-        NAME_CHANGED,
-
-
-    };
-
     namespace RenderUtils{
 
         constexpr float PixelsPerUnit = 32.0f;
@@ -42,10 +35,12 @@ namespace EngineUtils{
         constexpr float RAD_2_DEG = 180.0f / 3.14159265359f;
         constexpr float DEG_2_RAD = 3.14159265359f / 180.0f;
         constexpr float PI = 3.14159265359f;
-
-
     }
 
+    namespace EventUtils{
+        enum class Event;
+
+    }
 
 
 

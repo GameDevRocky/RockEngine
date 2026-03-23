@@ -3,11 +3,14 @@
 #include <map>
 #include <unordered_map>
 #include <atomic>
+#include "engine/utils/Callback.hpp"
+#include "engine/utils./EngineUtils.hpp"
+
+using EngineUtils::EventUtils::Event;
 
 class Observable {
 public:
-    using Callback = std::function<void()>;
-    int Subscribe(const Callback& cb, int priority = 0);
+    int Subscribe(const Callback* cb, Event event);
     void Unsubscribe(int id);
     void Notify();
 
