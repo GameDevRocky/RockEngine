@@ -34,7 +34,7 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     mainLayout->setContentsMargins(0,0,0,0);
     setLayout(mainLayout);
     resize(720, 300);
-    Console::Get().Subscribe([this]() {        
+    Console::Get().Subscribe([this]() {
         GenerateWidgets(); 
     });
 

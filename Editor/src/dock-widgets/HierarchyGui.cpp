@@ -35,10 +35,6 @@ void HierarchyGui::Init(){
 void HierarchyGui::PostInit(){
     auto* engine = Engine::Get();
     SceneManager* manager = engine->GetActiveContainer()->FindSystem<SceneManager>();
-    manager->Subscribe([]{
-
-
-    });
     std::cout << "Hierarchy Post Initialized" << std::endl;
 }
 

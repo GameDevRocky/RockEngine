@@ -116,7 +116,7 @@ void PickingPass::Execute(RenderCamera* camera, Scene* scene)
         if(!transform) continue;
 
         // Set ID
-        uint32_t pickId = obj->GetPickingID();
+        uint32_t pickId = 1;
         shader->SetInt("uId", pickId);
         shader->SetMat4("uModel", transform->GetWorldMatrix());
         

@@ -38,7 +38,7 @@ class GameObject : public RuntimeObject {
     GameObject* Copy(Container* container) override;
     
     std::string name;
-    GameObject();
+    GameObject() = default;
     ~GameObject() =default;
     
     void AddComponent(Component* comp);

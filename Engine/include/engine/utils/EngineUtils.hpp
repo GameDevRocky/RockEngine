@@ -37,14 +37,6 @@ namespace EngineUtils{
         constexpr float PI = 3.14159265359f;
     }
 
-    namespace EventUtils{
-        enum class Event;
-
-    }
-
-
-
-
 std::string GenerateUUID();
 std::string ReadShader(const std::string& path);
 

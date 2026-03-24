@@ -31,7 +31,7 @@ void Collider::PostInit(){
     if (state >= State::PostInitialized) return;
     Transform* transform = this->GetComponent<Transform>();
     cachedScale = transform->GetWorldScale();
-    transform->Subscribe([&](){
+    transform->Subscribe([this](){
         OnTransformUpdated();
     });
     state = State::PostInitialized;

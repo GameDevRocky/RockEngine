@@ -1,27 +1,19 @@
 #include "engine/core/Observable.hpp"
+#include "engine/utils/Callback.hpp"
 
-int Observable::Subscribe(const Callback& cb, int priority) {
-    int id = next_id++;
-    auto it = subscribers.emplace(priority, std::make_pair(id, cb));
-    id_map[id] = it;
-    return id;
+void Observable::Subscribe(const function& lambda) {
+    Callback* cb = new Callback(this, lambda);
+    this->subscribers.push_back(cb);
 }
 
-void Observable::Unsubscribe(int id) {
-    auto it = id_map.find(id);
-    if (it != id_map.end()) {
-        subscribers.erase(it->second);
-        id_map.erase(it);
-    }
-}
 
 void Observable::Notify() {
-    std::vector<Callback> callbacks;
-    callbacks.reserve(subscribers.size());
+    std::vector<Callback*> copy = this->subscribers;
 
-    for (auto& [_, pair] : subscribers)
-        callbacks.push_back(pair.second);
-
-    for (auto& cb : callbacks)
-        cb();
+    for (auto* cb : copy){
+        if (!cb->Execute()){
+            std::erase(this->subscribers, cb);
+        }
+    }
+    copy.clear();
 }
