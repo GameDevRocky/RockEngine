@@ -6,6 +6,8 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/debug/Console.hpp"
 
+#include <cmath>
+
 using namespace EngineUtils::RenderUtils;
 YAML::Node BoxCollider::Serialize(){
     YAML::Node node = Component::Serialize();
@@ -94,7 +96,22 @@ void BoxCollider::CreateShape(){
 
     glm::vec2 worldScale = transform->GetWorldScale();
     glm::vec2 scaledSize = size * worldScale;
-    b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit , center.y * worldScale.x / PixelsPerUnit};
+    b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit, center.y * worldScale.y / PixelsPerUnit};
+
+    Transform* bodyTransform = rigidBody->GetTransform();
+    if (bodyTransform && bodyTransform != transform) {
+        glm::vec2 delta = transform->GetWorldPosition() - bodyTransform->GetWorldPosition();
+        float bodyRotationRad = glm::radians(bodyTransform->GetWorldRotation());
+        float c = std::cos(-bodyRotationRad);
+        float s = std::sin(-bodyRotationRad);
+        glm::vec2 localDelta = {
+            delta.x * c - delta.y * s,
+            delta.x * s + delta.y * c
+        };
+
+        physicsCenter.x += localDelta.x / PixelsPerUnit;
+        physicsCenter.y += localDelta.y / PixelsPerUnit;
+    }
     
     float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerUnit);
     float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerUnit);

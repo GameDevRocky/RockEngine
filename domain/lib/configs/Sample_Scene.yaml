@@ -112,6 +112,49 @@ components:
     rollingResistance : 0.0
     size: [50.0, 50.0]
 
+  - id: "t4"
+    enabled: true
+    type: "Transform"
+    gameobject: "o4"
+    localPosition: [120, 0]
+    localRotation: 0
+    localScale: [20, 20]
+    parent_id: "t1"
+
+  - id: "s4"
+    enabled: true
+    type: "SpriteRenderer"
+    gameobject: "o4"
+    material_id: "m2"
+    sprite_id: "sprite1"
+    color: [1,1,1,1]
+    uvOffset: [1.0, 0.0]
+    uvScale: [1.0, 1.0]
+    sortingOrder: 2
+    flipX: false
+    flipY: false
+    visible: true
+
+  - id: "b4"
+    enabled: true
+    type: "BoxCollider"
+    gameobject: "o4"
+    center : [0, 0]
+    isSensor: false
+    density : 1.0
+    friction : 0.1
+    bounciness : 0.1
+    rollingResistance : 0.0
+    size: [0.0, 0.0]
+
+  - id: "sc4"
+    enabled: true
+    type: "ScriptComponent"
+    gameobject: "o4"
+    module: "UnparentOnAwake"
+    class: "UnparentOnAwake"
+    
+
 
 
 gameobjects:
@@ -127,7 +170,7 @@ gameobjects:
 
   - id: "o2"
     type: "GameObject"
-    name: "Child"
+    name: "Ground"
     isRootObject : false
     component_ids:
       Transform: "t2"
@@ -143,3 +186,13 @@ gameobjects:
       Transform: "t3"
       BoxCollider: "c3"
       ScriptComponent: "sc3"
+
+  - id: "o4"
+    type: "GameObject"
+    name: "Child_Right"
+    isRootObject : false
+    component_ids:
+      Transform: "t4"
+      SpriteRenderer: "s4"
+      BoxCollider: "b4"
+      ScriptComponent: "sc4"

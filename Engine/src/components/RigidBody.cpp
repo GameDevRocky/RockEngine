@@ -71,6 +71,7 @@ void RigidBody::SetUseGravity(bool value){
     if (b2Body_IsValid(bodyId)) {
         b2Body_SetGravityScale(bodyId, value ? 1.0f : 0.0f);
     }
+    Notify(RigidBody::CHANGED_EVENT);
 }
 
 bool RigidBody::GetUseGravity() const {

@@ -1,5 +1,6 @@
 #include "engine/components/Collider.hpp"
 #include "engine/components/RigidBody.hpp"
+#include "engine/components/ComponentImpl.hpp"
 #include "engine/core/GameObjectImpl.hpp"
 #include "yaml-cpp/yaml.h" 
 
@@ -19,6 +20,10 @@ void Collider::Deserialize(const YAML::Node& node){
 void Collider::Init(){
     if (state >= State::Initialized) return;
     rigidBody = GetComponent<RigidBody>();
+    if (!rigidBody) {
+        // Prefer an ancestor rigidbody so child colliders become fixtures on the same body.
+        rigidBody = GetComponentInParent<RigidBody>();
+    }
     if (!rigidBody){
         rigidBody = this->RequireComponent<RigidBody>();
         rigidBody->SetBodyType(b2_kinematicBody);

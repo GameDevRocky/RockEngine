@@ -7,6 +7,8 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/debug/Console.hpp"
 
+#include <cmath>
+
 using namespace EngineUtils::RenderUtils;
 
 void CircleCollider::Deserialize(const YAML::Node& node){
@@ -99,6 +101,21 @@ void CircleCollider::CreateShape(){
     float averageScale = std::max(worldScale.x, worldScale.y);
     float scaledRadius = radius * averageScale;
     b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit, center.y * worldScale.y / PixelsPerUnit};
+
+    Transform* bodyTransform = rigidBody->GetTransform();
+    if (bodyTransform && bodyTransform != transform) {
+        glm::vec2 delta = transform->GetWorldPosition() - bodyTransform->GetWorldPosition();
+        float bodyRotationRad = glm::radians(bodyTransform->GetWorldRotation());
+        float c = std::cos(-bodyRotationRad);
+        float s = std::sin(-bodyRotationRad);
+        glm::vec2 localDelta = {
+            delta.x * c - delta.y * s,
+            delta.x * s + delta.y * c
+        };
+
+        physicsCenter.x += localDelta.x / PixelsPerUnit;
+        physicsCenter.y += localDelta.y / PixelsPerUnit;
+    }
     
     float physicsRadius = scaledRadius / PixelsPerUnit;
 

@@ -1,6 +1,7 @@
 from rock_engine.components import transform_module
 from ...utils.re_math import Vector2
 from .component_handler import Component
+from ..core.gameobject_handler import get_gameobject
 
 class Transform(Component):
 
@@ -63,5 +64,27 @@ class Transform(Component):
     def world_scale(self, value):
         value = Vector2(value)
         transform_module.set_world_scale(self._gameobject_id, float(value.x), float(value.y))
+
+    @property
+    def parent(self):
+        parent_id = transform_module.get_parent(self._gameobject_id)
+        if parent_id is None:
+            return None
+        return get_gameobject(parent_id)
+
+    @parent.setter
+    def parent(self, value):
+        if value is None:
+            transform_module.set_parent(self._gameobject_id, None, True)
+            return
+
+        parent_id = getattr(value, "id", None)
+        if parent_id is None:
+            parent_id = getattr(value, "_gameobject_id", None)
+
+        if parent_id is None:
+            raise TypeError("Transform.parent expects a GameObject, Transform, or None")
+
+        transform_module.set_parent(self._gameobject_id, parent_id, True)
 
     

@@ -26,13 +26,11 @@ void Console::CreateMessage(std::string text, std::string type, const std::sourc
     
     
     if (it == instance.messages.end()) {
-        // Create new message if it doesn't exist
         Message* msg = new Message(text, type, function, file_name, std::to_string(line), time_stamp);
         instance.messages[key] = msg;
         
         msg->Notify();
     } else {
-        // Update existing message
         Message* msg = it->second;
         msg->count++;
         msg->count = msg->count > 999 ? 999 : msg->count;

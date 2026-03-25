@@ -9,31 +9,18 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QTreeView>
-#include <QAbstractItemModel>
+#include <QStandardItemModel>
 #include "engine/core/Scene.hpp"
-
-
-class SceneModel : public QAbstractItemModel{
-    explicit SceneModel(Scene* scene, QObject* parent = nullptr);
-    ~SceneModel() override = default;
-
-    
-
-
-
-};
 
 class SceneTree : public QTreeView{
     Q_OBJECT
 
     public:
-        void Init(Scene* scene);
         SceneTree(QWidget* parent = nullptr);
+        void RebuildFromScene(Scene* scene);
 
     private:
-        void Update();
-
     std::string scene_id;
-    SceneModel* model = nullptr;
+    QStandardItemModel* model = nullptr;
 };
 

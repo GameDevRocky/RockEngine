@@ -102,6 +102,7 @@ void Scene::LateUpdate() {
 YAML::Node Scene::Serialize() {
     YAML::Node node = Serializable::Serialize();
     node["name"] = name;
+    GetRootObjects();
     node["root_objects"] = rootobject_ids;
     return node;
 }
@@ -143,6 +144,24 @@ void Scene::AddGameObject(GameObject* obj) {
 }
 
 std::vector<GameObject*> Scene::GetRootObjects() {
+    if (!registry && container) {
+        registry = container->FindSystem<Registry>();
+    }
+
+    rootobject_ids.clear();
+    if (registry) {
+        for (auto& pair : registry->GetAll()) {
+            Transform* transform = dynamic_cast<Transform*>(pair.second);
+            if (!transform) continue;
+            if (transform->GetParent()) continue;
+
+            GameObject* obj = transform->GetGameObject();
+            if (obj) {
+                rootobject_ids.push_back(obj->GetID());
+            }
+        }
+    }
+
     std::vector<GameObject*> result;
     for (const std::string& id : rootobject_ids) {
         if (auto* obj = registry->Find<GameObject>(id))

@@ -6,7 +6,8 @@ void PhysicsSystem::Init(){
     timeManager = container->FindSystem<TimeManager>();
     
     b2WorldDef worldDef = b2DefaultWorldDef();
-    worldDef.gravity = {0.0f, -9.8f}; 
+    worldDef.gravity = {0.0f, -9.8f};
+    worldDef.gravity *= 1.0f; 
     worldId = b2CreateWorld(&worldDef);
     std::cout << "PhysicsSystem: World created, valid=" << B2_IS_NON_NULL(worldId) << std::endl;
 }
