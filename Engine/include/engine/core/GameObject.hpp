@@ -22,6 +22,10 @@ class Registry;
 class GameObject : public RuntimeObject {
     
     public:
+    static inline const Event ACTIVE_CHANGED_EVENT = GameObject::CreateEvent();
+    static inline const Event ADD_COMPONENT_EVENT = GameObject::CreateEvent();
+    static inline const Event REMOVE_COMPONENT_EVENT = GameObject::CreateEvent();
+    static inline const Event SCENE_CHANGED_EVENT = GameObject::CreateEvent();
 
     void Deserialize(const YAML::Node& node) override;
 
@@ -58,7 +62,7 @@ class GameObject : public RuntimeObject {
     }
     
     template<typename T>
-    T* GetComponentInParent(); // Implemented in GameObjectImpl.hpp
+    T* GetComponentInParent();
 
     template<typename T> 
     T* RequireComponent();
@@ -66,7 +70,7 @@ class GameObject : public RuntimeObject {
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
     std::string GetName() {return name;}
-    void SetActive(bool val){active = val;}
+    void SetActive(bool val);
     bool GetActive(){return active;}
 
     void SetScene(const std::string& id);

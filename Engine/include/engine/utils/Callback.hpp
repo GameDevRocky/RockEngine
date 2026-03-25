@@ -14,6 +14,7 @@ class Callback{
         Callback(Observable* instance, const function& cb);
         ~Callback() = default;
         bool Execute();
+        
     
     private:
         std::weak_ptr<Observable*> instance;

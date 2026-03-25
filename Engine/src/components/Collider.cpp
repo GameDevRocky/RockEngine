@@ -31,48 +31,59 @@ void Collider::PostInit(){
     if (state >= State::PostInitialized) return;
     Transform* transform = this->GetComponent<Transform>();
     cachedScale = transform->GetWorldScale();
-    transform->Subscribe([this](){
-        OnTransformUpdated();
-    });
+    transform->Subscribe([this](){this->OnTransformScaleUpdate();}, Transform::SCALE_CHANGED_EVENT);
     state = State::PostInitialized;
 }
 
 void Collider::SetIsSensor(bool isSensor){
+    if (this->isSensor == isSensor) return; 
     this->isSensor = isSensor;
     this->CreateShape();
+    this->Notify(Collider::CHANGED_EVENT);
+
 }
 
 void Collider::SetCenter(glm::vec2 center){
+    if (this->center == center) return; 
     this->center = center;
     this->CreateShape();
+    this->Notify(Collider::CHANGED_EVENT);
 }
 
 void Collider::SetDensity(float density){
+    if (this->density == density) return; 
     this->density = density;
     b2Shape_SetDensity(shapeId, this->density, true);
+    this->Notify(Collider::CHANGED_EVENT);
 }
 
 void Collider::SetBounciness(float bounciness){
+    if (this->bounciness == bounciness) return; 
     this->bounciness = bounciness;
     b2Shape_SetRestitution(shapeId, this->bounciness);
+    this->Notify(Collider::CHANGED_EVENT);
 }
 
 void Collider::SetFriction(float friction){
+    if (this->friction == friction) return; 
     this->friction = friction;
     b2Shape_SetFriction(shapeId, this->friction);
+    this->Notify(Collider::CHANGED_EVENT);
 }
 
 void Collider::SetRollingResistance(float rollingResistance){
+    if (this->rollingResistance == rollingResistance) return; 
     this->rollingResistance = rollingResistance;
     CreateShape();
+    this->Notify(Collider::CHANGED_EVENT);
 }
 
-void Collider::OnTransformUpdated(){
+void Collider::OnTransformScaleUpdate(){
     Transform* transform = GetComponent<Transform>();
     glm::vec2 worldScale = transform->GetWorldScale();
-    if (cachedScale != transform->GetWorldScale()){
+    if (cachedScale != worldScale){
         CreateShape();
-        cachedScale = transform->GetWorldScale();
+        cachedScale = worldScale;
     }
 
 }

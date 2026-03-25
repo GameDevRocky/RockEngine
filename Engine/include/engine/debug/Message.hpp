@@ -4,6 +4,7 @@
 #include "engine/core/Observable.hpp"
 
 struct Message : public Observable {
+
     std::string text;
     std::string type;
     std::string created_at;

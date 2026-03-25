@@ -66,6 +66,7 @@ void BoxCollider::Awake(){
 void BoxCollider::SetSize(glm::vec2 size){
     this->size = size;
     CreateShape();
+    this->Notify(BoxCollider::CHANGED_EVENT);
 }
 
 

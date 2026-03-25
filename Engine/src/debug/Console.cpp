@@ -40,7 +40,7 @@ void Console::CreateMessage(std::string text, std::string type, const std::sourc
         msg->Notify();
     }
     
-    Get().Notify();
+    Get().Notify(Console::NEW_MESSAGE_EVENT);
 
 }
 
@@ -68,7 +68,7 @@ void Console::Clear(){
         msg->Destroy();
     }
     Get().messages.clear();
-    Get().Notify();
+    Get().Notify(Console::CLEAR_EVENT);
     Console::Warn("Cleared");
 
 }

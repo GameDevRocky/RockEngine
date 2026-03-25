@@ -34,16 +34,12 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     mainLayout->setContentsMargins(0,0,0,0);
     setLayout(mainLayout);
     resize(720, 300);
-    Console::Get().Subscribe([this]() {
-        GenerateWidgets(); 
-    });
+    Console::Get().Subscribe([this](){this->GenerateWidgets();}, Console::NEW_MESSAGE_EVENT);
 
     connect(clear_button, &QPushButton::clicked, [](bool) {
-        Console::Clear();
-                
+        Console::Clear();                
     });
-    
-    
+
     GenerateWidgets();
 }
 void ConsoleGui::Init(){

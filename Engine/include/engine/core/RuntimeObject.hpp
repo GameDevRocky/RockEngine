@@ -6,6 +6,13 @@ class Container;
 class RuntimeObject : public Serializable {
 public:
 
+    static inline const Event INIT_EVENT = Observable::CreateEvent();
+    static inline const Event POST_INIT_EVENT = Observable::CreateEvent();
+    static inline const Event AWAKE_EVENT = Observable::CreateEvent();
+    static inline const Event START_EVENT = Observable::CreateEvent();
+    static inline const Event SHUTDOWN_EVENT = Observable::CreateEvent();
+    static inline const Event CHANGED_EVENT = Observable::CreateEvent();
+
     enum State {
         Allocated,
         Loaded,

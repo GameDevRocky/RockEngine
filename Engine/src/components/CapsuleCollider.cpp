@@ -101,11 +101,13 @@ void CapsuleCollider::CreateShape(){
 void CapsuleCollider::SetHeight(float height){
     this->height = height;
     this->CreateShape();
+    this->Notify(CapsuleCollider::CHANGED_EVENT);
 }
 
 void CapsuleCollider::SetRadius(float radius){
     this->radius = radius;
     this->CreateShape();
+    this->Notify(CapsuleCollider::CHANGED_EVENT);
 }
 
 CapsuleCollider* CapsuleCollider::Copy(){

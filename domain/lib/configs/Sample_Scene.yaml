@@ -102,7 +102,7 @@ components:
 
   - id: "c3"
     enabled: true
-    type: "CircleCollider"
+    type: "BoxCollider"
     gameobject: "o3"
     center : [0, 0]
     isSensor: false
@@ -110,7 +110,7 @@ components:
     friction : 0.1
     bounciness : 0.1
     rollingResistance : 0.0
-    radius: 20.0
+    size: [50.0, 50.0]
 
 
 
@@ -141,5 +141,5 @@ gameobjects:
     isRootObject : false
     component_ids:
       Transform: "t3"
-      CircleCollider: "c3"
+      BoxCollider: "c3"
       ScriptComponent: "sc3"

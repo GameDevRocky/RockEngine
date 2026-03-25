@@ -13,6 +13,7 @@ void GameObject::AddComponent(Component* comp) {
     comp->SetGameObject(this);
     registry->Register(comp);
     component_ids[comp->GetTypeName()] = comp->GetID(); 
+    this->Notify(GameObject::ADD_COMPONENT_EVENT);
 }
 
 void GameObject::Deserialize(const YAML::Node& node) {
@@ -34,8 +35,8 @@ void GameObject::SetScene(const std::string& id){
     Scene* scene = registry->Find<Scene>(scene_id);
     if (scene){
         scene_id = id;
+        Notify(GameObject::SCENE_CHANGED_EVENT); 
     }
-    Notify(); 
 }
 Scene* GameObject::GetScene(){
     Engine* engine = Engine::Get();
@@ -117,6 +118,14 @@ void GameObject::LateUpdate() {
     }
 }
 
+void GameObject::SetActive(bool active){
+    bool notify = false;
+    if (this->active != active){
+        notify = true;
+    }
+    this->active = active;
+    if (notify) Notify(GameObject::ACTIVE_CHANGED_EVENT); 
+}
 
 GameObject* GameObject::Copy(){
     GameObject* copy = new GameObject();

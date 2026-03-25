@@ -48,38 +48,44 @@ void Transform::MarkDirty() {
 void Transform::Translate(const glm::vec2& delta) {
     localPosition += delta;
     MarkDirty();
-    Notify();
+    Notify(POSITION_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 void Transform::Rotate(float deltaDeg) {
     localRotation += deltaDeg;
     MarkDirty();
-    Notify();
+    Notify(ROTATION_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 void Transform::Scale(const glm::vec2& delta) {
     localScale += delta;
     MarkDirty();
-    Notify();
+    Notify(SCALE_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 
 void Transform::SetPosition(const glm::vec2& pos) {
     localPosition = pos;
     MarkDirty();
-    Notify();
+    Notify(POSITION_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 void Transform::SetRotation(float degrees) {
     localRotation = degrees;
     MarkDirty();
-    Notify();
+    Notify(ROTATION_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 void Transform::SetScale(const glm::vec2& scale) {
     localScale = scale;
     MarkDirty();
-    Notify();
+    Notify(SCALE_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 glm::vec2 Transform::GetWorldPosition() const {
@@ -89,8 +95,6 @@ glm::vec2 Transform::GetWorldPosition() const {
 
 float Transform::GetWorldRotation() const {
     glm::mat4 world = GetWorldMatrix();
-    // Correct extraction: atan2(sin(θ), cos(θ))
-    // For column-major GLM: world[0][1] = sin(θ), world[0][0] = cos(θ)
     return glm::degrees(atan2(world[0][1], world[0][0]));
 }
 
@@ -109,7 +113,8 @@ void Transform::SetWorldPosition(const glm::vec2& pos) {
         localPosition = pos;
     }
     MarkDirty();
-    Notify();
+    Notify(POSITION_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 void Transform::SetWorldRotation(float degrees) {
@@ -121,7 +126,8 @@ void Transform::SetWorldRotation(float degrees) {
         localRotation = degrees;
     }
     MarkDirty();
-    Notify();
+    Notify(ROTATION_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 void Transform::SetWorldScale(const glm::vec2& scale) {
@@ -133,7 +139,8 @@ void Transform::SetWorldScale(const glm::vec2& scale) {
         localScale = scale;
     }
     MarkDirty();
-    Notify();
+    Notify(SCALE_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 
@@ -192,7 +199,8 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
     }
 
     MarkDirty();
-    Notify();
+    Notify(PARENT_CHANGED_EVENT);
+    Notify(CHANGED_EVENT);
 }
 
 

@@ -69,6 +69,7 @@ void CircleCollider::Awake(){
 void CircleCollider::SetRadius(float radius){
     this->radius = radius;
     CreateShape();
+    this->Notify(CircleCollider::CHANGED_EVENT);
 }
 
 

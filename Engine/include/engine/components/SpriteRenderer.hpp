@@ -10,6 +10,10 @@
 class SpriteRenderer : public Component
 {
     public:
+
+    static inline const Event MATERIAL_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event SPRITE_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event VISIBILITY_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     
     SpriteRenderer* Copy() override;
     YAML::Node Serialize() override;

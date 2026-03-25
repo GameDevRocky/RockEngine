@@ -7,6 +7,9 @@ class RigidBody;
 class Collider : public Component{
 
 public:
+
+    static inline const Event CHANGED_EVENT = Collider::CreateEvent();
+
     void Deserialize(const YAML::Node& node);
     virtual void Init() override;
     virtual void PostInit() override;
@@ -21,7 +24,7 @@ public:
     virtual void SetFriction(float friction);
     virtual void SetRollingResistance(float rollingResistance);
 
-    virtual void OnTransformUpdated();
+    virtual void OnTransformScaleUpdate();
 
     glm::vec2 GetCenter(){return center;}
     float GetDensity(){return density;}

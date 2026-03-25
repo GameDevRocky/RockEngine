@@ -9,6 +9,9 @@
 
 class Console : public System {
 public:
+    static inline const Event NEW_MESSAGE_EVENT = Console::CreateEvent();
+    static inline const Event CLEAR_EVENT = Console::CreateEvent();
+
     static Console& Get() {
         static Console instance;
         return instance;

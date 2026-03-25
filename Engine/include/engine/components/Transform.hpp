@@ -11,6 +11,11 @@ class Registry;
 
 class Transform : public Component {
 public:
+    static inline const Event POSITION_CHANGED_EVENT = Observable::CreateEvent();
+    static inline const Event ROTATION_CHANGED_EVENT = Observable::CreateEvent();
+    static inline const Event SCALE_CHANGED_EVENT = Observable::CreateEvent();
+    static inline const Event PARENT_CHANGED_EVENT = Observable::CreateEvent();
+
     glm::vec2 localPosition = {0.0f, 0.0f};
     float localRotation = 0.0f;
     glm::vec2 localScale = {1.0f, 1.0f};

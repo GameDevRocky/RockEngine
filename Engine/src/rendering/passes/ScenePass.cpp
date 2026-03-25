@@ -50,10 +50,11 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
         Transform* transform = obj->GetComponent<Transform>();
         SpriteRenderer* renderer = obj->GetComponent<SpriteRenderer>();
     
-        if (!transform || !renderer){
+        if (!transform){
             Console::Alert("No Loaded Transform or Sprite");
             continue;
         }
+        if(!renderer) continue;
         if (!renderer->GetVisible()) continue;
 
         Material* mat = renderer->GetMaterial();

@@ -79,10 +79,7 @@ bool RigidBody::GetUseGravity() const {
 
 void RigidBody::SetLockRotation(bool value){
     lockRotation = value;
-    // Don't use b2Body_SetMotionLocks as it creates soft constraints that interfere with collision
-    // Instead, we'll zero angular velocity in FixedUpdate and LateUpdate
     if (b2Body_IsValid(bodyId) && value) {
-        // Immediately zero out any existing angular velocity
         b2Body_SetAngularVelocity(bodyId, 0.0f);
     }
 }

@@ -43,6 +43,8 @@ void SpriteRenderer::SetMaterial(std::string& id){
         return;
     }
     material_id = mat->GetID();
+    this->Notify(SpriteRenderer::MATERIAL_CHANGED_EVENT);
+    this->Notify(SpriteRenderer::CHANGED_EVENT);
 }
 
 
@@ -62,10 +64,15 @@ void SpriteRenderer::SetSprite(std::string& id){
         return;
     }
     sprite_id = sprite->GetID();
+    this->Notify(SpriteRenderer::SPRITE_CHANGED_EVENT);
+    this->Notify(SpriteRenderer::CHANGED_EVENT);
 }
 
 void SpriteRenderer::SetVisible(bool& val){
     visible = val;
+    this->Notify(SpriteRenderer::VISIBILITY_CHANGED_EVENT);
+    this->Notify(SpriteRenderer::CHANGED_EVENT);
+
 }
 
 void SpriteRenderer::OverrideUniforms()

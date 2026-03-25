@@ -29,8 +29,14 @@ GameObject* Component::GetGameObject(){
 void Component::SetEnabled(bool e) {
     if (e == enabled) return;
     enabled = e;
-    if (enabled) OnEnabled();
-    else OnDisabled();
+    if (enabled){
+        OnEnabled();
+        Notify(Component::ENABLED_EVENT);
+    }
+    else{ 
+        OnDisabled();
+        Notify(Component::DISABLED_EVENT);
+    }
 }
 
 Component* Component::Copy(Container* container) {
