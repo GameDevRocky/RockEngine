@@ -20,6 +20,12 @@ Observable::~Observable(){
 }
 
 
+Callback* Observable::Subscribe(const payload_function& lambda, Event event) {
+    Callback* cb = new Callback(this, lambda);
+    this->subscribers[event].push_back(cb);
+    return cb;
+}
+
 Callback* Observable::Subscribe(const function& lambda, Event event) {
     Callback* cb = new Callback(this, lambda);
     this->subscribers[event].push_back(cb);
@@ -39,7 +45,7 @@ void Observable::Unsubscribe(Callback* cb){
     }
 }
 
-void Observable::Notify(Event event) {
+void Observable::Notify(Event event, std::any data) {
     std::vector<Callback*> copy;
     auto collect = [&](Event e) {
         auto found = this->subscribers.find(e);
@@ -59,7 +65,7 @@ void Observable::Notify(Event event) {
     }
 
     for (auto* cb : copy){
-        if (!cb->Execute()){
+        if (!cb->Execute(data)){
             Unsubscribe(cb);
         }
     }

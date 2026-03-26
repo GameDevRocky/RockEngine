@@ -10,7 +10,9 @@ class PhysicsSystem;
 
 class SceneManager : public System {
 public:
-    
+    static inline const Event LOADED_SCENE_EVENT = SceneManager::CreateEvent();
+    static inline const Event REMOVED_SCENE_EVENT = SceneManager::CreateEvent();
+
     void Init() override;
     void PostInit() override;
     void Awake() override;

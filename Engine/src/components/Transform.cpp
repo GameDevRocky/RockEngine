@@ -199,7 +199,7 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
     }
 
     MarkDirty();
-    Notify(PARENT_CHANGED_EVENT);
+    Notify(PARENT_CHANGED_EVENT, this->parent_id);
     Notify(CHANGED_EVENT);
 }
 

@@ -99,6 +99,7 @@ void SceneManager::LoadScene(const std::string& file_path){
 
     scene_ids.push_back(scene->GetID());
     std::cout << "Completed loading scene from path: " + file_path << std::endl;
+    Notify(LOADED_SCENE_EVENT);
 }
 
 
@@ -119,6 +120,7 @@ SceneManager* SceneManager::Copy(){
     SceneManager* copy = new SceneManager();
     copy->scene_ids = scene_ids;
     copy->accumulator = 0;
+    copy->subscribers = subscribers;
     return copy;
     
 }

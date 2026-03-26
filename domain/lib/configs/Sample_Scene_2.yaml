@@ -1,0 +1,219 @@
+name: "SampleScene2"
+created_at: "2026-03-25T12:00:00Z"
+id: "scene2"
+
+components:
+
+  - id: "t21"
+    enabled: true
+    type: "Transform"
+    gameobject: "o21"
+    localPosition: [-180, 40]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: null
+
+  - id: "s21"
+    enabled: true
+    type: "SpriteRenderer"
+    gameobject: "o21"
+    material_id: "m1"
+    sprite_id: "sprite2"
+    color: [1, 1, 1, 1]
+    uvOffset: [0.0, 0.0]
+    uvScale: [1.0, 1.0]
+    sortingOrder: 3
+    flipX: false
+    flipY: false
+    visible: true
+
+  - id: "r21"
+    enabled: true
+    type: "RigidBody"
+    gameobject: "o21"
+    bodyType: "Dynamic"
+    useGravity: true
+    lockRotation: true
+    mass: 1.2
+
+  - id: "c21"
+    enabled: true
+    type: "CapsuleCollider"
+    gameobject: "o21"
+    center: [0, 0]
+    isSensor: false
+    density: 1.0
+    friction: 0.3
+    bounciness: 0.05
+    rollingResistance: 0.0
+    radius: 18.0
+    height: 38.0
+
+  - id: "t22"
+    enabled: true
+    type: "Transform"
+    gameobject: "o22"
+    localPosition: [0, -160]
+    localRotation: 0
+    localScale: [260, 30]
+    parent_id: null
+
+  - id: "s22"
+    enabled: true
+    type: "SpriteRenderer"
+    gameobject: "o22"
+    material_id: "m2"
+    sprite_id: "sprite1"
+    color: [1, 1, 1, 1]
+    uvOffset: [0.0, 0.0]
+    uvScale: [1.0, 1.0]
+    sortingOrder: 1
+    flipX: false
+    flipY: false
+    visible: true
+
+  - id: "r22"
+    enabled: true
+    type: "RigidBody"
+    gameobject: "o22"
+    bodyType: "Static"
+    useGravity: false
+    lockRotation: true
+    mass: 1.0
+
+  - id: "b22"
+    enabled: true
+    type: "BoxCollider"
+    gameobject: "o22"
+    center: [0, 0]
+    isSensor: false
+    density: 1.0
+    friction: 0.8
+    bounciness: 0.0
+    rollingResistance: 0.0
+    size: [0.0, 0.0]
+
+  - id: "t23"
+    enabled: true
+    type: "Transform"
+    gameobject: "o23"
+    localPosition: [120, -30]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: null
+
+  - id: "s23"
+    enabled: true
+    type: "SpriteRenderer"
+    gameobject: "o23"
+    material_id: "m2"
+    sprite_id: "sprite1"
+    color: [1, 1, 1, 1]
+    uvOffset: [0.0, 0.0]
+    uvScale: [1.0, 1.0]
+    sortingOrder: 2
+    flipX: false
+    flipY: false
+    visible: true
+
+  - id: "b23"
+    enabled: true
+    type: "BoxCollider"
+    gameobject: "o23"
+    center: [0, 0]
+    isSensor: false
+    density: 1.0
+    friction: 0.2
+    bounciness: 0.15
+    rollingResistance: 0.0
+    size: [40.0, 40.0]
+
+  - id: "sc23"
+    enabled: true
+    type: "ScriptComponent"
+    gameobject: "o23"
+    module: "Test"
+    class: "TestScript"
+
+  - id: "t24"
+    enabled: true
+    type: "Transform"
+    gameobject: "o24"
+    localPosition: [0, 90]
+    localRotation: 0
+    localScale: [24, 24]
+    parent_id: "t21"
+
+  - id: "s24"
+    enabled: true
+    type: "SpriteRenderer"
+    gameobject: "o24"
+    material_id: "m1"
+    sprite_id: "sprite2"
+    color: [1, 1, 1, 1]
+    uvOffset: [0.0, 0.0]
+    uvScale: [1.0, 1.0]
+    sortingOrder: 4
+    flipX: false
+    flipY: false
+    visible: true
+
+  - id: "b24"
+    enabled: true
+    type: "BoxCollider"
+    gameobject: "o24"
+    center: [0, 0]
+    isSensor: true
+    density: 1.0
+    friction: 0.1
+    bounciness: 0.0
+    rollingResistance: 0.0
+    size: [20.0, 20.0]
+
+  - id: "sc24"
+    enabled: true
+    type: "ScriptComponent"
+    gameobject: "o24"
+    module: "UnparentOnAwake"
+    class: "UnparentOnAwake"
+
+gameobjects:
+  - id: "o21"
+    type: "GameObject"
+    name: "Player_Beta"
+    isRootObject: true
+    component_ids:
+      Transform: "t21"
+      SpriteRenderer: "s21"
+      RigidBody: "r21"
+      CapsuleCollider: "c21"
+
+  - id: "o22"
+    type: "GameObject"
+    name: "Floor_Long"
+    isRootObject: true
+    component_ids:
+      Transform: "t22"
+      SpriteRenderer: "s22"
+      RigidBody: "r22"
+      BoxCollider: "b22"
+
+  - id: "o23"
+    type: "GameObject"
+    name: "Crate_Scripted"
+    isRootObject: true
+    component_ids:
+      Transform: "t23"
+      SpriteRenderer: "s23"
+      BoxCollider: "b23"
+      ScriptComponent: "sc23"
+
+  - id: "o24"
+    type: "GameObject"
+    name: "Orb_Trigger"
+    isRootObject: false
+    component_ids:
+      Transform: "t24"
+      SpriteRenderer: "s24"
+      BoxCollider: "b24"
+      ScriptComponent: "sc24"

@@ -5,12 +5,12 @@
 #include <functional>
 #include <iostream>
 #include "engine/core/System.hpp"
-
 class RuntimeObject;
 
 class Registry : public System {
 private:
     std::unordered_map<std::string, RuntimeObject*> runtimeObjects;
+    static Registry* GetRuntimeRegistry();
 
 public:
 
@@ -30,5 +30,17 @@ public:
         }
         return nullptr;
     }
+    template<typename T = RuntimeObject> 
+    static T* FindInRuntime(const std::string& id) {
+        auto* registry = GetRuntimeRegistry();
+        if (!registry) return nullptr;
+        auto it = registry->runtimeObjects.find(id);
+        if (it != registry->runtimeObjects.end()) {
+            return dynamic_cast<T*>(it->second);
+        }
+        return nullptr;
+    }
+
+
     std::unordered_map<std::string, RuntimeObject*>& GetAll() { return runtimeObjects; }
 };

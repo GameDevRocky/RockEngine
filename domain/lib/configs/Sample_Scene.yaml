@@ -32,7 +32,7 @@ components:
     type: "RigidBody"
     gameobject: "o1"
     bodyType: "Dynamic"
-    useGravity: true
+    useGravity: false
     lockRotation: true
     mass: 1.0
 

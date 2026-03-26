@@ -35,7 +35,7 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
 
 void SceneTree::RebuildFromScene(Scene* scene) {
     model->clear();
-    model->setHorizontalHeaderLabels({"Hierarchy"});
+    model->setHorizontalHeaderLabels({scene->GetName().c_str()});
 
     if (!scene) {
         scene_id.clear();

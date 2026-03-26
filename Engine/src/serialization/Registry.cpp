@@ -3,6 +3,17 @@
 #include <algorithm>
 #include "engine/debug/Console.hpp"
 #include "engine/core/RuntimeObject.hpp"
+#include "Engine.hpp"
+
+Registry* Registry::GetRuntimeRegistry() {
+    auto* engine = Engine::Get();
+    if (!engine) return nullptr;
+
+    auto* container = engine->GetActiveContainer();
+    if (!container) return nullptr;
+
+    return container->FindSystem<Registry>();
+}
 
 void Registry::Register(RuntimeObject* obj) {
     if (!obj) return;

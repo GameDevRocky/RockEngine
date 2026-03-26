@@ -31,7 +31,9 @@ public:
     }
     void Init();
     void PostInit();
-    void UpdateHierarchy();
+    void RefreshHierarchy();
+    void AddSceneTree();
+    void RemoveSceneTree();
     explicit HierarchyGui(QWidget* parent = nullptr);
 
 protected:
@@ -42,18 +44,8 @@ protected:
 
 private:
     ~HierarchyGui() override;
-
-    Scene* GetActiveScene() const;
-    void RequestHierarchyRefresh();
-    void SyncTransformSubscriptions(Scene* scene);
-    void ClearTransformSubscriptions();
-
     QVBoxLayout* layout = nullptr;
-    QTreeView* treeView = nullptr;
-    std::vector<SceneTree*> sceneTrees;
-    std::unordered_map<std::string, std::pair<Transform*, Callback*>> transformSubscriptions;
-    std::string activeSceneId;
-    const Scene* activeScenePtr = nullptr;
-    const Container* activeContainerPtr = nullptr;
-    bool hierarchyDirty = true;
+    std::map<std::string, SceneTree*> sceneTrees;
+
+
 };
