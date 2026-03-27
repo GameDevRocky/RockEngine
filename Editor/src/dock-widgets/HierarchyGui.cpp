@@ -53,7 +53,12 @@ void HierarchyGui::AddSceneTree() {
     
     SceneTree* tree = new SceneTree();
     sceneTrees[scene->GetID()] = tree;
+    std::string id = scene->GetID();
     tree->RebuildFromScene(scene);
+    scene->Subscribe([tree, id](){
+        auto* scene = Registry::FindInRuntime<Scene>(id);
+        tree->RebuildFromScene(scene);
+    }, Scene::HIERARCHY_CHANGED_EVENT);
     this->layout->addWidget(tree);
 }
 void HierarchyGui::RemoveSceneTree() {

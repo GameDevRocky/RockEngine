@@ -13,7 +13,8 @@ class Registry;
 class Scene : public RuntimeObject{
 public:
 
-    static inline const Event HIERARCHY_SYNC_EVENT = Scene::CreateEvent();
+    static inline const Event HIERARCHY_CHANGED_EVENT = Scene::CreateEvent();
+    
 
 
     YAML::Node Serialize() override;

@@ -142,16 +142,19 @@ void Scene::Deserialize(const YAML::Node &data)
 void Scene::SyncRootObjects(const std::string& child_id, const std::string& parent_id){
     auto it = std::find(rootobject_ids.begin(), rootobject_ids.end(), child_id);
     bool isRoot = (it != rootobject_ids.end());
-
+    bool changed = false;
     if (!parent_id.empty()){
         if (isRoot) {
             rootobject_ids.erase(it);
+            changed = true;
         }
     } else {
         if (!isRoot) {
             rootobject_ids.push_back(child_id);
+            changed = true;
         }
     }
+    if (changed) Notify(HIERARCHY_CHANGED_EVENT, child_id);
 }
 
 void Scene::SyncAllObjects(const std::string& id){

@@ -43,6 +43,7 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     }
 
     scene_id = scene->GetID();
+    
     QStandardItem* rootItem = model->invisibleRootItem();
     for (GameObject* rootObject : scene->GetRootObjects()) {
         AddGameObjectNode(rootItem, rootObject);
