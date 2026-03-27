@@ -19,6 +19,48 @@
 
 #include <unordered_set>
 
+namespace {
+void SubscribeTransformRecursive(Transform* transform, SceneTree* tree) {
+    if (!transform) return;
+
+    GameObject* gameObject = transform->GetGameObject();
+    if (!gameObject) return;
+
+    std::string gameObjectId = gameObject->GetID();
+    
+    transform->Subscribe([tree, gameObjectId](std::any data) {
+        // Skip if the tree is handling a drop (UI already moved)
+        if (tree->IsHandlingDrop()) return;
+        
+        std::string newParentTransformId = std::any_cast<std::string>(data);
+        
+        // Convert transform ID to gameobject ID
+        std::string newParentGameObjectId;
+        if (!newParentTransformId.empty()) {
+            Transform* parentTransform = Registry::FindInRuntime<Transform>(newParentTransformId);
+            if (parentTransform && parentTransform->GetGameObject()) {
+                newParentGameObjectId = parentTransform->GetGameObject()->GetID();
+            }
+        }
+        
+        tree->ReparentItem(gameObjectId, newParentGameObjectId);
+    }, Transform::PARENT_CHANGED_EVENT);
+
+    for (Transform* child : transform->GetChildren()) {
+        SubscribeTransformRecursive(child, tree);
+    }
+}
+
+void SubscribeToSceneTransforms(Scene* scene, SceneTree* tree) {
+    if (!scene || !tree) return;
+    
+    for (GameObject* rootObject : scene->GetRootObjects()) {
+        Transform* transform = rootObject->GetTransform();
+        SubscribeTransformRecursive(transform, tree);
+    }
+}
+}
+
 HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
     setMinimumWidth(300);
     setMaximumWidth(600);
@@ -64,13 +106,13 @@ void HierarchyGui::AddSceneTree() {
     Scene* scene = sceneManager->GetScenes().back();
     
     SceneTree* tree = new SceneTree();
-    std::string id = scene->GetID();
-    sceneTrees[id] = tree;
+    std::string sceneId = scene->GetID();
+    sceneTrees[sceneId] = tree;
     tree->RebuildFromScene(scene);
-    scene->Subscribe([tree, id](){
-        auto* scene = Registry::FindInRuntime<Scene>(id);
-        tree->RebuildFromScene(scene);
-    }, Scene::HIERARCHY_CHANGED_EVENT);
+
+    // Subscribe to each root object's transform for reparenting events
+    SubscribeToSceneTransforms(scene, tree);
+    
     this->layout->addWidget(tree);
 }
 

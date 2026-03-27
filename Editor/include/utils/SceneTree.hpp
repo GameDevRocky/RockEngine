@@ -14,19 +14,32 @@
 #include <QStandardItemModel>
 #include "engine/core/Scene.hpp"
 
+class GameObject;
+
 class SceneTree : public QTreeView{
     Q_OBJECT
 
     public:
         SceneTree(QWidget* parent = nullptr);
         void RebuildFromScene(Scene* scene);
+        
+        void AddItem(const std::string& parentId, GameObject* child);
+        void RemoveItem(const std::string& id);
+        void ReparentItem(const std::string& childId, const std::string& newParentId);
+
+        QStandardItemModel* GetModel() const { return model; }
+        const std::string& GetSceneId() const { return scene_id; }
+        bool IsHandlingDrop() const { return handlingDrop; }
 
     protected:
         void dropEvent(QDropEvent* event) override;
 
     private:
-    std::string scene_id;
-    QStandardItemModel* model = nullptr;
+        QModelIndex FindItemById(const std::string& id) const;
+        
+        std::string scene_id;
+        QStandardItemModel* model = nullptr;
+        bool handlingDrop = false;
 };
 
 class GamobjectItem : public QStandardItem {

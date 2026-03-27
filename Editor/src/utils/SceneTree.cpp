@@ -26,15 +26,14 @@ bool WouldCreateCycle(Transform* childTransform, Transform* newParentTransform) 
     return false;
 }
 
-void AddGameObjectNode(QStandardItemModel* model, QStandardItem* parentItem, GameObject* gameObject) {
-    if (!model || !parentItem || !gameObject) return;
+GamobjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* gameObject) {
+    if (!model || !gameObject) return nullptr;
 
     const std::string& id = gameObject->GetID();
     const std::string name = gameObject->GetName();
     auto* item = new GamobjectItem(name.c_str());
     item->SetGameObjectId(id);
     item->setFlags(item->flags() | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
-    parentItem->appendRow(item);
 
     QString idQt = QString::fromStdString(id);
     gameObject->Subscribe([model, idQt](){
@@ -51,11 +50,22 @@ void AddGameObjectNode(QStandardItemModel* model, QStandardItem* parentItem, Gam
         auto* obj = Registry::FindInRuntime<GameObject>(idQt.toStdString());
         if (!obj) return;
         
-        QStandardItem* item = model->itemFromIndex(matches.front());
-        if (item) {
-            item->setText(obj->GetName().c_str());
+        QStandardItem* foundItem = model->itemFromIndex(matches.front());
+        if (foundItem) {
+            foundItem->setText(obj->GetName().c_str());
         }
     }, GameObject::NAME_CHANGED_EVENT);
+
+    return item;
+}
+
+void AddGameObjectNode(QStandardItemModel* model, QStandardItem* parentItem, GameObject* gameObject) {
+    if (!model || !parentItem || !gameObject) return;
+
+    auto* item = CreateGameObjectItem(model, gameObject);
+    if (!item) return;
+    
+    parentItem->appendRow(item);
     
     Transform* transform = gameObject->GetTransform();
 
@@ -65,7 +75,7 @@ void AddGameObjectNode(QStandardItemModel* model, QStandardItem* parentItem, Gam
         AddGameObjectNode(model, item, childObject);
     }
 }
-} 
+}
 
 SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     model = new QStandardItemModel(this);
@@ -156,5 +166,103 @@ void SceneTree::dropEvent(QDropEvent* event) {
     if (!event->isAccepted())
         return;
 
+    // Set flag to prevent ReparentItem from running during SetParent callback
+    handlingDrop = true;
     childTransform->SetParent(parentTransform, true);
+    handlingDrop = false;
+}
+
+QModelIndex SceneTree::FindItemById(const std::string& id) const {
+    QString idQt = QString::fromStdString(id);
+    QModelIndexList matches = model->match(
+        model->index(0, 0),
+        GAMEOBJECT_ID_ROLE,
+        idQt,
+        1,
+        Qt::MatchExactly | Qt::MatchRecursive
+    );
+    
+    if (matches.empty())
+        return QModelIndex();
+    
+    return matches.front();
+}
+
+void SceneTree::AddItem(const std::string& parentId, GameObject* child) {
+    if (!child) return;
+
+    QStandardItem* parentItem = nullptr;
+    
+    if (parentId.empty()) {
+        parentItem = model->invisibleRootItem();
+    } else {
+        QModelIndex parentIndex = FindItemById(parentId);
+        if (!parentIndex.isValid()) return;
+        parentItem = model->itemFromIndex(parentIndex);
+    }
+    
+    if (!parentItem) return;
+
+    auto* item = CreateGameObjectItem(model, child);
+    if (!item) return;
+    
+    parentItem->appendRow(item);
+    
+    // Add children recursively
+    Transform* transform = child->GetTransform();
+    if (transform) {
+        for (Transform* childTransform : transform->GetChildren()) {
+            if (!childTransform) continue;
+            GameObject* childObject = childTransform->GetGameObject();
+            AddGameObjectNode(model, item, childObject);
+        }
+    }
+}
+
+void SceneTree::RemoveItem(const std::string& id) {
+    QModelIndex index = FindItemById(id);
+    if (!index.isValid()) return;
+    
+    QStandardItem* item = model->itemFromIndex(index);
+    if (!item) return;
+    
+    QStandardItem* parentItem = item->parent();
+    if (!parentItem) {
+        parentItem = model->invisibleRootItem();
+    }
+    
+    parentItem->removeRow(item->row());
+}
+
+void SceneTree::ReparentItem(const std::string& childId, const std::string& newParentId) {
+    QModelIndex childIndex = FindItemById(childId);
+    if (!childIndex.isValid()) return;
+    
+    QStandardItem* childItem = model->itemFromIndex(childIndex);
+    if (!childItem) return;
+    
+    // Get old parent
+    QStandardItem* oldParent = childItem->parent();
+    if (!oldParent) {
+        oldParent = model->invisibleRootItem();
+    }
+    
+    // Get new parent
+    QStandardItem* newParent = nullptr;
+    if (newParentId.empty()) {
+        newParent = model->invisibleRootItem();
+    } else {
+        QModelIndex newParentIndex = FindItemById(newParentId);
+        if (!newParentIndex.isValid()) return;
+        newParent = model->itemFromIndex(newParentIndex);
+    }
+    
+    if (!newParent || oldParent == newParent) return;
+    
+    // Take the row from old parent (preserves item and children)
+    int row = childItem->row();
+    QList<QStandardItem*> taken = oldParent->takeRow(row);
+    
+    // Append to new parent
+    newParent->appendRow(taken);
 }
