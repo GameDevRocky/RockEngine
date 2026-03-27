@@ -7,7 +7,13 @@
 void Transform::Init(){
     if (state >= State::Initialized) return; 
     registry = container->FindSystem<Registry>();
-    
+    if (parent_id.empty()){
+        SetParent(nullptr);
+        return;
+    }
+    Transform* parentTransform = registry->Find<Transform>(parent_id);
+    if (parentTransform) SetParent(parentTransform);
+    MarkDirty();
     state = State::Initialized; 
 }
 
@@ -15,22 +21,7 @@ void Transform::PostInit(){
     if (state >= State::PostInitialized) return;
     
     Console::Comment("Transform::PostInit called for " + GetID() + ", parent_id: '" + parent_id + "'");
-    
-    if (!parent_id.empty()){
-
-        Transform* parentTransform = registry->Find<Transform>(parent_id);
-        
-        if (!parentTransform) {
-            Console::Warn("Unable to find Transform parent during PostDeserialize");
-            return;
-        }
-        
-        parentTransform->children_ids.push_back(GetID());
-        Console::Comment("Transform parent-child relationship established: child '" + GetID() + "' -> parent '" + parent_id + "'");
-        
-        // Mark dirty since parent relationship affects world matrix
-        MarkDirty();
-    }
+  
     state = State::PostInitialized; 
 }
 

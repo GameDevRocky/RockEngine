@@ -73,7 +73,7 @@ class GameObject : public RuntimeObject {
     void SetActive(bool val);
     bool GetActive(){return active;}
 
-    void SetScene(const std::string& id);
+    void SetScene(Scene* scene);
     Scene* GetScene();
     
     template<typename T>

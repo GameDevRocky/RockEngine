@@ -10,9 +10,9 @@ void GameObject::AddComponent(Component* comp) {
     if(!comp) return;
     Registry* registry = container->FindSystem<Registry>();
     comp->Attach(this->container);
-    comp->SetGameObject(this);
     registry->Register(comp);
     component_ids[comp->GetTypeName()] = comp->GetID(); 
+    comp->SetGameObject(this);
     this->Notify(GameObject::ADD_COMPONENT_EVENT);
 }
 
@@ -28,19 +28,15 @@ void GameObject::Deserialize(const YAML::Node& node) {
     }
 }
 
-void GameObject::SetScene(const std::string& id){
-    
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
-    Scene* scene = registry->Find<Scene>(scene_id);
-    if (scene){
-        scene_id = id;
-        Notify(GameObject::SCENE_CHANGED_EVENT); 
-    }
+void GameObject::SetScene(Scene* scene){
+    if (!scene) return;
+    if (scene_id == scene->GetID()) return;
+    scene_id = scene->GetID();
+    Notify(GameObject::SCENE_CHANGED_EVENT); 
 }
+
 Scene* GameObject::GetScene(){
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+    Registry* registry = container->FindSystem<Registry>();
     Scene* scene = registry->Find<Scene>(scene_id);
     if (!scene) return nullptr;
     return scene;
@@ -131,6 +127,7 @@ GameObject* GameObject::Copy(){
     GameObject* copy = new GameObject();
     copy->id = id;
     copy->name = name;
+    copy->subscribers = subscribers;
     copy->active = active;
     copy->component_ids = component_ids;
     copy->transform_id = transform_id;

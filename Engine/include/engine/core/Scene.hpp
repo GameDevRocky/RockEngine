@@ -13,6 +13,9 @@ class Registry;
 class Scene : public RuntimeObject{
 public:
 
+    static inline const Event HIERARCHY_SYNC_EVENT = Scene::CreateEvent();
+
+
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
 
@@ -28,7 +31,9 @@ public:
     std::string GetTypeName() override { return "Scene"; }
     
     void AddGameObject(GameObject* obj);
-    void RemoveGameObject(GameObject* obj){};
+    void Sync(GameObject* obj);
+    void SyncRootObjects(const std::string& child_id, const std::string& parent_id);
+    void SyncAllObjects(const std::string& id);
     
     std::vector<GameObject*> GetRootObjects();
     std::vector<GameObject*> GetAllGameObjects();
@@ -39,13 +44,18 @@ public:
     Scene* Copy() override;
     Scene* Copy(Container* container) override;
 
+
+
     Scene() = default;
     ~Scene() = default;
+
+
 
 private:
     
     std::string name;
     std::vector<std::string> rootobject_ids;
+    std::vector<std::string> gameobject_ids;
     Registry* registry = nullptr;
 
 
