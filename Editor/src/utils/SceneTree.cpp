@@ -114,6 +114,13 @@ void SceneTree::RebuildFromScene(Scene* scene) {
 }
 
 void SceneTree::dropEvent(QDropEvent* event) {
+    // Only allow drops ON items (parenting), not above/below (reordering)
+    DropIndicatorPosition pos = dropIndicatorPosition();
+    if (pos == AboveItem || pos == BelowItem) {
+        event->ignore();
+        return;
+    }
+
     const QModelIndex draggedIndex = currentIndex();
     const QString childIdQt = draggedIndex.data(GAMEOBJECT_ID_ROLE).toString();
 
