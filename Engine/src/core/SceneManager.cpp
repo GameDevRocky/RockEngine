@@ -79,8 +79,17 @@ void SceneManager::Update() {
 
 void SceneManager::LoadScene(const std::string& file_path){
     std::cout << "Loading scene from path: " + file_path << std::endl;
-    Scene* scene = new Scene();
     YAML::Node root = YAML::LoadFile(file_path);
+    
+    if (root["id"]) {
+        std::string id = root["id"].as<std::string>();
+        if (std::find(scene_ids.begin(), scene_ids.end(), id) != scene_ids.end()) {
+            std::cout << "Scene already loaded: " + id << std::endl;
+            return;
+        }
+    }
+
+    Scene* scene = new Scene();
     scene->Attach(container);
 
     std::cout << "Deserializing scene from path: " + file_path << std::endl;

@@ -27,4 +27,23 @@ void BindGameObject(pybind11::module_& m) {
         return false;
     });
 
+    gameobject_module.def("set_name", [](const std::string& id, std::string& val) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id); 
+        if (go) {
+            go->SetName(val);
+        }
+    });
+
+    gameobject_module.def("get_name", [](const std::string& id) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id); 
+        if (go) {
+            return go->GetName();
+        }
+        return std::string("");
+    });
+
 }

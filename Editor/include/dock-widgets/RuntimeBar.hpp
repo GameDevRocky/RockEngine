@@ -1,6 +1,7 @@
 #pragma once
 #include <QWidget>
-class QPushButton; // Forward declaration
+
+class QPushButton;
 
 class RuntimeBar : public QWidget {
     Q_OBJECT

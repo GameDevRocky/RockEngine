@@ -267,3 +267,17 @@ QMenuBar::item:selected
    background: rgba(0, 0, 0, 30);
    border: none;
 }
+
+
+/*===========================================================================
+ * SceneTree
+ *===========================================================================*/
+SceneTree
+{
+    color: palette(text);
+}
+
+SceneTree::item:disabled
+{
+    color: rgb(128, 128, 128);
+}

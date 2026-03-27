@@ -13,7 +13,6 @@ void RuntimeBar::Init() {
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(5);
     
-
     QIcon* playIcon = new QIcon("Domain/lib/assets/icons/play_icon.png");
     playButton = new QPushButton("", this);
     playButton->setIcon(*playIcon);

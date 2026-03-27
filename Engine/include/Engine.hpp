@@ -9,6 +9,8 @@
 
 class Engine : public Observable {
 public:
+    static inline const Event ENTER_PLAY_MODE_EVENT = Engine::CreateEvent();
+    static inline const Event EXIT_PLAY_MODE_EVENT = Engine::CreateEvent();
     static Engine* Get() {
         static Engine* instance = new Engine();
         return instance;

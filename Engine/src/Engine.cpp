@@ -51,6 +51,7 @@ void Engine::EnterPlayMode(){
     activeContainer = runtimeContainer;
     runtimeContainer->Awake();
     runtimeContainer->Start();
+    Notify(ENTER_PLAY_MODE_EVENT);
 }
 
 void Engine::ExitPlayMode(){

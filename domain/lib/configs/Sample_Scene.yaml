@@ -8,7 +8,7 @@ components:
     enabled: true
     type: "Transform"
     gameobject: "o1"
-    localPosition: [0, 100]
+    localPosition: [0, 0]
     localRotation: 0
     localScale: [1, 1]
     parent_id: null
@@ -27,35 +27,20 @@ components:
     flipY: false
     visible: true
 
-  - id: "r1"
+  - id: "sc1"
     enabled: true
-    type: "RigidBody"
+    type: "ScriptComponent"
     gameobject: "o1"
-    bodyType: "Dynamic"
-    useGravity: false
-    lockRotation: true
-    mass: 1.0
-
-  - id: "cs1"
-    enabled: true
-    type: "CapsuleCollider"
-    gameobject: "o1"
-    center : [0, 0]
-    isSensor: false
-    density : 1.0
-    friction : 0.1
-    bounciness : 0.2
-    rollingResistance : 0.0
-    radius: 32.0
-    height: 20.0
+    module: "Test"
+    class: "TestScript"
 
   - id: "t2"
     enabled: true
     type: "Transform"
     gameobject: "o2"
-    localPosition: [0, -100]
+    localPosition: [50, 0]
     localRotation: 0
-    localScale: [100, 20]
+    localScale: [20, 20]
     parent_id: null
 
   - id: "s2"
@@ -72,91 +57,6 @@ components:
     flipY: false
     visible: true
 
-  - id: "b2"
-    enabled: true
-    type: "BoxCollider"
-    gameobject: "o2"
-    center : [0, 0]
-    isSensor: false
-    density : 1.0
-    friction : 0.1
-    bounciness : 0.1
-    rollingResistance : 0.0
-    size: [0.0, 0.0]
-  
-  - id: "t3"
-    enabled: true
-    type: "Transform"
-    gameobject: "o3"
-    localPosition: [0, 0]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: null
-  
-  - id: "sc3"
-    enabled: true
-    type: "ScriptComponent"
-    gameobject: "o3"
-    module: "Test"
-    class: "TestScript"
-
-  - id: "c3"
-    enabled: true
-    type: "BoxCollider"
-    gameobject: "o3"
-    center : [0, 0]
-    isSensor: false
-    density : 1.0
-    friction : 0.1
-    bounciness : 0.1
-    rollingResistance : 0.0
-    size: [50.0, 50.0]
-
-  - id: "t4"
-    enabled: true
-    type: "Transform"
-    gameobject: "o4"
-    localPosition: [120, 0]
-    localRotation: 0
-    localScale: [20, 20]
-    parent_id: "t1"
-
-  - id: "s4"
-    enabled: true
-    type: "SpriteRenderer"
-    gameobject: "o4"
-    material_id: "m2"
-    sprite_id: "sprite1"
-    color: [1,1,1,1]
-    uvOffset: [1.0, 0.0]
-    uvScale: [1.0, 1.0]
-    sortingOrder: 2
-    flipX: false
-    flipY: false
-    visible: true
-
-  - id: "b4"
-    enabled: true
-    type: "BoxCollider"
-    gameobject: "o4"
-    center : [0, 0]
-    isSensor: false
-    density : 1.0
-    friction : 0.1
-    bounciness : 0.1
-    rollingResistance : 0.0
-    size: [0.0, 0.0]
-
-  - id: "sc4"
-    enabled: true
-    type: "ScriptComponent"
-    gameobject: "o4"
-    module: "UnparentOnAwake"
-    class: "UnparentOnAwake"
-    
-
-
-
 gameobjects:
   - id: "o1"
     type: "GameObject"
@@ -165,8 +65,7 @@ gameobjects:
     component_ids:
       Transform: "t1"
       SpriteRenderer: "s1"
-      RigidBody: "r1"
-      CapsuleCollider: "cs1"
+      ScriptComponent: "sc1"
 
   - id: "o2"
     type: "GameObject"
@@ -175,24 +74,6 @@ gameobjects:
     component_ids:
       Transform: "t2"
       SpriteRenderer: "s2"
-      RigidBody: "r2"
-      BoxCollider: "b2"
+ 
 
-  - id: "o3"
-    type: "GameObject"
-    name: "Block"
-    isRootObject : false
-    component_ids:
-      Transform: "t3"
-      BoxCollider: "c3"
-      ScriptComponent: "sc3"
-
-  - id: "o4"
-    type: "GameObject"
-    name: "Child_Right"
-    isRootObject : false
-    component_ids:
-      Transform: "t4"
-      SpriteRenderer: "s4"
-      BoxCollider: "b4"
-      ScriptComponent: "sc4"
+  

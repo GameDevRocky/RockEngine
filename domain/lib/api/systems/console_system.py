@@ -10,8 +10,8 @@ class Console:
     
     @staticmethod
     def warn(message):
-        console_module.comment(str(message))
+        console_module.warn(str(message))
     
     @staticmethod
     def alert(message):
-        console_module.comment(str(message))
+        console_module.alert(str(message))

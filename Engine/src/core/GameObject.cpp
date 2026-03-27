@@ -122,6 +122,14 @@ void GameObject::SetActive(bool active){
     this->active = active;
     if (notify) Notify(GameObject::ACTIVE_CHANGED_EVENT); 
 }
+void GameObject::SetName(std::string& name){
+    bool notify = false;
+    if (this->name != name){
+        notify = true;
+    }
+    this->name = name;
+    if (notify) Notify(GameObject::NAME_CHANGED_EVENT); 
+}
 
 GameObject* GameObject::Copy(){
     GameObject* copy = new GameObject();

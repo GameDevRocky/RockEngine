@@ -77,9 +77,7 @@ void Editor::Init() {
 
 void Editor::Update(){
     SceneViewGui::Get()->update();
-    GameViewGui::Get()->update();
-    HierarchyGui::Get()->RefreshHierarchy();
-    
+    GameViewGui::Get()->update();    
 }
 
 void Editor::PostInit() {

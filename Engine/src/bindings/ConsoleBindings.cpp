@@ -13,10 +13,10 @@ void BindConsoleManager(pybind11::module_& m) {
     });
     
     console_module.def("warn", [](std::string& message) {
-        Console::Comment(message);
+        Console::Warn(message);
     }); 
 
     console_module.def("alert", [](std::string& message) {
-        Console::Comment(message);
+        Console::Alert(message);
     });
 }

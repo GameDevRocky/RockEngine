@@ -33,7 +33,7 @@ public:
     void PostInit();
     void RefreshHierarchy();
     void AddSceneTree();
-    void RemoveSceneTree();
+    void RemoveSceneTree(const std::string& id);
     explicit HierarchyGui(QWidget* parent = nullptr);
 
 protected:

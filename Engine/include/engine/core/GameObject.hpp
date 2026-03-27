@@ -26,6 +26,7 @@ class GameObject : public RuntimeObject {
     static inline const Event ADD_COMPONENT_EVENT = GameObject::CreateEvent();
     static inline const Event REMOVE_COMPONENT_EVENT = GameObject::CreateEvent();
     static inline const Event SCENE_CHANGED_EVENT = GameObject::CreateEvent();
+    static inline const Event NAME_CHANGED_EVENT = GameObject::CreateEvent();
 
     void Deserialize(const YAML::Node& node) override;
 
@@ -69,6 +70,7 @@ class GameObject : public RuntimeObject {
     
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
+    void SetName(std::string& name);
     std::string GetName() {return name;}
     void SetActive(bool val);
     bool GetActive(){return active;}

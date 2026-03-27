@@ -21,6 +21,14 @@ class GameObject:
     @active.setter
     def active(self, val):
         gameobject_module.set_active(self.id, val)
+
+    @property
+    def name(self):
+        return gameobject_module.get_name(self.id)
+
+    @name.setter
+    def name(self, val):
+        gameobject_module.set_name(self.id, val)
     
     @property 
     def transform(self):

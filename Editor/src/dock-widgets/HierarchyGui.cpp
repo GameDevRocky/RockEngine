@@ -43,7 +43,19 @@ void HierarchyGui::PostInit(){
     sceneManager->Subscribe([this](){
         this->AddSceneTree();
     }, SceneManager::LOADED_SCENE_EVENT);
-    
+
+    sceneManager->Subscribe([this](std::any data){
+        const std::string& id = std::any_cast<std::string>(data);
+        this->RemoveSceneTree(id);
+    }, SceneManager::LOADED_SCENE_EVENT);
+
+    Engine::Get()->Subscribe([this](){
+        this->RefreshHierarchy();
+    }, Engine::ENTER_PLAY_MODE_EVENT);
+
+    Engine::Get()->Subscribe([this](){
+        this->RefreshHierarchy();
+    }, Engine::EXIT_PLAY_MODE_EVENT);
 }
 
 
@@ -52,8 +64,8 @@ void HierarchyGui::AddSceneTree() {
     Scene* scene = sceneManager->GetScenes().back();
     
     SceneTree* tree = new SceneTree();
-    sceneTrees[scene->GetID()] = tree;
     std::string id = scene->GetID();
+    sceneTrees[id] = tree;
     tree->RebuildFromScene(scene);
     scene->Subscribe([tree, id](){
         auto* scene = Registry::FindInRuntime<Scene>(id);
@@ -61,16 +73,18 @@ void HierarchyGui::AddSceneTree() {
     }, Scene::HIERARCHY_CHANGED_EVENT);
     this->layout->addWidget(tree);
 }
-void HierarchyGui::RemoveSceneTree() {
+
+
+
+void HierarchyGui::RemoveSceneTree(const std::string& id) {
     
     
 }
 void HierarchyGui::RefreshHierarchy() {
-    auto* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
-    Scene* scene = sceneManager->GetScenes().back();
-
-    SceneTree* tree = new SceneTree();
-    
+    for (auto& [id, tree] : sceneTrees) {
+        Scene* scene = Registry::FindInRuntime<Scene>(id);
+        tree->RebuildFromScene(scene);
+    }
 }
 
 

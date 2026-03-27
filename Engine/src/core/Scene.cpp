@@ -79,7 +79,7 @@ void Scene::Update()
     for (auto &root : GetRootObjects())
     {
         root->recurseTopDown([&](GameObject *obj)
-                             { obj->Update(); });
+                             { if (obj->GetActive()) obj->Update(); });
     }
 }
 void Scene::FixedUpdate()
@@ -87,7 +87,7 @@ void Scene::FixedUpdate()
     for (auto &root : GetRootObjects())
     {
         root->recurseTopDown([&](GameObject *obj)
-                             { obj->FixedUpdate(); });
+                             {  if (obj->GetActive()) obj->FixedUpdate(); });
     }
 }
 void Scene::LateUpdate()
@@ -95,7 +95,7 @@ void Scene::LateUpdate()
     for (auto &root : GetRootObjects())
     {
         root->recurseTopDown([&](GameObject *obj)
-                             { obj->LateUpdate(); });
+                             {  if (obj->GetActive()) obj->LateUpdate(); });
     }
 }
 
