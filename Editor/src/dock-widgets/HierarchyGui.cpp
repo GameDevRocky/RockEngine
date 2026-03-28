@@ -29,7 +29,7 @@ void SubscribeTransformRecursive(Transform* transform, SceneTree* tree) {
     std::string gameObjectId = gameObject->GetID();
     
     transform->Subscribe([tree, gameObjectId](const std::any& data) {
-        if (tree->IsHandlingDrop()) return;
+        //if (tree->IsHandlingDrop()) return;
         
         std::string newParentTransformId = std::any_cast<std::string>(data);
         
@@ -148,11 +148,14 @@ void HierarchyGui::RefreshHierarchy() {
         if (sceneTrees.count(sceneId)) {
             // Tree exists — just rebuild it
             sceneTrees[sceneId]->RebuildFromScene(scene);
+            // Ensure transform subscriptions are up to date after rebuild
+            SubscribeToSceneTransforms(scene, sceneTrees[sceneId]);
         } else {
             // New scene — add a new tree
             AddSceneTree(sceneId);
         }
     }
+    
 }
 
 
