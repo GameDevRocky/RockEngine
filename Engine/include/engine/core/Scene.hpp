@@ -57,7 +57,6 @@ private:
     std::string name;
     std::vector<std::string> rootobject_ids;
     std::vector<std::string> gameobject_ids;
-    Registry* registry = nullptr;
 
 
 };

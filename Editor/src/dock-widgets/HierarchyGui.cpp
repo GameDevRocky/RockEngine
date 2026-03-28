@@ -16,7 +16,7 @@
 #include "engine/utils/Callback.hpp"
 #include "Engine.hpp"
 #include "engine/debug/Console.hpp"
-
+#include "engine/serialization/Registry.hpp"
 #include <unordered_set>
 
 namespace {
@@ -83,8 +83,9 @@ void HierarchyGui::Init(){
 void HierarchyGui::PostInit(){
     std::cout << "Hierarchy Post Initialized" << std::endl;
     auto* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
-    sceneManager->Subscribe([this](){
-        this->AddSceneTree();
+    sceneManager->Subscribe([this](const std::any& data){
+        const std::string& id = std::any_cast<std::string>(data);
+        this->AddSceneTree(id);
     }, SceneManager::LOADED_SCENE_EVENT);
 
     sceneManager->Subscribe([this](std::any data){
@@ -102,23 +103,18 @@ void HierarchyGui::PostInit(){
 }
 
 
-void HierarchyGui::AddSceneTree() {
-    auto* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
-    Scene* scene = sceneManager->GetScenes().back();
+void HierarchyGui::AddSceneTree(const std::string& scene_id) {
+    auto* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+    Scene* scene = registry->Find<Scene>(scene_id);
     
     SceneTree* tree = new SceneTree();
     std::string sceneId = scene->GetID();
     sceneTrees[sceneId] = tree;
     tree->RebuildFromScene(scene);
     tree->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-
-    // Subscribe to each root object's transform for reparenting events
     SubscribeToSceneTransforms(scene, tree);
-    
-    // Insert before the stretch (which is the last item)
     int insertIndex = layout->count() - 1;
     layout->insertWidget(insertIndex, tree);
-    //layout->addWidget(tree, Qt::AlignTop);
 }
 
 
@@ -128,9 +124,13 @@ void HierarchyGui::RemoveSceneTree(const std::string& id) {
     
 }
 void HierarchyGui::RefreshHierarchy() {
-    for (auto& [id, tree] : sceneTrees) {
-        Scene* scene = Registry::FindInRuntime<Scene>(id);
-        tree->RebuildFromScene(scene);
+    for (auto& [id, tree] : sceneTrees) tree->deleteLater();
+    sceneTrees.clear();
+    SceneManager* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
+    const auto& scenes = sceneManager->GetScenes();
+
+    for (auto* scene : scenes) {
+        AddSceneTree(scene->GetID());        
     }
 }
 

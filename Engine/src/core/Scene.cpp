@@ -35,7 +35,6 @@ void Scene::PostInit()
 
     std::cout << "Post Initializing Scene: " << name << std::endl;
 
-    // PostInit all GameObjects flatly to ensure all are called
     for (auto* obj : GetAllGameObjects())
     {
         obj->PostInit();

@@ -2,6 +2,11 @@
 #include "engine/serialization/Serializable.hpp"
 
 class Container;
+class Registry;
+class PhysicsSystem;
+class SceneManager;
+class TimeManager;
+class InputManager;
 
 class RuntimeObject : public Serializable {
 public:
@@ -31,7 +36,7 @@ public:
     virtual void Shutdown(){}
 
     Container* GetContainer() const { return container; }
-    virtual void Attach(Container* inContainer) { container = inContainer; }
+    virtual void Attach(Container* container);
     virtual RuntimeObject* Copy(){ return nullptr; }
     virtual RuntimeObject* Copy(Container* container){ return nullptr; }
 
@@ -39,6 +44,11 @@ protected:
     RuntimeObject() = default;
     virtual ~RuntimeObject() = default;
     Container* container = nullptr;
+    Registry* registry = nullptr;
+    TimeManager* timeManager = nullptr;
+    PhysicsSystem* physicsSystem = nullptr;
+    InputManager* inputManager = nullptr;
+    SceneManager* sceneManager = nullptr;
     State state =  State::Allocated;
 
 };

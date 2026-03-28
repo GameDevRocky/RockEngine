@@ -1,19 +1,19 @@
 #include "engine/utils/Callback.hpp"
 
+static int next_id = 0;
 
-
-Callback::Callback(Observable* instance, const payload_function& cb){
-    this->instance = std::make_shared<Observable*>(instance);
+Callback::Callback(const payload_function& cb){
+    this->id = next_id++;
     this->cb = cb;
 }
 
-Callback::Callback(Observable* instance, const function& cb){
-    this->instance = std::make_shared<Observable*>(instance);
+Callback::Callback(const function& cb){
+    this->id = next_id++;
     this->cb = [cb](std::any) { cb(); };
 }
 
 
-bool Callback::Execute(std::any data){
+bool Callback::Execute(const std::any& data){
     try{
         this->cb(data);
         return true;

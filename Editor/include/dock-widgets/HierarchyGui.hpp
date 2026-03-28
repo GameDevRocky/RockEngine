@@ -32,7 +32,7 @@ public:
     void Init();
     void PostInit();
     void RefreshHierarchy();
-    void AddSceneTree();
+    void AddSceneTree(const std::string& scene_id);
     void RemoveSceneTree(const std::string& id);
     explicit HierarchyGui(QWidget* parent = nullptr);
 

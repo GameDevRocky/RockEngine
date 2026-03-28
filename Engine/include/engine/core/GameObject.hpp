@@ -101,7 +101,4 @@ class GameObject : public RuntimeObject {
     std::string transform_id;
     std::vector<std::string> temp_ids;
     std::string scene_id;
-    
-    Registry* registry = nullptr;
-
 };

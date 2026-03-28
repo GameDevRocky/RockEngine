@@ -6,8 +6,7 @@
 #include <cstdint>
 #include <limits>
 #include <any>
-
-class Callback;
+#include "engine/utils/Callback.hpp"
 
 class Observable {
 public:
@@ -20,15 +19,15 @@ public:
 
     static Event CreateEvent();
 
-    Callback* Subscribe(const payload_function& lambda, Event event = ANY_EVENT);
-    Callback* Subscribe(const function& lambda, Event event = ANY_EVENT);
-    void Unsubscribe(Callback* cb);
+    void Subscribe(const payload_function& lambda, Event event = ANY_EVENT);
+    void Subscribe(const function& lambda, Event event = ANY_EVENT);
+    void Unsubscribe(Callback& cb);
 
-    void Notify(Event event = ANY_EVENT, std::any data = {});
+    void Notify(Event event = ANY_EVENT, const std::any& data = {});
     ~Observable();
 
 protected:
-    std::unordered_map<Event, std::vector<Callback*>> subscribers;
+    std::unordered_map<Event, std::vector<Callback>> subscribers;
 
 private:
     static std::atomic<Event> next_event_id;

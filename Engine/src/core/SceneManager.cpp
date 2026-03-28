@@ -108,7 +108,7 @@ void SceneManager::LoadScene(const std::string& file_path){
 
     scene_ids.push_back(scene->GetID());
     std::cout << "Completed loading scene from path: " + file_path << std::endl;
-    Notify(LOADED_SCENE_EVENT);
+    Notify(LOADED_SCENE_EVENT, scene->GetID());
 }
 
 
