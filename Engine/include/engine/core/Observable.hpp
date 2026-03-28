@@ -19,9 +19,10 @@ public:
 
     static Event CreateEvent();
 
-    void Subscribe(const payload_function& lambda, Event event = ANY_EVENT);
-    void Subscribe(const function& lambda, Event event = ANY_EVENT);
+    int Subscribe(const payload_function& lambda, Event event = ANY_EVENT);
+    int Subscribe(const function& lambda, Event event = ANY_EVENT);
     void Unsubscribe(Callback& cb);
+    void Unsubscribe(int id);
 
     void Notify(Event event = ANY_EVENT, const std::any& data = {});
     ~Observable();

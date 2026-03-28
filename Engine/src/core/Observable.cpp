@@ -16,18 +16,31 @@ Observable::~Observable(){
 }
 
 
-void Observable::Subscribe(const payload_function& lambda, Event event) {
+int Observable::Subscribe(const payload_function& lambda, Event event) {
     this->subscribers[event].emplace_back(lambda);
+    return this->subscribers[event].back().GetID();
 }
 
-void Observable::Subscribe(const function& lambda, Event event) {
+int Observable::Subscribe(const function& lambda, Event event) {
     this->subscribers[event].emplace_back(lambda);
+    return this->subscribers[event].back().GetID();
 }
 
 void Observable::Unsubscribe(Callback& cb){
 
     for (auto& [_, callbacks] : this->subscribers) {
         auto it = std::find(callbacks.begin(), callbacks.end(), cb);
+        if (it != callbacks.end()) {
+            callbacks.erase(it);
+            return;
+        }
+    }
+}
+
+void Observable::Unsubscribe(int id) {
+    for (auto& [_, callbacks] : this->subscribers) {
+        auto it = std::find_if(callbacks.begin(), callbacks.end(),
+            [id](const Callback& cb) { return cb.GetID() == id; });
         if (it != callbacks.end()) {
             callbacks.erase(it);
             return;

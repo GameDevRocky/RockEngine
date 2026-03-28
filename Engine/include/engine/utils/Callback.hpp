@@ -16,7 +16,7 @@ class Callback{
         Callback(const payload_function& cb);
         Callback(const function& cb);
         ~Callback() = default;
-        int GetID(){return id;}
+        int GetID() const {return id;}
         bool Execute(const std::any& data);
 
         bool operator==(const Callback& other) const {

@@ -30,34 +30,32 @@ bool WouldCreateCycle(Transform* childTransform, Transform* newParentTransform) 
     return false;
 }
 
-GamobjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* gameObject) {
+GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* gameObject) {
     if (!model || !gameObject) return nullptr;
 
     const std::string& id = gameObject->GetID();
     const std::string name = gameObject->GetName();
-    auto* item = new GamobjectItem(name.c_str());
+    auto* item = new GameObjectItem(name.c_str());
     item->SetGameObjectId(id);
     item->setFlags(item->flags() | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
-
-    QString idQt = QString::fromStdString(id);
-    gameObject->Subscribe([model, idQt](){
+    
+    gameObject->Subscribe([model, id](){
+        QString idQt = QString::fromStdString(id);
         QModelIndexList matches = model->match(
             model->index(0, 0),
-            GAMEOBJECT_ID_ROLE,
+            Qt::UserRole + 1,
             idQt,
             1,
             Qt::MatchExactly | Qt::MatchRecursive
         );
-        if (matches.empty())
-            throw std::runtime_error("Item destroyed");
-        
-        auto* obj = Registry::FindInRuntime<GameObject>(idQt.toStdString());
+        if (matches.empty()) return;
+
+        auto* obj = Registry::FindInRuntime<GameObject>(id);
         if (!obj) return;
-        
-        QStandardItem* foundItem = model->itemFromIndex(matches.front());
-        if (foundItem) {
-            foundItem->setText(obj->GetName().c_str());
-        }
+
+        auto* liveItem = static_cast<GameObjectItem*>(model->itemFromIndex(matches.front()));
+        if (!liveItem) return;
+        liveItem->setText(obj->GetName().c_str());
     }, GameObject::NAME_CHANGED_EVENT);
 
     return item;

@@ -123,14 +123,37 @@ void HierarchyGui::RemoveSceneTree(const std::string& id) {
     
     
 }
+
 void HierarchyGui::RefreshHierarchy() {
-    for (auto& [id, tree] : sceneTrees) tree->deleteLater();
-    sceneTrees.clear();
     SceneManager* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
     const auto& scenes = sceneManager->GetScenes();
 
+    // Build a set of current scene IDs
+    std::unordered_set<std::string> currentSceneIds;
     for (auto* scene : scenes) {
-        AddSceneTree(scene->GetID());        
+        currentSceneIds.insert(scene->GetID());
+    }
+
+    // Remove trees that no longer have a matching scene
+    for (auto it = sceneTrees.begin(); it != sceneTrees.end(); ) {
+        if (currentSceneIds.find(it->first) == currentSceneIds.end()) {
+            it->second->deleteLater();
+            it = sceneTrees.erase(it);
+        } else {
+            ++it;
+        }
+    }
+
+    // Rebuild remaining trees and add new ones
+    for (auto* scene : scenes) {
+        std::string sceneId = scene->GetID();
+        if (sceneTrees.count(sceneId)) {
+            // Tree exists — just rebuild it
+            sceneTrees[sceneId]->RebuildFromScene(scene);
+        } else {
+            // New scene — add a new tree
+            AddSceneTree(sceneId);
+        }
     }
 }
 
