@@ -2,7 +2,7 @@
 #include  "iostream"
 
 InspectorGui::InspectorGui(QWidget* parent) : QWidget(parent){
-    setMinimumWidth(300);
+    setMinimumWidth(200);
 }
 
 void InspectorGui::Init(){ 

@@ -62,10 +62,11 @@ void SubscribeToSceneTransforms(Scene* scene, SceneTree* tree) {
 }
 
 HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
-    setMinimumWidth(300);
-    setMaximumWidth(600);
+    setMinimumWidth(200);
+    setMaximumWidth(400);
     layout = new QVBoxLayout();
-    layout->setContentsMargins(0,0,0,0);
+    layout->setContentsMargins(4,4,4,4);
+    layout->addStretch(1);
     
     setLayout(layout);
     setAcceptDrops(true);
@@ -109,11 +110,15 @@ void HierarchyGui::AddSceneTree() {
     std::string sceneId = scene->GetID();
     sceneTrees[sceneId] = tree;
     tree->RebuildFromScene(scene);
+    tree->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
 
     // Subscribe to each root object's transform for reparenting events
     SubscribeToSceneTransforms(scene, tree);
     
-    this->layout->addWidget(tree);
+    // Insert before the stretch (which is the last item)
+    int insertIndex = layout->count() - 1;
+    layout->insertWidget(insertIndex, tree);
+    //layout->addWidget(tree, Qt::AlignTop);
 }
 
 

@@ -8,7 +8,7 @@
 
 void RuntimeBar::Init() {
     setObjectName("RuntimeBar");
-    setContentsMargins(0,0,0,0);
+    setContentsMargins(0,8,0,0);
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(5);

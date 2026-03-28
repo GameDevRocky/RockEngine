@@ -34,12 +34,16 @@ class SceneTree : public QTreeView{
     protected:
         void dropEvent(QDropEvent* event) override;
 
+    private slots:
+        void OnHeaderClicked(int section);
+
     private:
         QModelIndex FindItemById(const std::string& id) const;
         
         std::string scene_id;
         QStandardItemModel* model = nullptr;
         bool handlingDrop = false;
+        bool collapsed = false;
 };
 
 class GamobjectItem : public QStandardItem {

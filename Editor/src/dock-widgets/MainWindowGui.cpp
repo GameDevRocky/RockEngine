@@ -80,6 +80,7 @@ void MainWindow::Init()
     runtimeBarDock->setWidget(runtime_bar);
     runtimeBarDock->setAllowedAreas(Qt::TopDockWidgetArea);
     runtimeBarDock->setContentsMargins(0, 0, 0, 0);
+    runtimeBarDock->setTitleBarWidget(new QWidget());
     addDockWidget(Qt::TopDockWidgetArea, runtimeBarDock);
     runtimeBarDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
@@ -90,6 +91,8 @@ void MainWindow::Init()
     consoleDock->setObjectName("Console");
 
     tabifyDockWidget(consoleDock, folderViewDock);
+
+    resizeDocks({fileExplorerDock}, {200}, Qt::Vertical);
 
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::TopDockWidgetArea);
@@ -125,7 +128,7 @@ void MainWindow::LoadLayout()
 
 void MainWindow::Shutdown(){
     SaveLayout();
-    ClearLayout();
+    //ClearLayout();
 }
 
 

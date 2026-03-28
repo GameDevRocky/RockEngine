@@ -5,9 +5,13 @@
 #include "engine/serialization/Registry.hpp"
 #include "Engine.hpp"
 
+#include <QSizePolicy>
+#include "utils/SceneTreeItemDelegate.hpp"
 #include <QStandardItem>
 #include <QModelIndexList>
+#include <QHeaderView>
 #include <stdexcept>
+
 
 namespace {
 constexpr int GAMEOBJECT_ID_ROLE = Qt::UserRole + 1;
@@ -88,6 +92,16 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     setDefaultDropAction(Qt::MoveAction);
     setDragDropMode(QAbstractItemView::InternalMove);
     setDragDropOverwriteMode(false);
+    
+    header()->setSectionsClickable(true);
+    connect(header(), &QHeaderView::sectionClicked, this, &SceneTree::OnHeaderClicked);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+
+    // Set custom item delegate for increased row height
+    setItemDelegate(new SceneTreeItemDelegate(this));
 }
 
 void SceneTree::RebuildFromScene(Scene* scene) {
@@ -272,4 +286,40 @@ void SceneTree::ReparentItem(const std::string& childId, const std::string& newP
     
     // Append to new parent
     newParent->appendRow(taken);
+}
+
+void SceneTree::OnHeaderClicked(int section) {
+    Q_UNUSED(section);
+    
+    collapsed = !collapsed;
+    
+    // 1. Toggle row visibility
+    for (int i = 0; i < model->rowCount(); ++i) {
+        setRowHidden(i, QModelIndex(), collapsed);
+    }
+
+    if (collapsed) {
+        // 2. Force the widget to be exactly the height of the header
+        // This physically collapses the widget in the layout
+        int headerHeight = header()->height();
+        setFixedHeight(headerHeight);
+        
+        // Disable scrollbars explicitly to prevent ghost spacing
+        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    } else {
+        // 3. Restore flexibility
+        // Set maximum to a very large number (equivalent to QWIDGETSIZE_MAX)
+        setMaximumHeight(16777215); 
+        setMinimumHeight(0);
+        
+        // Switch back to your preferred policy or fixed height calculation
+        // This tells the layout "I can grow again"
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+        
+        // Trigger a recalculation of the size hint
+        updateGeometry();
+        
+        // If you want it to snap back to content height:
+        adjustSize(); 
+    }
 }
