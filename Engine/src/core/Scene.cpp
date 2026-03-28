@@ -187,7 +187,7 @@ void Scene::Sync(GameObject* obj){
     const std::string& obj_id = obj->GetID();
     const std::string& scene_id = GetID();
 
-    obj->GetTransform()->Subscribe([obj_id, scene_id](std::any data){
+    obj->GetTransform()->Subscribe([obj_id, scene_id](const std::any& data){
         Scene* scene = Registry::FindInRuntime<Scene>(scene_id);
         std::string parent_id = std::any_cast<std::string>(data);
         scene->SyncRootObjects(obj_id, parent_id);

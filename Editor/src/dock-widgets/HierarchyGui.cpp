@@ -28,13 +28,11 @@ void SubscribeTransformRecursive(Transform* transform, SceneTree* tree) {
 
     std::string gameObjectId = gameObject->GetID();
     
-    transform->Subscribe([tree, gameObjectId](std::any data) {
-        // Skip if the tree is handling a drop (UI already moved)
+    transform->Subscribe([tree, gameObjectId](const std::any& data) {
         if (tree->IsHandlingDrop()) return;
         
         std::string newParentTransformId = std::any_cast<std::string>(data);
         
-        // Convert transform ID to gameobject ID
         std::string newParentGameObjectId;
         if (!newParentTransformId.empty()) {
             Transform* parentTransform = Registry::FindInRuntime<Transform>(newParentTransformId);
