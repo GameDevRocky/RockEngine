@@ -19,14 +19,16 @@ public:
     void Update() override;
     void FixedUpdate() override;
     void LateUpdate() override;
-    void OnDestroy() override;
+    void Destroy() override;
+
+    void Shutdown() override;
 
     ScriptComponent* Copy() override;
 
     std::string GetTypeName() const override { return "ScriptComponent"; }
 
     ScriptComponent() = default;
-    ~ScriptComponent() override = default;
+    ~ScriptComponent() override;
 
 private:
     void InstantiateScript();

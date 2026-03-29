@@ -238,6 +238,11 @@ void Scene::SetName(const std::string& name){
     Notify(NAME_CHANGED_EVENT, name);
 }
 
+void Scene::Shutdown(){
+    
+
+}
+
 Scene *Scene::Copy()
 {
     Scene *copy = new Scene();

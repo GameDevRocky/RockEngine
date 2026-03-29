@@ -45,8 +45,14 @@ void Container::Update(){
     }
 }
 
-void Container::Shutdown(){
-    for (System* system : systems) {
-        system->Shutdown();
+void Container::Shutdown() {
+    for (auto it = systems.rbegin(); it != systems.rend(); ++it) {
+        if (*it) {
+            (*it)->Shutdown(); 
+        }
     }
+    for (System* system : systems) {
+        delete system;
+    }
+    systems.clear();
 }

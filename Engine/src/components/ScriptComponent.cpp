@@ -1,5 +1,6 @@
-#include "engine/components/ScriptComponent.hpp"
+#include <pybind11/gil.h>
 #include <pybind11/embed.h>
+#include "engine/components/ScriptComponent.hpp"
 #include <iostream>
 #include <filesystem>
 
@@ -43,10 +44,18 @@ void ScriptComponent::Update()      { if (container->GetMode() == Container::Mod
 void ScriptComponent::FixedUpdate() { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("fixed_update"); }
 void ScriptComponent::LateUpdate()  { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("late_update"); }
 
-void ScriptComponent::OnDestroy()
-{
-    CallIfExists("on_destroy");
-    scriptInstance = py::none();
+void ScriptComponent::Destroy() {
+    py::gil_scoped_acquire gil; // Lock here first
+    CallIfExists("on_destroy"); 
+    scriptInstance = py::object();
+}
+
+void ScriptComponent::Shutdown() {
+    if (Py_IsInitialized()) {
+        py::gil_scoped_acquire gil;
+        // Releasing the handle to the interpreter and nullifying the C++ wrapper
+        scriptInstance = py::object(); 
+    }
 }
 
 void ScriptComponent::InstantiateScript()
@@ -102,6 +111,7 @@ void ScriptComponent::InstantiateScript()
 
 void ScriptComponent::CallIfExists(const char* funcName)
 {
+    py::gil_scoped_acquire gil;
     if (!scriptInstance || scriptInstance.is_none()) {
         std::cerr << "[ScriptComponent] scriptInstance invalid in " << funcName << std::endl;
         return;
@@ -112,7 +122,7 @@ void ScriptComponent::CallIfExists(const char* funcName)
         return;
     }
 
-    py::gil_scoped_acquire gil;
+    
 
     if (!py::hasattr(scriptInstance, funcName))
         return;
@@ -125,6 +135,13 @@ void ScriptComponent::CallIfExists(const char* funcName)
                   << e.what() << std::endl;
     }
 }
+ScriptComponent::~ScriptComponent() {
+    if (Py_IsInitialized()) {
+        py::gil_scoped_acquire gil;
+        scriptInstance = py::none();
+    }
+    // If Python is finalized, just leak the ref — Python already cleaned it up
+}
 
 ScriptComponent* ScriptComponent::Copy(){
     ScriptComponent* copy = new ScriptComponent();
@@ -135,3 +152,4 @@ ScriptComponent* ScriptComponent::Copy(){
     copy->className = className;
     return copy;
 }
+

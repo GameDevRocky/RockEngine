@@ -114,7 +114,7 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     scene->Subscribe([this](const std::any& data){
         const std::string& name = std::any_cast<std::string>(data);
         model->setHorizontalHeaderLabels({name.c_str()});
-    });
+    }, Scene::NAME_CHANGED_EVENT);
 
     scene_id = scene->GetID();
     

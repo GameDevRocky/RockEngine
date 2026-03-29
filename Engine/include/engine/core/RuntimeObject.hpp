@@ -18,6 +18,9 @@ public:
     static inline const Event SHUTDOWN_EVENT = Observable::CreateEvent();
     static inline const Event CHANGED_EVENT = Observable::CreateEvent();
 
+    RuntimeObject() = default;
+    virtual ~RuntimeObject() = default;
+    
     enum State {
         Allocated,
         Loaded,
@@ -41,8 +44,6 @@ public:
     virtual RuntimeObject* Copy(Container* container){ return nullptr; }
 
 protected:
-    RuntimeObject() = default;
-    virtual ~RuntimeObject() = default;
     Container* container = nullptr;
     Registry* registry = nullptr;
     TimeManager* timeManager = nullptr;

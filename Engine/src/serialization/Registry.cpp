@@ -31,6 +31,13 @@ void Registry::Unregister(RuntimeObject* obj) {
         runtimeObjects.erase(it);
 }
 
+void Registry::Shutdown(){
+    for (auto& [key, obj] : runtimeObjects){
+        obj->Shutdown();
+        delete obj;
+    }
+}
+
 Registry* Registry::Copy(){
 
     Registry* registry = new Registry();

@@ -56,7 +56,9 @@ void Engine::EnterPlayMode(){
 
 void Engine::ExitPlayMode(){
     runtimeContainer->Shutdown();
+    delete runtimeContainer;
     activeContainer = editorContainer;
+    Notify(EXIT_PLAY_MODE_EVENT);
 }
 
 void Engine::LoadDefaultScene(){

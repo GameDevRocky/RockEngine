@@ -18,9 +18,11 @@ public:
     explicit RuntimeBar(QWidget* parent = nullptr);
 private:
     ~RuntimeBar() override = default;
-    QPushButton* playButton;
-    QPushButton* stopButton;
-    QPushButton* pauseButton;
+    QPushButton* runtimeButton = nullptr;
+    QPushButton* pauseButton = nullptr;
+
+    QIcon* playIcon = nullptr;
+    QIcon* stopIcon = nullptr;
 
 
 };

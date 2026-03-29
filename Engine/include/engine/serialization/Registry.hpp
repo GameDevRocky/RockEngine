@@ -15,7 +15,7 @@ private:
 public:
 
     Registry() = default;
-    
+    void Shutdown() override;
     Registry* Copy() override;
     Registry* Copy(Container* container) override;
     

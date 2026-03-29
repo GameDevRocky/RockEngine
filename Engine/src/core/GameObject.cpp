@@ -130,6 +130,11 @@ void GameObject::SetName(std::string& name){
     this->name = name;
     if (notify) Notify(GameObject::NAME_CHANGED_EVENT); 
 }
+void GameObject::Shutdown(){
+    subscribers.clear();
+    component_ids.clear();
+}
+
 
 GameObject* GameObject::Copy(){
     GameObject* copy = new GameObject();
@@ -139,7 +144,6 @@ GameObject* GameObject::Copy(){
     copy->active = active;
     copy->component_ids = component_ids;
     copy->transform_id = transform_id;
-    copy->temp_ids = temp_ids;
     copy->scene_id = scene_id;
     return copy;
 }

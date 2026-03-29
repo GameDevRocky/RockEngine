@@ -17,7 +17,7 @@ public:
     
     virtual void LateUpdate(){}
     virtual void FixedUpdate(){}
-    virtual void OnDestroy() {}
+    virtual void Destroy() {}
     
     virtual YAML::Node Serialize(){
         YAML::Node node = Serializable::Serialize();

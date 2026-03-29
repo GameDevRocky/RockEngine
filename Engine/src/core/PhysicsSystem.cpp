@@ -26,7 +26,6 @@ void PhysicsSystem::Shutdown(){
     if (B2_IS_NON_NULL(worldId)) {
         b2DestroyWorld(worldId);
         worldId = b2_nullWorldId;
-
     }
 }
 

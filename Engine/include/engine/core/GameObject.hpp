@@ -35,6 +35,7 @@ class GameObject : public RuntimeObject {
     void Awake() override;
     void Start() override;
     void Update() override;
+    void Shutdown() override;
     
     void FixedUpdate();
     void LateUpdate();
@@ -91,7 +92,7 @@ class GameObject : public RuntimeObject {
         for (auto& child : GetTransform()->GetChildren()) {
             child->GetGameObject()->recurseBottomUp(callback);
         }
-        callback(this); // Execute on Parent LAST
+        callback(this);
     }
     
 
@@ -99,6 +100,5 @@ class GameObject : public RuntimeObject {
     bool active = true;
     std::map<std::string, std::string> component_ids;
     std::string transform_id;
-    std::vector<std::string> temp_ids;
     std::string scene_id;
 };

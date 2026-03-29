@@ -18,6 +18,7 @@ public:
     void Awake() override;
     void Start() override;
     void Update() override;
+    void Shutdown() override;
 
     void LoadScene(const std::string& file_path);
     void RemoveScene(const std::string& scene_id);
@@ -33,9 +34,4 @@ public:
 private:
     std::vector<std::string> scene_ids;
     float accumulator = 0.0f;
-
-    Registry* registry;
-    TimeManager* timeManager;
-    PhysicsSystem* physicsSystem;
-
 };

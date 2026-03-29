@@ -125,6 +125,10 @@ std::vector<Scene*> SceneManager::GetScenes() const {
     return scenes;
 }
 
+void SceneManager::Shutdown(){
+   
+}
+
 SceneManager* SceneManager::Copy(){
     SceneManager* copy = new SceneManager();
     copy->scene_ids = scene_ids;
