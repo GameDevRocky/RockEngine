@@ -233,6 +233,11 @@ std::vector<GameObject*> Scene::GetAllGameObjects()
     return result;
 }
 
+void Scene::SetName(const std::string& name){
+    this->name = name;
+    Notify(NAME_CHANGED_EVENT, name);
+}
+
 Scene *Scene::Copy()
 {
     Scene *copy = new Scene();

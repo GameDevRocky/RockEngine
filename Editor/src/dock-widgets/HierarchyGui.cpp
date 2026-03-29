@@ -29,7 +29,6 @@ void SubscribeTransformRecursive(Transform* transform, SceneTree* tree) {
     std::string gameObjectId = gameObject->GetID();
     
     transform->Subscribe([tree, gameObjectId](const std::any& data) {
-        //if (tree->IsHandlingDrop()) return;
         
         std::string newParentTransformId = std::any_cast<std::string>(data);
         
@@ -126,13 +125,11 @@ void HierarchyGui::RefreshHierarchy() {
     SceneManager* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
     const auto& scenes = sceneManager->GetScenes();
 
-    // Build a set of current scene IDs
     std::unordered_set<std::string> currentSceneIds;
     for (auto* scene : scenes) {
         currentSceneIds.insert(scene->GetID());
     }
 
-    // Remove trees that no longer have a matching scene
     for (auto it = sceneTrees.begin(); it != sceneTrees.end(); ) {
         if (currentSceneIds.find(it->first) == currentSceneIds.end()) {
             it->second->deleteLater();
@@ -142,16 +139,12 @@ void HierarchyGui::RefreshHierarchy() {
         }
     }
 
-    // Rebuild remaining trees and add new ones
     for (auto* scene : scenes) {
         std::string sceneId = scene->GetID();
         if (sceneTrees.count(sceneId)) {
-            // Tree exists — just rebuild it
             sceneTrees[sceneId]->RebuildFromScene(scene);
-            // Ensure transform subscriptions are up to date after rebuild
             SubscribeToSceneTransforms(scene, sceneTrees[sceneId]);
         } else {
-            // New scene — add a new tree
             AddSceneTree(sceneId);
         }
     }
@@ -204,7 +197,6 @@ void HierarchyGui::dragMoveEvent(QDragMoveEvent* event) {
 }
 
 void HierarchyGui::dropEvent(QDropEvent* event) {
-    // Clear visual feedback
     setStyleSheet("");
     
     if (!event->mimeData()->hasUrls()) {
@@ -212,7 +204,6 @@ void HierarchyGui::dropEvent(QDropEvent* event) {
         return;
     }
     
-    // Get the first .yaml file from the dropped files
     for (const QUrl& url : event->mimeData()->urls()) {
         if (!url.isLocalFile())
             continue;

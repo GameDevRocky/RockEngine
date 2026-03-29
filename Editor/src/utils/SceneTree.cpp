@@ -97,8 +97,6 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-
-    // Set custom item delegate for increased row height
     setItemDelegate(new SceneTreeItemDelegate(this));
 }
 
@@ -113,6 +111,10 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     }
 
     model->setHorizontalHeaderLabels({scene->GetName().c_str()});
+    scene->Subscribe([this](const std::any& data){
+        const std::string& name = std::any_cast<std::string>(data);
+        model->setHorizontalHeaderLabels({name.c_str()});
+    });
 
     scene_id = scene->GetID();
     
@@ -126,7 +128,6 @@ void SceneTree::RebuildFromScene(Scene* scene) {
 }
 
 void SceneTree::dropEvent(QDropEvent* event) {
-    // Only allow drops ON items (parenting), not above/below (reordering)
     DropIndicatorPosition pos = dropIndicatorPosition();
     if (pos == AboveItem || pos == BelowItem) {
         event->ignore();

@@ -14,6 +14,7 @@ class Scene : public RuntimeObject{
 public:
 
     static inline const Event HIERARCHY_CHANGED_EVENT = Scene::CreateEvent();
+    static inline const Event NAME_CHANGED_EVENT = Scene::CreateEvent();
     
 
 
@@ -40,7 +41,7 @@ public:
     std::vector<GameObject*> GetAllGameObjects();
     
     const std::string& GetName() const { return name; }
-    void SetName(const std::string& newName) { name = newName; Notify(); }
+    void SetName(const std::string& newName);
     
     Scene* Copy() override;
     Scene* Copy(Container* container) override;
