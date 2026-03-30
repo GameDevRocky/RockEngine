@@ -77,11 +77,10 @@ void ScriptComponent::InstantiateScript()
         std::string scriptsPath = GetAssetPath("Domain/sandbox/scripts");
         std::string libPath = GetAssetPath("Domain/lib");
 
-        std::string projectRoot = GetAssetPath(""); // This returns the C:/.../RockEngine path
+        std::string projectRoot = GetAssetPath("");
 
-        // 2. Add it to the list of folders Python checks
         std::vector<std::string> folders = {
-            projectRoot,                             // Add this so 'import Domain.x' works
+            projectRoot,                            
             scriptsPath,
             libPath
         };
@@ -155,7 +154,6 @@ ScriptComponent::~ScriptComponent() {
         py::gil_scoped_acquire gil;
         scriptInstance = py::none();
     }
-    // If Python is finalized, just leak the ref — Python already cleaned it up
 }
 
 ScriptComponent* ScriptComponent::Copy(){
