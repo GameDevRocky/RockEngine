@@ -10,6 +10,14 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 add_compile_definitions(PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
 if(MSVC)
     add_compile_options(/Zc:__cplusplus)
+    
+    # Enable Hot Reload (Edit and Continue)
+    string(REPLACE "/Zi" "/ZI" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    string(REPLACE "/Zi" "/ZI" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+    set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /INCREMENTAL")
+    
+    # Ensure optimizations are off for Debug
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /RTC1")
 else()
     add_compile_options(-Wall -Wextra)
 endif()

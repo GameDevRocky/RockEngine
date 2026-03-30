@@ -6,6 +6,7 @@
 #include "Engine.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include <filesystem> // <--- ADD THIS LINE
+#include "engine/debug/Console.hpp"
 
 using namespace EngineUtils;
 void SceneManager::Init(){
@@ -81,7 +82,6 @@ void SceneManager::Update() {
 
 
 void SceneManager::LoadScene(const std::string& file_path){
-   
     std::string finalPath = file_path;
 
     std::filesystem::path p(file_path);
