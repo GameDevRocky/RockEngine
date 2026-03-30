@@ -2,23 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "RockEngine: configure (qt-mingw-debug)",
+            "label": "RockEngine: configure (qt-msvc-debug)",
             "type": "shell",
-            "command": "\"C:/Program Files/CMake/bin/cmake.exe\" --preset qt-mingw-debug",
+            "command": "cmake --preset qt-msvc-debug",
             "problemMatcher": [],
-            "detail": "Configure with the qt-mingw-debug CMake preset (Qt + MinGW)."
+            "detail": "Configure with the MSVC + Qt 6.11.0 CMake preset."
         },
         {
-            "label": "RockEngine: build (qt-mingw-debug)",
+            "label": "RockEngine: build (qt-msvc-debug)",
             "type": "shell",
-            "command": "\"C:/Program Files/CMake/bin/cmake.exe\" --build --preset qt-mingw-debug",
-            "dependsOn": ["RockEngine: configure (qt-mingw-debug)"],
+            "command": "cmake --build --preset qt-msvc-debug",
+            "dependsOn": ["RockEngine: configure (qt-msvc-debug)"],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": "$gcc",
-            "detail": "Build with the qt-mingw-debug CMake build preset."
+            "problemMatcher": "$msCompile",
+            "detail": "Build with the MSVC + Qt 6.11.0 CMake build preset."
         }
     ]
 }

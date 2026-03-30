@@ -2,8 +2,8 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug RockEngine",
-            "type": "cppdbg",
+            "name": "Debug RockEngine (MSVC)",
+            "type": "cppvsdbg",
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
@@ -12,7 +12,7 @@
             "environment": [
                 { 
                     "name": "PATH", 
-                    "value": "C:\\Qt\\6.10.0\\mingw_64\\bin;C:\\Qt\\Tools\\mingw1310_64\\bin;C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314;${env:PATH}" 
+                    "value": "C:\\Qt\\6.11.0\\msvc2022_64\\bin;C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314;${env:PATH}" 
                 },
                 {
                     "name": "PYTHONHOME",
@@ -23,17 +23,9 @@
                     "value": "C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314\\Lib;${workspaceFolder}"
                 }
             ],
-            "externalConsole": false,
-            "MIMode": "gdb",
-            "miDebuggerPath": "C:\\Qt\\Tools\\mingw1310_64\\bin\\gdb.exe",
-            "setupCommands": [
-                {
-                    "description": "Enable pretty-printing for gdb",
-                    "text": "-enable-pretty-printing",
-                    "ignoreFailures": true
-                }
-            ],
-            "visualizerFile": "${workspaceFolder}/.vscode/qt6.natvis"
+            "console": "integratedTerminal",
+            "visualizerFile": "${workspaceFolder}/.vscode/qt6.natvis",
+            "showDisplayString": true
         }
     ]
 }

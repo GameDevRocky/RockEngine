@@ -3,12 +3,26 @@
   "configurePresets": [
     {
       "name": "windows-msvc-debug",
-      "displayName": "Qt 6.11 MSVC Debug",
+      "displayName": "RockEngine MSVC Debug (VS 2026)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/out/build/debug",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "host=x64",
+        "strategy": "external"
+      },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "CMAKE_PREFIX_PATH": "C:/Qt/6.11.0/msvc2022_64"
+        "CMAKE_PREFIX_PATH": "C:/Qt/6.11.0/msvc2022_64",
+        "CMAKE_MAKE_PROGRAM": "C:/Program Files/Microsoft Visual Studio/18/Community/Common7/IDE/CommonExtensions/Microsoft/CMake/Ninja/ninja.exe",
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      },
+      "environment": {
+        "QTDIR": "C:/Qt/6.11.0/msvc2022_64"
       }
     },
     {
@@ -26,7 +40,7 @@
   ],
   "vendor": {
     "qt-project.org/Presets": {
-      "checksum": "dFaVxdex/GeJ4I/6byU9c3m3cNc="
+      "checksum": "/5otVaAnXUpUOchgYhu9wR5Iv7s="
     }
   }
 }
