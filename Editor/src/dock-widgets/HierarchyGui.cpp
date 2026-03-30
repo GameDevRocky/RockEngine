@@ -85,7 +85,7 @@ void HierarchyGui::PostInit(){
         this->AddSceneTree(id);
     }, SceneManager::LOADED_SCENE_EVENT);
 
-    sceneManager->Subscribe([this](std::any data){
+    sceneManager->Subscribe([this](const std::any& data){
         const std::string& id = std::any_cast<std::string>(data);
         this->RemoveSceneTree(id);
     }, SceneManager::LOADED_SCENE_EVENT);

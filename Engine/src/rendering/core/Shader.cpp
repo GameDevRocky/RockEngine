@@ -2,7 +2,9 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/debug/Console.hpp"
 #include <iostream>
+#include "engine/utils/EngineUtils.hpp"
 
+using namespace EngineUtils;
 
 Shader::~Shader()
 {
@@ -14,8 +16,8 @@ Shader::~Shader()
 void Shader::Deserialize(const YAML::Node& node) {
     Serializable::Deserialize(node);
 
-    vert_path = node["vert_path"].as<std::string>();
-    frag_path = node["frag_path"].as<std::string>();
+    vert_path = GetAssetPath(node["vert_path"].as<std::string>());
+    frag_path = GetAssetPath(node["frag_path"].as<std::string>());
     name = node["name"].as<std::string>();
     vert_src = EngineUtils::ReadShader(vert_path);
     frag_src = EngineUtils::ReadShader(frag_path);

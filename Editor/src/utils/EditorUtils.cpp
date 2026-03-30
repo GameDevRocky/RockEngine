@@ -4,6 +4,9 @@
 #include <QStringList>
 #include <QIcon>
 #include <vector>
+#include "engine/utils/EngineUtils.hpp"
+
+using namespace EngineUtils;
 
 namespace EditorUtils {
 

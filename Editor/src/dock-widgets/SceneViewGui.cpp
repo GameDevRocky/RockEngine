@@ -11,8 +11,7 @@
 #include "engine/rendering/core/SharedResources.hpp"
 #include "Engine.hpp"
 
-#define RESOURCES_CONFIG_PATH "Domain/lib/configs/resources_config.yaml"
-
+#define RESOURCES_CONFIG_PATH PROJECT_ROOT "/Domain/lib/configs/resources_config.yaml"
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
 {

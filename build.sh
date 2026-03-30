@@ -15,8 +15,10 @@ for arg in "$@"; do
 done
 
 # --- Qt CMake path ---
-export CMAKE_PREFIX_PATH="C:/Qt/6.10.0/mingw_64/lib/cmake"
-export PATH="C:/Qt/Tools/mingw1310_64/bin:C:/Qt/6.10.0/mingw_64/bin:$PATH"
+
+# --- Qt CMake path ---
+export CMAKE_PREFIX_PATH="C:/Qt/6.11.0/mingw_64/lib/cmake"
+export PATH="C:/Qt/Tools/mingw1310_64/bin:C:/Qt/6.11.0/mingw_64/bin:$PATH"
 
 BUILD_DIR="build/qt-mingw-debug"
 
@@ -36,7 +38,7 @@ if [ ! -f "$BUILD_DIR/CMakeCache.txt" ]; then
         -DCMAKE_C_COMPILER="C:/Qt/Tools/mingw1310_64/bin/gcc.exe" \
         -DCMAKE_CXX_COMPILER="C:/Qt/Tools/mingw1310_64/bin/g++.exe" \
         -DCMAKE_MAKE_PROGRAM="C:/Qt/Tools/mingw1310_64/bin/mingw32-make.exe" \
-        -DCMAKE_PREFIX_PATH="C:/Qt/6.10.0/mingw_64/lib/cmake" \
+        -DCMAKE_PREFIX_PATH="C:/Qt/6.11.0/mingw_64/lib/cmake" \
         -DCMAKE_SYSTEM_NAME=Windows \
     -DCMAKE_C_FLAGS_DEBUG="-Og -g3 -fno-omit-frame-pointer" \
     -DCMAKE_CXX_FLAGS_DEBUG="-Og -g3 -fno-omit-frame-pointer"

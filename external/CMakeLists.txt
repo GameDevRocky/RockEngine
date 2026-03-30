@@ -43,10 +43,13 @@ target_link_libraries(ExternalLibs
         yaml-cpp
         box2d
         glad
+        Python3::Python
+        pybind11::embed
 )
 
 target_include_directories(ExternalLibs
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
         ${CMAKE_CURRENT_SOURCE_DIR}/stb
+        ${Python3_INCLUDE_DIRS}
 )

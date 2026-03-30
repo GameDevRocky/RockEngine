@@ -184,6 +184,10 @@ void Scene::AddGameObject(GameObject *obj)
 
 void Scene::Sync(GameObject* obj){
 
+    if (!obj) return; // Safety check #1
+
+    auto* transform = obj->GetTransform();
+
     const std::string& obj_id = obj->GetID();
     const std::string& scene_id = GetID();
 

@@ -2,7 +2,9 @@
 #include "stb_image.h"
 #include "engine/rendering/core/Texture2D.hpp"
 #include <iostream>
+#include "engine/utils/EngineUtils.hpp"
 
+using namespace EngineUtils;
 
 Texture2D::~Texture2D()
 {
@@ -57,7 +59,7 @@ void Texture2D::Awake(){
 void Texture2D::Deserialize(const YAML::Node &node){
     Serializable::Deserialize(node);
     name = node["name"].as<std::string>();
-    path = node["path"].as<std::string>();
+    path = GetAssetPath(node["path"].as<std::string>());
     filter = node["filtering"].as<std::string>() == "linear" ? TextureFilter::Linear : TextureFilter::Nearest;
     wrap = node["wrap"].as<std::string>() == "clamp" ? TextureWrap::Clamp : TextureWrap::Repeat;
 }

@@ -4,7 +4,10 @@
 #include "engine/core/TimeManager.hpp"
 #include "engine/core/PhysicsSystem.hpp"
 #include "Engine.hpp"
+#include "engine/utils/EngineUtils.hpp"
+#include <filesystem> // <--- ADD THIS LINE
 
+using namespace EngineUtils;
 void SceneManager::Init(){
 
     registry = container->FindSystem<Registry>();
@@ -78,8 +81,19 @@ void SceneManager::Update() {
 
 
 void SceneManager::LoadScene(const std::string& file_path){
+   
+    std::string finalPath = file_path;
+
+    std::filesystem::path p(file_path);
+    if (!p.is_absolute()) {
+        finalPath = GetAssetPath(file_path);
+    }
+
+    if (!std::filesystem::exists(finalPath)) {
+        return;
+    }
     std::cout << "Loading scene from path: " + file_path << std::endl;
-    YAML::Node root = YAML::LoadFile(file_path);
+    YAML::Node root = YAML::LoadFile(finalPath);
     
     if (root["id"]) {
         std::string id = root["id"].as<std::string>();

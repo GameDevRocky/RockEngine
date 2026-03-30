@@ -1,10 +1,13 @@
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/debug/Console.hpp"
 #include "engine/rendering/core/Resource.hpp"
-#define RESOURCES_CONFIG_PATH "Domain/lib/configs/resources_config.yaml"
+#include "engine/utils/EngineUtils.hpp"
+
+using namespace EngineUtils;
 
 void SharedResources::Deserialize(const YAML::Node& node){
-    const YAML::Node root = YAML::LoadFile(RESOURCES_CONFIG_PATH);
+    std::string configPath = GetAssetPath("Domain/lib/configs/resources_config.yaml");
+    const YAML::Node root = YAML::LoadFile(configPath);
     const YAML::Node data = root["Resources"];
     
     for (auto& texNode : data["Textures"])

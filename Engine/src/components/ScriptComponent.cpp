@@ -3,7 +3,9 @@
 #include "engine/components/ScriptComponent.hpp"
 #include <iostream>
 #include <filesystem>
+#include "engine/utils/EngineUtils.hpp"
 
+using namespace EngineUtils;
 namespace fs = std::filesystem;
 
 YAML::Node ScriptComponent::Serialize()
@@ -60,7 +62,7 @@ void ScriptComponent::Shutdown() {
 
 void ScriptComponent::InstantiateScript()
 {
-    if (moduleName.empty() || className.empty()){
+    if (moduleName.empty() || className.empty()) {
         std::cerr << "[ScriptComponent] Module or class empty\n";
         scriptInstance = py::none();
         return;
@@ -71,24 +73,37 @@ void ScriptComponent::InstantiateScript()
     try {
         py::module sys = py::module::import("sys");
         py::list path = sys.attr("path");
-        fs::path scriptsFolder = fs::absolute("Domain/sandbox/scripts");
-        fs::path libFolder     = fs::absolute("Domain/lib");
-        std::vector<std::string> folders = { scriptsFolder.string(), libFolder.string() };
-        for (auto& folder : folders) {
+
+        std::string scriptsPath = GetAssetPath("Domain/sandbox/scripts");
+        std::string libPath = GetAssetPath("Domain/lib");
+
+        std::string projectRoot = GetAssetPath(""); // This returns the C:/.../RockEngine path
+
+        // 2. Add it to the list of folders Python checks
+        std::vector<std::string> folders = {
+            projectRoot,                             // Add this so 'import Domain.x' works
+            scriptsPath,
+            libPath
+        };
+
+        for (const auto& folder : folders) {
             bool alreadyAdded = false;
             for (auto item : path) {
-                if (std::string(py::str(item)) == folder) {
+                if (py::str(item).cast<std::string>() == folder) {
                     alreadyAdded = true;
                     break;
                 }
             }
-            if (!alreadyAdded)
+            if (!alreadyAdded) {
                 path.append(folder);
+            }
         }
 
         py::module module = py::module::import(moduleName.c_str());
+
         py::object cls = module.attr(className.c_str());
         scriptInstance = cls();
+
         scriptInstance.attr("_component_id") = GetID();
         GameObject* go = GetGameObject();
         if (go)
@@ -96,15 +111,15 @@ void ScriptComponent::InstantiateScript()
         else
             std::cerr << "[ScriptComponent] Warning: GameObject not found for script.\n";
 
-
-    } catch (const py::error_already_set& e) {
+    }
+    catch (const py::error_already_set& e) {
         std::cerr << "[ScriptComponent] Python error in InstantiateScript():\n"
-                  << e.what() << std::endl;
-        
+            << e.what() << std::endl;
         scriptInstance = py::none();
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "[ScriptComponent] C++ exception in InstantiateScript():\n"
-                  << e.what() << std::endl;
+            << e.what() << std::endl;
         scriptInstance = py::none();
     }
 }

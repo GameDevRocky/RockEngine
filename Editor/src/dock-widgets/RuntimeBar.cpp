@@ -8,6 +8,11 @@
 #include "Engine.hpp"
 #include "dock-widgets/MainWindowGui.hpp"
 #include "dock-widgets/GameViewGui.hpp"
+#include "engine/utils/EngineUtils.hpp"
+
+using namespace EngineUtils;
+
+
 namespace py = pybind11;
 
 void RuntimeBar::Init() {
@@ -15,10 +20,10 @@ void RuntimeBar::Init() {
     setContentsMargins(0,8,0,0);
     QHBoxLayout* layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(5);
+    layout->setSpacing(4);
     
-    playIcon = new QIcon("Domain/lib/assets/icons/play_icon.png");
-    stopIcon = new QIcon("Domain/lib/assets/icons/stop_icon.png");
+    playIcon = new QIcon(GetAssetPath("Domain/lib/assets/icons/play_icon.png").c_str());
+    stopIcon = new QIcon(GetAssetPath("Domain/lib/assets/icons/stop_icon.png").c_str());
     runtimeButton = new QPushButton("", this);
     runtimeButton->setIcon(*playIcon);
     runtimeButton->setFixedWidth(48);
@@ -37,7 +42,7 @@ void RuntimeBar::Init() {
         }
     });
     
-    QIcon* pauseIcon = new QIcon("Domain/lib/assets/icons/pause_icon.png");
+    QIcon* pauseIcon = new QIcon(GetAssetPath("Domain/lib/assets/icons/pause_icon.png").c_str());
     pauseButton = new QPushButton("", this);
     pauseButton->setIcon(*pauseIcon);
     pauseButton->setFixedWidth(48);
