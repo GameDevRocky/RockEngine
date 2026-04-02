@@ -2,6 +2,7 @@
 #include <QDebug>
 #include "engine/debug/Console.hpp"
 #include "engine/core/InputManager.hpp"
+#include "engine/core/SelectionManager.hpp"
 #include <glm/glm.hpp>
 #include "engine/rendering/passes/ClearPass.hpp"
 #include "engine/rendering/passes/ScenePass.hpp"
@@ -53,6 +54,7 @@ void SceneViewGui::initializeRenderPipeline(){
     renderPipeline->AddScenePass(scenePass);
     renderPipeline->AddScenePass(debugPass);
     renderPipeline->AddScenePass(pickingPass);
+    pickingPass->SetDebugDraw(false);  // Enable debug visualization
     
     renderPipeline->AddFinalizePass(imGuiPass);
     
@@ -211,25 +213,24 @@ void SceneViewGui::wheelEvent(QWheelEvent* event)
 
 bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
     ImGuiIO& io = ImGui::GetIO();
-
-    // 1. Update Mouse Position for ImGui
+    float dpi = devicePixelRatioF();
     if (event->type() == QEvent::MouseMove) {
         auto* me = static_cast<QMouseEvent*>(event);
-        io.MousePos = ImVec2(me->pos().x(), me->pos().y());
+        io.MousePos = ImVec2(me->pos().x() * dpi, me->pos().y() * dpi);
     }
 
-    // 2. Handle Clicks
     switch (event->type()) {
         case QEvent::MouseButtonPress: {
             auto* me = static_cast<QMouseEvent*>(event);
+            io.MousePos = ImVec2(me->pos().x() * dpi, me->pos().y() * dpi);
             if (me->button() == Qt::LeftButton) io.MouseDown[0] = true;
             if (me->button() == Qt::RightButton) io.MouseDown[1] = true;
             
-            // If mouse is over an ImGui window, 'true' stops Qt from calling mousePressEvent
             return io.WantCaptureMouse; 
         }
         case QEvent::MouseButtonRelease: {
             auto* me = static_cast<QMouseEvent*>(event);
+            io.MousePos = ImVec2(me->pos().x() * dpi, me->pos().y() * dpi);
             if (me->button() == Qt::LeftButton) io.MouseDown[0] = false;
             if (me->button() == Qt::RightButton) io.MouseDown[1] = false;
             return io.WantCaptureMouse;
@@ -255,6 +256,32 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
         isPanning = true;
         lastMousePos = event->pos();
         setCursor(Qt::ClosedHandCursor);
+        return;
+    }
+    
+    // Left click without modifier - try to select object
+    if (event->button() == Qt::LeftButton)
+    {
+        makeCurrent();  // Ensure OpenGL context is active for ReadPixel
+        
+        float dpi = devicePixelRatioF();
+        int fbX = static_cast<int>(event->pos().x() * dpi);
+        int fbY = static_cast<int>((height() - event->pos().y()) * dpi);  // Flip Y for OpenGL
+        
+        uint32_t pickId = pickingPass->ReadPixel(fbX, fbY);
+        
+        auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+        
+        if (pickId > 0) {
+            std::string objectId = pickingPass->GetPickedObjectId(pickId);
+            if (!objectId.empty()) {
+                selMgr->Select(objectId);
+                std::cout << "Selected GameObject: " << objectId << std::endl;
+            }
+        } else {
+            selMgr->Deselect();
+            std::cout << "Selection cleared" << std::endl;
+        }
     }
 }
 

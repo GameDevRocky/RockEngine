@@ -11,6 +11,9 @@ void ImGuiPass::Init()
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     
+    // Scale fonts for high-DPI displays
+    io.FontGlobalScale = 2.0f;
+    
     ImGui::StyleColorsDark();
     
     ImGui_ImplOpenGL3_Init("#version 460");
@@ -41,7 +44,7 @@ void ImGuiPass::Execute(RenderCamera* camera, Scene* scene)
         ImGuiWindowFlags_NoFocusOnAppearing |
         ImGuiWindowFlags_NoNav;
 
-    if (ImGui::Begin("StatsOverlay", nullptr, flags))
+    if (ImGui::Begin("StatsOverlay", nullptr))
     {
         ImGui::Text("Scene View");
         ImGui::Separator();

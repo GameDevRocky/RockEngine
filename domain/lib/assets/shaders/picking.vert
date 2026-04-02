@@ -15,9 +15,12 @@ uniform vec2 uUVOffset;
 
 void main()
 {
-    vec2 offset = (vec2(0.5) - uPivot) * uSize;
-    vec2 pos = (aPos * uSize) + offset;
+    // Scale quad by size
+    vec2 scaledPos = aPos * uSize;
     
-    gl_Position = uProj * uView * uModel * vec4(pos, 0.0, 1.0);
+    // Apply pivot offset (same as sprite shader)
+    scaledPos -= uSize * uPivot;
+    
+    gl_Position = uProj * uView * uModel * vec4(scaledPos, 0.0, 1.0);
     vTexCoord = aTexCoord * uUVScale + uUVOffset;
 }

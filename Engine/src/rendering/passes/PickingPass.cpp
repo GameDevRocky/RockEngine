@@ -36,7 +36,7 @@ void PickingPass::Init()
 
     glad_glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // Create Quad
+    // Create Quad for sprites
     float quadVerts[] = {
         // pos      // uv
         -0.5f, -0.5f, 0.0f, 0.0f,
@@ -59,7 +59,69 @@ void PickingPass::Init()
     glad_glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glad_glBindVertexArray(0);
 
-    // Get Shader
+    // Create fullscreen quad for debug overlay
+    float fullscreenQuad[] = {
+        // pos        // uv
+        -1.0f, -1.0f, 0.0f, 0.0f,
+         1.0f, -1.0f, 1.0f, 0.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
+
+        -1.0f, -1.0f, 0.0f, 0.0f,
+         1.0f,  1.0f, 1.0f, 1.0f,
+        -1.0f,  1.0f, 0.0f, 1.0f
+    };
+
+    glad_glGenVertexArrays(1, &debugVao);
+    glad_glGenBuffers(1, &debugVbo);
+    glad_glBindVertexArray(debugVao);
+    glad_glBindBuffer(GL_ARRAY_BUFFER, debugVbo);
+    glad_glBufferData(GL_ARRAY_BUFFER, sizeof(fullscreenQuad), fullscreenQuad, GL_STATIC_DRAW);
+    glad_glEnableVertexAttribArray(0);
+    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glad_glEnableVertexAttribArray(1);
+    glad_glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glad_glBindVertexArray(0);
+
+    // Create debug shader inline
+    const char* debugVert = R"(#version 460 core
+    layout(location = 0) in vec2 aPos;
+    layout(location = 1) in vec2 aTexCoord;
+    out vec2 vTexCoord;
+    void main() {
+        vTexCoord = aTexCoord;
+        gl_Position = vec4(aPos, 0.0, 1.0);
+    })";
+
+    const char* debugFrag = R"(#version 460 core
+    in vec2 vTexCoord;
+    out vec4 FragColor;
+    uniform usampler2D uPickingTexture;
+    uniform float uAlpha;
+    void main() {
+        uint id = texture(uPickingTexture, vTexCoord).r;
+        if (id == 0u) discard;
+        // Convert ID to color using simple hash
+        float r = fract(float(id) * 0.123);
+        float g = fract(float(id) * 0.456);
+        float b = fract(float(id) * 0.789);
+        FragColor = vec4(r, g, b, uAlpha);
+    })";
+
+    GLuint vs = glad_glCreateShader(GL_VERTEX_SHADER);
+    GLuint fs = glad_glCreateShader(GL_FRAGMENT_SHADER);
+    glad_glShaderSource(vs, 1, &debugVert, nullptr);
+    glad_glCompileShader(vs);
+    glad_glShaderSource(fs, 1, &debugFrag, nullptr);
+    glad_glCompileShader(fs);
+
+    debugShaderProgram = glad_glCreateProgram();
+    glad_glAttachShader(debugShaderProgram, vs);
+    glad_glAttachShader(debugShaderProgram, fs);
+    glad_glLinkProgram(debugShaderProgram);
+    glad_glDeleteShader(vs);
+    glad_glDeleteShader(fs);
+
+    // Get main picking shader
     shader = SharedResources::Get().GetShaderByName("picking");
 }
 
@@ -78,6 +140,9 @@ void PickingPass::Resize(int width, int height)
 
 void PickingPass::Execute(RenderCamera* camera, Scene* scene)
 {
+    // Clear the mapping for this frame
+    pickIdToObjectId.clear();
+    
     // Save the currently bound FBO so we can restore it
     GLint prevFBO = 0;
     glad_glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
@@ -109,6 +174,7 @@ void PickingPass::Execute(RenderCamera* camera, Scene* scene)
 
     glad_glBindVertexArray(vao);
 
+    uint32_t pickId = 1;  // Start at 1 (0 = no object)
     const auto& objects = scene->GetAllGameObjects();
     for(auto* obj : objects) {
         if(!obj) continue;
@@ -119,8 +185,9 @@ void PickingPass::Execute(RenderCamera* camera, Scene* scene)
         Transform* transform = obj->GetComponent<Transform>();
         if(!transform) continue;
 
-        // Set ID
-        uint32_t pickId = 1;
+        // Map this pickId to the GameObject ID
+        pickIdToObjectId[pickId] = obj->GetID();
+        
         shader->SetInt("uId", pickId);
         shader->SetMat4("uModel", transform->GetWorldMatrix());
         
@@ -158,7 +225,8 @@ void PickingPass::Execute(RenderCamera* camera, Scene* scene)
         }
 
         glad_glDrawArrays(GL_TRIANGLES, 0, 6);
-    
+        
+        pickId++;  // Increment for next object
     }
 
     glad_glBindVertexArray(0);
@@ -168,6 +236,11 @@ void PickingPass::Execute(RenderCamera* camera, Scene* scene)
     
     // Restore viewport to pipeline dimensions
     glad_glViewport(0, 0, viewportWidth, viewportHeight);
+    
+    // Draw debug overlay if enabled
+    if (debugDraw) {
+        DrawDebugOverlay();
+    }
 }
 
 uint32_t PickingPass::ReadPixel(int x, int y)
@@ -201,4 +274,38 @@ void PickingPass::Shutdown()
     glad_glDeleteTextures(1, &depthTexture);
     glad_glDeleteVertexArrays(1, &vao);
     glad_glDeleteBuffers(1, &vbo);
+    glad_glDeleteVertexArrays(1, &debugVao);
+    glad_glDeleteBuffers(1, &debugVbo);
+    if (debugShaderProgram) {
+        glad_glDeleteProgram(debugShaderProgram);
+        debugShaderProgram = 0;
+    }
 }
+
+void PickingPass::DrawDebugOverlay()
+{
+    glad_glDisable(GL_DEPTH_TEST);
+    glad_glEnable(GL_BLEND);
+    glad_glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    glad_glUseProgram(debugShaderProgram);
+    glad_glUniform1i(glad_glGetUniformLocation(debugShaderProgram, "uPickingTexture"), 0);
+    glad_glUniform1f(glad_glGetUniformLocation(debugShaderProgram, "uAlpha"), 0.5f);
+    
+    glad_glActiveTexture(GL_TEXTURE0);
+    glad_glBindTexture(GL_TEXTURE_2D, pickingTexture);
+    
+    glad_glBindVertexArray(debugVao);
+    glad_glDrawArrays(GL_TRIANGLES, 0, 6);
+    glad_glBindVertexArray(0);
+    
+    glad_glUseProgram(0);
+    glad_glEnable(GL_DEPTH_TEST);
+}
+
+std::string PickingPass::GetPickedObjectId(uint32_t pickId) const
+{
+    auto it = pickIdToObjectId.find(pickId);
+    return (it != pickIdToObjectId.end()) ? it->second : "";
+}
+
