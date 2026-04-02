@@ -44,6 +44,7 @@ public:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
+    bool eventFilter(QObject *obj, QEvent *event) override;
     glm::vec2 ScreenToWorld(const QPoint& p);
 
 

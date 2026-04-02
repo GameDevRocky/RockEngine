@@ -11,8 +11,12 @@
 #include "engine/rendering/passes/ImGuiPass.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "Engine.hpp"
-
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
 #define RESOURCES_CONFIG_PATH PROJECT_ROOT "/Domain/lib/configs/resources_config.yaml"
+
+
+
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
 {
@@ -61,7 +65,7 @@ void SceneViewGui::initializeRenderPipeline(){
  
 void SceneViewGui::initializeGL() {
     initializeOpenGLFunctions();
-
+    this->installEventFilter(this); 
     if (!gladLoadGL()) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return;
@@ -205,7 +209,41 @@ void SceneViewGui::wheelEvent(QWheelEvent* event)
     event->accept();
 }
 
+bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
+    ImGuiIO& io = ImGui::GetIO();
 
+    // 1. Update Mouse Position for ImGui
+    if (event->type() == QEvent::MouseMove) {
+        auto* me = static_cast<QMouseEvent*>(event);
+        io.MousePos = ImVec2(me->pos().x(), me->pos().y());
+    }
+
+    // 2. Handle Clicks
+    switch (event->type()) {
+        case QEvent::MouseButtonPress: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            if (me->button() == Qt::LeftButton) io.MouseDown[0] = true;
+            if (me->button() == Qt::RightButton) io.MouseDown[1] = true;
+            
+            // If mouse is over an ImGui window, 'true' stops Qt from calling mousePressEvent
+            return io.WantCaptureMouse; 
+        }
+        case QEvent::MouseButtonRelease: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            if (me->button() == Qt::LeftButton) io.MouseDown[0] = false;
+            if (me->button() == Qt::RightButton) io.MouseDown[1] = false;
+            return io.WantCaptureMouse;
+        }
+        case QEvent::Wheel: {
+            auto* we = static_cast<QWheelEvent*>(event);
+            io.MouseWheel += we->angleDelta().y() / 120.0f;
+            return io.WantCaptureMouse;
+        }
+        default:
+            break;
+    }
+    return QOpenGLWidget::eventFilter(obj, event);
+}
 
 void SceneViewGui::mousePressEvent(QMouseEvent* event)
 {
