@@ -45,9 +45,19 @@ void ScriptComponent::Start(){
 void ScriptComponent::Update()      { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("update"); }
 void ScriptComponent::FixedUpdate() { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("fixed_update"); }
 void ScriptComponent::LateUpdate()  { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("late_update"); }
+ 
+void ScriptComponent::OnCollisionEnter(GameObject* other) { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("handle_collision_enter", other->GetID().c_str());
+}
+void ScriptComponent::OnCollisionExit(GameObject* other) { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("handle_collision_exit", other->GetID().c_str());
+}
+void ScriptComponent::OnTriggerEnter(GameObject* other) { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("handle_trigger_enter", other->GetID().c_str());
+}
+void ScriptComponent::OnTriggerExit(GameObject* other) { if (container->GetMode() == Container::Mode::Runtime) CallIfExists("handle_trigger_exit", other->GetID().c_str());
+}
+
 
 void ScriptComponent::Destroy() {
-    py::gil_scoped_acquire gil; // Lock here first
+    py::gil_scoped_acquire gil;
     CallIfExists("on_destroy"); 
     scriptInstance = py::object();
 }
@@ -55,7 +65,6 @@ void ScriptComponent::Destroy() {
 void ScriptComponent::Shutdown() {
     if (Py_IsInitialized()) {
         py::gil_scoped_acquire gil;
-        // Releasing the handle to the interpreter and nullifying the C++ wrapper
         scriptInstance = py::object(); 
     }
 }
@@ -83,6 +92,7 @@ void ScriptComponent::InstantiateScript()
             projectRoot,                            
             scriptsPath,
             libPath
+            
         };
 
         for (const auto& folder : folders) {
@@ -97,6 +107,7 @@ void ScriptComponent::InstantiateScript()
                 path.append(folder);
             }
         }
+
 
         py::module module = py::module::import(moduleName.c_str());
 
@@ -123,32 +134,7 @@ void ScriptComponent::InstantiateScript()
     }
 }
 
-void ScriptComponent::CallIfExists(const char* funcName)
-{
-    py::gil_scoped_acquire gil;
-    if (!scriptInstance || scriptInstance.is_none()) {
-        std::cerr << "[ScriptComponent] scriptInstance invalid in " << funcName << std::endl;
-        return;
-    }
-    if (!Py_IsInitialized()) {
-        std::cerr << "[ScriptComponent] Python is NOT initialized in "
-                << funcName << std::endl;
-        return;
-    }
 
-    
-
-    if (!py::hasattr(scriptInstance, funcName))
-        return;
-
-    try {
-        scriptInstance.attr(funcName)();
-    } catch (const py::error_already_set& e) {
-        std::cerr << "[ScriptComponent] Python error in "
-                  << funcName << ":\n"
-                  << e.what() << std::endl;
-    }
-}
 ScriptComponent::~ScriptComponent() {
     if (Py_IsInitialized()) {
         py::gil_scoped_acquire gil;

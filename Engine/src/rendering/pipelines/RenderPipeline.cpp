@@ -58,20 +58,20 @@ void RenderPipeline::Resize(int width, int height)
 
 void RenderPipeline::Render(RenderCamera* camera, std::vector<Scene*> scenes)
 {
-    // Save currently bound framebuffer so we can restore it (important when used inside
-    // QOpenGLWidget where the default Qt FBO is not necessarily 0).
+
     GLint prevFBO = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, outputFBO); // ensure each pass draws to pipeline FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
 
     for (auto* pass : setupPasses)
         pass->Execute(camera, nullptr);
 
-    for (auto* pass : scenePasses)
-        for (auto& scene : scenes){
+    for (auto& scene : scenes){
+        for (auto* pass : scenePasses){
             pass->Execute(camera, scene);
         }
-        
+    }
+
     for (auto* pass : finalizePasses)
         pass->Execute(camera, nullptr);
     

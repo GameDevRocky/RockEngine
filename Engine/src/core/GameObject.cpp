@@ -106,11 +106,42 @@ void GameObject::FixedUpdate() {
         comp->FixedUpdate();
     }
 }
+
 void GameObject::LateUpdate() {
-    for (auto& [type, id] : component_ids){
+    for (auto& [type, id] : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->LateUpdate();
+    }
+}
+
+void GameObject::OnCollisionEnter(GameObject* other){
+    for (auto& [type, id] : component_ids){
+        Component* comp = registry->Find<Component>(id);
+        if (!comp) continue;
+        comp->OnCollisionEnter(other);
+    }
+}
+void GameObject::OnCollisionExit(GameObject* other) {
+    for (auto& [type, id] : component_ids) {
+        Component* comp = registry->Find<Component>(id);
+        if (!comp) continue;
+        comp->OnCollisionExit(other);
+    }
+}
+
+void GameObject::OnTriggerEnter(GameObject* other) {
+    for (auto& [type, id] : component_ids) {
+        Component* comp = registry->Find<Component>(id);
+        if (!comp) continue;
+        comp->OnTriggerEnter(other);
+    }
+}
+void GameObject::OnTriggerExit(GameObject* other) {
+    for (auto& [type, id] : component_ids) {
+        Component* comp = registry->Find<Component>(id);
+        if (!comp) continue;
+        comp->OnTriggerExit(other);
     }
 }
 

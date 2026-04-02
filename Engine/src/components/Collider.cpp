@@ -16,7 +16,7 @@ void Collider::Deserialize(const YAML::Node& node){
     float y = node["center"][1].as<float> ();
     center = {x, y};
     state = State::Loaded;
-}
+} 
 
 void Collider::Init(){
     if (state >= State::Initialized) return;

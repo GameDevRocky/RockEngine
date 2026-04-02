@@ -34,7 +34,9 @@ void RigidBody::Init(){
     timeManager = container->FindSystem<TimeManager>();
     Transform* transform = GetTransform();
     b2BodyDef bodyDef = b2DefaultBodyDef();
+    bodyDef.userData = GetGameObject();
     bodyId = b2CreateBody(physicsSystem->GetWorldId(), &bodyDef);
+    
     state = State::Initialized;
 }
 

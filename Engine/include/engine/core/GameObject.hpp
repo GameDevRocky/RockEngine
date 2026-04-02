@@ -35,6 +35,10 @@ class GameObject : public RuntimeObject {
     void Awake() override;
     void Start() override;
     void Update() override;
+    void OnCollisionEnter(GameObject* other);
+    void OnCollisionExit(GameObject* other);
+    void OnTriggerEnter(GameObject* other);
+    void OnTriggerExit(GameObject* other);
     void Shutdown() override;
     
     void FixedUpdate();

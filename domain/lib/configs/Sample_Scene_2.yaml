@@ -142,7 +142,7 @@ components:
     localPosition: [0, 90]
     localRotation: 0
     localScale: [24, 24]
-    parent_id: "t21"
+    parent_id: null
 
   - id: "s24"
     enabled: true

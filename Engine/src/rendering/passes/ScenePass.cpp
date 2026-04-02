@@ -79,6 +79,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
     }
 
     glad_glBindVertexArray(0);
+    glad_glUseProgram(0);
 }
 
 void ScenePass::Shutdown()

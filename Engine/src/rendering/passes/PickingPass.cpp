@@ -78,12 +78,16 @@ void PickingPass::Resize(int width, int height)
 
 void PickingPass::Execute(RenderCamera* camera, Scene* scene)
 {
+    // Save the currently bound FBO so we can restore it
+    GLint prevFBO = 0;
+    glad_glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
 
     glad_glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     
     // Validate framebuffer
     GLenum status = glad_glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
+        glad_glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
         return;
     }
     
@@ -158,7 +162,12 @@ void PickingPass::Execute(RenderCamera* camera, Scene* scene)
     }
 
     glad_glBindVertexArray(0);
-    glad_glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    // Restore the previous FBO (the pipeline's outputFBO)
+    glad_glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
+    
+    // Restore viewport to pipeline dimensions
+    glad_glViewport(0, 0, viewportWidth, viewportHeight);
 }
 
 uint32_t PickingPass::ReadPixel(int x, int y)

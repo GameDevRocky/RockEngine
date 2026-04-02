@@ -8,6 +8,7 @@
 #include "engine/rendering/passes/GridPass.hpp"
 #include "engine/rendering/passes/DebugPass.hpp"
 #include "engine/rendering/passes/PickingPass.hpp"
+#include "engine/rendering/passes/ImGuiPass.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "Engine.hpp"
 
@@ -39,6 +40,7 @@ void SceneViewGui::initializeRenderPipeline(){
     GridPass* gridPass = new GridPass();
     ScenePass* scenePass = new ScenePass();
     DebugPass* debugPass = new DebugPass();
+    ImGuiPass* imGuiPass = new ImGuiPass();
     pickingPass = new PickingPass();
     
     renderPipeline->AddSetupPass(clearPass);
@@ -47,6 +49,8 @@ void SceneViewGui::initializeRenderPipeline(){
     renderPipeline->AddScenePass(scenePass);
     renderPipeline->AddScenePass(debugPass);
     renderPipeline->AddScenePass(pickingPass);
+    
+    renderPipeline->AddFinalizePass(imGuiPass);
     
     renderPipeline->Init();
     camera->Init();

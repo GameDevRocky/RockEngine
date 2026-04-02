@@ -25,8 +25,8 @@ find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
 set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(pybind11)
 
+# --- GLAD ---
 add_library(glad STATIC glad/src/glad.c)
-
 target_include_directories(glad 
     PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
@@ -34,7 +34,31 @@ target_include_directories(glad
         ${CMAKE_CURRENT_SOURCE_DIR}/glad/src
 )
 
-# Create ExternalLibs interface library to aggregate all external dependencies
+# --- ImGui ---
+add_library(imgui STATIC
+    imgui/imgui.cpp
+    imgui/imgui_draw.cpp
+    imgui/imgui_tables.cpp
+    imgui/imgui_widgets.cpp
+    imgui/backends/imgui_impl_opengl3.cpp
+)
+target_include_directories(imgui 
+    PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/imgui
+        ${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends
+)
+target_link_libraries(imgui PUBLIC glad)
+
+# --- ImGuizmo ---
+add_library(imguizmo STATIC
+    imguizmo/ImGuizmo.cpp
+)
+target_include_directories(imguizmo 
+    PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/imguizmo
+)
+target_link_libraries(imguizmo PUBLIC imgui)
+
 add_library(ExternalLibs INTERFACE)
 
 target_link_libraries(ExternalLibs
@@ -43,6 +67,8 @@ target_link_libraries(ExternalLibs
         yaml-cpp
         box2d
         glad
+        imgui
+        imguizmo
         Python3::Python
         pybind11::embed
 )

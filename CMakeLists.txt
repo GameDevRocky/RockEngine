@@ -10,6 +10,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 add_compile_definitions(PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
 if(MSVC)
     add_compile_options(/Zc:__cplusplus)
+    add_compile_options(/EHsc) # <--- ADD THIS LINE TO FIX THE C4530 WARNING
     
     # Enable Hot Reload (Edit and Continue)
     string(REPLACE "/Zi" "/ZI" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
@@ -35,7 +36,7 @@ add_subdirectory(External)
 add_subdirectory(Engine)
 add_subdirectory(Editor)
 
-add_executable(RockEngineLauncher WIN32 src/main.cpp)
+add_executable(RockEngineLauncher src/main.cpp)
 
 set_target_properties(RockEngineLauncher PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"

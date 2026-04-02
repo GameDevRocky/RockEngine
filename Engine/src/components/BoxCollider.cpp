@@ -86,14 +86,14 @@ void BoxCollider::CreateShape(){
     
     b2ShapeDef definition = b2DefaultShapeDef();
     b2BodyId bodyId = rigidBody->GetBodyId();
-
+	definition.enableContactEvents = true;
     definition.material.friction = friction;
     definition.material.restitution = bounciness;
     definition.material.rollingResistance = rollingResistance;
     definition.density = density;
     definition.filter = filter;
     definition.isSensor = isSensor;
-
+    definition.enableSensorEvents = true;
     glm::vec2 worldScale = transform->GetWorldScale();
     glm::vec2 scaledSize = size * worldScale;
     b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit, center.y * worldScale.y / PixelsPerUnit};

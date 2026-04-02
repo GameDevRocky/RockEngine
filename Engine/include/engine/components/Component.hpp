@@ -14,7 +14,11 @@ public:
 
     using Serializable::Copy;
 
-    
+	virtual void OnCollisionEnter(GameObject* other) {}
+    virtual void OnCollisionExit(GameObject* other) {}
+    virtual void OnTriggerEnter(GameObject* other) {}
+    virtual void OnTriggerExit(GameObject* other) {}
+
     virtual void LateUpdate(){}
     virtual void FixedUpdate(){}
     virtual void Destroy() {}

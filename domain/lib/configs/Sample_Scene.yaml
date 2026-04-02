@@ -27,6 +27,18 @@ components:
     flipY: false
     visible: true
 
+  - id: "b1"
+    enabled: true
+    type: "BoxCollider"
+    gameobject: "o1"
+    center: [0, 0]
+    isSensor: false
+    density: 1.0
+    friction: 0.8
+    bounciness: 0.0
+    rollingResistance: 0.0
+    size: [0.0, 0.0]
+
   - id: "sc1"
     enabled: true
     type: "ScriptComponent"
@@ -57,15 +69,37 @@ components:
     flipY: false
     visible: true
 
+  - id: "r2"
+    enabled: true
+    type: "RigidBody"
+    gameobject: "o2"
+    bodyType: "Kinematic"
+    useGravity: false
+    lockRotation: false
+    mass: 1.2
+
+  - id: "b2"
+    enabled: true
+    type: "BoxCollider"
+    gameobject: "o2"
+    center: [0, 0]
+    isSensor: true
+    density: 1.0
+    friction: 0.8
+    bounciness: 0.0
+    rollingResistance: 0.0
+    size: [0.0, 0.0]
+
 gameobjects:
   - id: "o1"
     type: "GameObject"
-    name: "Parent"
+    name: "GameObject"
     isRootObject : true
     component_ids:
       Transform: "t1"
       SpriteRenderer: "s1"
       ScriptComponent: "sc1"
+      BoxCollider: "b1"
 
   - id: "o2"
     type: "GameObject"
@@ -74,6 +108,8 @@ gameobjects:
     component_ids:
       Transform: "t2"
       SpriteRenderer: "s2"
+      RigidBody: "r2"
+      BoxCollider: "b2"
  
 
   

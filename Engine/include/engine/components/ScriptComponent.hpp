@@ -19,6 +19,10 @@ public:
     void Update() override;
     void FixedUpdate() override;
     void LateUpdate() override;
+	void OnCollisionEnter(GameObject* other) override;
+	void OnCollisionExit(GameObject* other) override;
+	void OnTriggerEnter(GameObject* other) override;
+    void OnTriggerExit(GameObject* other) override;
     void Destroy() override;
 
     void Shutdown() override;
@@ -32,11 +36,38 @@ public:
 
 private:
     void InstantiateScript();
-    void CallIfExists(const char* funcName);
+    template<typename... Args>
+    void CallIfExists(const char* funcName, Args&&... args) {
+        py::gil_scoped_acquire gil;
+        if (!scriptInstance || scriptInstance.is_none()) {
+            std::cerr << "[ScriptComponent] scriptInstance invalid in " << funcName << std::endl;
+            return;
+        }
+        if (!Py_IsInitialized()) {
+            std::cerr << "[ScriptComponent] Python is NOT initialized in "
+                << funcName << std::endl;
+            return;
+        }
+
+
+
+        if (!py::hasattr(scriptInstance, funcName))
+            return;
+
+        try {
+            scriptInstance.attr(funcName)(std::forward<Args>(args)...);
+        }
+        catch (const py::error_already_set& e) {
+            std::cerr << "[ScriptComponent] Python error in "
+                << funcName << ":\n"
+                << e.what() << std::endl;
+        }
+    }
 
 private:
 
     std::string moduleName;  
     std::string className;
     py::object scriptInstance;
+
 };
