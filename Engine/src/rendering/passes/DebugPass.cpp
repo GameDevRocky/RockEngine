@@ -6,6 +6,8 @@
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/utils/EngineUtils.hpp"
+#include "engine/core/SelectionManager.hpp"
+#include "engine/core/Container.hpp"
 #include "Engine.hpp"
 #include <vector>
 #include <cmath>
@@ -217,6 +219,36 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
         float bottomOffset = -(height / 2.0f);
         debugShader->SetVec2("uOffset", center + glm::vec2(0.0f, bottomOffset));
         glad_glDrawArrays(GL_LINE_STRIP, 0, 17);
+    }
+
+    // Draw white box around selected object if it has a SpriteRenderer
+    Container* container = scene->GetContainer();
+    if (container) {
+        SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+        if (selectionManager && selectionManager->HasSelection()) {
+            GameObject* selectedObj = selectionManager->GetGameObject();
+            if (selectedObj) {
+                Transform* transform = selectedObj->GetComponent<Transform>();
+                SpriteRenderer* spriteRenderer = selectedObj->GetComponent<SpriteRenderer>();
+                
+                if (transform && spriteRenderer) {
+                    Sprite* sprite = spriteRenderer->GetSprite();
+                    if (sprite) {
+                        glm::vec2 worldSize = EngineUtils::RenderUtils::PixelsToWorld(sprite->GetPixelSize());
+                        glm::vec2 pivot = sprite->GetPivot();
+
+                        glad_glBindVertexArray(vao);
+                        debugShader->SetMat4("uModel", transform->GetWorldMatrix());
+                        debugShader->SetVec2("uSize", worldSize);
+                        debugShader->SetVec2("uPivot", pivot);
+                        debugShader->SetVec2("uOffset", glm::vec2(0.0f, 0.0f));
+                        debugShader->SetVec4("uColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+                        glad_glDrawArrays(GL_LINE_LOOP, 0, 4);
+                    }
+                }
+            }
+        }
     }
 
     glad_glBindVertexArray(0);

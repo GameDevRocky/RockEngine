@@ -27,69 +27,6 @@ components:
     flipY: false
     visible: true
 
-  - id: "b1"
-    enabled: true
-    type: "BoxCollider"
-    gameobject: "o1"
-    center: [0, 0]
-    isSensor: false
-    density: 1.0
-    friction: 0.8
-    bounciness: 0.0
-    rollingResistance: 0.0
-    size: [0.0, 0.0]
-
-  - id: "sc1"
-    enabled: true
-    type: "ScriptComponent"
-    gameobject: "o1"
-    module: "Test"
-    class: "TestScript"
-
-  - id: "t2"
-    enabled: true
-    type: "Transform"
-    gameobject: "o2"
-    localPosition: [50, 0]
-    localRotation: 0
-    localScale: [20, 20]
-    parent_id: null
-
-  - id: "s2"
-    enabled: true
-    type: "SpriteRenderer"
-    gameobject: "o2"
-    material_id: "m2"
-    sprite_id: "sprite1"
-    color: [1,1,1,1]
-    uvOffset: [1.0, 0.0]
-    uvScale: [1.0, 1.0]
-    sortingOrder: 1
-    flipX: false
-    flipY: false
-    visible: true
-
-  - id: "r2"
-    enabled: true
-    type: "RigidBody"
-    gameobject: "o2"
-    bodyType: "Kinematic"
-    useGravity: false
-    lockRotation: false
-    mass: 1.2
-
-  - id: "b2"
-    enabled: true
-    type: "BoxCollider"
-    gameobject: "o2"
-    center: [0, 0]
-    isSensor: true
-    density: 1.0
-    friction: 0.8
-    bounciness: 0.0
-    rollingResistance: 0.0
-    size: [0.0, 0.0]
-
 gameobjects:
   - id: "o1"
     type: "GameObject"
@@ -98,18 +35,3 @@ gameobjects:
     component_ids:
       Transform: "t1"
       SpriteRenderer: "s1"
-      ScriptComponent: "sc1"
-      BoxCollider: "b1"
-
-  - id: "o2"
-    type: "GameObject"
-    name: "Ground"
-    isRootObject : false
-    component_ids:
-      Transform: "t2"
-      SpriteRenderer: "s2"
-      RigidBody: "r2"
-      BoxCollider: "b2"
- 
-
-  

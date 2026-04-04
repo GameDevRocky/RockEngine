@@ -1,6 +1,8 @@
 #pragma once
 
 #include "engine/rendering/passes/RenderPass.hpp"
+#include "imgui.h"
+#include "ImGuizmo.h"
 
 class RenderCamera;
 class Scene;
@@ -17,4 +19,5 @@ public:
 private:
     int m_width = 1;
     int m_height = 1;
+    ImGuizmo::OPERATION m_currentOperation = ImGuizmo::TRANSLATE;
 };

@@ -15,7 +15,10 @@ void SelectionManager::Shutdown()
 
 SelectionManager* SelectionManager::Copy()
 {
-    return new SelectionManager();
+    auto* copy = new SelectionManager();
+    copy->selectedObjectId = selectedObjectId;
+    copy->subscribers = subscribers;
+    return copy;
 }
 
 SelectionManager* SelectionManager::Copy(Container* container)

@@ -44,7 +44,7 @@ void CapsuleCollider::Awake(){
     if (state >= State::Awakened) return;
     
     if (!rigidBody) {
-        std::cerr << "BoxCollider::Awake - RigidBody is null on GameObject: " << GetGameObject()->GetName() << std::endl;
+        std::cerr << "CapsuleCollider::Awake - RigidBody is null on GameObject: " << GetGameObject()->GetName() << std::endl;
         state = State::Awakened;
         return;
     }
@@ -52,7 +52,7 @@ void CapsuleCollider::Awake(){
     b2BodyId bodyId = rigidBody->GetBodyId();
 
     if (!b2Body_IsValid(bodyId)) {
-        std::cerr << "BoxCollider::Start - RigidBody has invalid bodyId on GameObject: " << GetGameObject()->GetName() << std::endl;
+        std::cerr << "CapsuleCollider::Awake - RigidBody has invalid bodyId on GameObject: " << GetGameObject()->GetName() << std::endl;
         state = State::Awakened;
         return;
     }
@@ -62,13 +62,13 @@ void CapsuleCollider::Awake(){
 
 void CapsuleCollider::CreateShape(){
     if (!rigidBody) {
-        std::cerr << "BoxCollider::CreateShape - RigidBody is null" << std::endl;
+        std::cerr << "CapsuleCollider::CreateShape - RigidBody is null" << std::endl;
         return;
     }
     
     Transform* transform = GetTransform();
     if (!transform) {
-        std::cerr << "BoxCollider::CreateShape - Transform is null" << std::endl;
+        std::cerr << "CapsuleCollider::CreateShape - Transform is null" << std::endl;
         return;
     }
     

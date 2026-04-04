@@ -1,6 +1,7 @@
 #include "utils/SceneTree.hpp"
 #include "engine/core/Scene.hpp"
 #include "engine/core/GameObject.hpp"
+#include "engine/core/SelectionManager.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "Engine.hpp"
@@ -10,6 +11,7 @@
 #include <QStandardItem>
 #include <QModelIndexList>
 #include <QHeaderView>
+#include <QItemSelectionModel>
 #include <stdexcept>
 
 
@@ -98,6 +100,18 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     setItemDelegate(new SceneTreeItemDelegate(this));
+    
+    connect(this, &QTreeView::clicked, this, [this](const QModelIndex& index) {
+            if (!index.isValid()) return;
+            
+            QString gameObjectId = index.data(Qt::UserRole + 1).toString();
+            if (gameObjectId.isEmpty()) return;
+            
+            Container* container = Engine::Get()->GetActiveContainer();
+            SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+            selectionManager->Select(gameObjectId.toStdString());
+            
+        });
 }
 
 void SceneTree::RebuildFromScene(Scene* scene) {
@@ -186,7 +200,6 @@ void SceneTree::dropEvent(QDropEvent* event) {
     if (!event->isAccepted())
         return;
 
-    // Set flag to prevent ReparentItem from running during SetParent callback
     handlingDrop = true;
     childTransform->SetParent(parentTransform, true);
     handlingDrop = false;
@@ -228,7 +241,6 @@ void SceneTree::AddItem(const std::string& parentId, GameObject* child) {
     
     parentItem->appendRow(item);
     
-    // Add children recursively
     Transform* transform = child->GetTransform();
     if (transform) {
         for (Transform* childTransform : transform->GetChildren()) {
@@ -261,13 +273,11 @@ void SceneTree::ReparentItem(const std::string& childId, const std::string& newP
     QStandardItem* childItem = model->itemFromIndex(childIndex);
     if (!childItem) return;
     
-    // Get old parent
     QStandardItem* oldParent = childItem->parent();
     if (!oldParent) {
         oldParent = model->invisibleRootItem();
     }
     
-    // Get new parent
     QStandardItem* newParent = nullptr;
     if (newParentId.empty()) {
         newParent = model->invisibleRootItem();
@@ -278,12 +288,8 @@ void SceneTree::ReparentItem(const std::string& childId, const std::string& newP
     }
     
     if (!newParent || oldParent == newParent) return;
-    
-    // Take the row from old parent (preserves item and children)
     int row = childItem->row();
     QList<QStandardItem*> taken = oldParent->takeRow(row);
-    
-    // Append to new parent
     newParent->appendRow(taken);
 }
 
@@ -292,33 +298,19 @@ void SceneTree::OnHeaderClicked(int section) {
     
     collapsed = !collapsed;
     
-    // 1. Toggle row visibility
     for (int i = 0; i < model->rowCount(); ++i) {
         setRowHidden(i, QModelIndex(), collapsed);
     }
 
     if (collapsed) {
-        // 2. Force the widget to be exactly the height of the header
-        // This physically collapses the widget in the layout
         int headerHeight = header()->height();
         setFixedHeight(headerHeight);
-        
-        // Disable scrollbars explicitly to prevent ghost spacing
         setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     } else {
-        // 3. Restore flexibility
-        // Set maximum to a very large number (equivalent to QWIDGETSIZE_MAX)
         setMaximumHeight(16777215); 
         setMinimumHeight(0);
-        
-        // Switch back to your preferred policy or fixed height calculation
-        // This tells the layout "I can grow again"
         setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-        
-        // Trigger a recalculation of the size hint
         updateGeometry();
-        
-        // If you want it to snap back to content height:
         adjustSize(); 
     }
 }

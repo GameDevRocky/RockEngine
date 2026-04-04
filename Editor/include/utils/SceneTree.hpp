@@ -40,11 +40,13 @@ class SceneTree : public QTreeView{
 
     private:
         QModelIndex FindItemById(const std::string& id) const;
+        void OnSelectionManagerChanged(const std::string& selectedId);
         
         std::string scene_id;
         QStandardItemModel* model = nullptr;
         bool handlingDrop = false;
         bool collapsed = false;
+        bool updatingFromSelectionManager = false;
 };
 
 class GameObjectItem : public QStandardItem {

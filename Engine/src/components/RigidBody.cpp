@@ -48,6 +48,12 @@ void RigidBody::PostInit(){
     SetUseGravity(useGravity);
     SetLockRotation(lockRotation);
     UpdateTransform();
+    
+    // Subscribe to transform changes to sync physics body when moved externally (e.g., gizmo)
+    Transform* transform = GetTransform();
+    transform->Subscribe([this](){ OnTransformChanged(); }, Transform::POSITION_CHANGED_EVENT);
+    transform->Subscribe([this](){ OnTransformChanged(); }, Transform::ROTATION_CHANGED_EVENT);
+    
     state = State::PostInitialized;
 }
 
@@ -58,6 +64,16 @@ void RigidBody::UpdateTransform(){
     b2Vec2 pos = {worldPos.x / PixelsPerUnit, worldPos.y / PixelsPerUnit};
     b2Rot rot = b2MakeRot(worldRot * DEG_2_RAD);
     b2Body_SetTransform(bodyId, pos, rot);
+}
+
+void RigidBody::OnTransformChanged(){
+    if (writingToTransform) return;
+    if (bodyType != b2_dynamicBody) return;
+    if (!b2Body_IsValid(bodyId)) return;
+    UpdateTransform();
+    b2Body_SetLinearVelocity(bodyId, {0, 0});
+    b2Body_SetAngularVelocity(bodyId, 0);
+    b2Body_SetAwake(bodyId, true);
 }
 
 void RigidBody::SetBodyType(b2BodyType type){
@@ -102,7 +118,7 @@ void RigidBody::Awake(){
 
 
 void RigidBody::FixedUpdate() {
-    if (bodyType == b2_dynamicBody || bodyType == b2_staticBody) return;
+    if (bodyType == b2_dynamicBody) return;
     if (!b2Body_IsValid(bodyId)) return;
     Transform* transform = GetTransform();
 
@@ -124,7 +140,7 @@ void RigidBody::FixedUpdate() {
 
 void RigidBody::LateUpdate() {
     if (bodyType == b2_kinematicBody) return;
-    
+    if (!b2Body_IsValid(bodyId)) return;
     Transform* transform = GetTransform();
     if (!transform || !b2Body_IsValid(bodyId)) return;
     
@@ -135,8 +151,10 @@ void RigidBody::LateUpdate() {
     float renderY = physicsPos.y * PixelsPerUnit;
     float renderAngle = b2Rot_GetAngle(physicsRot) * RAD_2_DEG;
 
+    writingToTransform = true;
     transform->SetWorldPosition({renderX, renderY});
     transform->SetWorldRotation(renderAngle);
+    writingToTransform = false;
 }
 
 void RigidBody::SetLinearVelocity(const glm::vec2& vel) {

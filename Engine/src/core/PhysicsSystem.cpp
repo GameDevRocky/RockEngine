@@ -27,6 +27,9 @@ void PhysicsSystem::Step() {
     for (int i = 0; i < contactEvents.beginCount; ++i) {
         b2ContactBeginTouchEvent* event = contactEvents.beginEvents + i;
 
+        // Skip if shapes were destroyed (e.g., during scale change)
+        if (!b2Shape_IsValid(event->shapeIdA) || !b2Shape_IsValid(event->shapeIdB)) continue;
+
         b2BodyId bodyA = b2Shape_GetBody(event->shapeIdA);
         b2BodyId bodyB = b2Shape_GetBody(event->shapeIdB);
 
@@ -41,6 +44,8 @@ void PhysicsSystem::Step() {
 
     for (int i = 0; i < contactEvents.endCount; ++i) {
         b2ContactEndTouchEvent* event = contactEvents.endEvents + i;
+
+        if (!b2Shape_IsValid(event->shapeIdA) || !b2Shape_IsValid(event->shapeIdB)) continue;
 
         b2BodyId bodyA = b2Shape_GetBody(event->shapeIdA);
         b2BodyId bodyB = b2Shape_GetBody(event->shapeIdB);
@@ -59,6 +64,9 @@ void PhysicsSystem::Step() {
     for (int i = 0; i < sensorEvents.beginCount; ++i) {
         b2SensorBeginTouchEvent* event = sensorEvents.beginEvents + i;
 
+        // Skip if shapes were destroyed (e.g., during scale change)
+        if (!b2Shape_IsValid(event->sensorShapeId) || !b2Shape_IsValid(event->visitorShapeId)) continue;
+
         b2BodyId sensorBody = b2Shape_GetBody(event->sensorShapeId);
         b2BodyId visitorBody = b2Shape_GetBody(event->visitorShapeId);
 
@@ -73,6 +81,9 @@ void PhysicsSystem::Step() {
 
     for (int i = 0; i < sensorEvents.endCount; ++i) {
         b2SensorEndTouchEvent* event = sensorEvents.endEvents + i;
+
+        // Skip if shapes were destroyed (e.g., during scale change)
+        if (!b2Shape_IsValid(event->sensorShapeId) || !b2Shape_IsValid(event->visitorShapeId)) continue;
 
         b2BodyId sensorBody = b2Shape_GetBody(event->sensorShapeId);
         b2BodyId visitorBody = b2Shape_GetBody(event->visitorShapeId);

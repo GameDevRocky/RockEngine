@@ -53,10 +53,10 @@ void SceneViewGui::initializeRenderPipeline(){
 
     renderPipeline->AddScenePass(scenePass);
     renderPipeline->AddScenePass(debugPass);
-    renderPipeline->AddScenePass(pickingPass);
+    renderPipeline->AddFinalizePass(pickingPass);
     pickingPass->SetDebugDraw(false);  // Enable debug visualization
     
-    renderPipeline->AddFinalizePass(imGuiPass);
+    renderPipeline->AddScenePass(imGuiPass);
     
     renderPipeline->Init();
     camera->Init();
