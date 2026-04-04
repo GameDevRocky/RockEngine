@@ -13,7 +13,6 @@
 #include "dock-widgets/HierarchyGui.hpp"
 #include <QCoreApplication>
 
-
 Editor::Editor(){
     QCoreApplication::setOrganizationName("Rocklyn");
     QCoreApplication::setApplicationName("RockEngineEditor");
@@ -23,7 +22,6 @@ Editor::Editor(){
 void Editor::Init() {
     QStringList styles = QStyleFactory::keys();
     for (auto& s : styles){
-
         std::cout << s.toStdString() << std::endl;
     }
     QSurfaceFormat format;
@@ -84,15 +82,13 @@ void Editor::PostInit() {
     std::cout << "Editor Starting ..." << std::endl;
     timer = new QTimer();
     MainWindow::Get()->PostInit();
-    //Engine::Get()->LoadDefaultScene();
-    
 
     QObject::connect(timer, &QTimer::timeout, [this]() {
         
         Engine::Get()->Update();
         Editor::Get()->Update();
     });
-    timer->start(16);
+    timer->start(8);
     app->exec();
 
 }

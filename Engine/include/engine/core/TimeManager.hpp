@@ -25,11 +25,14 @@ public:
     float TimeScale() const { return timeScale; }
 
     void SetTimeScale(float scale) { timeScale = scale; }
+
+    float GetFPS() const { return currentFps; }
     
-private:
-
+    private:
+    
     std::chrono::high_resolution_clock::time_point lastFrameTime;
-
+    
+    float currentFps = 0.0f;
     float deltaTime = 0.0f;
     float fixedDeltaTime = 1.0f / 60.0f; 
     float elapsedTime = 0.0f;

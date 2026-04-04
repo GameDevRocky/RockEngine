@@ -1,15 +1,18 @@
 #include "engine/rendering/passes/ImGuiPass.hpp"
 
-#include <glad/glad.h>
-#include "imgui.h"
-#include "imgui_impl_opengl3.h"
-#include "ImGuizmo.h"
+
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/utils/EngineUtils.hpp"
+
+#include <glad/glad.h>
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
+#include "ImGuizmo.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
 
 void ImGuiPass::Init()
 {
@@ -57,7 +60,6 @@ void ImGuiPass::Execute(RenderCamera* camera, Scene* scene)
         ImGui::Text("FPS: %.1f", io.Framerate);
         ImGui::Text("Viewport: %d x %d", m_width, m_height);
         
-        // Gizmo operation controls
         ImGui::Separator();
         if (ImGui::RadioButton("Translate", m_currentOperation == ImGuizmo::TRANSLATE))
             m_currentOperation = ImGuizmo::TRANSLATE;

@@ -14,6 +14,7 @@
 #include "engine/rendering/pipelines/RenderPipeline.hpp"
 #include "engine/rendering/cameras/RenderCamera.hpp"
 #include "engine/rendering/passes/PickingPass.hpp"
+#include "utils/ImGuiInstance.hpp"
 
 class SceneViewGui : public QOpenGLWidget, protected QOpenGLFunctions {
     Q_OBJECT 
@@ -33,6 +34,7 @@ public:
     void Render();
     
     protected:
+    void DrawGizmos();
     void initializeRenderPipeline();
 
     void initializeGL() override;
@@ -54,6 +56,8 @@ public:
     RenderPipeline* renderPipeline = nullptr;
     RenderCamera* camera = nullptr;
     PickingPass* pickingPass = nullptr;
+    ImGuiInstance* imGuiInstance = nullptr;
+    ImGuizmo::OPERATION m_currentOperation = ImGuizmo::TRANSLATE;
 
     
     QPoint lastMousePos;

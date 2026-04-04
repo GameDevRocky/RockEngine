@@ -14,10 +14,36 @@
 #include "Engine.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
+#include "engine/core/TimeManager.hpp"
+
+
 #define RESOURCES_CONFIG_PATH PROJECT_ROOT "/Domain/lib/configs/resources_config.yaml"
 
+namespace {
+    void DrawFPS(){
+        
+        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImVec2 window_pos = ImVec2(viewport->WorkPos.x + viewport->WorkSize.x - 10.0f, 
+            viewport->WorkPos.y + 10.0f);
+            ImGuiIO& io = ImGui::GetIO();
+            TimeManager* timeManager = Engine::Get()->GetActiveContainer()->FindSystem<TimeManager>();
+            float dt = timeManager->UnscaledDeltaTime();
+            io.DeltaTime = (dt > 0.0f) ? dt : (1.0f / 60.0f);
+            ImGui::SetNextWindowPos(window_pos, ImGuiCond_Always, ImVec2(1.0f, 0.0f));
+            ImGui::SetNextWindowBgAlpha(0.35f); 
+            ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | 
+            ImGuiWindowFlags_AlwaysAutoResize | 
+            ImGuiWindowFlags_NoSavedSettings | 
+            ImGuiWindowFlags_NoFocusOnAppearing | 
+            ImGuiWindowFlags_NoNav | 
+            ImGuiWindowFlags_NoMove;
 
-
+            if (ImGui::Begin("FPS Overlay", nullptr, window_flags)) {
+                ImGui::Text("FPS: %.1f", timeManager->GetFPS());
+                ImGui::End();
+            }
+        }
+    }
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
 {
@@ -45,7 +71,6 @@ void SceneViewGui::initializeRenderPipeline(){
     GridPass* gridPass = new GridPass();
     ScenePass* scenePass = new ScenePass();
     DebugPass* debugPass = new DebugPass();
-    ImGuiPass* imGuiPass = new ImGuiPass();
     pickingPass = new PickingPass();
     
     renderPipeline->AddSetupPass(clearPass);
@@ -54,10 +79,7 @@ void SceneViewGui::initializeRenderPipeline(){
     renderPipeline->AddScenePass(scenePass);
     renderPipeline->AddScenePass(debugPass);
     renderPipeline->AddFinalizePass(pickingPass);
-    pickingPass->SetDebugDraw(false);  // Enable debug visualization
-    
-    renderPipeline->AddScenePass(imGuiPass);
-    
+    pickingPass->SetDebugDraw(false);    
     renderPipeline->Init();
     camera->Init();
 
@@ -72,6 +94,10 @@ void SceneViewGui::initializeGL() {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return;
     }
+    imGuiInstance = new ImGuiInstance();
+    imGuiInstance->Init();
+    imGuiInstance->AddDrawCall([this](){DrawGizmos();});
+    imGuiInstance->AddDrawCall([this](){DrawFPS();});
     
     SharedResources::Get().Deserialize(YAML::LoadFile(RESOURCES_CONFIG_PATH));
     SharedResources::Get().Init();
@@ -140,7 +166,9 @@ void SceneViewGui::resizeGL(int w, int h) {
 
     renderPipeline->Resize(fbw, fbh);
     camera->Resize(fbw, fbh);
+    if (imGuiInstance) imGuiInstance->Resize(fbw, fbh);
     glViewport(0, 0, fbw, fbh);
+
 }
 
 void SceneViewGui::paintGL() {
@@ -163,14 +191,14 @@ void SceneViewGui::paintGL() {
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     glUseProgram(0);
+    
+    if (imGuiInstance) imGuiInstance->Render();
 }
 
 void SceneViewGui::Render(){
     Engine* engine = Engine::Get();
     SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
-    
     renderPipeline->Render(camera, sceneManager->GetScenes());
-    
 }
 
 
@@ -192,22 +220,14 @@ void SceneViewGui::keyReleaseEvent(QKeyEvent* event) {
 void SceneViewGui::wheelEvent(QWheelEvent* event)
 {
     QPoint mousePos = event->position().toPoint();
-
     glm::vec2 before = ScreenToWorld(mousePos);
-
     float scroll = event->angleDelta().y();
     float factor = 1.0f + scroll / 1200.0f;
-
     float newZoom = camera->GetZoom() * factor;
     camera->SetZoom(newZoom);
-
     glm::vec2 after = ScreenToWorld(mousePos);
-
-    // Camera must shift so world point under cursor stays fixed
     glm::vec2 delta = before - after;
-
     camera->SetPosition(camera->GetPosition() + delta);
-
     event->accept();
 }
 
@@ -325,15 +345,12 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
     QPoint deltaPx = e->pos() - lastMousePos;
 
     float zoom = camera->GetZoom();
-    float ortho = camera->GetOrthoSize(); // whatever you named it
+    float ortho = camera->GetOrthoSize();
 
     float dpi = devicePixelRatioF();
     float viewportH = height() * dpi;
 
-    // how many world units fit on screen vertically
     float worldHeight = (ortho / zoom) * 2.0f;
-
-    // world units per pixel
     float unitsPerPixel = worldHeight / viewportH;
 
     glm::vec2 worldDelta(
@@ -361,8 +378,6 @@ glm::vec2 SceneViewGui::ScreenToWorld(const QPoint& p)
     float ndcY = 1.0f - (py / h) * 2.0f; 
 
     glm::vec4 clip(ndcX, ndcY, 0.0f, 1.0f);
-
-    // Convert through inverse projection and inverse view
     glm::mat4 invProj = glm::inverse(camera->GetProjectionMatrix());
     glm::mat4 invView = glm::inverse(camera->GetViewMatrix());
 
@@ -374,5 +389,95 @@ glm::vec2 SceneViewGui::ScreenToWorld(const QPoint& p)
 
 
 void SceneViewGui::Init(){
+
     std::cout << "SceneViewGui Initialized" << std::endl;
 }
+
+void SceneViewGui::DrawGizmos(){
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImGui::SetNextWindowBgAlpha(0.35f);
+
+
+    if (ImGui::Begin("StatsOverlay", nullptr))
+    {
+        ImGui::Text("Scene View");
+        ImGui::Separator();
+        ImGui::Text("FPS: %.1f", io.Framerate);
+        ImGui::Text("Viewport: %d x %d", width(), height());
+        
+        ImGui::Separator();
+        if (ImGui::RadioButton("Translate", m_currentOperation == ImGuizmo::TRANSLATE))
+            m_currentOperation = ImGuizmo::TRANSLATE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Rotate", m_currentOperation == ImGuizmo::ROTATE))
+            m_currentOperation = ImGuizmo::ROTATE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Scale", m_currentOperation == ImGuizmo::SCALE))
+            m_currentOperation = ImGuizmo::SCALE;
+    }
+    ImGui::End();
+
+    Container* container = Engine::Get()->GetActiveContainer();
+   
+        SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+        if (selectionManager->HasSelection()) {
+            GameObject* selectedObj = selectionManager->GetGameObject();
+            Transform* transform = selectedObj->GetComponent<Transform>();
+            glm::mat4 view = camera->GetViewMatrix();
+            glm::mat4 proj = camera->GetProjectionMatrix();
+            
+            glm::mat4 objectMatrix = transform->GetWorldMatrix();
+            
+            ImGuizmo::SetOrthographic(true);
+            ImGuizmo::SetRect(0, 0, (float)width() * devicePixelRatioF(), (float)height() * devicePixelRatioF());
+            
+            ImGuizmo::OPERATION op;
+            if (m_currentOperation == ImGuizmo::TRANSLATE) {
+                op = static_cast<ImGuizmo::OPERATION>(ImGuizmo::TRANSLATE_X | ImGuizmo::TRANSLATE_Y);
+            } else if (m_currentOperation == ImGuizmo::SCALE) {
+                op = static_cast<ImGuizmo::OPERATION>(ImGuizmo::SCALE_X | ImGuizmo::SCALE_Y);
+            } else {
+                op = ImGuizmo::ROTATE_Z;
+            }
+            float* snapPtr = nullptr;
+            float pixelSnap = EngineUtils::RenderUtils::PixelsToWorld(128.0f);
+            float translateSnap[3] = { pixelSnap, pixelSnap, pixelSnap };
+            float rotateSnap[3] = { 15.0f, 15.0f, 15.0f };
+            float scaleSnap[3] = { 0.1f, 0.1f, 0.1f };
+            
+            if (!io.KeyAlt) {
+                if (m_currentOperation == ImGuizmo::TRANSLATE) {
+                    snapPtr = translateSnap;
+                } else if (m_currentOperation == ImGuizmo::ROTATE) {
+                    snapPtr = rotateSnap;
+                } else if (m_currentOperation == ImGuizmo::SCALE) {
+                    snapPtr = scaleSnap;
+                }
+            }
+            
+            ImGuizmo::Manipulate(
+                    glm::value_ptr(view),
+                    glm::value_ptr(proj),
+                    op,
+                    ImGuizmo::LOCAL,
+                    glm::value_ptr(objectMatrix),
+                    nullptr,
+                    snapPtr);
+            
+            if (ImGuizmo::IsUsing())
+            {
+                float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+                ImGuizmo::DecomposeMatrixToComponents(
+                    glm::value_ptr(objectMatrix),
+                    matrixTranslation,
+                    matrixRotation,
+                    matrixScale);
+                
+                transform->SetWorldPosition(glm::vec2(matrixTranslation[0], matrixTranslation[1]));
+                transform->SetWorldRotation(matrixRotation[2]);
+                transform->SetWorldScale(glm::vec2(matrixScale[0], matrixScale[1]));
+            }
+    }
+}
+
