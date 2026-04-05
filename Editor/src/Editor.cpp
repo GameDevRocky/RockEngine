@@ -102,8 +102,6 @@ void Editor::Shutdown() {
         delete timer;
         timer = nullptr;
     }
-
-
     if (app) {
         delete app;
         app = nullptr;

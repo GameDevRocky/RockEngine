@@ -15,7 +15,7 @@
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "engine/core/TimeManager.hpp"
-
+#include "utils/IconMaps.h" 
 
 #define RESOURCES_CONFIG_PATH PROJECT_ROOT "/Domain/lib/configs/resources_config.yaml"
 
@@ -386,8 +386,6 @@ glm::vec2 SceneViewGui::ScreenToWorld(const QPoint& p)
     return glm::vec2(world.x, world.y);
 }
 
-
-
 void SceneViewGui::Init(){
 
     std::cout << "SceneViewGui Initialized" << std::endl;
@@ -399,7 +397,7 @@ void SceneViewGui::DrawGizmos(){
     ImGui::SetNextWindowBgAlpha(0.35f);
 
 
-    if (ImGui::Begin("StatsOverlay", nullptr))
+    if (ImGui::Begin(ICON_FA_UP_DOWN_LEFT_RIGHT, nullptr))
     {
         ImGui::Text("Scene View");
         ImGui::Separator();
@@ -481,3 +479,18 @@ void SceneViewGui::DrawGizmos(){
     }
 }
 
+void SceneViewGui::DrawToolBar(){
+
+    const auto& tex = SharedResources::Get().GetTextureByName("")->GetTextureID();
+
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(64, 0));
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | 
+                            ImGuiWindowFlags_NoResize   | 
+                            ImGuiWindowFlags_NoMove     | 
+                            ImGuiWindowFlags_NoScrollbar;
+    ImGui::Begin("Toolbar", NULL, flags);
+
+
+
+}

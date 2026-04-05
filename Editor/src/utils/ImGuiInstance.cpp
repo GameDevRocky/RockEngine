@@ -1,7 +1,7 @@
 #include "utils/ImGuiInstance.hpp"
 #include <functional>
 #include "engine/utils/EngineUtils.hpp"
-
+#include "utils/IconMaps.h" 
 
 void ImGuiInstance::Init() {
     IMGUI_CHECKVERSION(); 
@@ -11,11 +11,22 @@ void ImGuiInstance::Init() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.FontGlobalScale = 1.0f; 
+
     std::string fontPath = EngineUtils::GetAssetPath("Domain/lib/assets/fonts/Nunito-VariableFont_wght.ttf");
     ImFont* mainFont = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 32.0f);
+    
     if (!mainFont) {
         io.Fonts->AddFontDefault(); 
     }
+
+    static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+    ImFontConfig icons_config;
+    icons_config.MergeMode = true;   
+    icons_config.PixelSnapH = true;
+    icons_config.GlyphMinAdvanceX = 32.0f;
+
+    std::string iconFontPath = EngineUtils::GetAssetPath("Domain/lib/assets/fonts/Font Awesome 7 Free-Solid-900.otf");
+    io.Fonts->AddFontFromFileTTF(iconFontPath.c_str(), 32.0f, &icons_config, icons_ranges);
 
     ImGui::StyleColorsDark();
     ImGui_ImplOpenGL3_Init("#version 460");

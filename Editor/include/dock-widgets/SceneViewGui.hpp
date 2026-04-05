@@ -35,6 +35,7 @@ public:
     
     protected:
     void DrawGizmos();
+    void DrawToolBar();
     void initializeRenderPipeline();
 
     void initializeGL() override;
