@@ -68,12 +68,16 @@ void RigidBody::UpdateTransform(){
 
 void RigidBody::OnTransformChanged(){
     if (writingToTransform) return;
-    if (bodyType != b2_dynamicBody) return;
     if (!b2Body_IsValid(bodyId)) return;
+    if (bodyType == b2_kinematicBody) return;
+
     UpdateTransform();
-    b2Body_SetLinearVelocity(bodyId, {0, 0});
-    b2Body_SetAngularVelocity(bodyId, 0);
-    b2Body_SetAwake(bodyId, true);
+    
+    if (bodyType == b2_dynamicBody) {
+        b2Body_SetLinearVelocity(bodyId, {0, 0});
+        b2Body_SetAngularVelocity(bodyId, 0);
+        b2Body_SetAwake(bodyId, true);
+    }
 }
 
 void RigidBody::SetBodyType(b2BodyType type){
@@ -118,7 +122,7 @@ void RigidBody::Awake(){
 
 
 void RigidBody::FixedUpdate() {
-    if (bodyType == b2_dynamicBody) return;
+    if (bodyType != b2_kinematicBody) return;
     if (!b2Body_IsValid(bodyId)) return;
     Transform* transform = GetTransform();
 
@@ -139,10 +143,11 @@ void RigidBody::FixedUpdate() {
 }
 
 void RigidBody::LateUpdate() {
-    if (bodyType == b2_kinematicBody) return;
+    if (container->GetMode() == Container::Mode::Editor) return;
+    if (bodyType != b2_dynamicBody) return;
     if (!b2Body_IsValid(bodyId)) return;
     Transform* transform = GetTransform();
-    if (!transform || !b2Body_IsValid(bodyId)) return;
+    if (!transform) return;
     
     b2Vec2 physicsPos = b2Body_GetPosition(bodyId);
     b2Rot physicsRot = b2Body_GetRotation(bodyId);

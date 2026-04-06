@@ -92,6 +92,48 @@ components:
     bounciness: 0.0
     rollingResistance: 0.0
     size: [0.0, 0.0]
+  
+  - id: "t23"
+    enabled: true
+    type: "Transform"
+    gameobject: "o23"
+    localPosition: [120, -30]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: null
+
+  - id: "s23"
+    enabled: true
+    type: "SpriteRenderer"
+    gameobject: "o23"
+    material_id: "m2"
+    sprite_id: "sprite1"
+    color: [1, 1, 1, 1]
+    uvOffset: [0.0, 0.0]
+    uvScale: [1.0, 1.0]
+    sortingOrder: 2
+    flipX: false
+    flipY: false
+    visible: true
+
+  - id: "b23"
+    enabled: true
+    type: "BoxCollider"
+    gameobject: "o23"
+    center: [0, 0]
+    isSensor: false
+    density: 1.0
+    friction: 0.2
+    bounciness: 0.15
+    rollingResistance: 0.0
+    size: [40.0, 40.0]
+
+  - id: "sc23"
+    enabled: true
+    type: "ScriptComponent"
+    gameobject: "o23"
+    module: "Test"
+    class: "TestScript"
 
 gameobjects:
   - id: "o21"
@@ -113,3 +155,13 @@ gameobjects:
       SpriteRenderer: "s22"
       RigidBody: "r22"
       BoxCollider: "b22"
+  
+  - id: "o23"
+    type: "GameObject"
+    name: "Crate_Scripted"
+    isRootObject: true
+    component_ids:
+      Transform: "t23"
+      SpriteRenderer: "s23"
+      BoxCollider: "b23"
+      ScriptComponent: "sc23"

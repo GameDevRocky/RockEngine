@@ -98,7 +98,7 @@ void CircleCollider::CreateShape(){
     definition.isSensor = isSensor;
 
     glm::vec2 worldScale = transform->GetWorldScale();
-    float averageScale = std::max(worldScale.x, worldScale.y);
+    float averageScale = std::max(std::abs(worldScale.x), std::abs(worldScale.y));  // Use absolute scale for physics
     float scaledRadius = radius * averageScale;
     b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit, center.y * worldScale.y / PixelsPerUnit};
 

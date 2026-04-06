@@ -8,7 +8,7 @@ class TestScript(ScriptableComponent):
     def start(self):
         self.sprite_renderer = self.get_component(SpriteRenderer)
 
-    def fixed_update(self):
+    def late_update(self):
         self.transform.position = Input.get_mouse_pos()
 
     def on_trigger_enter(self, other : Collider):

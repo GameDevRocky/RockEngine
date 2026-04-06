@@ -9,7 +9,6 @@
 #include "engine/rendering/passes/GridPass.hpp"
 #include "engine/rendering/passes/DebugPass.hpp"
 #include "engine/rendering/passes/PickingPass.hpp"
-#include "engine/rendering/passes/ImGuiPass.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "Engine.hpp"
 #include "imgui.h"
@@ -44,6 +43,10 @@ namespace {
             }
         }
     }
+
+
+
+    
 SceneViewGui::SceneViewGui(QWidget* parent)
     : QOpenGLWidget(parent)
 {
@@ -98,6 +101,7 @@ void SceneViewGui::initializeGL() {
     imGuiInstance->Init();
     imGuiInstance->AddDrawCall([this](){DrawGizmos();});
     imGuiInstance->AddDrawCall([this](){DrawFPS();});
+    imGuiInstance->AddDrawCall([this](){DrawToolBar();});
     
     SharedResources::Get().Deserialize(YAML::LoadFile(RESOURCES_CONFIG_PATH));
     SharedResources::Get().Init();
@@ -394,27 +398,6 @@ void SceneViewGui::Init(){
 void SceneViewGui::DrawGizmos(){
 
     ImGuiIO& io = ImGui::GetIO();
-    ImGui::SetNextWindowBgAlpha(0.35f);
-
-
-    if (ImGui::Begin(ICON_FA_UP_DOWN_LEFT_RIGHT, nullptr))
-    {
-        ImGui::Text("Scene View");
-        ImGui::Separator();
-        ImGui::Text("FPS: %.1f", io.Framerate);
-        ImGui::Text("Viewport: %d x %d", width(), height());
-        
-        ImGui::Separator();
-        if (ImGui::RadioButton("Translate", m_currentOperation == ImGuizmo::TRANSLATE))
-            m_currentOperation = ImGuizmo::TRANSLATE;
-        ImGui::SameLine();
-        if (ImGui::RadioButton("Rotate", m_currentOperation == ImGuizmo::ROTATE))
-            m_currentOperation = ImGuizmo::ROTATE;
-        ImGui::SameLine();
-        if (ImGui::RadioButton("Scale", m_currentOperation == ImGuizmo::SCALE))
-            m_currentOperation = ImGuizmo::SCALE;
-    }
-    ImGui::End();
 
     Container* container = Engine::Get()->GetActiveContainer();
    
@@ -443,17 +426,7 @@ void SceneViewGui::DrawGizmos(){
             float translateSnap[3] = { pixelSnap, pixelSnap, pixelSnap };
             float rotateSnap[3] = { 15.0f, 15.0f, 15.0f };
             float scaleSnap[3] = { 0.1f, 0.1f, 0.1f };
-            
-            if (!io.KeyAlt) {
-                if (m_currentOperation == ImGuizmo::TRANSLATE) {
-                    snapPtr = translateSnap;
-                } else if (m_currentOperation == ImGuizmo::ROTATE) {
-                    snapPtr = rotateSnap;
-                } else if (m_currentOperation == ImGuizmo::SCALE) {
-                    snapPtr = scaleSnap;
-                }
-            }
-            
+    
             ImGuizmo::Manipulate(
                     glm::value_ptr(view),
                     glm::value_ptr(proj),
@@ -479,18 +452,51 @@ void SceneViewGui::DrawGizmos(){
     }
 }
 
-void SceneViewGui::DrawToolBar(){
+void SceneViewGui::DrawToolBar() {
 
-    const auto& tex = SharedResources::Get().GetTextureByName("")->GetTextureID();
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 2.0f)); 
+    
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.12f, 0.12f, 0.12f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
+    
+    if (ImGui::Begin("###Toolbar", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
+    {
+        ImGui::PopStyleVar(); 
 
-    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(64, 0));
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | 
-                            ImGuiWindowFlags_NoResize   | 
-                            ImGuiWindowFlags_NoMove     | 
-                            ImGuiWindowFlags_NoScrollbar;
-    ImGui::Begin("Toolbar", NULL, flags);
+        ImDrawList* drawList = ImGui::GetWindowDrawList();
+        ImVec2 winPos = ImGui::GetWindowPos();
+        float winWidth = ImGui::GetWindowSize().x;
+        float centerX = winPos.x + (winWidth * 0.5f);
+        float lineY = winPos.y + 10.0f; 
+        
+        ImU32 gripColor = ImGui::GetColorU32(ImGuiCol_TextDisabled, 0.5f);
+        drawList->AddLine(ImVec2(centerX - 10, lineY), ImVec2(centerX + 10, lineY), gripColor, 1.5f);
+        drawList->AddLine(ImVec2(centerX - 10, lineY + 4), ImVec2(centerX + 10, lineY + 4), gripColor, 1.5f);
 
+        auto ToolButton = [&](const char* icon, ImGuizmo::OPERATION op) {
+            bool is_active = (m_currentOperation == op);
+            
+            if (is_active) {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.40f, 0.58f, 1.0f));
+            } else {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            }
 
+            if (ImGui::Button(icon, ImVec2(44, 44))) {
+                m_currentOperation = op;
+            }
+            ImGui::PopStyleColor();
+        };
 
+        ToolButton(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT, ImGuizmo::TRANSLATE);
+        ToolButton(ICON_FA_ROTATE, ImGuizmo::ROTATE);
+        ToolButton(ICON_FA_MAXIMIZE, ImGuizmo::SCALE);
+
+        ImGui::End();
+    }
+    else {
+        ImGui::PopStyleVar(); 
+    }
+    
+    ImGui::PopStyleColor(2);
 }

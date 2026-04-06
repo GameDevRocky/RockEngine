@@ -95,7 +95,7 @@ void BoxCollider::CreateShape(){
     definition.isSensor = isSensor;
     definition.enableSensorEvents = true;
     glm::vec2 worldScale = transform->GetWorldScale();
-    glm::vec2 scaledSize = size * worldScale;
+    glm::vec2 scaledSize = size * glm::abs(worldScale);  // Use absolute scale for physics shapes
     b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit, center.y * worldScale.y / PixelsPerUnit};
 
     Transform* bodyTransform = rigidBody->GetTransform();

@@ -9,6 +9,7 @@ void PhysicsSystem::Init(){
     
     b2WorldDef worldDef = b2DefaultWorldDef();
 	worldDef.enableContinuous = true;
+    worldDef.enableSleep = false;
     worldDef.gravity = {0.0f, -9.8f};
     worldDef.gravity *= 1.0f; 
     worldId = b2CreateWorld(&worldDef);
@@ -26,8 +27,6 @@ void PhysicsSystem::Step() {
 
     for (int i = 0; i < contactEvents.beginCount; ++i) {
         b2ContactBeginTouchEvent* event = contactEvents.beginEvents + i;
-
-        // Skip if shapes were destroyed (e.g., during scale change)
         if (!b2Shape_IsValid(event->shapeIdA) || !b2Shape_IsValid(event->shapeIdB)) continue;
 
         b2BodyId bodyA = b2Shape_GetBody(event->shapeIdA);

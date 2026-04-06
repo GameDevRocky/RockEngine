@@ -83,7 +83,7 @@ void CapsuleCollider::CreateShape(){
     definition.isSensor = isSensor;
 
     glm::vec2 worldScale = transform->GetWorldScale();
-    glm::vec2 scaledSize = glm::vec2(radius, height) * worldScale;
+    glm::vec2 scaledSize = glm::vec2(radius, height) * glm::abs(worldScale);  // Use absolute scale for physics
     b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit, center.y * worldScale.y / PixelsPerUnit};
 
     Transform* bodyTransform = rigidBody->GetTransform();

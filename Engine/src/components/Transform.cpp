@@ -91,7 +91,18 @@ float Transform::GetWorldRotation() const {
 
 glm::vec2 Transform::GetWorldScale() const {
     glm::mat4 world = GetWorldMatrix();
-    return glm::vec2(glm::length(glm::vec2(world[0])), glm::length(glm::vec2(world[1])));
+    // Compute scale magnitude
+    float scaleX = glm::length(glm::vec2(world[0]));
+    float scaleY = glm::length(glm::vec2(world[1]));
+    
+    // Determine sign by checking determinant of upper-left 2x2
+    // Negative determinant means one axis is flipped (negative scale)
+    float det = world[0][0] * world[1][1] - world[0][1] * world[1][0];
+    if (det < 0) {
+        // Convention: apply negative to X when flipped
+        scaleX = -scaleX;
+    }
+    return glm::vec2(scaleX, scaleY);
 }
 
 void Transform::SetWorldPosition(const glm::vec2& pos) {
