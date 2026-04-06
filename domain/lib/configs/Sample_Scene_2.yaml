@@ -43,8 +43,8 @@ components:
     center: [0, 0]
     isSensor: false
     density: 1.0
-    friction: 1.0
-    bounciness: 0.5
+    friction: 0.0
+    bounciness: 0.0
     rollingResistance: 0.0
     radius: 24.0
     height: 38.0
@@ -135,6 +135,13 @@ components:
     module: "Test"
     class: "TestScript"
 
+  - id: "sc23"
+    enabled: true
+    type: "ScriptComponent"
+    gameobject: "o23"
+    module: "Test2"
+    class: "TestScript2"
+
 gameobjects:
   - id: "o21"
     type: "GameObject"
@@ -166,4 +173,5 @@ gameobjects:
       Transform: "t23"
       SpriteRenderer: "s23"
       BoxCollider: "b23"
+      ScriptComponent: "sc23"
       
