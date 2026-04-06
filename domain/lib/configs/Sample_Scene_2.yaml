@@ -43,10 +43,10 @@ components:
     center: [0, 0]
     isSensor: false
     density: 1.0
-    friction: 0.3
-    bounciness: 0.05
+    friction: 1.0
+    bounciness: 0.5
     rollingResistance: 0.0
-    radius: 18.0
+    radius: 24.0
     height: 38.0
 
   - id: "t22"
@@ -99,7 +99,7 @@ components:
     gameobject: "o23"
     localPosition: [120, -30]
     localRotation: 0
-    localScale: [1, 1]
+    localScale: [10, 10]
     parent_id: null
 
   - id: "s23"
@@ -126,12 +126,12 @@ components:
     friction: 0.2
     bounciness: 0.15
     rollingResistance: 0.0
-    size: [40.0, 40.0]
+    size: [0.0, 0.0]
 
-  - id: "sc23"
+  - id: "sc21"
     enabled: true
     type: "ScriptComponent"
-    gameobject: "o23"
+    gameobject: "o21"
     module: "Test"
     class: "TestScript"
 
@@ -145,6 +145,7 @@ gameobjects:
       SpriteRenderer: "s21"
       RigidBody: "r21"
       CapsuleCollider: "c21"
+      ScriptComponent: "sc21"
 
   - id: "o22"
     type: "GameObject"
@@ -155,6 +156,7 @@ gameobjects:
       SpriteRenderer: "s22"
       RigidBody: "r22"
       BoxCollider: "b22"
+      
   
   - id: "o23"
     type: "GameObject"
@@ -164,4 +166,4 @@ gameobjects:
       Transform: "t23"
       SpriteRenderer: "s23"
       BoxCollider: "b23"
-      ScriptComponent: "sc23"
+      

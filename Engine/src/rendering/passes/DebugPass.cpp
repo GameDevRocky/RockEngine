@@ -188,27 +188,33 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
         float radius = collider->GetRadius();
         float height = collider->GetHeight();
         glm::vec2 center = collider->GetCenter();
+        glm::vec2 worldScale = glm::abs(transform->GetWorldScale());
         
-        // Calculate dimensions
-        float boxHeight = height;
-        float boxWidth = radius;
+        // Apply scale to match physics (radius scales with X, height with Y)
+        float scaledRadius = radius * worldScale.x;
+        float scaledHeight = height * worldScale.y;
+        
+        // Calculate dimensions - boxWidth is the visual radius for semicircles
+        float boxHeight = scaledHeight;
+        float boxWidth = scaledRadius;
         
         // Draw middle vertical lines (if there's a straight section)
         if (boxHeight > 0.0f) {
             glad_glBindVertexArray(capsuleVao);
             debugShader->SetMat4("uModel", transform->GetWorldMatrix());
-            debugShader->SetVec2("uSize", glm::vec2(boxWidth, boxHeight));
+            debugShader->SetVec2("uSize", glm::vec2(boxWidth / worldScale.x, boxHeight / worldScale.y));
             debugShader->SetVec2("uPivot", glm::vec2(0.0f, 0.0f));
             debugShader->SetVec2("uOffset", center);
             debugShader->SetVec4("uColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
             glad_glDrawArrays(GL_LINES, 0, 4); // Draw both vertical lines
         }
         
-        // Draw top semicircle
+        // Draw top semicircle - radius is scaledRadius/2 (diameter is scaledRadius)
         glad_glBindVertexArray(topSemiVao);
         float topOffset = (height / 2.0f);
         debugShader->SetMat4("uModel", transform->GetWorldMatrix());
-        debugShader->SetVec2("uSize", glm::vec2(radius/2, radius/2));
+        // Semicircle size needs to be in local space (will be scaled by matrix)
+        debugShader->SetVec2("uSize", glm::vec2(radius / 2.0f, radius / 2.0f * worldScale.x / worldScale.y));
         debugShader->SetVec2("uPivot", glm::vec2(0.0f, 0.0f));
         debugShader->SetVec2("uOffset", center + glm::vec2(0.0f, topOffset));
         debugShader->SetVec4("uColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));

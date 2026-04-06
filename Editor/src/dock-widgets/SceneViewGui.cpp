@@ -418,8 +418,18 @@ void SceneViewGui::DrawGizmos(){
                 op = static_cast<ImGuizmo::OPERATION>(ImGuizmo::TRANSLATE_X | ImGuizmo::TRANSLATE_Y);
             } else if (m_currentOperation == ImGuizmo::SCALE) {
                 op = static_cast<ImGuizmo::OPERATION>(ImGuizmo::SCALE_X | ImGuizmo::SCALE_Y);
-            } else {
+            } else if (m_currentOperation == ImGuizmo::ROTATE) {
                 op = ImGuizmo::ROTATE_Z;
+            }
+            else if (m_currentOperation == ImGuizmo::UNIVERSAL) {
+                op = static_cast<ImGuizmo::OPERATION>(
+                    ImGuizmo::TRANSLATE_X | ImGuizmo::TRANSLATE_Y | 
+                    ImGuizmo::ROTATE_Z | 
+                    ImGuizmo::SCALE_X | ImGuizmo::SCALE_Y
+                );
+            }
+            else{
+                return;
             }
             float* snapPtr = nullptr;
             float pixelSnap = EngineUtils::RenderUtils::PixelsToWorld(128.0f);
@@ -488,6 +498,11 @@ void SceneViewGui::DrawToolBar() {
             ImGui::PopStyleColor();
         };
 
+        ToolButton(ICON_FA_HAND, ImGuizmo::OPERATION(-1));
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Spacing();
+        ToolButton(ICON_FA_ARROWS_TO_DOT, ImGuizmo::UNIVERSAL);
         ToolButton(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT, ImGuizmo::TRANSLATE);
         ToolButton(ICON_FA_ROTATE, ImGuizmo::ROTATE);
         ToolButton(ICON_FA_MAXIMIZE, ImGuizmo::SCALE);

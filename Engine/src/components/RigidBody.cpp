@@ -36,20 +36,17 @@ void RigidBody::Init(){
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.userData = GetGameObject();
     bodyId = b2CreateBody(physicsSystem->GetWorldId(), &bodyDef);
-    
+    SetLockRotation(lockRotation);
+    SetBodyType(bodyType);
+    SetUseGravity(useGravity);
     state = State::Initialized;
 }
 
 
 void RigidBody::PostInit(){
     if (state >= State::PostInitialized) return;
-
-    SetBodyType(bodyType);
-    SetUseGravity(useGravity);
-    SetLockRotation(lockRotation);
     UpdateTransform();
     
-    // Subscribe to transform changes to sync physics body when moved externally (e.g., gizmo)
     Transform* transform = GetTransform();
     transform->Subscribe([this](){ OnTransformChanged(); }, Transform::POSITION_CHANGED_EVENT);
     transform->Subscribe([this](){ OnTransformChanged(); }, Transform::ROTATION_CHANGED_EVENT);
@@ -102,8 +99,10 @@ bool RigidBody::GetUseGravity() const {
 
 void RigidBody::SetLockRotation(bool value){
     lockRotation = value;
-    if (b2Body_IsValid(bodyId) && value) {
-        b2Body_SetAngularVelocity(bodyId, 0.0f);
+    if (b2Body_IsValid(bodyId)) {
+        b2MotionLocks locks = {};
+        locks.angularZ = lockRotation;
+        b2Body_SetMotionLocks(bodyId, locks);
     }
 }
 
