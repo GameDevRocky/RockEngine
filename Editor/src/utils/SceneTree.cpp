@@ -111,19 +111,6 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
             selectionManager->Select(gameObjectId.toStdString());
             
         });
-
-    auto* container = Engine::Get()->GetActiveContainer();    
-    auto* selectionManager = container->FindSystem<SelectionManager>();
-    selectionManager->Subscribe([this](const std::any& data) {
-        if (!data.has_value()) return;
-        
-        try {
-            const std::string& selectedId = std::any_cast<const std::string&>(data);
-            OnObjectSelected(selectedId);
-        } catch (const std::bad_any_cast&) {
-            return;
-        }
-    }, SelectionManager::SELECTION_CHANGED_EVENT);
 }
 
 void SceneTree::RebuildFromScene(Scene* scene) {
@@ -149,6 +136,19 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     for (GameObject* rootObject : scene->GetRootObjects()) {
         AddGameObjectNode(model, rootItem, rootObject);
     }
+
+    auto* container = Engine::Get()->GetActiveContainer();    
+    auto* selectionManager = container->FindSystem<SelectionManager>();
+    selectionManager->Subscribe([this](const std::any& data) {
+        if (!data.has_value()) return;
+        
+        try {
+            const std::string& selectedId = std::any_cast<const std::string&>(data);
+            OnObjectSelected(selectedId);
+        } catch (const std::bad_any_cast&) {
+            return;
+        }
+    }, SelectionManager::SELECTION_CHANGED_EVENT);
 
     expandAll();
 }
