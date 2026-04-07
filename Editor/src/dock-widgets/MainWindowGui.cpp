@@ -99,7 +99,7 @@ void MainWindow::Init()
     setDockNestingEnabled(false);
     setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::ForceTabbedDocks);
     LoadLayout();
-
+    //ClearLayout();
     std::cout << "Main Window Initialized " << std::endl;
 
 }

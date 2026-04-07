@@ -16,7 +16,7 @@ class ImGuiInstance{
 
     void Init();
     void Render();
-    void Resize(int width, int height);
+    void Resize(int width, int height, float dpiScale);
     void MakeCurrent();
     void AddDrawCall(const function& cb);
     void Shutdown();

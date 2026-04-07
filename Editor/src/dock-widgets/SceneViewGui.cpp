@@ -170,7 +170,7 @@ void SceneViewGui::resizeGL(int w, int h) {
 
     renderPipeline->Resize(fbw, fbh);
     camera->Resize(fbw, fbh);
-    if (imGuiInstance) imGuiInstance->Resize(fbw, fbh);
+    if (imGuiInstance) imGuiInstance->Resize(w, h, devicePixelRatioF());
     glViewport(0, 0, fbw, fbh);
 
 }
@@ -237,16 +237,15 @@ void SceneViewGui::wheelEvent(QWheelEvent* event)
 
 bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
     ImGuiIO& io = ImGui::GetIO();
-    float dpi = devicePixelRatioF();
     if (event->type() == QEvent::MouseMove) {
         auto* me = static_cast<QMouseEvent*>(event);
-        io.MousePos = ImVec2(me->pos().x() * dpi, me->pos().y() * dpi);
+        io.MousePos = ImVec2(me->pos().x(), me->pos().y());
     }
 
     switch (event->type()) {
         case QEvent::MouseButtonPress: {
             auto* me = static_cast<QMouseEvent*>(event);
-            io.MousePos = ImVec2(me->pos().x() * dpi, me->pos().y() * dpi);
+            io.MousePos = ImVec2(me->pos().x(), me->pos().y());
             if (me->button() == Qt::LeftButton) io.MouseDown[0] = true;
             if (me->button() == Qt::RightButton) io.MouseDown[1] = true;
             
@@ -254,7 +253,7 @@ bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
         }
         case QEvent::MouseButtonRelease: {
             auto* me = static_cast<QMouseEvent*>(event);
-            io.MousePos = ImVec2(me->pos().x() * dpi, me->pos().y() * dpi);
+            io.MousePos = ImVec2(me->pos().x(), me->pos().y());
             if (me->button() == Qt::LeftButton) io.MouseDown[0] = false;
             if (me->button() == Qt::RightButton) io.MouseDown[1] = false;
             return io.WantCaptureMouse;
@@ -411,7 +410,7 @@ void SceneViewGui::DrawGizmos(){
             glm::mat4 objectMatrix = transform->GetWorldMatrix();
             
             ImGuizmo::SetOrthographic(true);
-            ImGuizmo::SetRect(0, 0, (float)width() * devicePixelRatioF(), (float)height() * devicePixelRatioF());
+            ImGuizmo::SetRect(0, 0, (float)width(), (float)height());
             
             ImGuizmo::OPERATION op;
             if (m_currentOperation == ImGuizmo::TRANSLATE) {
@@ -492,16 +491,14 @@ void SceneViewGui::DrawToolBar() {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             }
 
-            if (ImGui::Button(icon, ImVec2(44, 44))) {
+            if (ImGui::Button(icon, ImVec2(24, 24))) {
                 m_currentOperation = op;
             }
             ImGui::PopStyleColor();
         };
 
         ToolButton(ICON_FA_HAND, ImGuizmo::OPERATION(-1));
-        ImGui::Spacing();
         ImGui::Separator();
-        ImGui::Spacing();
         ToolButton(ICON_FA_ARROWS_TO_DOT, ImGuizmo::UNIVERSAL);
         ToolButton(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT, ImGuizmo::TRANSLATE);
         ToolButton(ICON_FA_ROTATE, ImGuizmo::ROTATE);

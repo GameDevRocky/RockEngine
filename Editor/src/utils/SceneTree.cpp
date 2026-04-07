@@ -59,7 +59,6 @@ GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* game
         if (!liveItem) return;
         liveItem->setText(obj->GetName().c_str());
     }, GameObject::NAME_CHANGED_EVENT);
-
     return item;
 }
 
@@ -112,6 +111,19 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
             selectionManager->Select(gameObjectId.toStdString());
             
         });
+
+    auto* container = Engine::Get()->GetActiveContainer();    
+    auto* selectionManager = container->FindSystem<SelectionManager>();
+    selectionManager->Subscribe([this](const std::any& data) {
+        if (!data.has_value()) return;
+        
+        try {
+            const std::string& selectedId = std::any_cast<const std::string&>(data);
+            OnObjectSelected(selectedId);
+        } catch (const std::bad_any_cast&) {
+            return;
+        }
+    }, SelectionManager::SELECTION_CHANGED_EVENT);
 }
 
 void SceneTree::RebuildFromScene(Scene* scene) {
@@ -203,6 +215,32 @@ void SceneTree::dropEvent(QDropEvent* event) {
     handlingDrop = true;
     childTransform->SetParent(parentTransform, true);
     handlingDrop = false;
+}
+
+void SceneTree::OnObjectSelected(const std::string& id) {
+    // Handle deselection
+    if (id.empty()) {
+        clearSelection();
+        setCurrentIndex(QModelIndex());
+        return;
+    }
+
+    QModelIndex index = FindItemById(id);
+    if (!index.isValid()) return;
+
+    QModelIndex parent = index.parent();
+    while (parent.isValid()) {
+        expand(parent);
+        parent = parent.parent();
+    }
+
+    setCurrentIndex(index);
+    selectionModel()->setCurrentIndex(
+        index,
+        QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows
+    );
+
+    scrollTo(index);
 }
 
 QModelIndex SceneTree::FindItemById(const std::string& id) const {
