@@ -168,6 +168,7 @@ void PickingPass::Execute(RenderCamera* camera, Scene* /*scene*/)
         const auto& objects = currentScene->GetAllGameObjects();
         for(auto* obj : objects) {
             if(!obj) continue;
+            if(!obj->GetActive()) continue;
             
             SpriteRenderer* spr = obj->GetComponent<SpriteRenderer>();
             if(!spr || !spr->GetVisible()) continue;

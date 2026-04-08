@@ -12,8 +12,7 @@ class TestScript(ScriptableComponent):
         self.sprite_renderer = self.get_component(SpriteRenderer)
 
     def fixed_update(self):
-        self.gameobject.name = self.tick 
-        self.tick += 1
+
         if Input.is_key_down(Keys.A):
             self.rb.apply_force((-1000, 0))
             self.sprite_renderer.flipX = True
