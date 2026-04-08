@@ -50,7 +50,7 @@ void RigidBody::PostInit(){
     Transform* transform = GetTransform();
     transform->Subscribe([this](){ OnTransformChanged(); }, Transform::POSITION_CHANGED_EVENT);
     transform->Subscribe([this](){ OnTransformChanged(); }, Transform::ROTATION_CHANGED_EVENT);
-    
+    if (enabled) b2Body_Enable(bodyId); else b2Body_Disable(bodyId);
     state = State::PostInitialized;
 }
 
@@ -159,6 +159,16 @@ void RigidBody::LateUpdate() {
     transform->SetWorldPosition({renderX, renderY});
     transform->SetWorldRotation(renderAngle);
     writingToTransform = false;
+}
+
+void RigidBody::OnEnabled(){
+    Component::OnDisabled();
+    b2Body_Enable(this->bodyId);
+    
+}
+void RigidBody::OnDisabled(){
+    Component::OnDisabled();
+    b2Body_Disable(this->bodyId);
 }
 
 void RigidBody::SetLinearVelocity(const glm::vec2& vel) {

@@ -81,37 +81,40 @@ QToolButton:checked:!pressed:enabled
  *===========================================================================*/
 QRadioButton::indicator
 {
-	border: none;
-    width: 20px;
-    height: 20px;
-    image-position: center;
-    image: url(:/style/images/radiobutton.svg);
+    border: 2px solid rgb(150, 150, 150);
+    border-radius: 9px;
+    width: 14px;
+    height: 14px;
+    background: transparent;
 }
 
 QRadioButton::indicator:disabled
 {
-    image: url(:/style/images/radiobutton_disabled.svg);
+    border-color: rgb(100, 100, 100);
 }
 
 QRadioButton::indicator:hover
 {
-    image: url(:/style/images/radiobutton_hover.svg);
+    border-color: rgb(131, 176, 145);
 }
 
 QRadioButton::indicator:checked
 {
-    image: url(:/style/images/radiobutton_checked.svg);
+    border-color: rgb(73, 155, 99);
+    background-color: rgb(73, 155, 99);
+
 }
 
 QRadioButton::indicator:checked:disabled
 {
-    image: url(:/style/images/radiobutton_checked_disabled.svg);
+    border-color: rgb(100, 100, 100);
+    background-color: rgb(100, 100, 100);
 }
-
 
 QRadioButton::indicator:checked:hover
 {
-    image: url(:/style/images/radiobutton_checked_hover.svg);
+    border-color: rgb(132, 178, 151);
+    background-color: rgb(132, 178, 151);
 }
 
 
@@ -120,7 +123,7 @@ QRadioButton::indicator:checked:hover
  *===========================================================================*/
 QComboBox
 {
-    border: 2px solid rgba(0, 0, 0, 102);
+    border: 2px solid rgb(51, 51, 51);
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 3px;
@@ -131,20 +134,6 @@ QComboBox
 QComboBox:hover:!pressed
 {
     border-color: rgb(102, 102, 102);
-}
-
-QComboBox::pressed
-{
-    background: rgb(204, 204, 204);
-}
-
-QComboBox QAbstractItemView
- {
-    border: 1px solid rgb(204, 204, 204);
-    background: rgb(242, 242, 242);
-    selection-background-color: lightgray;
-   padding-left: 9px;
-   padding-right: 9px;
 }
 
 QComboBox QAbstractItemView::item
@@ -162,7 +151,7 @@ QComboBox::drop-down
 
 QComboBox::down-arrow
 {
-    image: url(:/style/images/checkbox_down_arrow.svg);
+    /* image: url(:/style/images/checkbox_down_arrow.svg); */
     height: 6px;
     width: 12px;
 }
@@ -194,6 +183,9 @@ QComboBox::down-arrow
 .QCheckBox::indicator:checked
 {
     image: url(:/style/images/checkbox_checked.svg);
+    background: rgb(0, 99, 177);
+    border: 2px solid rgb(0, 99, 177);
+    /* pure styling no SVG */
 }
 
 .QCheckBox::indicator:checked:!pressed
@@ -211,8 +203,37 @@ QComboBox::down-arrow
 
 .QCheckBox::indicator:indeterminate
  {
-    image: url(:/style/images/checkbox_indeterminate.svg);
+    background: rgb(0, 99, 177);
     border: 2px solid rgb(0, 99, 177);
+}
+
+
+/*===========================================================================
+ * QLineEdit
+ *===========================================================================*/
+QLineEdit {
+    background-color: rgb(30, 30, 30);
+    border: 1px solid rgb(51, 51, 51);
+    border-radius: 2px;
+    padding: 4px;
+    color: rgb(220, 220, 220);
+    selection-background-color: rgb(70, 70, 70);
+    selection-color: rgb(255, 255, 255);
+}
+
+QLineEdit:hover {
+    border: 1px solid rgb(80, 80, 80);
+}
+
+QLineEdit:focus {
+    border: 1px solid rgb(100, 100, 100);
+    background-color: rgb(35, 35, 35);
+}
+
+QLineEdit:disabled {
+    color: rgb(100, 100, 100);
+    background-color: rgb(25, 25, 25);
+    border: 1px solid rgb(40, 40, 40);
 }
 
 
@@ -227,8 +248,9 @@ CToggleSwitch
 
 CToggleSwitch::indicator
 {
-   image: url(:/style/images/toggleswitch_off.svg);
-   image-position: center;
+   /* image: url(:/style/images/toggleswitch_off.svg); */
+   background-color: rgb(150, 150, 150);
+   border-radius: 12px;
    width: 44px;
    height: 24px;
    padding: 0px;
@@ -237,8 +259,8 @@ CToggleSwitch::indicator
 
 CToggleSwitch::indicator::checked
 {
-   image: url(:/style/images/toggleswitch_on.svg);
-   image-position: center;
+   /* image: url(:/style/images/toggleswitch_on.svg); */
+   background-color: rgb(0, 120, 215);
 }
 
 
@@ -292,4 +314,13 @@ SceneTree::item:selected:!active
 SceneTree::item:disabled
 {
     color: rgb(128, 128, 128);
+}
+
+ObjectHeader
+{
+    
+    border-bottom: 1px solid;
+    border-color: rgb(67, 67, 67);
+
+
 }

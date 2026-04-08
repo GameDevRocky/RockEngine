@@ -31,11 +31,11 @@ void Component::SetEnabled(bool e) {
     enabled = e;
     if (enabled){
         OnEnabled();
-        Notify(Component::ENABLED_EVENT);
+        Notify(Component::ENABLED_CHANGED_EVENT, enabled);
     }
     else{ 
         OnDisabled();
-        Notify(Component::DISABLED_EVENT);
+        Notify(Component::ENABLED_CHANGED_EVENT, enabled);
     }
 }
 

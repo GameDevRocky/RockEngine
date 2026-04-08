@@ -25,6 +25,7 @@ public:
     void PostInit() override;
     void Awake() override;
     void Start() override;
+    void Enable();
     void Shutdown() override;
     void Update() override;
     void FixedUpdate();

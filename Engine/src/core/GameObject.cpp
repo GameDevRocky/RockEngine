@@ -95,6 +95,7 @@ void GameObject::Update() {
     for (auto& [type, id] : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
+        if (!comp->GetEnabled()) continue;
         comp->Update();
 
     }
@@ -103,6 +104,7 @@ void GameObject::FixedUpdate() {
     for (auto& [type, id] : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
+        if (!comp->GetEnabled()) continue;
         comp->FixedUpdate();
     }
 }
@@ -111,6 +113,7 @@ void GameObject::LateUpdate() {
     for (auto& [type, id] : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
+        if (!comp->GetEnabled()) continue;
         comp->LateUpdate();
     }
 }
@@ -119,6 +122,7 @@ void GameObject::OnCollisionEnter(GameObject* other){
     for (auto& [type, id] : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
+        if (!comp->GetEnabled()) continue;
         comp->OnCollisionEnter(other);
     }
 }
@@ -126,6 +130,7 @@ void GameObject::OnCollisionExit(GameObject* other) {
     for (auto& [type, id] : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
+        if (!comp->GetEnabled()) continue;
         comp->OnCollisionExit(other);
     }
 }
@@ -134,6 +139,7 @@ void GameObject::OnTriggerEnter(GameObject* other) {
     for (auto& [type, id] : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
+        if (!comp->GetEnabled()) continue;
         comp->OnTriggerEnter(other);
     }
 }
@@ -141,6 +147,7 @@ void GameObject::OnTriggerExit(GameObject* other) {
     for (auto& [type, id] : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
+        if (!comp->GetEnabled()) continue;
         comp->OnTriggerExit(other);
     }
 }
@@ -151,15 +158,22 @@ void GameObject::SetActive(bool active){
         notify = true;
     }
     this->active = active;
-    if (notify) Notify(GameObject::ACTIVE_CHANGED_EVENT); 
+    for (auto& [type, id] : component_ids) {
+        Component* comp = registry->Find<Component>(id);
+        if (!comp) continue;
+        comp->SetEnabled(active);
+    }
+
+
+    if (notify) Notify(GameObject::ACTIVE_CHANGED_EVENT, active); 
 }
-void GameObject::SetName(std::string& name){
+void GameObject::SetName(const std::string& name){
     bool notify = false;
     if (this->name != name){
         notify = true;
     }
     this->name = name;
-    if (notify) Notify(GameObject::NAME_CHANGED_EVENT); 
+    if (notify) Notify(GameObject::NAME_CHANGED_EVENT, name); 
 }
 void GameObject::Shutdown(){
     subscribers.clear();

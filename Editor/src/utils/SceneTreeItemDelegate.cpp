@@ -19,7 +19,7 @@ void SceneTreeItemDelegate::setModelData(QWidget* editor, QAbstractItemModel* mo
     std::string gameObjectId = idVar.toString().toStdString();
     GameObject* obj = Registry::FindInRuntime<GameObject>(gameObjectId);
     if (obj) {
-        std::string nameStr = newName.toStdString();
+        const std::string& nameStr = newName.toStdString();
         obj->SetName(nameStr);
     }
 }

@@ -20,6 +20,8 @@ public:
     void FixedUpdate() override;
     void LateUpdate() override;
     void UpdateTransform();
+    void OnEnabled() override;
+    void OnDisabled() override;
 
     void SetBodyType(b2BodyType type);
     void SetMass(float mass);

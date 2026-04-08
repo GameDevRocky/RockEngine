@@ -1,5 +1,13 @@
 #pragma once
 #include <QWidget>
+#include <QLayout>
+#include <QLayoutItem>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <iostream>
+#include "component-widgets/ObjectHeader.hpp"
 
 class InspectorGui : public QWidget {
     Q_OBJECT
@@ -14,8 +22,12 @@ public:
     }
     void Init();
     explicit InspectorGui(QWidget* parent = nullptr);
+
 private:
+    void SubscribeToSelector();
+    void OnObjectSelected(const std::string& id);
     ~InspectorGui() override = default;
 
-
+    ObjectHeader* header = nullptr;
+    QVBoxLayout* mainLayout = nullptr;
 };

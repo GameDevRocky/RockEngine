@@ -75,7 +75,7 @@ class GameObject : public RuntimeObject {
     
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
-    void SetName(std::string& name);
+    void SetName(const std::string& name);
     std::string GetName() {return name;}
     void SetActive(bool val);
     bool GetActive(){return active;}

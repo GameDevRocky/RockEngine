@@ -9,8 +9,7 @@ class Transform;
 class Component : public RuntimeObject{
 public: 
 
-    static inline const Event ENABLED_EVENT = Component::CreateEvent();
-    static inline const Event DISABLED_EVENT = Component::CreateEvent();
+    static inline const Event ENABLED_CHANGED_EVENT = Component::CreateEvent();
 
     using Serializable::Copy;
 

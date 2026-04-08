@@ -25,6 +25,16 @@ void Transform::PostInit(){
     state = State::PostInitialized; 
 }
 
+void Transform::OnEnabled(){
+
+}
+
+void Transform::OnDisabled(){
+
+
+
+}
+
 void Transform::MarkDirty() {
     dirty = true;
     Engine* engine = Engine::Get();

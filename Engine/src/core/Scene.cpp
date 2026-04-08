@@ -73,6 +73,7 @@ void Scene::Start()
     state = State::Started;
 }
 
+
 void Scene::Update()
 {
     for (auto &root : GetRootObjects())
