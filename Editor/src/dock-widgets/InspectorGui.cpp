@@ -4,7 +4,7 @@
 #include "engine/core/SelectionManager.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/GameObject.hpp"
-
+#include "utils/CollapsableWidget.hpp"
 
 namespace {
     void clearLayout(QLayout* layout)
@@ -71,7 +71,6 @@ void InspectorGui::OnObjectSelected(const std::string& id)
     if (!obj) return;
     ObjectHeader* header = new ObjectHeader(this);
     header->Bind(id);
-
     mainLayout->addWidget(header);
     mainLayout->addStretch();
     

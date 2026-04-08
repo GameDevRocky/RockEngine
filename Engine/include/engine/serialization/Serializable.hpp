@@ -4,6 +4,8 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/core/Observable.hpp"
 #include <memory>
+#include "engine/utils/IVisitor.hpp"
+
 
 class Registry;
 
@@ -19,10 +21,12 @@ public:
     const std::string& GetID() const { return id; }
 
     virtual Serializable* Copy() { return nullptr; }
+    virtual void Visit(IVisitor* v);
 
     Serializable() = default;
 
     virtual ~Serializable() = default; 
+
 
 protected:
     std::string id;
