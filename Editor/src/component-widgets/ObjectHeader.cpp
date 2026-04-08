@@ -8,14 +8,28 @@
 #include <QPointer>
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/GameObject.hpp"
+#include <QHeaderView>
 
 ObjectHeader::ObjectHeader(QWidget* parent) : QWidget(parent)
 {
     auto* vbox = new QVBoxLayout(this);
-    setLayout(vbox);
     auto* hbox1 = new QHBoxLayout();
     auto* hbox2 = new QHBoxLayout();
-    
+
+
+
+    setLayout(vbox);
+    QWidget* header = new QWidget(this);
+    header->setLayout(new QHBoxLayout());
+    header->layout()->setContentsMargins(0,0,0,0);
+    QLabel* headerLabel = new QLabel("Properties");
+    QFont font = headerLabel->font(); 
+    font.setBold(true);
+    font.setPointSize(10);
+    headerLabel->setFont(font);
+    header->layout()->addWidget(headerLabel);
+    vbox->addWidget(header);
+
     vbox->addLayout(hbox1);
     vbox->addLayout(hbox2);
 
