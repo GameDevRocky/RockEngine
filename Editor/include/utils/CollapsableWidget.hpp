@@ -13,8 +13,8 @@ class CollapsableWidget : public QWidget {
 
 public: 
     explicit CollapsableWidget(std::string label, QWidget* parent = nullptr);
-    void addWidget(QWidget* widget);
-    void setIcon(QIcon& icon);
+    void AddWidget(QWidget* widget);
+    void SetIcon(QIcon& icon);
     virtual void OnActiveToggled(bool val){};
     virtual void OnLabelEdited(const QString &name){};
     virtual void Bind(std::string id = ""){};

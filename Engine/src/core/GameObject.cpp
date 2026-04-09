@@ -46,6 +46,16 @@ Transform* GameObject::GetTransform(){
     return GetComponent<Transform>();
 }
 
+std::vector<Component*> GameObject::GetAllComponents(){
+    std::vector<Component*> result;
+    Registry* registry = container->FindSystem<Registry>();
+    for (auto& [type, id] : component_ids ){
+        auto* comp = registry->Find<Component>(id);
+        result.push_back(comp);
+    }
+    return result;
+}
+
 void GameObject::Init(){
     registry = container->FindSystem<Registry>();
     for (auto& [type, id] : component_ids){

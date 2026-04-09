@@ -44,6 +44,7 @@ public:
     void ApplyAngularImpulse(float impulse);
     
     std::string GetTypeName() const override {return "RigidBody";}
+    void Accept(IVisitor* v) override;
 
     RigidBody* Copy() override;
     RigidBody* Copy(Container* container) override;

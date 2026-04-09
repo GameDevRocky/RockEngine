@@ -21,7 +21,7 @@ public:
     const std::string& GetID() const { return id; }
 
     virtual Serializable* Copy() { return nullptr; }
-    virtual void Visit(IVisitor* v);
+    virtual void Accept(IVisitor* v){};
 
     Serializable() = default;
 

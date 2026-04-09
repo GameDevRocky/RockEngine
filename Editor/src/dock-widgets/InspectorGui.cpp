@@ -5,6 +5,9 @@
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/GameObject.hpp"
 #include "utils/CollapsableWidget.hpp"
+#include "component-widgets/ComponentHeader.hpp"
+#include "utils/InspectorVisitor.hpp"
+#include "engine/components/Transform.hpp"
 
 namespace {
     void clearLayout(QLayout* layout)
@@ -16,11 +19,13 @@ namespace {
         {
             if (QWidget* widget = item->widget())
             {
-                widget->deleteLater();
+                // Immediate deletion is safer for rapid Inspector switching
+                delete widget; 
             }
             else if (QLayout* childLayout = item->layout())
             {
                 clearLayout(childLayout);
+               
                 delete childLayout;
             }
 
@@ -54,7 +59,6 @@ void InspectorGui::Init(){
 }
 
 void InspectorGui::SubscribeToSelector(){
-    clearLayout(layout());
     auto* selectionManager = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
     selectionManager->Subscribe([this](std::any data){
         const std::string& id = std::any_cast<std::string>(data);
@@ -65,13 +69,43 @@ void InspectorGui::SubscribeToSelector(){
 
 void InspectorGui::OnObjectSelected(const std::string& id)
 {
-    clearLayout(layout());
+     if (contentWidget) {
+        contentWidget->deleteLater();
+        contentWidget = nullptr;
+    }
+
     if (id.empty()) return;
     auto* obj = Registry::FindInRuntime<GameObject>(id);
     if (!obj) return;
-    ObjectHeader* header = new ObjectHeader(this);
-    header->Bind(id);
-    mainLayout->addWidget(header);
-    mainLayout->addStretch();
+
+    contentWidget = new QWidget();
+    QVBoxLayout* contentLayout = new QVBoxLayout(contentWidget);
+    contentLayout->setContentsMargins(0, 0, 0, 0);
+
+    InspectorVisitor* visitor = new InspectorVisitor();
+    ObjectHeader* objectHeader = new ObjectHeader();
+    objectHeader->Bind(obj->GetID());
+    obj->Accept(visitor);
+    auto* content = visitor->GetContent();
+    if (content){
+        objectHeader->AddWidget(content);
+    }
+    contentLayout->addWidget(objectHeader);
+    delete visitor;
+
+    for (auto* comp : obj->GetAllComponents()){
+        InspectorVisitor* visitor = new InspectorVisitor();
+        comp->Accept(visitor);
+        content = visitor->GetContent();
+        if (!visitor->HasContent()) continue;
+        ComponentHeader* compWidget = new ComponentHeader(comp->GetTypeName());
+        compWidget->Bind(comp->GetID());
+        compWidget->AddWidget(content);
+        contentLayout->addWidget(compWidget);
+        delete visitor;
+    }
+
+    contentLayout->addStretch();
+    mainLayout->addWidget(contentWidget);
     
 }

@@ -27,7 +27,8 @@ private:
     void SubscribeToSelector();
     void OnObjectSelected(const std::string& id);
     ~InspectorGui() override = default;
-
+    
+    QWidget* contentWidget = nullptr;
     ObjectHeader* header = nullptr;
     QVBoxLayout* mainLayout = nullptr;
 };

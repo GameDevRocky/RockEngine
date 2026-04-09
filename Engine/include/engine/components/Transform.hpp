@@ -56,7 +56,8 @@ public:
     void SetParent(Transform* newParent, bool keepWorld = true);
     Transform* GetParent();
     std::vector<Transform*> GetChildren();
-    
+    void Accept(IVisitor* v) override;
+   
     glm::mat4 GetLocalMatrix() const;
     glm::mat4 GetWorldMatrix() const;
     

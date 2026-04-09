@@ -18,6 +18,7 @@ public:
 
     float GetRadius(){return radius;}
     void SetRadius(float radius);
+    void Accept(IVisitor* v) override;
 
     CircleCollider* Copy() override;
     CircleCollider* Copy(Container* container) override;

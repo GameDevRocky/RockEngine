@@ -38,7 +38,10 @@ void Component::SetEnabled(bool e) {
         Notify(Component::ENABLED_CHANGED_EVENT, enabled);
     }
 }
-
+void Component::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
+}
 Component* Component::Copy(Container* container) {
     auto* copiedSerializable = static_cast<Serializable*>(this)->Copy();
     auto* copiedComponent = dynamic_cast<Component*>(copiedSerializable);

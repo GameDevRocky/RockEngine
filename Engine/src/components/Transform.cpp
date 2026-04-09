@@ -69,6 +69,7 @@ void Transform::Scale(const glm::vec2& delta) {
 
 
 void Transform::SetPosition(const glm::vec2& pos) {
+    if (pos == localPosition) return;
     localPosition = pos;
     MarkDirty();
     Notify(POSITION_CHANGED_EVENT);
@@ -76,6 +77,7 @@ void Transform::SetPosition(const glm::vec2& pos) {
 }
 
 void Transform::SetRotation(float degrees) {
+    if (degrees == localRotation) return;
     localRotation = degrees;
     MarkDirty();
     Notify(ROTATION_CHANGED_EVENT);
@@ -83,6 +85,7 @@ void Transform::SetRotation(float degrees) {
 }
 
 void Transform::SetScale(const glm::vec2& scale) {
+    if (scale == localScale) return;
     localScale = scale;
     MarkDirty();
     Notify(SCALE_CHANGED_EVENT);
@@ -284,6 +287,12 @@ void Transform::Deserialize(const YAML::Node& node) {
     localScale.x = node["localScale"][0].as<float>();
     localScale.y = node["localScale"][1].as<float>();
     MarkDirty();
+}
+
+
+void Transform::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
 }
 
 Transform* Transform::Copy() {

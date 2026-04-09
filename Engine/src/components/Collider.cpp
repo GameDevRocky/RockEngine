@@ -93,3 +93,8 @@ void Collider::OnTransformScaleUpdate(){
 
 }
 
+void Collider::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
+}
+

@@ -72,6 +72,8 @@ class GameObject : public RuntimeObject {
 
     template<typename T> 
     T* RequireComponent();
+
+    std::vector<Component*> GetAllComponents();
     
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}

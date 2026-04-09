@@ -56,7 +56,8 @@ public:
 
     void SetEnabled(bool e);
     bool GetEnabled() {return enabled;}
-    
+    void Accept(IVisitor* v) override;
+ 
     virtual std::string GetTypeName() const = 0;
     virtual ~Component() = default;
     

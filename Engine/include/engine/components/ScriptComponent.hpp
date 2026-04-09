@@ -26,6 +26,7 @@ public:
     void Destroy() override;
 
     void Shutdown() override;
+    void Accept(IVisitor* v) override;
 
     ScriptComponent* Copy() override;
 

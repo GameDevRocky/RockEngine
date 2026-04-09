@@ -234,6 +234,11 @@ void RigidBody::ApplyAngularImpulse(float impulse) {
     }
 }
 
+void RigidBody::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
+}
+
 RigidBody* RigidBody::Copy(){
     RigidBody* copy = new RigidBody();
     copy->id = id;

@@ -42,6 +42,7 @@ class SpriteRenderer : public Component
     void SetFlipY(bool v) { flipY = v; }
 
     void OverrideUniforms();
+    void Accept(IVisitor* v) override;
 
     std::string GetTypeName() const override { return "SpriteRenderer"; }
 

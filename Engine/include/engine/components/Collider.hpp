@@ -31,6 +31,7 @@ public:
     float GetBounciness(){return bounciness;}
     bool GetIsSensor(){return isSensor;}
     float GetFriction(){return friction;}
+    void Accept(IVisitor* v) override;
 
     Collider() = default;
 

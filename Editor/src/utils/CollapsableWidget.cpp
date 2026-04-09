@@ -6,13 +6,15 @@
 CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidget(parent) 
 {
     header = new QWidget(this);
+    header->setStyleSheet("{border: 1px solid rgb(67, 67, 67);}");
+
     QHBoxLayout* headerLayout = new QHBoxLayout();
     header->setLayout(headerLayout);
     headerLayout->setContentsMargins(4, 8, 4, 8);
     headerLayout->setSpacing(4);
 
     mainLayout = new QVBoxLayout(this);
-    //mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
     toggleButton = new QToolButton(this);
@@ -62,7 +64,7 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     mainLayout->addWidget(contentWidget);
 }
 
-void CollapsableWidget::addWidget(QWidget* widget) {
+void CollapsableWidget::AddWidget(QWidget* widget) {
     contentLayout->addWidget(widget);
 }
 
