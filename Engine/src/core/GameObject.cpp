@@ -51,6 +51,7 @@ std::vector<Component*> GameObject::GetAllComponents(){
     Registry* registry = container->FindSystem<Registry>();
     for (auto& [type, id] : component_ids ){
         auto* comp = registry->Find<Component>(id);
+        if (!comp) continue;
         result.push_back(comp);
     }
     return result;
@@ -82,6 +83,7 @@ void GameObject::Awake(){
             std::cout << "GameObject::Awake - Component not found: " << id << " (type: " << type << ")" << std::endl;
             continue;
         }
+        if (!comp->GetEnabled()) continue;
         std::cout << "GameObject::Awake - Calling Awake on: " << type << " (id: " << id << ")" << std::endl;
         comp->Awake();
     } 
@@ -95,6 +97,7 @@ void GameObject::Start(){
             std::cout << "GameObject::Start - Component not found: " << id << " (type: " << type << ")" << std::endl;
             continue;
         }
+        if (!comp->GetEnabled()) continue;
         std::cout << "GameObject::Start - Calling Start on: " << type << " (id: " << id << ")" << std::endl;
         comp->Start();
     } 
@@ -105,6 +108,7 @@ void GameObject::Update() {
     for (auto& [type, id] : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
+        
         if (!comp->GetEnabled()) continue;
         comp->Update();
 

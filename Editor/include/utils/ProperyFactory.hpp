@@ -4,6 +4,8 @@
 #include <QLabel>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
+#include <QPushButton>
+#include <QColorDialog>
 #include "engine/utils/Properties.hpp"
 
 class PropertyFactory {
@@ -19,6 +21,8 @@ public:
 
             case Properties::Tags::TOGGLE:
                 return new QCheckBox();
+            case Properties::Tags::COLOR: // New Case
+                return createColorWidget(desc);
 
             case Properties::Tags::READONLY:
                 return createReadOnlyWidget();
@@ -29,6 +33,18 @@ public:
     }
 
 private:
+    static void updateButtonStyle(QPushButton* btn, const QColor& color) {
+        QString qss = QString("background-color: %1; border: 1px solid #333; height: 20px;")
+                        .arg(color.name());
+        btn->setStyleSheet(qss);
+    }
+    
+    static QWidget* createColorWidget(const Properties::PropDesc& desc) {
+        QPushButton* colorBtn = new QPushButton();
+        colorBtn->setFixedWidth(60);
+        return colorBtn;
+    }
+
     static QWidget* createFloatWidget(const Properties::PropDesc& desc) {
         auto* spin = new QDoubleSpinBox();
         spin->setRange(desc.min, desc.max);

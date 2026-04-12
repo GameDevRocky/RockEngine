@@ -49,7 +49,7 @@ void ComponentHeader::Bind(std::string id){
         if (!comp) return;
         bool val = std::any_cast<bool>(data);
         safeThis->activeButton->setChecked(val);
-    }, GameObject::ACTIVE_CHANGED_EVENT);
+    }, Component::ENABLED_CHANGED_EVENT);
 }
 
 void ComponentHeader::paintEvent(QPaintEvent *event) {

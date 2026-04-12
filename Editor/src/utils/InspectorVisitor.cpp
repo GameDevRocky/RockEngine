@@ -3,6 +3,7 @@
 #include "engine/core/GameObject.hpp"
 #include <QDoubleSpinBox>
 #include "engine/components/Transform.hpp"
+#include "engine/components/SpriteRenderer.hpp"
 #include "engine/utils/Properties.hpp"
 #include <QPointer>
 #include <Qt>
@@ -21,6 +22,7 @@ void InspectorVisitor::Visit(GameObject* obj){
     
     
 }
+
 void InspectorVisitor::Visit(Transform* transform){
     auto id = transform->GetID();
 
@@ -59,6 +61,24 @@ void InspectorVisitor::Visit(Transform* transform){
     BindProperty(transform, "Position: ", pos_get, pos_set, transform->POSITION_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
     BindProperty(transform, "Rotation: ", rot_get, rot_set, transform->ROTATION_CHANGED_EVENT, PropDesc().Tag(Tags::ANGLE).Step(1));
     BindProperty(transform, "Scale: ", scale_get, scale_set, transform->SCALE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
+    
+    
+}
+
+void InspectorVisitor::Visit(SpriteRenderer* renderer){
+
+    auto id = renderer->GetID();
+    auto color_get = [id](){
+        auto* renderer = Registry::FindInRuntime<SpriteRenderer>(id);
+        if (!renderer) return glm::vec4(0.0f);
+        return renderer->GetColor();
+    };
+    auto color_set = [id](glm::vec4 color){
+        auto* renderer = Registry::FindInRuntime<SpriteRenderer>(id);
+        if (!renderer) return;
+        renderer->SetColor(color);
+    };
+    BindProperty(renderer, "Color: ", color_get, color_set, renderer->COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
     
 }
 
@@ -162,5 +182,67 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
     hbox->addWidget(spin);
     layout->addLayout(hbox);
     spin->blockSignals(false);
+    containsContent = true;
+}
+
+
+void InspectorVisitor::BindProperty(Serializable* instance, const std::string& text, 
+                                    std::function<glm::vec4()> getter,
+                                    std::function<void(glm::vec4)> setter, 
+                                    Observable::Event event_id, PropDesc desc)
+{
+    QHBoxLayout* hbox = new QHBoxLayout();
+    QPushButton* colorBtn = static_cast<QPushButton*>(PropertyFactory::Create(desc.tag, desc));
+    QPointer<QPushButton> safeBtn = colorBtn;
+    auto updateBtnUI = [safeBtn](glm::vec4 color) {
+        if (safeBtn.isNull()) return;
+        QColor qcol(color.r * 255, color.g * 255, color.b * 255, color.a * 255);
+        QString qss = QString("background-color: %1; border: 1px solid #333; height: 20px; min-width: 60px;")
+                        .arg(qcol.name());
+        safeBtn->setStyleSheet(qss);
+    };
+
+    updateBtnUI(getter());
+    QObject::connect(colorBtn, &QPushButton::clicked, [=]() {
+        glm::vec4 current = getter();
+        QColor initial(current.r * 255, current.g * 255, current.b * 255, current.a * 255);
+        QColorDialog* dialog = new QColorDialog(); 
+        dialog->setCurrentColor(initial);
+        dialog->setOptions(QColorDialog::ShowAlphaChannel);
+        dialog->setModal(false);
+        dialog->setAttribute(Qt::WA_DeleteOnClose); 
+
+        QObject::connect(dialog, &QColorDialog::currentColorChanged, [=](const QColor& selected) {
+            if (selected.isValid()) {
+                glm::vec4 engineColor(
+                    selected.redF(), 
+                    selected.greenF(), 
+                    selected.blueF(), 
+                    selected.alphaF()
+                );
+                setter(engineColor);   
+                updateBtnUI(engineColor); 
+            }
+        });
+        dialog->setWindowFlags(Qt::Popup);
+        dialog->show(); 
+    });
+
+    instance->Subscribe([=](){         
+        if (safeBtn.isNull()) return;
+        updateBtnUI(getter());
+    }, event_id);
+
+    QLabel* label = new QLabel(text.c_str());
+    auto font = label->font(); 
+    font.setBold(true);
+    label->setFont(font);   
+    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    hbox->addWidget(label);
+    hbox->addStretch();
+    hbox->addWidget(colorBtn);
+    layout->addLayout(hbox);
+    
     containsContent = true;
 }
