@@ -88,7 +88,10 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     setObjectName("MessageRoot");   // Important: ONLY the outer widget gets the border
 
     if (msg)
-        msg->Subscribe([this]() { Update(); });
+        msg->Subscribe([this]() { 
+            Update(); 
+            return true;
+        });
 
     // Widgets
     file_path = new EditorUtils::ClickableLabel(this);

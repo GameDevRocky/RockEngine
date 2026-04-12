@@ -50,11 +50,14 @@ void InspectorGui::Init(){
     auto* engine = Engine::Get();
     engine->Subscribe([this](){
         SubscribeToSelector();
+        return true;
     }, Engine::ENTER_PLAY_MODE_EVENT);
     engine->Subscribe([this](){
         SubscribeToSelector();
+        return true;
     }, Engine::EXIT_PLAY_MODE_EVENT);
     SubscribeToSelector();
+    
     std::cout << "InspectorGui Initialized" << std::endl;
 }
 
@@ -63,6 +66,7 @@ void InspectorGui::SubscribeToSelector(){
     selectionManager->Subscribe([this](std::any data){
         const std::string& id = std::any_cast<std::string>(data);
         OnObjectSelected(id);
+        return true;
     }, SelectionManager::SELECTION_CHANGED_EVENT);
     OnObjectSelected(selectionManager->GetSelectedId());
 }

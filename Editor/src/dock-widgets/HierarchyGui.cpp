@@ -41,6 +41,7 @@ void SubscribeTransformRecursive(Transform* transform, SceneTree* tree) {
         }
         
         tree->ReparentItem(gameObjectId, newParentGameObjectId);
+        return true;
     }, Transform::PARENT_CHANGED_EVENT);
 
     for (Transform* child : transform->GetChildren()) {
@@ -83,19 +84,23 @@ void HierarchyGui::PostInit(){
     sceneManager->Subscribe([this](const std::any& data){
         const std::string& id = std::any_cast<std::string>(data);
         this->AddSceneTree(id);
+        return true;
     }, SceneManager::LOADED_SCENE_EVENT);
 
     sceneManager->Subscribe([this](const std::any& data){
         const std::string& id = std::any_cast<std::string>(data);
         this->RemoveSceneTree(id);
+        return true;
     }, SceneManager::LOADED_SCENE_EVENT);
 
     Engine::Get()->Subscribe([this](){
         this->RefreshHierarchy();
+        return true;
     }, Engine::ENTER_PLAY_MODE_EVENT);
 
     Engine::Get()->Subscribe([this](){
         this->RefreshHierarchy();
+        return true;
     }, Engine::EXIT_PLAY_MODE_EVENT);
 }
 
@@ -112,6 +117,7 @@ void HierarchyGui::AddSceneTree(const std::string& scene_id) {
     SubscribeToSceneTransforms(scene, tree);
     int insertIndex = layout->count() - 1;
     layout->insertWidget(insertIndex, tree);
+    
 }
 
 

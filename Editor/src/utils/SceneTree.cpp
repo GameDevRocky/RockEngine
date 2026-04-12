@@ -50,14 +50,15 @@ GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* game
             1,
             Qt::MatchExactly | Qt::MatchRecursive
         );
-        if (matches.empty()) return;
+        if (matches.empty()) return false;
 
         auto* obj = Registry::FindInRuntime<GameObject>(id);
-        if (!obj) return;
+        if (!obj) return false;
 
         auto* liveItem = static_cast<GameObjectItem*>(model->itemFromIndex(matches.front()));
-        if (!liveItem) return;
+        if (!liveItem) return false;
         liveItem->setText(obj->GetName().c_str());
+        return true;
     }, GameObject::NAME_CHANGED_EVENT);
     return item;
 }
@@ -127,6 +128,7 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     scene->Subscribe([this](const std::any& data){
         const std::string& name = std::any_cast<std::string>(data);
         model->setHorizontalHeaderLabels({name.c_str()});
+        return true;
     }, Scene::NAME_CHANGED_EVENT);
 
     scene_id = scene->GetID();
@@ -140,13 +142,14 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     auto* container = Engine::Get()->GetActiveContainer();    
     auto* selectionManager = container->FindSystem<SelectionManager>();
     selectionManager->Subscribe([this](const std::any& data) {
-        if (!data.has_value()) return;
+        if (!data.has_value()) return false;
         
         try {
             const std::string& selectedId = std::any_cast<const std::string&>(data);
             OnObjectSelected(selectedId);
+            return true;
         } catch (const std::bad_any_cast&) {
-            return;
+            return false;
         }
     }, SelectionManager::SELECTION_CHANGED_EVENT);
 

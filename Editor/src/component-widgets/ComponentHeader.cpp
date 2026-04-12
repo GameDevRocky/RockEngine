@@ -44,11 +44,12 @@ void ComponentHeader::Bind(std::string id){
         }
     }); 
     comp->Subscribe([safeThis](std::any data){
-        if (!safeThis) return;
+        if (!safeThis) return false;
         auto* comp = Registry::FindInRuntime<Component>(safeThis->component_id);
-        if (!comp) return;
+        if (!comp) return false;
         bool val = std::any_cast<bool>(data);
         safeThis->activeButton->setChecked(val);
+        return true;
     }, Component::ENABLED_CHANGED_EVENT);
 }
 

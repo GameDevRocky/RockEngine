@@ -48,8 +48,8 @@ void RigidBody::PostInit(){
     UpdateTransform();
     
     Transform* transform = GetTransform();
-    transform->Subscribe([this](){ OnTransformChanged(); }, Transform::POSITION_CHANGED_EVENT);
-    transform->Subscribe([this](){ OnTransformChanged(); }, Transform::ROTATION_CHANGED_EVENT);
+    transform->Subscribe([this](){ OnTransformChanged(); return true;}, Transform::POSITION_CHANGED_EVENT);
+    transform->Subscribe([this](){ OnTransformChanged(); return true;}, Transform::ROTATION_CHANGED_EVENT);
     if (enabled) b2Body_Enable(bodyId); else b2Body_Disable(bodyId);
     state = State::PostInitialized;
 }

@@ -8,8 +8,8 @@
 #include <any>
 
 class Callback{
-    using function = std::function<void()>;
-    using payload_function = std::function<void(std::any)>;
+    using function = std::function<bool()>;
+    using payload_function = std::function<bool(std::any)>;
 
     public:
     

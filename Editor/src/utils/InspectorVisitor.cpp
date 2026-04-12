@@ -115,7 +115,7 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
     });
 
     instance->Subscribe([=](){        
-        if (x.isNull() || y.isNull()) return;
+        if (x.isNull() || y.isNull()) return false;
             glm::vec2 updated = getter();
 
             x->blockSignals(true);
@@ -126,6 +126,7 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
 
             x->blockSignals(false);
             y->blockSignals(false);
+            return true;
     }, event_id);
 
     QLabel* label = new QLabel( text.c_str());
@@ -163,12 +164,13 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
     });
 
     instance->Subscribe([=](){        
-        if (spin.isNull()) return;
+        if (spin.isNull()) return false;
         float val = getter();
 
         spin->blockSignals(true);
         spin->setValue(val);
         spin->blockSignals(false);
+        return true;
     }, event_id);
 
     QLabel* label = new QLabel( text.c_str());
@@ -229,8 +231,9 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
     });
 
     instance->Subscribe([=](){         
-        if (safeBtn.isNull()) return;
+        if (safeBtn.isNull()) return false;
         updateBtnUI(getter());
+        return true;
     }, event_id);
 
     QLabel* label = new QLabel(text.c_str());

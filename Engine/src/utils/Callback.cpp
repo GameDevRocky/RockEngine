@@ -9,14 +9,13 @@ Callback::Callback(const payload_function& cb){
 
 Callback::Callback(const function& cb){
     this->id = next_id++;
-    this->cb = [cb](std::any) { cb(); };
+    this->cb = [cb](std::any){ return cb(); };
 }
 
 
 bool Callback::Execute(const std::any& data){
     try{
-        this->cb(data);
-        return true;
+        return this->cb(data);
     }
     catch (const std::exception& e) {
         std::cout << e.what() << std::endl;

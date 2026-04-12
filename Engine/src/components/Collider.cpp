@@ -37,6 +37,7 @@ void Collider::PostInit(){
     transform->Subscribe([id](){
         auto* collider = Registry::FindInRuntime<Collider>(id);
         collider->OnTransformScaleUpdate();
+        return true;
     }, Transform::SCALE_CHANGED_EVENT);
     state = State::PostInitialized;
 }
