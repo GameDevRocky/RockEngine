@@ -7,7 +7,6 @@ using namespace Properties;
 
 class Serializable;
 class Transform;
-class Rigidbody;
 class BoxCollider;
 class CircleCollider;
 class CapsuleCollider;
@@ -15,6 +14,7 @@ class SpriteRenderer;
 class ScriptComponent;
 class GameObject;
 class Collider;
+class RigidBody;
 
 class IVisitor {
 public:
@@ -22,7 +22,7 @@ public:
     virtual void Visit(Serializable* s) {}
     virtual void Visit(GameObject*  obj) {}
     virtual void Visit(Transform* t) {}
-    virtual void Visit(Rigidbody* rb) {}
+    virtual void Visit(RigidBody* rb) {}
     virtual void Visit(Collider* bc) {}
     virtual void Visit(BoxCollider* bc) {}
     virtual void Visit(CircleCollider* cc) {}

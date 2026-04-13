@@ -82,6 +82,8 @@ void RigidBody::SetBodyType(b2BodyType type){
     if (b2Body_IsValid(bodyId)) {
         b2Body_SetType(bodyId, type);
         b2Body_SetAwake(bodyId, true);
+        Notify(BODY_TYPE_CHANGED_EVENT);
+        Notify(CHANGED_EVENT);
     }
 }
 
@@ -89,8 +91,9 @@ void RigidBody::SetUseGravity(bool value){
     useGravity = value;
     if (b2Body_IsValid(bodyId)) {
         b2Body_SetGravityScale(bodyId, value ? 1.0f : 0.0f);
+        Notify(USE_GRAVITY_CHANGED_EVENT);
+        Notify(CHANGED_EVENT);
     }
-    Notify(RigidBody::CHANGED_EVENT);
 }
 
 bool RigidBody::GetUseGravity() const {
@@ -103,6 +106,14 @@ void RigidBody::SetLockRotation(bool value){
         b2MotionLocks locks = {};
         locks.angularZ = lockRotation;
         b2Body_SetMotionLocks(bodyId, locks);
+        b2BodyType tempType = (bodyType == b2_staticBody) ? b2_dynamicBody : b2_staticBody;
+        b2Body_SetType(bodyId, tempType);
+        b2Body_SetType(bodyId, bodyType);
+
+        SetUseGravity(useGravity);
+        b2Body_SetAwake(bodyId, true);
+        Notify(LOCK_ROTATION_CHANGED_EVENT);
+        Notify(CHANGED_EVENT);
     }
 }
 

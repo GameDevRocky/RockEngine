@@ -10,7 +10,10 @@ class Container;
 class RigidBody : public Component{
 
 public:
- 
+    static inline const Event USE_GRAVITY_CHANGED_EVENT = RigidBody::CreateEvent();
+    static inline const Event LOCK_ROTATION_CHANGED_EVENT = RigidBody::CreateEvent();
+    static inline const Event BODY_TYPE_CHANGED_EVENT = RigidBody::CreateEvent();
+
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
 

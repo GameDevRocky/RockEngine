@@ -5,6 +5,7 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
+#include "engine/components/RigidBody.hpp"
 
 using namespace Properties;
 
@@ -218,6 +219,26 @@ void InspectorVisitor::Visit(CapsuleCollider* capsuleCollider){
     BindProperty<float>(capsuleCollider, "Height: ", getHeight, setHeight, capsuleCollider->HEIGHT_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
     BindProperty<float>(capsuleCollider, "Radius: ", getRadius, setRadius, capsuleCollider->RADIUS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
 }
+
+void InspectorVisitor::Visit(RigidBody* rb){
+    auto getUseGravity = [=](){
+        return rb->GetUseGravity();
+    };
+    auto setUseGravity = [=](bool val){
+        rb->SetUseGravity(val);
+    };
+    auto getLockRotation = [=](){
+        return rb->GetLockRotation();
+    };
+    auto setLockRotation = [=](bool val){
+        rb->SetLockRotation(val);
+    };
+
+    BindProperty<bool>(rb, "Use Gravity: ", getUseGravity, setUseGravity, rb->USE_GRAVITY_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<bool>(rb, "Lock Rotation: ", getLockRotation, setLockRotation, rb->LOCK_ROTATION_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+}
+
 
 void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
     QLabel* label = new QLabel(text.c_str());

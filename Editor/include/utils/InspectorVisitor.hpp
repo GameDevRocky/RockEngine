@@ -17,6 +17,7 @@ class InspectorVisitor : public IVisitor{
         void Visit(BoxCollider* boxCollider) override;
         void Visit(CircleCollider* circleCollider) override;
         void Visit(CapsuleCollider* capsuleCollider) override;
+        void Visit(RigidBody* rigidBody) override;
 
 
         QWidget* GetContent(){ return content;}
