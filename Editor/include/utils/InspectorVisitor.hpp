@@ -1,8 +1,7 @@
 #pragma once
 
 #include "engine/utils/IVisitor.hpp"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include "utils/ProperyFactory.hpp"
 #include "engine/core/Observable.hpp"
@@ -14,6 +13,11 @@ class InspectorVisitor : public IVisitor{
         void Visit(GameObject* obj) override;
         void Visit(Transform* transform) override;
         void Visit(SpriteRenderer* spriteRenderer) override;
+        void Visit(Collider* collider) override;
+        void Visit(BoxCollider* boxCollider) override;
+        void Visit(CircleCollider* circleCollider) override;
+        void Visit(CapsuleCollider* capsuleCollider) override;
+
 
         QWidget* GetContent(){ return content;}
         bool HasContent(){return containsContent;}
@@ -26,9 +30,10 @@ class InspectorVisitor : public IVisitor{
                           Observable::Event event_id, const Properties::PropDesc& desc);
 
     private:
-        void AddRow(const std::string& text, QWidget* widget, bool stretch = true);
+        void AddRow(const std::string& text, QWidget* widget);
 
-        QVBoxLayout* layout = nullptr;
+        QGridLayout* layout = nullptr;
+        int gridRow = 0;
         QWidget* content = nullptr;
         bool containsContent = false;
 };

@@ -2,13 +2,18 @@
 #include "engine/core/GameObject.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
+#include "engine/components/BoxCollider.hpp"
+#include "engine/components/CircleCollider.hpp"
+#include "engine/components/CapsuleCollider.hpp"
 
 using namespace Properties;
 
 InspectorVisitor::InspectorVisitor(){
     content = new QWidget();
-    layout = new QVBoxLayout();
+    layout = new QGridLayout();
     layout->setContentsMargins(0,0,0,0);
+    layout->setColumnStretch(0, 1);
+    layout->setColumnStretch(1, 1);
     content->setLayout(layout);
 }
 
@@ -109,23 +114,120 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
     BindProperty<bool>(renderer, "Flip X: ", flipX_get, flipX_set, renderer->FLIP_X_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<bool>(renderer, "Flip Y: ", flipY_get, flipY_set, renderer->FLIP_Y_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<bool>(renderer, "Visible: ", visible_get, visible_set, renderer->VISIBILITY_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
-    BindProperty<std::string>(renderer, "Material: ", material_get, material_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::MATERIAL));
-    BindProperty<std::string>(renderer, "Sprite: ", sprite_get, sprite_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::SPRITE));
-
+    BindProperty<std::string>(renderer, "Material: ", material_get, material_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF));
+    BindProperty<std::string>(renderer, "Sprite: ", sprite_get, sprite_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF));
+    
 }
 
-void InspectorVisitor::AddRow(const std::string& text, QWidget* widget, bool stretch){
-    QHBoxLayout* hbox = new QHBoxLayout();
+void InspectorVisitor::Visit(Collider* collider){
+    auto setCenter = [=](glm::vec2 val){
+        collider->SetCenter(val);
+    };
+    auto getCenter = [=](){
+        return collider->GetCenter();
+    };
 
+    auto setDensity = [=](float val){
+        collider->SetDensity(val);
+    };
+
+    auto getDensity = [=](){
+        return collider->GetDensity();
+    };
+
+    auto setBounciness = [=](float val){
+        collider->SetBounciness(val);
+    };
+
+    auto getBounciness = [=](){
+        return collider->GetBounciness();
+    };
+
+    auto setIsSensor = [=](bool val){
+        collider->SetIsSensor(val);
+    };
+
+    auto getIsSensor = [=](){
+        return collider->GetIsSensor();
+    };
+
+    auto setFriction = [=](float val){
+        collider->SetFriction(val);
+    };
+
+    auto getFriction = [=](){
+        return collider->GetFriction();
+    };
+
+    auto setRollingResistance = [=](float val){
+        collider->SetRollingResistance(val);
+    };
+
+    auto getRollingResistance = [=](){
+        return collider->GetRollingResistance();
+    };
+
+    BindProperty<glm::vec2>(collider, "Center: ", getCenter, setCenter, collider->CENTER_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2));
+    BindProperty<float>(collider, "Density: ", getDensity, setDensity, collider->DENSITY_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(collider, "Bounciness: ", getBounciness, setBounciness, collider->BOUNCINESS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 1));
+    BindProperty<bool>(collider, "IsSensor: ", getIsSensor, setIsSensor, collider->IS_SENSOR_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(collider, "Friction: ", getFriction, setFriction, collider->FRICTION_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 1));
+    BindProperty<float>(collider, "Rolling Resistance: ", getRollingResistance, setRollingResistance, collider->ROLLING_RESISTANCE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 1));
+}
+
+
+void InspectorVisitor::Visit(BoxCollider* boxCollider){
+    Visit(static_cast<Collider*>(boxCollider));
+    auto getSize = [=](){
+        return boxCollider->GetSize();
+    };
+    auto setSize = [=](glm::vec2 size){
+        boxCollider->SetSize(size);
+    };
+   
+    BindProperty<glm::vec2>(boxCollider, "Size: ", getSize, setSize, boxCollider->SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));    
+}
+
+void InspectorVisitor::Visit(CircleCollider* circleCollider){
+    Visit(static_cast<Collider*>(circleCollider));
+    auto getRadius = [=](){
+        return circleCollider->GetRadius();
+    };
+    auto setRadius = [=](float radius){
+        circleCollider->SetRadius(radius);
+    };
+    
+    BindProperty<float>(circleCollider, "Radius: ", getRadius, setRadius, circleCollider->RADIUS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
+}
+
+void InspectorVisitor::Visit(CapsuleCollider* capsuleCollider){
+    Visit(static_cast<Collider*>(capsuleCollider));
+    auto getRadius = [=](){
+        return capsuleCollider->GetRadius();
+    };
+    auto setRadius = [=](float radius){
+        capsuleCollider->SetRadius(radius);
+    };
+    auto getHeight = [=](){
+        return capsuleCollider->GetHeight();
+    };
+    auto setHeight = [=](float radius){
+        capsuleCollider->SetHeight(radius);
+    };
+    
+    BindProperty<float>(capsuleCollider, "Height: ", getHeight, setHeight, capsuleCollider->HEIGHT_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
+    BindProperty<float>(capsuleCollider, "Radius: ", getRadius, setRadius, capsuleCollider->RADIUS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
+}
+
+void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
     QLabel* label = new QLabel(text.c_str());
     auto font = label->font();
     font.setBold(true);
     label->setFont(font);
-    label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-    hbox->addWidget(label);
-    if (stretch) hbox->addStretch();
-    hbox->addWidget(widget);
-    layout->addLayout(hbox);
+    layout->addWidget(label, gridRow, 0, Qt::AlignLeft);
+    layout->addWidget(widget, gridRow, 1);
+    gridRow++;
     containsContent = true;
 }

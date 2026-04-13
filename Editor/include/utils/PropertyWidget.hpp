@@ -46,7 +46,7 @@ public:
         spin->setRange(desc.min, desc.max);
         spin->setSingleStep(desc.step);
         spin->setDecimals(2);
-        spin->setMaximumWidth(164);
+        spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
         QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this](double val) {
             if (onChanged) onChanged(static_cast<float>(val));
@@ -78,24 +78,22 @@ class Vec2PropertyWidget : public PropertyWidget<glm::vec2> {
 public:
     explicit Vec2PropertyWidget(const Properties::PropDesc& desc) {
         container = new QWidget();
-        container->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+        container->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
         auto* layout = new QHBoxLayout(container);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(5);
+        
 
         auto makeSpin = [&](const char* name, const char* labelText) {
             auto* lbl = new QLabel(labelText);
             auto font = lbl->font();
             font.setBold(true);
             lbl->setFont(font);
-            lbl->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
             layout->addWidget(lbl);
 
             auto* s = new QDoubleSpinBox();
-            s->setMaximumWidth(64);
             s->setRange(desc.min, desc.max);
             s->setSingleStep(desc.step);
-            s->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
             s->setObjectName(name);
             layout->addWidget(s);
             return s;
@@ -231,9 +229,6 @@ private:
     glm::vec4 cachedColor{1, 1, 1, 1};
 };
 
-// ---------------------------------------------------------------------------
-// String  (QLineEdit)
-// ---------------------------------------------------------------------------
 class StringPropertyWidget : public PropertyWidget<std::string> {
 public:
     explicit StringPropertyWidget(const Properties::PropDesc&) {

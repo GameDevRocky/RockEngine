@@ -6,6 +6,8 @@
 class CircleCollider : public Collider{
 
 public:
+    static inline const Event RADIUS_CHANGED_EVENT = Collider::CreateEvent();
+
     void Deserialize(const YAML::Node& node) override;
     YAML::Node Serialize() override;
 

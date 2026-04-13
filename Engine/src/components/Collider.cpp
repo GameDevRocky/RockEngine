@@ -46,6 +46,7 @@ void Collider::SetIsSensor(bool isSensor){
     if (this->isSensor == isSensor) return; 
     this->isSensor = isSensor;
     this->CreateShape();
+    this->Notify(Collider::IS_SENSOR_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }
 
@@ -53,6 +54,7 @@ void Collider::SetCenter(glm::vec2 center){
     if (this->center == center) return; 
     this->center = center;
     this->CreateShape();
+    this->Notify(Collider::CENTER_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }
 
@@ -60,6 +62,7 @@ void Collider::SetDensity(float density){
     if (this->density == density) return; 
     this->density = density;
     b2Shape_SetDensity(shapeId, this->density, true);
+    this->Notify(Collider::DENSITY_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }
 
@@ -67,6 +70,7 @@ void Collider::SetBounciness(float bounciness){
     if (this->bounciness == bounciness) return; 
     this->bounciness = bounciness;
     b2Shape_SetRestitution(shapeId, this->bounciness);
+    this->Notify(Collider::BOUNCINESS_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }
 
@@ -74,6 +78,7 @@ void Collider::SetFriction(float friction){
     if (this->friction == friction) return; 
     this->friction = friction;
     b2Shape_SetFriction(shapeId, this->friction);
+    this->Notify(Collider::FRICTION_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }
 
@@ -81,7 +86,16 @@ void Collider::SetRollingResistance(float rollingResistance){
     if (this->rollingResistance == rollingResistance) return; 
     this->rollingResistance = rollingResistance;
     CreateShape();
+    this->Notify(Collider::ROLLING_RESISTANCE_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
+}
+
+void Collider::OnEnabled(){
+
+}
+
+void Collider::OnDisabled(){
+
 }
 
 void Collider::OnTransformScaleUpdate(){
@@ -93,6 +107,7 @@ void Collider::OnTransformScaleUpdate(){
     }
 
 }
+
 
 void Collider::Accept(IVisitor* v) {
     

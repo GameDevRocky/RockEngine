@@ -14,6 +14,7 @@ class CapsuleCollider;
 class SpriteRenderer;
 class ScriptComponent;
 class GameObject;
+class Collider;
 
 class IVisitor {
 public:
@@ -22,6 +23,7 @@ public:
     virtual void Visit(GameObject*  obj) {}
     virtual void Visit(Transform* t) {}
     virtual void Visit(Rigidbody* rb) {}
+    virtual void Visit(Collider* bc) {}
     virtual void Visit(BoxCollider* bc) {}
     virtual void Visit(CircleCollider* cc) {}
     virtual void Visit(CapsuleCollider* cac) {}

@@ -32,7 +32,6 @@ public:
     bool GetLockRotation() const;
     b2BodyId GetBodyId(){return bodyId;}
     
-    // Velocity and force methods
     void SetLinearVelocity(const glm::vec2& vel);
     glm::vec2 GetLinearVelocity() const;
     void SetAngularVelocity(float vel);
