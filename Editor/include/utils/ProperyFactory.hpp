@@ -33,3 +33,8 @@ inline PropertyWidget<std::string>* PropertyFactory::Create<std::string>(const P
         return new ObjectRefPropertyWidget(desc);
     return new StringPropertyWidget(desc);
 }
+
+template<>
+inline PropertyWidget<int>* PropertyFactory::Create<int>(const Properties::PropDesc& desc) {
+    return new DropdownPropertyWidget(desc);
+}

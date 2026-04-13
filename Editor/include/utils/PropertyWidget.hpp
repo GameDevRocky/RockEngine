@@ -9,6 +9,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QComboBox>
 #include <QStyle>
 #include <QApplication>
 #include <glm/glm.hpp>
@@ -263,11 +264,6 @@ public:
         edit = new QLineEdit();
         edit->setReadOnly(true);
         edit->setObjectName("ObjectRefEdit");
-
-        QIcon icon = IconForRefType(desc.tag);
-        if (!icon.isNull()) {
-            edit->addAction(icon, QLineEdit::LeadingPosition);
-        }
     }
 
     QWidget* GetWidget() override { return edit; }
@@ -285,15 +281,45 @@ public:
     }
 
 private:
-    static QIcon IconForRefType(Properties::Tags tag) {
-        QStyle* style = QApplication::style();
-        switch (tag) {
-            case Properties::Tags::MATERIAL:
-                return style->standardIcon(QStyle::SP_VistaShield);
-            default:
-                return style->standardIcon(QStyle::SP_FileIcon);
+    QPointer<QLineEdit> edit;
+};
+
+// ---------------------------------------------------------------------------
+// Dropdown  (QComboBox)
+// ---------------------------------------------------------------------------
+class DropdownPropertyWidget : public PropertyWidget<int> {
+public:
+    explicit DropdownPropertyWidget(const Properties::PropDesc& desc) {
+        combo = new QComboBox();
+        combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+
+        for (const auto& [label, value] : desc.dropdownOptions) {
+            combo->addItem(QString::fromStdString(label), std::any_cast<int>(value));
         }
+
+        QObject::connect(combo, &QComboBox::currentIndexChanged, [this](int index) {
+            if (index < 0 || combo.isNull()) return;
+            int val = combo->itemData(index).toInt();
+            if (onChanged) onChanged(val);
+        });
     }
 
-    QPointer<QLineEdit> edit;
+    QWidget* GetWidget() override { return combo; }
+    bool IsValid() override { return !combo.isNull(); }
+
+    void SetValue(const int& val) override {
+        if (combo.isNull()) return;
+        combo->blockSignals(true);
+        int index = combo->findData(val);
+        if (index >= 0) combo->setCurrentIndex(index);
+        combo->blockSignals(false);
+    }
+
+    int GetValue() override {
+        if (combo.isNull() || combo->currentIndex() < 0) return 0;
+        return combo->itemData(combo->currentIndex()).toInt();
+    }
+
+private:
+    QPointer<QComboBox> combo;
 };

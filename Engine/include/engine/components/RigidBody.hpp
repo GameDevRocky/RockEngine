@@ -27,6 +27,7 @@ public:
     void OnDisabled() override;
 
     void SetBodyType(b2BodyType type);
+    b2BodyType GetBodyType(){return bodyType;}
     void SetMass(float mass);
     float GetMass() const;
     void SetUseGravity(bool value);

@@ -42,8 +42,13 @@ InspectorGui::InspectorGui(QWidget* parent) : QWidget(parent)
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
-    
-    setLayout(mainLayout);
+
+    scrollArea = new QScrollArea();
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    mainLayout->addWidget(scrollArea);
 }
 
 void InspectorGui::Init(){ 
@@ -85,6 +90,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
     contentWidget = new QWidget();
     QVBoxLayout* contentLayout = new QVBoxLayout(contentWidget);
     contentLayout->setContentsMargins(0, 0, 0, 0);
+    contentLayout->setAlignment(Qt::AlignTop);
 
     InspectorVisitor* visitor = new InspectorVisitor();
     ObjectHeader* objectHeader = new ObjectHeader();
@@ -109,7 +115,6 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         delete visitor;
     }
 
-    contentLayout->addStretch();
-    mainLayout->addWidget(contentWidget);
+    scrollArea->setWidget(contentWidget);
     
 }

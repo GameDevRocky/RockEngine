@@ -233,10 +233,21 @@ void InspectorVisitor::Visit(RigidBody* rb){
     auto setLockRotation = [=](bool val){
         rb->SetLockRotation(val);
     };
+    auto getBodyType = [=]() -> int {
+        return static_cast<int>(rb->GetBodyType());
+    };
+    auto setBodyType = [=](int type){
+        rb->SetBodyType(static_cast<b2BodyType>(type));
+    };
 
     BindProperty<bool>(rb, "Use Gravity: ", getUseGravity, setUseGravity, rb->USE_GRAVITY_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<bool>(rb, "Lock Rotation: ", getLockRotation, setLockRotation, rb->LOCK_ROTATION_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
-
+    BindProperty<int>(rb, "Body Type: ", getBodyType, setBodyType, rb->BODY_TYPE_CHANGED_EVENT,
+        PropDesc().Tag(Tags::DROPDOWN).DropVals({
+        {"Dynamic",   static_cast<int>(b2_dynamicBody)},
+        {"Kinematic", static_cast<int>(b2_kinematicBody)},
+        {"Static",    static_cast<int>(b2_staticBody)}
+    }));
 }
 
 

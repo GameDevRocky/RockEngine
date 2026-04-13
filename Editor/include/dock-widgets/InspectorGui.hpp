@@ -6,6 +6,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QScrollArea>
 #include <iostream>
 #include "component-widgets/ObjectHeader.hpp"
 
@@ -28,6 +29,7 @@ private:
     void OnObjectSelected(const std::string& id);
     ~InspectorGui() override = default;
     
+    QScrollArea* scrollArea = nullptr;
     QWidget* contentWidget = nullptr;
     ObjectHeader* header = nullptr;
     QVBoxLayout* mainLayout = nullptr;
