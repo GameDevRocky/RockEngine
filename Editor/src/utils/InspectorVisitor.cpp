@@ -24,40 +24,37 @@ void InspectorVisitor::Visit(GameObject* obj){
 }
 
 void InspectorVisitor::Visit(Transform* transform){
-    auto id = transform->GetID();
 
-    auto pos_get = [id](){
-        auto* transform = Registry::FindInRuntime<Transform>(id);
+    auto pos_get = [=](){
         if (!transform) return glm::vec2(0.0f);
         return transform->localPosition;
     };  
-    auto pos_set = [id](glm::vec2 pos){
-        auto* transform = Registry::FindInRuntime<Transform>(id);
+
+    auto pos_set = [=](glm::vec2 pos){
         if (!transform) return;
         transform->SetPosition(pos);
     };  
 
-    auto rot_get = [id](){
-        auto* transform = Registry::FindInRuntime<Transform>(id);
+    auto rot_get = [=]() -> float {
         if (!transform) return 0.0f;
         return transform->localRotation;
     };  
-    auto rot_set = [id](float val){
-        auto* transform = Registry::FindInRuntime<Transform>(id);
+
+    auto rot_set = [=](float val){
         if (!transform) return;
         transform->SetRotation(val);
     }; 
     
-    auto scale_get = [id](){
-        auto* transform = Registry::FindInRuntime<Transform>(id);
+    auto scale_get = [=](){
         if (!transform) return glm::vec2(0.0f);
         return transform->localScale;
     };  
-    auto scale_set = [id](glm::vec2 pos){
-        auto* transform = Registry::FindInRuntime<Transform>(id);
+
+    auto scale_set = [=](glm::vec2 pos){
         if (!transform) return;
         transform->SetScale(pos);
     };  
+
     BindProperty(transform, "Position: ", pos_get, pos_set, transform->POSITION_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
     BindProperty(transform, "Rotation: ", rot_get, rot_set, transform->ROTATION_CHANGED_EVENT, PropDesc().Tag(Tags::ANGLE).Step(1));
     BindProperty(transform, "Scale: ", scale_get, scale_set, transform->SCALE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
@@ -67,19 +64,22 @@ void InspectorVisitor::Visit(Transform* transform){
 
 void InspectorVisitor::Visit(SpriteRenderer* renderer){
 
-    auto id = renderer->GetID();
-    auto color_get = [id](){
-        auto* renderer = Registry::FindInRuntime<SpriteRenderer>(id);
-        if (!renderer) return glm::vec4(0.0f);
+    auto color_get = [=](){
         return renderer->GetColor();
     };
-    auto color_set = [id](glm::vec4 color){
-        auto* renderer = Registry::FindInRuntime<SpriteRenderer>(id);
-        if (!renderer) return;
+    auto color_set = [=](glm::vec4 color){
         renderer->SetColor(color);
     };
+
+    auto flipX_get = [=]() -> bool {
+        return renderer->GetFlipX();
+    };
+    auto flipX_set = [=](bool val){
+        renderer->SetFlipX(val);
+    };
+
     BindProperty(renderer, "Color: ", color_get, color_set, renderer->COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
-    
+    BindToggleProperty(renderer, "Flip X: ", flipX_get, flipX_set, renderer->CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
 }
 
 void InspectorVisitor::BindProperty(Serializable* instance, const std::string& text, std::function<glm::vec2()> getter,
@@ -95,20 +95,16 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
     y->blockSignals(true);
 
     glm::vec2 current = getter(); 
-    spinBoxes[0]->setValue(current.x);
-    spinBoxes[1]->setValue(current.y);
+    x->setValue(current.x);
+    y->setValue(current.y);
 
-    QObject::connect(spinBoxes[0], &QDoubleSpinBox::valueChanged, [=](double val) {
-        x->blockSignals(true);
-        y->blockSignals(true);
+    QObject::connect(x, &QDoubleSpinBox::valueChanged, [=](double val) {
         glm::vec2 updated = getter(); 
         updated.x = (float)val;      
-        setter(updated);  
-        x->blockSignals(false);
-        y->blockSignals(false);     
+        setter(updated);    
     });
 
-    QObject::connect(spinBoxes[1], &QDoubleSpinBox::valueChanged, [=](double val) {
+    QObject::connect(y, &QDoubleSpinBox::valueChanged, [=](double val) {
         glm::vec2 updated = getter(); 
         updated.y = (float)val;       
         setter(updated);             
@@ -116,7 +112,7 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
 
     instance->Subscribe([=](){        
         if (x.isNull() || y.isNull()) return false;
-            glm::vec2 updated = getter();
+             glm::vec2 updated = getter();
 
             x->blockSignals(true);
             y->blockSignals(true);
@@ -177,7 +173,7 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
     auto font = label->font(); 
     font.setBold(true);
     label->setFont(font);   
-    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    //label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     hbox->addWidget(label);
     hbox->addStretch();
@@ -195,13 +191,12 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
 {
     QHBoxLayout* hbox = new QHBoxLayout();
     QPushButton* colorBtn = static_cast<QPushButton*>(PropertyFactory::Create(desc.tag, desc));
+    colorBtn->setObjectName("ColorButton");
     QPointer<QPushButton> safeBtn = colorBtn;
     auto updateBtnUI = [safeBtn](glm::vec4 color) {
         if (safeBtn.isNull()) return;
         QColor qcol(color.r * 255, color.g * 255, color.b * 255, color.a * 255);
-        QString qss = QString("background-color: %1; border: 1px solid #333; height: 20px; min-width: 60px;")
-                        .arg(qcol.name());
-        safeBtn->setStyleSheet(qss);
+        safeBtn->setStyleSheet(QString("background-color: %1;").arg(qcol.name()));
     };
 
     updateBtnUI(getter());
@@ -240,12 +235,49 @@ void InspectorVisitor::BindProperty(Serializable* instance, const std::string& t
     auto font = label->font(); 
     font.setBold(true);
     label->setFont(font);   
-    label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+    colorBtn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     hbox->addWidget(label);
-    hbox->addStretch();
     hbox->addWidget(colorBtn);
     layout->addLayout(hbox);
     
+    containsContent = true;
+}
+
+void InspectorVisitor::BindToggleProperty(Serializable* instance, const std::string& text, std::function<bool()> getter,
+            std::function<void(bool)> setter, Observable::Event event_id, PropDesc desc)
+{
+    QHBoxLayout* hbox = new QHBoxLayout();
+    QCheckBox* checkbox = static_cast<QCheckBox*>(PropertyFactory::Create(desc.tag, desc));
+    QPointer<QCheckBox> safeBox = checkbox;
+
+    checkbox->blockSignals(true);
+    checkbox->setChecked(getter());
+    checkbox->blockSignals(false);
+
+    QObject::connect(checkbox, &QCheckBox::toggled, [=](bool val) {
+        setter(val);
+    });
+
+    instance->Subscribe([=]() {
+        if (safeBox.isNull()) return false;
+        safeBox->blockSignals(true);
+        safeBox->setChecked(getter());
+        safeBox->blockSignals(false);
+        return true;
+    }, event_id);
+
+    QLabel* label = new QLabel(text.c_str());
+    auto font = label->font();
+    font.setBold(true);
+    label->setFont(font);
+    label->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+    hbox->addWidget(label);
+    hbox->addStretch();
+    hbox->addWidget(checkbox);
+    layout->addLayout(hbox);
+
     containsContent = true;
 }

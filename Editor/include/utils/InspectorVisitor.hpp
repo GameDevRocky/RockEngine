@@ -28,6 +28,9 @@ class InspectorVisitor : public IVisitor{
         void BindProperty(Serializable* instance, const std::string& label, std::function<float()> getter,
             std::function<void(float)> setter, Observable::Event event_id, PropDesc desc);
 
+        void BindToggleProperty(Serializable* instance, const std::string& label, std::function<bool()> getter,
+            std::function<void(bool)> setter, Observable::Event event_id, PropDesc desc);
+
         
 
         

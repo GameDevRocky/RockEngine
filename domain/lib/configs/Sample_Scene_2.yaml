@@ -33,7 +33,7 @@ components:
     gameobject: "o21"
     bodyType: "Dynamic"
     useGravity: true
-    lockRotation: true
+    lockRotation: false
     mass: 1.2
 
   - id: "c21"
@@ -43,8 +43,8 @@ components:
     center: [0, 0]
     isSensor: false
     density: 1.0
-    friction: 0.0
-    bounciness: 0.0
+    friction: 0.5
+    bounciness: 0.35
     rollingResistance: 0.0
     radius: 24.0
     height: 38.0

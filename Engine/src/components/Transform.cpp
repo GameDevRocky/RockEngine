@@ -119,6 +119,7 @@ glm::vec2 Transform::GetWorldScale() const {
 }
 
 void Transform::SetWorldPosition(const glm::vec2& pos) {
+    if (pos == GetWorldPosition()) return;
     Transform* parent = GetParent();
     if (parent) {
         glm::mat4 parentWorld = parent->GetWorldMatrix();
@@ -133,6 +134,7 @@ void Transform::SetWorldPosition(const glm::vec2& pos) {
 }
 
 void Transform::SetWorldRotation(float degrees) {
+    if (degrees == GetWorldRotation()) return;
     Transform* parent = GetParent();
     if (parent) {
         float parentRot = parent->GetWorldRotation();
@@ -146,6 +148,7 @@ void Transform::SetWorldRotation(float degrees) {
 }
 
 void Transform::SetWorldScale(const glm::vec2& scale) {
+    if (scale == GetWorldScale()) return;
     Transform* parent = GetParent();
     if (parent) {
         glm::vec2 parentScale = parent->GetWorldScale();

@@ -328,6 +328,19 @@ CollapsableWidget QLineEdit#Label:disabled
     border: none;
     outline: none;
 }
+/*===========================================================================
+ * ColorButton (Inspector color picker)
+ *===========================================================================*/
+QPushButton#ColorButton
+{
+    border: 1px solid #333;
+    border-radius: 10px;
+}
+
+
+/*===========================================================================
+ * QDockWidget
+ *===========================================================================*/
 QDockWidget {
     titlebar-close-icon: url(close.png);
     titlebar-normal-icon: url(undock.png);

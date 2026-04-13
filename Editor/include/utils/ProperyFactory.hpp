@@ -21,7 +21,7 @@ public:
 
             case Properties::Tags::TOGGLE:
                 return new QCheckBox();
-            case Properties::Tags::COLOR: // New Case
+            case Properties::Tags::COLOR:
                 return createColorWidget(desc);
 
             case Properties::Tags::READONLY:
@@ -41,7 +41,7 @@ private:
     
     static QWidget* createColorWidget(const Properties::PropDesc& desc) {
         QPushButton* colorBtn = new QPushButton();
-        colorBtn->setFixedWidth(60);
+        colorBtn->setMaximumWidth(164);
         return colorBtn;
     }
 
@@ -50,6 +50,7 @@ private:
         spin->setRange(desc.min, desc.max);
         spin->setSingleStep(desc.step);
         spin->setDecimals(2);
+        spin->setMaximumWidth(164);
         return spin;
     }
 
@@ -62,11 +63,10 @@ private:
 
         for (int i = 0; i < 2; ++i) {
             auto* spin = new QDoubleSpinBox();
-            spin->setMaximumWidth(128);
+            spin->setMaximumWidth(64);
             spin->setRange(desc.min, desc.max);
             spin->setSingleStep(desc.step);
             spin->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-            
             spin->setObjectName(i == 0 ? "vec_x" : "vec_y");
             auto* label = new QLabel(i == 0 ? "X" : "Y");
             auto font = label->font(); 
