@@ -17,11 +17,15 @@ namespace Properties {
         INT,
         TOGGLE,
         MULTILINE,
-        READONLY
+        READONLY,
+        MATERIAL,
+        SPRITE,
+        OBJECT_REF
     };
 
     struct PropDesc {
         Tags tag = Tags::NONE;
+        Tags refType = Tags::NONE;
         float min = -std::numeric_limits<float>::max();
         float max = std::numeric_limits<float>::max();
         float step = 0.1f;
@@ -30,6 +34,7 @@ namespace Properties {
         PropDesc& Range(float lo, float hi) { min = lo; max = hi; return *this; }
         PropDesc& Desc(const std::string& d)   { description = d; return *this; }
         PropDesc& Tag(Tags t)                  { tag = t; return *this; }
+        PropDesc& RefType(Tags t)              { refType = t; return *this; }
         PropDesc& Step(float s)                  { step = s; return *this; }
     };
 }

@@ -3,6 +3,7 @@
 #include <QVBoxLayout>
 #include <QToolButton>
 #include <QRadioButton>
+#include <QCheckBox>
 #include <QIcon>
 #include <QLabel>
 #include <QPushButton>
@@ -25,7 +26,7 @@ protected:
     QWidget* header = nullptr;
     QLineEdit* label = nullptr;
     QToolButton* toggleButton;
-    QRadioButton* activeButton;
+    QCheckBox* activeButton;
     QPushButton* iconButton;
     QWidget* contentWidget;
     QVBoxLayout* mainLayout;

@@ -25,6 +25,15 @@ ComponentHeader::ComponentHeader(std::string label, QWidget* parent)
     this->activeButton->setEnabled(true);
 }
 
+void ComponentHeader::OnActiveToggled(bool val){
+    if (this->component_id.empty()) return;
+    auto* comp = Registry::FindInRuntime<Component>(this->component_id);
+    if (comp) {
+        comp->SetEnabled(val); 
+    }
+
+}
+
 void ComponentHeader::Bind(std::string id){
     QPointer<ComponentHeader> safeThis = this;
     Component* comp = Registry::FindInRuntime<Component>(id);
@@ -32,17 +41,10 @@ void ComponentHeader::Bind(std::string id){
         deleteLater();
         return;
     }
-
     this->component_id = comp->GetID();
     label->setText(QString::fromStdString(comp->GetTypeName()));
     activeButton->setChecked(comp->GetEnabled());
-    connect(activeButton, &QRadioButton::toggled, safeThis, [safeThis](bool val){
-        if (!safeThis) return;
-        auto* comp = Registry::FindInRuntime<Component>(safeThis->component_id);
-        if (comp) {
-            comp->SetEnabled(val); 
-        }
-    }); 
+
     comp->Subscribe([safeThis](std::any data){
         if (!safeThis) return false;
         auto* comp = Registry::FindInRuntime<Component>(safeThis->component_id);

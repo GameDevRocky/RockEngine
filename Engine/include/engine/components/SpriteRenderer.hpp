@@ -15,6 +15,9 @@ class SpriteRenderer : public Component
     static inline const Event SPRITE_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     static inline const Event VISIBILITY_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     static inline const Event COLOR_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event FLIP_X_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event FLIP_Y_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+
 
 
     SpriteRenderer* Copy() override;
@@ -37,11 +40,11 @@ class SpriteRenderer : public Component
     void SetVisible(bool& value);
     bool GetVisible(){return visible;};
     
-    bool GetFlipX() const { return flipX; }
-    bool GetFlipY() const { return flipY; }
+    bool GetFlipX() const { return flipX;}
+    bool GetFlipY() const { return flipY;}
     
-    void SetFlipX(bool v) { flipX = v; }
-    void SetFlipY(bool v) { flipY = v; }
+    void SetFlipX(bool v) { flipX = v; Notify(FLIP_X_CHANGED_EVENT);}
+    void SetFlipY(bool v) { flipY = v; Notify(FLIP_Y_CHANGED_EVENT);}
 
     void OverrideUniforms();
     void Accept(IVisitor* v) override;

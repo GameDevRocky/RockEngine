@@ -31,7 +31,7 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     iconButton->setEnabled(false);
     iconButton->hide();
 
-    activeButton = new QRadioButton();
+    activeButton = new QCheckBox();
     activeButton->setEnabled(false);
     activeButton->setCheckable(true);
     activeButton->setChecked(false);
@@ -52,7 +52,7 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
         contentWidget->setVisible(checked);
     });
 
-    connect(activeButton, &QRadioButton::toggled,[this](bool checked){
+    connect(activeButton, &QCheckBox::toggled,[this](bool checked){
         OnActiveToggled(checked);
     });
 

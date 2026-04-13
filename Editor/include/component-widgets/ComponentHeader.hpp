@@ -6,7 +6,7 @@ class ComponentHeader : public CollapsableWidget{
 public:
     explicit ComponentHeader(QWidget* parent = nullptr);
     explicit ComponentHeader(std::string label, QWidget* parent = nullptr);
-    virtual void OnActiveToggled(bool val){};
+    void OnActiveToggled(bool val) override;
     virtual void OnLabelEdited(const QString &name){};
     virtual void Bind(std::string id = "");
 

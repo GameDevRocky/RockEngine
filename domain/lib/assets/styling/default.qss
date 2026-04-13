@@ -151,49 +151,40 @@ QComboBox::down-arrow
  *===========================================================================*/
 .QCheckBox::indicator
 {
-	width: 16px;
-    height: 16px;
-    border: 2px solid rgb(0, 0, 0);
+    border: 2px solid rgb(150, 150, 150);
+    border-radius: 9px;
+    width: 14px;
+    height: 14px;
+    background: transparent;
 }
-
 
 .QCheckBox::indicator:disabled
 {
-    border: 2px solid rgb(172, 172, 172);
+    border-color: rgb(80, 80, 80);
+    background-color: rgb(63, 63, 63);
 }
 
-
-.QCheckBox::indicator::pressed
+.QCheckBox::indicator:hover
 {
-    border: 2px solid rgb(102, 102, 102);
-    background: rgb(102, 102, 102);
+    border-color: rgb(131, 176, 145);
 }
 
 .QCheckBox::indicator:checked
 {
-    image: url(:/style/images/checkbox_checked.svg);
-    background: rgb(0, 99, 177);
-    border: 2px solid rgb(0, 99, 177);
-    /* pure styling no SVG */
+    border-color: rgb(45, 54, 48);
+    background-color: rgb(69, 185, 106);
 }
 
-.QCheckBox::indicator:checked:!pressed
+.QCheckBox::indicator:checked:disabled
 {
-    border: 2px solid rgb(0, 99, 177);
-    background: rgb(0, 99, 177);
-    image: url(:/style/images/checkbox_checked.svg);
+    border-color: rgb(87, 126, 100);
+    background-color: rgb(87, 126, 100);
 }
 
-.QCheckBox::indicator:checked:!pressed:hover
+.QCheckBox::indicator:checked:hover
 {
-    border: 2px solid rgb(0, 0, 0);
-}
-
-
-.QCheckBox::indicator:indeterminate
- {
-    background: rgb(0, 99, 177);
-    border: 2px solid rgb(0, 99, 177);
+    border-color: rgb(45, 54, 48);
+    background-color: rgb(132, 178, 151);
 }
 
 

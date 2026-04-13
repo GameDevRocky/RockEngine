@@ -1,9 +1,11 @@
 #pragma once
 
 #include "engine/utils/IVisitor.hpp"
-#include <QFormLayout>
-#include "engine/serialization/Serializable.hpp"
-
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include "utils/ProperyFactory.hpp"
+#include "engine/core/Observable.hpp"
 
 class InspectorVisitor : public IVisitor{
 
@@ -16,28 +18,36 @@ class InspectorVisitor : public IVisitor{
         QWidget* GetContent(){ return content;}
         bool HasContent(){return containsContent;}
 
-
     protected:
 
-        void BindProperty(Serializable* instance, const std::string& label, std::function<glm::vec4()> getter,
-            std::function<void(glm::vec4)> setter, Observable::Event event_id, PropDesc desc);
-
-        void BindProperty(Serializable* instance, const std::string& label, std::function<glm::vec2()> getter,
-            std::function<void(glm::vec2)> setter, Observable::Event event_id, PropDesc desc);
-
-        void BindProperty(Serializable* instance, const std::string& label, std::function<float()> getter,
-            std::function<void(float)> setter, Observable::Event event_id, PropDesc desc);
-
-        void BindToggleProperty(Serializable* instance, const std::string& label, std::function<bool()> getter,
-            std::function<void(bool)> setter, Observable::Event event_id, PropDesc desc);
-
-        
-
-        
+        template<typename T>
+        void BindProperty(Observable* instance, const std::string& label,
+                          std::function<T()> getter, std::function<void(T)> setter,
+                          Observable::Event event_id, const Properties::PropDesc& desc);
 
     private:
+        void AddRow(const std::string& text, QWidget* widget, bool stretch = true);
+
         QVBoxLayout* layout = nullptr;
         QWidget* content = nullptr;
         bool containsContent = false;
-
 };
+
+template<typename T>
+void InspectorVisitor::BindProperty(Observable* instance, const std::string& label,
+                                    std::function<T()> getter, std::function<void(T)> setter,
+                                    Observable::Event event_id, const Properties::PropDesc& desc)
+{
+    auto* pw = PropertyFactory::Create<T>(desc);
+
+    pw->onChanged = setter;
+    pw->SetValue(getter());
+
+    instance->Subscribe([pw, getter]() {
+        if (!pw->IsValid()) return false;
+        pw->SetValue(getter());
+        return true;
+    }, event_id);
+
+    AddRow(label, pw->GetWidget());
+}
