@@ -23,7 +23,7 @@ class Transform(Component):
         transform_module.set_position(self._gameobject_id, float(value.x), float(value.y))
 
     @property
-    def rotation(self):
+    def rotation(self) -> float:
         return transform_module.get_rotation(self._gameobject_id)
 
     @rotation.setter

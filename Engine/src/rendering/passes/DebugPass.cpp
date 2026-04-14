@@ -178,7 +178,6 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
         glad_glDrawArrays(GL_LINE_LOOP, 0, 32);
     }
 
-    // Render capsules for CapsuleColliders (using capsule lines + circles)
     for (auto* obj : objects)
     {
         if (!obj) continue;
