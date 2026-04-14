@@ -14,7 +14,12 @@ class SpriteRenderer : public Component
     static inline const Event MATERIAL_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     static inline const Event SPRITE_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     static inline const Event VISIBILITY_CHANGED_EVENT = SpriteRenderer::CreateEvent();
-    
+    static inline const Event COLOR_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event FLIP_X_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event FLIP_Y_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+
+
+
     SpriteRenderer* Copy() override;
     YAML::Node Serialize() override;
 
@@ -26,7 +31,7 @@ class SpriteRenderer : public Component
     Sprite* GetSprite();
     void SetSprite(std::string& id);
     
-    void SetColor(const glm::vec4& c) { color = c; }
+    void SetColor(const glm::vec4& c) { color = c; Notify(COLOR_CHANGED_EVENT); }
     glm::vec4 GetColor() const { return color; }
     
     void SetSortingOrder(int order) { sortingOrder = order; }
@@ -35,13 +40,14 @@ class SpriteRenderer : public Component
     void SetVisible(bool& value);
     bool GetVisible(){return visible;};
     
-    bool GetFlipX() const { return flipX; }
-    bool GetFlipY() const { return flipY; }
+    bool GetFlipX() const { return flipX;}
+    bool GetFlipY() const { return flipY;}
     
-    void SetFlipX(bool v) { flipX = v; }
-    void SetFlipY(bool v) { flipY = v; }
+    void SetFlipX(bool v) { flipX = v; Notify(FLIP_X_CHANGED_EVENT);}
+    void SetFlipY(bool v) { flipY = v; Notify(FLIP_Y_CHANGED_EVENT);}
 
     void OverrideUniforms();
+    void Accept(IVisitor* v) override;
 
     std::string GetTypeName() const override { return "SpriteRenderer"; }
 

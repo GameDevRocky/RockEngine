@@ -140,6 +140,10 @@ void SpriteRenderer::OverrideUniforms()
     shader->SetVec4("uColor", color);
 }
 
+void SpriteRenderer::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
+}
 
 SpriteRenderer* SpriteRenderer::Copy()
 {

@@ -56,7 +56,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
             continue;
         }
         if(!renderer) continue;
-        if (!renderer->GetVisible()) continue;
+        if (!renderer->GetEnabled() || !renderer->GetVisible()) continue;
 
         Material* mat = renderer->GetMaterial();
         if (!mat){

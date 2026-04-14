@@ -127,6 +127,11 @@ void CapsuleCollider::SetRadius(float radius){
     this->Notify(CapsuleCollider::CHANGED_EVENT);
 }
 
+void CapsuleCollider::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
+}
+
 CapsuleCollider* CapsuleCollider::Copy(){
     CapsuleCollider* copy = new CapsuleCollider();
     copy->id = id;

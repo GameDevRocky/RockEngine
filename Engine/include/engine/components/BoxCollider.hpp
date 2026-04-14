@@ -7,6 +7,8 @@
 class BoxCollider  : public Collider{
 
 public:
+    static inline const Event SIZE_CHANGED_EVENT = Collider::CreateEvent();
+
     void Deserialize(const YAML::Node& node) override;
     YAML::Node Serialize() override;
 
@@ -19,7 +21,7 @@ public:
 
     glm::vec2 GetSize(){return size;}
     void SetSize(glm::vec2 size);
-
+    void Accept(IVisitor* v) override;
     BoxCollider* Copy() override;
     BoxCollider* Copy(Container* container) override;
 

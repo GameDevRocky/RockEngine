@@ -44,6 +44,8 @@ class GameObject : public RuntimeObject {
     void FixedUpdate();
     void LateUpdate();
 
+
+
     GameObject* Copy() override;
     GameObject* Copy(Container* container) override;
     
@@ -72,6 +74,8 @@ class GameObject : public RuntimeObject {
 
     template<typename T> 
     T* RequireComponent();
+
+    std::vector<Component*> GetAllComponents();
     
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}

@@ -137,6 +137,7 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
     for (auto* obj : objects)
     {
         if (!obj) continue;
+        if (!obj->GetActive()) continue;
         Transform* transform = obj->GetComponent<Transform>();
         BoxCollider* collider = obj->GetComponent<BoxCollider>();
 
@@ -159,6 +160,7 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
     for (auto* obj : objects)
     {
         if (!obj) continue;
+        if (!obj->GetActive()) continue;
         Transform* transform = obj->GetComponent<Transform>();
         CircleCollider* collider = obj->GetComponent<CircleCollider>();
 
@@ -180,6 +182,7 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
     for (auto* obj : objects)
     {
         if (!obj) continue;
+        if (!obj->GetActive()) continue;
         Transform* transform = obj->GetComponent<Transform>();
         CapsuleCollider* collider = obj->GetComponent<CapsuleCollider>();
 
@@ -234,6 +237,8 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
         if (selectionManager && selectionManager->HasSelection()) {
             GameObject* selectedObj = selectionManager->GetGameObject();
             if (selectedObj) {
+                if (selectedObj->GetActive()){
+
                 Transform* transform = selectedObj->GetComponent<Transform>();
                 SpriteRenderer* spriteRenderer = selectedObj->GetComponent<SpriteRenderer>();
                 
@@ -251,6 +256,8 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene){
                         debugShader->SetVec4("uColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
                         glad_glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+                        }
                     }
                 }
             }

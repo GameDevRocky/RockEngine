@@ -142,6 +142,12 @@ ScriptComponent::~ScriptComponent() {
     }
 }
 
+
+void ScriptComponent::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
+}
+
 ScriptComponent* ScriptComponent::Copy(){
     ScriptComponent* copy = new ScriptComponent();
     copy->id = id;

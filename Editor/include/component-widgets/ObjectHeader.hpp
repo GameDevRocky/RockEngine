@@ -5,22 +5,24 @@
 #include <QRadioButton>
 #include <QLineEdit>
 #include <QComboBox>
-
-class ObjectHeader : public QWidget
+#include "utils/CollapsableWidget.hpp"
+class ObjectHeader : public CollapsableWidget
 {
     Q_OBJECT
 
 public:
     explicit ObjectHeader(QWidget* parent = nullptr);
-    void Bind(const std::string& id);
+    explicit ObjectHeader(std::string label, QWidget* parent = nullptr);
+    void Bind(const std::string id) override;
+    void OnActiveToggled(bool val) override {};
+    void OnLabelEdited(const QString &name) override {};
+
 protected:
     void paintEvent(QPaintEvent *event);
     
 
 private:
     std::string gameobject_id = "";
-    QRadioButton* activeButton = nullptr;
-    QLineEdit* nameEdit = nullptr;
     QComboBox* tagOptions = nullptr;
     QComboBox* layerOptions= nullptr;
 

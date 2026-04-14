@@ -11,8 +11,8 @@
 class Observable {
 public:
     using Event = std::uint64_t;
-    using function = std::function<void()>;
-    using payload_function = std::function<void(std::any)>;
+    using function = std::function<bool()>;
+    using payload_function = std::function<bool(std::any)>;
 
     static constexpr Event ANY_EVENT = 0;
     static constexpr Event ALL_EVENT = INT64_MAX;

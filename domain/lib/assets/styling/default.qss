@@ -53,26 +53,13 @@ QToolButton
 {
 	background: transparent;
     border: none;
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-top: 6px;
-    padding-bottom: 6px;
+    text-align: center;
+
 }
 
 QToolButton:hover
 {
-	background: palette(button);
-}
-
-QToolButton:pressed
-{
-	  background: palette(dark);
-}
-
-QToolButton:checked:!pressed:enabled
-{
-	  background: rgb(0, 99, 177);
-      color: rgb(255, 255, 255);
+	color: white;
 }
 
 
@@ -90,7 +77,8 @@ QRadioButton::indicator
 
 QRadioButton::indicator:disabled
 {
-    border-color: rgb(100, 100, 100);
+    border-color: rgb(80, 80, 80);
+    background-color: rgb(63, 63, 63);
 }
 
 QRadioButton::indicator:hover
@@ -100,20 +88,21 @@ QRadioButton::indicator:hover
 
 QRadioButton::indicator:checked
 {
-    border-color: rgb(73, 155, 99);
-    background-color: rgb(73, 155, 99);
+    border-color: rgb(45, 54, 48);
+    background-color: rgb(69, 185, 106);
 
 }
 
 QRadioButton::indicator:checked:disabled
 {
-    border-color: rgb(100, 100, 100);
-    background-color: rgb(100, 100, 100);
+    border-color: rgb(87, 126, 100);
+    background-color: rgb(87, 126, 100);
+
 }
 
 QRadioButton::indicator:checked:hover
 {
-    border-color: rgb(132, 178, 151);
+    border-color: rgb(45, 54, 48);
     background-color: rgb(132, 178, 151);
 }
 
@@ -162,49 +151,40 @@ QComboBox::down-arrow
  *===========================================================================*/
 .QCheckBox::indicator
 {
-	width: 16px;
-    height: 16px;
-    border: 2px solid rgb(0, 0, 0);
+    border: 2px solid rgb(150, 150, 150);
+    border-radius: 9px;
+    width: 14px;
+    height: 14px;
+    background: transparent;
 }
-
 
 .QCheckBox::indicator:disabled
 {
-    border: 2px solid rgb(172, 172, 172);
+    border-color: rgb(80, 80, 80);
+    background-color: rgb(63, 63, 63);
 }
 
-
-.QCheckBox::indicator::pressed
+.QCheckBox::indicator:hover
 {
-    border: 2px solid rgb(102, 102, 102);
-    background: rgb(102, 102, 102);
+    border-color: rgb(131, 176, 145);
 }
 
 .QCheckBox::indicator:checked
 {
-    image: url(:/style/images/checkbox_checked.svg);
-    background: rgb(0, 99, 177);
-    border: 2px solid rgb(0, 99, 177);
-    /* pure styling no SVG */
+    border-color: rgb(45, 54, 48);
+    background-color: rgb(69, 185, 106);
 }
 
-.QCheckBox::indicator:checked:!pressed
+.QCheckBox::indicator:checked:disabled
 {
-    border: 2px solid rgb(0, 99, 177);
-    background: rgb(0, 99, 177);
-    image: url(:/style/images/checkbox_checked.svg);
+    border-color: rgb(87, 126, 100);
+    background-color: rgb(87, 126, 100);
 }
 
-.QCheckBox::indicator:checked:!pressed:hover
+.QCheckBox::indicator:checked:hover
 {
-    border: 2px solid rgb(0, 0, 0);
-}
-
-
-.QCheckBox::indicator:indeterminate
- {
-    background: rgb(0, 99, 177);
-    border: 2px solid rgb(0, 99, 177);
+    border-color: rgb(45, 54, 48);
+    background-color: rgb(132, 178, 151);
 }
 
 
@@ -316,11 +296,52 @@ SceneTree::item:disabled
     color: rgb(128, 128, 128);
 }
 
-ObjectHeader
+CollapsableWidget ObjectHeader
 {
-    
-    border-bottom: 1px solid;
-    border-color: rgb(67, 67, 67);
+    background-color : rgb(173, 59, 59);;
+    border: 1px solid rgb(67, 67, 67);
+}
+
+CollapsableWidget QLineEdit#Label 
+{
+    background: none;
+    background-color: transparent;
+    border: none;
+    outline: none;       
+    padding: 0px;
+}
+
+CollapsableWidget QLineEdit#Label:hover, 
+CollapsableWidget QLineEdit#Label:focus, 
+CollapsableWidget QLineEdit#Label:disabled 
+{
+    background: transparent;
+    border: none;
+    outline: none;
+}
+/*===========================================================================
+ * ColorButton (Inspector color picker)
+ *===========================================================================*/
+QPushButton#ColorButton
+{
+    border: 1px solid #333;
+    border-radius: 10px;
+}
 
 
+/*===========================================================================
+ * QDockWidget
+ *===========================================================================*/
+QDockWidget {
+    titlebar-close-icon: url(close.png);
+    titlebar-normal-icon: url(undock.png);
+}
+
+QDockWidget::title {
+    border: 1px solid rgb(59, 59, 59);
+    font-weight: bold;
+    padding-left: 2px;    /* Keeps text away from the left edge */
+    padding-top: 2px;      /* Centers it vertically */
+    subcontrol-origin: margin; 
+    subcontrol-position: top;
 }

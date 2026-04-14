@@ -129,6 +129,10 @@ void CircleCollider::CreateShape(){
     
 }
 
+void CircleCollider::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
+}
 
 CircleCollider* CircleCollider::Copy(){
     

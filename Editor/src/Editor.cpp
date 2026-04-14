@@ -81,13 +81,14 @@ void Editor::Update(){
 void Editor::PostInit() {
     std::cout << "Editor Starting ..." << std::endl;
     timer = new QTimer();
+
     MainWindow::Get()->PostInit();
 
     QObject::connect(timer, &QTimer::timeout, [this]() {
-        
         Engine::Get()->Update();
-        Editor::Get()->Update();
+        Update();
     });
+
     timer->start(8);
     app->exec();
 

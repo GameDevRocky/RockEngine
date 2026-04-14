@@ -10,7 +10,10 @@ class Container;
 class RigidBody : public Component{
 
 public:
- 
+    static inline const Event USE_GRAVITY_CHANGED_EVENT = RigidBody::CreateEvent();
+    static inline const Event LOCK_ROTATION_CHANGED_EVENT = RigidBody::CreateEvent();
+    static inline const Event BODY_TYPE_CHANGED_EVENT = RigidBody::CreateEvent();
+
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
 
@@ -24,6 +27,7 @@ public:
     void OnDisabled() override;
 
     void SetBodyType(b2BodyType type);
+    b2BodyType GetBodyType(){return bodyType;}
     void SetMass(float mass);
     float GetMass() const;
     void SetUseGravity(bool value);
@@ -32,7 +36,6 @@ public:
     bool GetLockRotation() const;
     b2BodyId GetBodyId(){return bodyId;}
     
-    // Velocity and force methods
     void SetLinearVelocity(const glm::vec2& vel);
     glm::vec2 GetLinearVelocity() const;
     void SetAngularVelocity(float vel);
@@ -44,6 +47,7 @@ public:
     void ApplyAngularImpulse(float impulse);
     
     std::string GetTypeName() const override {return "RigidBody";}
+    void Accept(IVisitor* v) override;
 
     RigidBody* Copy() override;
     RigidBody* Copy(Container* container) override;

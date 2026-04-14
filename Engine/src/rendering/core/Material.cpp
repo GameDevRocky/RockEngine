@@ -87,6 +87,10 @@ void Material::Validate() {
 }
 
 
+void Material::SetName(std::string& name){
+    this->name = name; 
+    Notify(NAME_CHANGED_EVENT);
+}
 void Material::SetShader(std::string& id){
     Shader* shader = SharedResources::Get().GetShader(id);
     if (shader){

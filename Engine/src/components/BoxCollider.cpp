@@ -124,6 +124,10 @@ void BoxCollider::CreateShape(){
     
 }
 
+void BoxCollider::Accept(IVisitor* v) {
+    
+    v->Visit(this); 
+}
 
 BoxCollider* BoxCollider::Copy(){
     
