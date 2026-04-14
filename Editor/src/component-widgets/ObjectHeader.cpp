@@ -24,14 +24,6 @@ ObjectHeader::ObjectHeader(std::string label, QWidget* parent)
 {
     this->label->setReadOnly(false);
     this->activeButton->setEnabled(true);
-    QFormLayout *formLayout = new QFormLayout();
-    formLayout->addRow(new QLabel("Object Name:"), new QLineEdit());
-    formLayout->addRow(new QLabel("Physics Scale:"), new QDoubleSpinBox());
-    formLayout->addRow(new QLabel("Is Static:"), new QCheckBox());
-    formLayout->setLabelAlignment(Qt::AlignLeft);
-    this->contentLayout->addLayout(formLayout);
-
-
 }
 void ObjectHeader::paintEvent(QPaintEvent *event) {
     QStyleOption opt;

@@ -6,12 +6,13 @@
 CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidget(parent) 
 {
     header = new QWidget(this);
-    header->setStyleSheet("{border: 1px solid rgb(67, 67, 67);}");
+    header->setObjectName("collapsableHeader");
+    header->setStyleSheet("#collapsableHeader { border: 1px solid rgb(67, 67, 67); }");
 
     QHBoxLayout* headerLayout = new QHBoxLayout();
     header->setLayout(headerLayout);
-    headerLayout->setContentsMargins(4, 8, 4, 8);
-    headerLayout->setSpacing(4);
+    headerLayout->setContentsMargins(0, 0, 0, 0);
+    headerLayout->setSpacing(0);
 
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);

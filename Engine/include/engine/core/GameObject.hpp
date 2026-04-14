@@ -44,6 +44,8 @@ class GameObject : public RuntimeObject {
     void FixedUpdate();
     void LateUpdate();
 
+
+
     GameObject* Copy() override;
     GameObject* Copy(Container* container) override;
     

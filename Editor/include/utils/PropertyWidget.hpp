@@ -15,9 +15,7 @@
 #include <glm/glm.hpp>
 #include "engine/utils/Properties.hpp"
 
-// ---------------------------------------------------------------------------
-// Base
-// ---------------------------------------------------------------------------
+
 class PropertyWidgetBase {
 public:
     virtual ~PropertyWidgetBase() = default;
@@ -25,9 +23,6 @@ public:
     virtual bool IsValid() = 0;
 };
 
-// ---------------------------------------------------------------------------
-// Typed interface
-// ---------------------------------------------------------------------------
 template<typename T>
 class PropertyWidget : public PropertyWidgetBase {
 public:
@@ -37,9 +32,6 @@ public:
     virtual T    GetValue() = 0;
 };
 
-// ---------------------------------------------------------------------------
-// Float  (QDoubleSpinBox)
-// ---------------------------------------------------------------------------
 class FloatPropertyWidget : public PropertyWidget<float> {
 public:
     explicit FloatPropertyWidget(const Properties::PropDesc& desc) {
@@ -72,9 +64,7 @@ private:
     QPointer<QDoubleSpinBox> spin;
 };
 
-// ---------------------------------------------------------------------------
-// Vec2  (2x QDoubleSpinBox in a container)
-// ---------------------------------------------------------------------------
+
 class Vec2PropertyWidget : public PropertyWidget<glm::vec2> {
 public:
     explicit Vec2PropertyWidget(const Properties::PropDesc& desc) {
@@ -184,6 +174,8 @@ public:
             dialog->setOptions(QColorDialog::ShowAlphaChannel);
             dialog->setModal(false);
             dialog->setAttribute(Qt::WA_DeleteOnClose);
+            dialog->setOption(QColorDialog::NoButtons);
+            dialog->setOption(QColorDialog::DontUseNativeDialog);
             dialog->setWindowFlags(Qt::Popup);
 
             QObject::connect(dialog, &QColorDialog::currentColorChanged,
@@ -284,9 +276,6 @@ private:
     QPointer<QLineEdit> edit;
 };
 
-// ---------------------------------------------------------------------------
-// Dropdown  (QComboBox)
-// ---------------------------------------------------------------------------
 class DropdownPropertyWidget : public PropertyWidget<int> {
 public:
     explicit DropdownPropertyWidget(const Properties::PropDesc& desc) {

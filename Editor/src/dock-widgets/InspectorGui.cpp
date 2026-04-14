@@ -40,9 +40,9 @@ InspectorGui::InspectorGui(QWidget* parent) : QWidget(parent)
     setMinimumWidth(200);
 
     mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setContentsMargins(8, 8, 8, 8);
     mainLayout->setSpacing(0);
-
+    
     scrollArea = new QScrollArea();
     scrollArea->setWidgetResizable(true);
     scrollArea->setFrameShape(QFrame::NoFrame);
