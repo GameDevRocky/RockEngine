@@ -58,7 +58,6 @@ public:
     RenderCamera* camera = nullptr;
     PickingPass* pickingPass = nullptr;
     ImGuiInstance* imGuiInstance = nullptr;
-    ImGuizmo::OPERATION m_currentOperation = ImGuizmo::UNIVERSAL;
 
     
     QPoint lastMousePos;

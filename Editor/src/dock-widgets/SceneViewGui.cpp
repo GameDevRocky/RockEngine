@@ -10,6 +10,7 @@
 #include "engine/rendering/passes/DebugPass.hpp"
 #include "engine/rendering/passes/PickingPass.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/GizmosManager.hpp"
 #include "Engine.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
@@ -249,7 +250,9 @@ bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
             if (me->button() == Qt::LeftButton) io.MouseDown[0] = true;
             if (me->button() == Qt::RightButton) io.MouseDown[1] = true;
             
-            return io.WantCaptureMouse; 
+            if (io.WantCaptureMouse || GizmosManager::Get()->WantsCaptureMouse())
+                return true;
+            return false;
         }
         case QEvent::MouseButtonRelease: {
             auto* me = static_cast<QMouseEvent*>(event);
@@ -285,6 +288,10 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
     // Left click without modifier - try to select object
     if (event->button() == Qt::LeftButton)
     {
+        // Don't deselect if GizmosManager is using a handle
+        if (GizmosManager::Get()->WantsCaptureMouse())
+            return;
+
         makeCurrent();  // Ensure OpenGL context is active for ReadPixel
         
         float dpi = devicePixelRatioF();
@@ -395,70 +402,11 @@ void SceneViewGui::Init(){
 }
 
 void SceneViewGui::DrawGizmos(){
-
-    ImGuiIO& io = ImGui::GetIO();
-
-    Container* container = Engine::Get()->GetActiveContainer();
-   
-        SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
-        if (selectionManager->HasSelection()) {
-            GameObject* selectedObj = selectionManager->GetGameObject();
-            Transform* transform = selectedObj->GetComponent<Transform>();
-            glm::mat4 view = camera->GetViewMatrix();
-            glm::mat4 proj = camera->GetProjectionMatrix();
-            
-            glm::mat4 objectMatrix = transform->GetWorldMatrix();
-            
-            ImGuizmo::SetOrthographic(true);
-            ImGuizmo::SetRect(0, 0, (float)width(), (float)height());
-            
-            ImGuizmo::OPERATION op;
-            if (m_currentOperation == ImGuizmo::TRANSLATE) {
-                op = static_cast<ImGuizmo::OPERATION>(ImGuizmo::TRANSLATE_X | ImGuizmo::TRANSLATE_Y);
-            } else if (m_currentOperation == ImGuizmo::SCALE) {
-                op = static_cast<ImGuizmo::OPERATION>(ImGuizmo::SCALE_X | ImGuizmo::SCALE_Y);
-            } else if (m_currentOperation == ImGuizmo::ROTATE) {
-                op = ImGuizmo::ROTATE_Z;
-            }
-            else if (m_currentOperation == ImGuizmo::UNIVERSAL) {
-                op = static_cast<ImGuizmo::OPERATION>(
-                    ImGuizmo::TRANSLATE_X | ImGuizmo::TRANSLATE_Y | 
-                    ImGuizmo::ROTATE_Z | 
-                    ImGuizmo::SCALE_X | ImGuizmo::SCALE_Y
-                );
-            }
-            else{
-                return;
-            }
-            float* snapPtr = nullptr;
-            float pixelSnap = EngineUtils::RenderUtils::PixelsToWorld(128.0f);
-            float translateSnap[3] = { pixelSnap, pixelSnap, pixelSnap };
-            float rotateSnap[3] = { 15.0f, 15.0f, 15.0f };
-            float scaleSnap[3] = { 0.1f, 0.1f, 0.1f };
-    
-            ImGuizmo::Manipulate(
-                    glm::value_ptr(view),
-                    glm::value_ptr(proj),
-                    op,
-                    ImGuizmo::LOCAL,
-                    glm::value_ptr(objectMatrix),
-                    nullptr,
-                    snapPtr);
-            
-            if (ImGuizmo::IsUsing())
-            {
-                float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-                ImGuizmo::DecomposeMatrixToComponents(
-                    glm::value_ptr(objectMatrix),
-                    matrixTranslation,
-                    matrixRotation,
-                    matrixScale);
-                
-                transform->SetWorldPosition(glm::vec2(matrixTranslation[0], matrixTranslation[1]));
-                transform->SetWorldRotation(matrixRotation[2]);
-                transform->SetWorldScale(glm::vec2(matrixScale[0], matrixScale[1]));
-            }
-    }
+    GizmosManager::Get()->DrawGizmos(
+        camera->GetViewMatrix(),
+        camera->GetProjectionMatrix(),
+        static_cast<float>(width()),
+        static_cast<float>(height()));
 }
 
 void SceneViewGui::DrawToolBar() {
@@ -482,8 +430,11 @@ void SceneViewGui::DrawToolBar() {
         drawList->AddLine(ImVec2(centerX - 10, lineY), ImVec2(centerX + 10, lineY), gripColor, 1.5f);
         drawList->AddLine(ImVec2(centerX - 10, lineY + 4), ImVec2(centerX + 10, lineY + 4), gripColor, 1.5f);
 
+        auto* gizmos = GizmosManager::Get();
+
         auto ToolButton = [&](const char* icon, ImGuizmo::OPERATION op) {
-            bool is_active = (m_currentOperation == op);
+            bool is_active = (gizmos->GetOperation() == op) &&
+                             (gizmos->GetEditMode() == GizmosManager::EditMode::Transform);
             
             if (is_active) {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.40f, 0.58f, 1.0f));
@@ -492,7 +443,8 @@ void SceneViewGui::DrawToolBar() {
             }
 
             if (ImGui::Button(icon, ImVec2(24, 24))) {
-                m_currentOperation = op;
+                gizmos->SetOperation(op);
+                gizmos->SetEditMode(GizmosManager::EditMode::Transform);
             }
             ImGui::PopStyleColor();
         };
@@ -503,6 +455,24 @@ void SceneViewGui::DrawToolBar() {
         ToolButton(ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT, ImGuizmo::TRANSLATE);
         ToolButton(ICON_FA_ROTATE, ImGuizmo::ROTATE);
         ToolButton(ICON_FA_MAXIMIZE, ImGuizmo::SCALE);
+
+        ImGui::Separator();
+        {
+            bool is_collider = (gizmos->GetEditMode() == GizmosManager::EditMode::Collider);
+            if (is_collider) {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.40f, 0.58f, 1.0f));
+            } else {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+            }
+            if (ImGui::Button(ICON_FA_DRAW_POLYGON, ImVec2(24, 24))) {
+                if (is_collider) {
+                    gizmos->SetEditMode(GizmosManager::EditMode::Transform);
+                } else {
+                    gizmos->SetEditMode(GizmosManager::EditMode::Collider);
+                }
+            }
+            ImGui::PopStyleColor();
+        }
 
         ImGui::End();
     }
