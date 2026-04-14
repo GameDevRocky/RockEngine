@@ -125,6 +125,125 @@ private:
     QPointer<QDoubleSpinBox> y;
 };
 
+
+class Vec3PropertyWidget : public PropertyWidget<glm::vec3> {
+public:
+    explicit Vec3PropertyWidget(const Properties::PropDesc& desc) {
+        container = new QWidget();
+        container->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        auto* layout = new QHBoxLayout(container);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(5);
+
+        auto makeSpin = [&](const char* name, const char* labelText) {
+            auto* lbl = new QLabel(labelText);
+            auto font = lbl->font();
+            font.setBold(true);
+            lbl->setFont(font);
+            layout->addWidget(lbl);
+
+            auto* s = new QDoubleSpinBox();
+            s->setRange(desc.min, desc.max);
+            s->setSingleStep(desc.step);
+            s->setObjectName(name);
+            layout->addWidget(s);
+            return s;
+        };
+
+        x = makeSpin("vec_x", "X");
+        y = makeSpin("vec_y", "Y");
+        z = makeSpin("vec_z", "Z");
+
+        auto notify = [this](double) { if (onChanged) onChanged(GetValue()); };
+        QObject::connect(x, &QDoubleSpinBox::valueChanged, notify);
+        QObject::connect(y, &QDoubleSpinBox::valueChanged, notify);
+        QObject::connect(z, &QDoubleSpinBox::valueChanged, notify);
+    }
+
+    QWidget* GetWidget() override { return container; }
+    bool IsValid() override { return !x.isNull() && !y.isNull() && !z.isNull(); }
+
+    void SetValue(const glm::vec3& val) override {
+        if (!IsValid()) return;
+        x->blockSignals(true); y->blockSignals(true); z->blockSignals(true);
+        x->setValue(val.x); y->setValue(val.y); z->setValue(val.z);
+        x->blockSignals(false); y->blockSignals(false); z->blockSignals(false);
+    }
+
+    glm::vec3 GetValue() override {
+        if (!IsValid()) return glm::vec3(0.0f);
+        return { static_cast<float>(x->value()), static_cast<float>(y->value()), static_cast<float>(z->value()) };
+    }
+
+private:
+    QWidget* container = nullptr;
+    QPointer<QDoubleSpinBox> x;
+    QPointer<QDoubleSpinBox> y;
+    QPointer<QDoubleSpinBox> z;
+};
+
+
+class Vec4PropertyWidget : public PropertyWidget<glm::vec4> {
+public:
+    explicit Vec4PropertyWidget(const Properties::PropDesc& desc) {
+        container = new QWidget();
+        container->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        auto* layout = new QHBoxLayout(container);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(5);
+
+        auto makeSpin = [&](const char* name, const char* labelText) {
+            auto* lbl = new QLabel(labelText);
+            auto font = lbl->font();
+            font.setBold(true);
+            lbl->setFont(font);
+            layout->addWidget(lbl);
+
+            auto* s = new QDoubleSpinBox();
+            s->setRange(desc.min, desc.max);
+            s->setSingleStep(desc.step);
+            s->setObjectName(name);
+            layout->addWidget(s);
+            return s;
+        };
+
+        x = makeSpin("vec_x", "X");
+        y = makeSpin("vec_y", "Y");
+        z = makeSpin("vec_z", "Z");
+        w = makeSpin("vec_w", "W");
+
+        auto notify = [this](double) { if (onChanged) onChanged(GetValue()); };
+        QObject::connect(x, &QDoubleSpinBox::valueChanged, notify);
+        QObject::connect(y, &QDoubleSpinBox::valueChanged, notify);
+        QObject::connect(z, &QDoubleSpinBox::valueChanged, notify);
+        QObject::connect(w, &QDoubleSpinBox::valueChanged, notify);
+    }
+
+    QWidget* GetWidget() override { return container; }
+    bool IsValid() override { return !x.isNull() && !y.isNull() && !z.isNull() && !w.isNull(); }
+
+    void SetValue(const glm::vec4& val) override {
+        if (!IsValid()) return;
+        x->blockSignals(true); y->blockSignals(true); z->blockSignals(true); w->blockSignals(true);
+        x->setValue(val.x); y->setValue(val.y); z->setValue(val.z); w->setValue(val.w);
+        x->blockSignals(false); y->blockSignals(false); z->blockSignals(false); w->blockSignals(false);
+    }
+
+    glm::vec4 GetValue() override {
+        if (!IsValid()) return glm::vec4(0.0f);
+        return { static_cast<float>(x->value()), static_cast<float>(y->value()),
+                 static_cast<float>(z->value()), static_cast<float>(w->value()) };
+    }
+
+private:
+    QWidget* container = nullptr;
+    QPointer<QDoubleSpinBox> x;
+    QPointer<QDoubleSpinBox> y;
+    QPointer<QDoubleSpinBox> z;
+    QPointer<QDoubleSpinBox> w;
+};
+
+
 class BoolPropertyWidget : public PropertyWidget<bool> {
 public:
     explicit BoolPropertyWidget(const Properties::PropDesc&) {

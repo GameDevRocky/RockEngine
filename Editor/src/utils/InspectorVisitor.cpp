@@ -6,6 +6,7 @@
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/RigidBody.hpp"
+#include "engine/components/ScriptComponent.hpp"
 
 using namespace Properties;
 
@@ -248,6 +249,92 @@ void InspectorVisitor::Visit(RigidBody* rb){
         {"Kinematic", static_cast<int>(b2_kinematicBody)},
         {"Static",    static_cast<int>(b2_staticBody)}
     }));
+}
+
+void InspectorVisitor::Visit(ScriptComponent* sc){
+    const auto& fields = sc->GetFields();
+
+    for (const auto& field : fields) {
+        std::string label = field.name + ": ";
+
+        if (field.typeName == "float") {
+            auto getter = [sc, name = field.name]() -> float {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<float>(val) ? std::get<float>(val) : 0.0f;
+            };
+            auto setter = [sc, name = field.name](float v) {
+                sc->SetFieldValue(name, v);
+            };
+            BindProperty<float>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(field.step));
+        }
+        else if (field.typeName == "int") {
+            auto getter = [sc, name = field.name]() -> float {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<int>(val) ? static_cast<float>(std::get<int>(val)) : 0.0f;
+            };
+            auto setter = [sc, name = field.name](float v) {
+                sc->SetFieldValue(name, static_cast<int>(v));
+            };
+            BindProperty<float>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(1));
+        }
+        else if (field.typeName == "bool") {
+            auto getter = [sc, name = field.name]() -> bool {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<bool>(val) ? std::get<bool>(val) : false;
+            };
+            auto setter = [sc, name = field.name](bool v) {
+                sc->SetFieldValue(name, v);
+            };
+            BindProperty<bool>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::TOGGLE));
+        }
+        else if (field.typeName == "str") {
+            auto getter = [sc, name = field.name]() -> std::string {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<std::string>(val) ? std::get<std::string>(val) : "";
+            };
+            auto setter = [sc, name = field.name](std::string v) {
+                sc->SetFieldValue(name, v);
+            };
+            BindProperty<std::string>(sc, label, getter, setter, field.changeEvent,
+                PropDesc());
+        }
+        else if (field.typeName == "vec2") {
+            auto getter = [sc, name = field.name]() -> glm::vec2 {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<glm::vec2>(val) ? std::get<glm::vec2>(val) : glm::vec2(0.0f);
+            };
+            auto setter = [sc, name = field.name](glm::vec2 v) {
+                sc->SetFieldValue(name, v);
+            };
+            BindProperty<glm::vec2>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::VECTOR2).Step(field.step));
+        }
+        else if (field.typeName == "vec3") {
+            auto getter = [sc, name = field.name]() -> glm::vec3 {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<glm::vec3>(val) ? std::get<glm::vec3>(val) : glm::vec3(0.0f);
+            };
+            auto setter = [sc, name = field.name](glm::vec3 v) {
+                sc->SetFieldValue(name, v);
+            };
+            BindProperty<glm::vec3>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::VECTOR3).Step(field.step));
+        }
+        else if (field.typeName == "vec4") {
+            auto getter = [sc, name = field.name]() -> glm::vec4 {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<glm::vec4>(val) ? std::get<glm::vec4>(val) : glm::vec4(0.0f);
+            };
+            auto setter = [sc, name = field.name](glm::vec4 v) {
+                sc->SetFieldValue(name, v);
+            };
+            BindProperty<glm::vec4>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::VECTOR4).Step(field.step));
+        }
+    }
 }
 
 

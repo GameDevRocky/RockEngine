@@ -9,6 +9,7 @@ public:
     void Init() override;
     void Shutdown() override;
     void Step();
+    b2RayResult CastRay(b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter);
 
     b2WorldId GetWorldId(){return worldId;}
 

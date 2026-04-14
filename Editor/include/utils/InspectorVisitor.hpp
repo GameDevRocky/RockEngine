@@ -6,6 +6,8 @@
 #include "utils/ProperyFactory.hpp"
 #include "engine/core/Observable.hpp"
 
+class ScriptComponent;
+
 class InspectorVisitor : public IVisitor{
 
     public:
@@ -18,6 +20,7 @@ class InspectorVisitor : public IVisitor{
         void Visit(CircleCollider* circleCollider) override;
         void Visit(CapsuleCollider* capsuleCollider) override;
         void Visit(RigidBody* rigidBody) override;
+        void Visit(ScriptComponent* scriptComponent) override;
 
 
         QWidget* GetContent(){ return content;}

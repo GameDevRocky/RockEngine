@@ -63,7 +63,6 @@ void PhysicsSystem::Step() {
     for (int i = 0; i < sensorEvents.beginCount; ++i) {
         b2SensorBeginTouchEvent* event = sensorEvents.beginEvents + i;
 
-        // Skip if shapes were destroyed (e.g., during scale change)
         if (!b2Shape_IsValid(event->sensorShapeId) || !b2Shape_IsValid(event->visitorShapeId)) continue;
 
         b2BodyId sensorBody = b2Shape_GetBody(event->sensorShapeId);
@@ -81,7 +80,6 @@ void PhysicsSystem::Step() {
     for (int i = 0; i < sensorEvents.endCount; ++i) {
         b2SensorEndTouchEvent* event = sensorEvents.endEvents + i;
 
-        // Skip if shapes were destroyed (e.g., during scale change)
         if (!b2Shape_IsValid(event->sensorShapeId) || !b2Shape_IsValid(event->visitorShapeId)) continue;
 
         b2BodyId sensorBody = b2Shape_GetBody(event->sensorShapeId);
@@ -114,4 +112,9 @@ PhysicsSystem* PhysicsSystem::Copy(Container* container){
     PhysicsSystem* copy = this->Copy();
     copy->Attach(container);
     return copy;
+}
+
+b2RayResult  PhysicsSystem::CastRay(b2Vec2 origin, b2Vec2 translation, b2QueryFilter filter = b2DefaultQueryFilter()){
+    b2RayResult result = b2World_CastRayClosest(worldId, origin, translation, filter);
+    return result;
 }

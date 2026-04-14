@@ -2,10 +2,28 @@
 
 #include "engine/components/Component.hpp"
 
-#include <pybind11/pybind11.h>
 #include <string>
+#include <vector>
+#include <map>
+#include <variant>
+#include <memory>
+#include <glm/glm.hpp>
 
-namespace py = pybind11;
+// Variant type for script field values — no pybind11 types exposed
+using ScriptFieldValue = std::variant<float, int, bool, std::string, glm::vec2, glm::vec3, glm::vec4>;
+
+struct ScriptFieldInfo {
+    std::string name;
+    std::string typeName;   // "float", "int", "bool", "str", "vec2"
+    float min = -std::numeric_limits<float>::max();
+    float max =  std::numeric_limits<float>::max();
+    float step = 0.1f;
+    std::string tooltip;
+    Observable::Event changeEvent = 0;
+};
+
+// Forward-declared opaque type hiding pybind11
+struct ScriptInstanceData;
 
 class ScriptComponent : public Component {
 public:
@@ -32,43 +50,25 @@ public:
 
     std::string GetTypeName() const override { return "ScriptComponent"; }
 
-    ScriptComponent() = default;
+    // Exposed field introspection API (no pybind11 types in interface)
+    const std::vector<ScriptFieldInfo>& GetFields() const { return m_fields; }
+    ScriptFieldValue GetFieldValue(const std::string& name);
+    void SetFieldValue(const std::string& name, const ScriptFieldValue& value);
+
+    ScriptComponent();
     ~ScriptComponent() override;
 
 private:
     void InstantiateScript();
-    template<typename... Args>
-    void CallIfExists(const char* funcName, Args&&... args) {
-        py::gil_scoped_acquire gil;
-        if (!scriptInstance || scriptInstance.is_none()) {
-            std::cerr << "[ScriptComponent] scriptInstance invalid in " << funcName << std::endl;
-            return;
-        }
-        if (!Py_IsInitialized()) {
-            std::cerr << "[ScriptComponent] Python is NOT initialized in "
-                << funcName << std::endl;
-            return;
-        }
-
-
-
-        if (!py::hasattr(scriptInstance, funcName))
-            return;
-
-        try {
-            scriptInstance.attr(funcName)(std::forward<Args>(args)...);
-        }
-        catch (const py::error_already_set& e) {
-            std::cerr << "[ScriptComponent] Python error in "
-                << funcName << ":\n"
-                << e.what() << std::endl;
-        }
-    }
-
-private:
+    void IntrospectFields();
+    void ApplyPendingFields();
+    void CallMethod(const char* funcName);
+    void CallMethodStr(const char* funcName, const char* arg);
 
     std::string moduleName;  
     std::string className;
-    py::object scriptInstance;
+    std::unique_ptr<ScriptInstanceData> m_pyData;
+    std::vector<ScriptFieldInfo> m_fields;
+    std::map<std::string, YAML::Node> m_pendingFieldValues;
 
 };

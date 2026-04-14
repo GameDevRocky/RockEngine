@@ -11,6 +11,7 @@ namespace py = pybind11;
 // SYSTEMS
 void BindInputManager(py::module_& m);
 void BindConsoleManager(py::module_& m);
+void BindPhysics(py::module_& m);
 
 // CORE
 void BindGameObject(py::module_& m);
@@ -34,6 +35,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     py::module_ systems = m.def_submodule("systems", " RockEngine systems APIs");
     BindInputManager(systems);
     BindConsoleManager(systems);
+    BindPhysics(systems);
 
     // COMPONENTS
     py::module_ components = m.def_submodule("components", " RockEngine components APIs");

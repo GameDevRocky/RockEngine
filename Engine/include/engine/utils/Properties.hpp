@@ -14,6 +14,7 @@ namespace Properties {
         FILEPATH,
         VECTOR2,
         VECTOR3,
+        VECTOR4,
         FLOAT,
         INT,
         TOGGLE,

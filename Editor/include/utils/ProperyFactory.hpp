@@ -19,12 +19,19 @@ inline PropertyWidget<glm::vec2>* PropertyFactory::Create<glm::vec2>(const Prope
 }
 
 template<>
+inline PropertyWidget<glm::vec3>* PropertyFactory::Create<glm::vec3>(const Properties::PropDesc& desc) {
+    return new Vec3PropertyWidget(desc);
+}
+
+template<>
 inline PropertyWidget<bool>* PropertyFactory::Create<bool>(const Properties::PropDesc& desc) {
     return new BoolPropertyWidget(desc);
 }
 
 template<>
 inline PropertyWidget<glm::vec4>* PropertyFactory::Create<glm::vec4>(const Properties::PropDesc& desc) {
+    if (desc.tag == Properties::Tags::VECTOR4)
+        return new Vec4PropertyWidget(desc);
     return new Vec4ColorPropertyWidget(desc);
 }
 template<>

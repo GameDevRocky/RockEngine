@@ -1,35 +1,34 @@
 from Domain import *
+from typing import Annotated as Reflect
 
 class TestScript(ScriptableComponent):
-    
+    speed: float = 500
+    jump_force: float = 300
+
     def init(self):
-        self.tick : float
-        
+        pass
 
     def awake(self):
         self.grounded = False
-
     def start(self):
         self.rb = self.get_component(Rigidbody)
         self.rb.enabled = False
         self.sprite_renderer = self.get_component(SpriteRenderer)
 
     def fixed_update(self):
-
+        self.pos = self.transform.position
         if Input.is_key_down(Keys.A):
-            self.rb.apply_force((-1000, 0))
+            self.rb.apply_force((-self.speed, 0))
             self.sprite_renderer.flipX = True
         if Input.is_key_down(Keys.D):
-            self.rb.apply_force((1000, 0))
+            self.rb.apply_force((self.speed, 0))
             self.sprite_renderer.flipX = False
+        result = Physics.cast_ray(self.transform.position + (0, -32), Vector2(0, -1))
+        if result:
+            print(result)
+            self.grounded = True
+        else:
+            self.grounded = False
         if self.grounded and Input.is_key_down(Keys.W):
-            self.rb.apply_impulse((0, 200))
-        
-
-    def on_collision_enter(self, other : Collider):
-        self.grounded = True
-
-    def on_collision_exit(self, other : Collider):
-        self.grounded = False
-
+            self.rb.apply_impulse((0, self.jump_force))
 
