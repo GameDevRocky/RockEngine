@@ -11,6 +11,9 @@
 #include "engine/rendering/passes/PickingPass.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/rendering/core/GizmosManager.hpp"
+#include "engine/components/BoxCollider.hpp"
+#include "engine/components/CircleCollider.hpp"
+#include "engine/components/CapsuleCollider.hpp"
 #include "Engine.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
@@ -456,8 +459,16 @@ void SceneViewGui::DrawToolBar() {
         ToolButton(ICON_FA_ROTATE, ImGuizmo::ROTATE);
         ToolButton(ICON_FA_MAXIMIZE, ImGuizmo::SCALE);
 
-        ImGui::Separator();
-        {
+    
+        auto* selectionManager = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+        GameObject* obj = selectionManager ? selectionManager->GetGameObject() : nullptr;
+        bool hasCollider = obj && (
+            obj->GetComponent<BoxCollider>() ||
+            obj->GetComponent<CircleCollider>() ||
+            obj->GetComponent<CapsuleCollider>());
+
+        if (hasCollider) {
+            ImGui::Separator();
             bool is_collider = (gizmos->GetEditMode() == GizmosManager::EditMode::Collider);
             if (is_collider) {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.40f, 0.58f, 1.0f));
@@ -472,7 +483,10 @@ void SceneViewGui::DrawToolBar() {
                 }
             }
             ImGui::PopStyleColor();
+        } else if (gizmos->GetEditMode() == GizmosManager::EditMode::Collider) {
+            gizmos->SetEditMode(GizmosManager::EditMode::Transform);
         }
+    
 
         ImGui::End();
     }

@@ -1,9 +1,12 @@
 from Domain import *
 
 class TestScript(ScriptableComponent):
-       
+    
+    def init(self):
+        self.tick : float
+        
+
     def awake(self):
-        self.tick = 0
         self.grounded = False
 
     def start(self):
