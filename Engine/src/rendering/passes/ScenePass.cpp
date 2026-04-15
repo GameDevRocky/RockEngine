@@ -1,4 +1,6 @@
 #include "engine/rendering/passes/ScenePass.hpp"
+#include <algorithm>
+#include <vector>
 
 void ScenePass::Init(){
     float quadVerts[] =
@@ -41,39 +43,81 @@ void ScenePass::Resize(int width, int height)
 void ScenePass::Execute(RenderCamera* camera, Scene* scene)
 {
     const auto& objects = scene->GetAllGameObjects();
-    glad_glBindVertexArray(vao);
+
+    TimeManager* timeManager = Engine::Get()->GetActiveContainer()->FindSystem<TimeManager>();
+    float elapsedTime = timeManager ? timeManager->ElapsedTime() : 0.0f;
+
+    LayerManager* layerManager = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>();
+
+    // Collect visible, renderable objects
+    struct DrawCall
+    {
+        Transform*      transform;
+        SpriteRenderer* renderer;
+        Material*       mat;
+        Shader*         shader;
+        int             layerPriority;
+        int             sortingOrder;
+    };
+
+    std::vector<DrawCall> drawCalls;
+    drawCalls.reserve(objects.size());
 
     for (auto* obj : objects)
     {
-        if (!obj) continue;
-        if (!obj->GetActive()) continue;
-        
+        if (!obj || !obj->GetActive()) continue;
+
         Transform* transform = obj->GetComponent<Transform>();
         SpriteRenderer* renderer = obj->GetComponent<SpriteRenderer>();
-    
-        if (!transform){
+
+        if (!transform)
+        {
             Console::Alert("No Loaded Transform or Sprite");
             continue;
         }
-        if(!renderer) continue;
+        if (!renderer) continue;
         if (!renderer->GetEnabled() || !renderer->GetVisible()) continue;
 
         Material* mat = renderer->GetMaterial();
-        if (!mat){
-            mat = SharedResources::Get().GetMaterialByName("default"); 
+        if (!mat)
+        {
+            mat = SharedResources::Get().GetMaterialByName("default");
             Console::Alert("Assigning Default Material to " + transform->GetGameObject()->GetName());
-            }
-        if (!mat || !mat->GetShader()) continue; 
+        }
+        if (!mat || !mat->GetShader()) continue;
 
-        Shader* shader = mat->GetShader();
-        shader->Bind();
-        shader->SetMat4("uView", camera->GetViewMatrix());
-        shader->SetMat4("uProj", camera->GetProjectionMatrix());
-        shader->SetMat4("uModel", transform->GetWorldMatrix());
-        TimeManager* timeManager = Engine::Get()->GetActiveContainer()->FindSystem<TimeManager>();
-        shader->SetFloat("uTime", timeManager->ElapsedTime());
-        mat->ApplyUniforms();
-        renderer->OverrideUniforms();
+        drawCalls.push_back({ transform, renderer, mat, mat->GetShader(),
+            layerManager ? layerManager->GetPriority(renderer->GetSortingLayer()) : 0,
+            renderer->GetSortingOrder() });
+    }
+
+    std::sort(drawCalls.begin(), drawCalls.end(), [](const DrawCall& a, const DrawCall& b)
+    {
+        if (a.layerPriority != b.layerPriority) return a.layerPriority < b.layerPriority;
+        if (a.sortingOrder  != b.sortingOrder)  return a.sortingOrder  < b.sortingOrder;
+        return a.shader->GetProgramID() < b.shader->GetProgramID();
+    });
+
+    glad_glBindVertexArray(vao);
+
+    const glm::mat4& viewMatrix = camera->GetViewMatrix();
+    const glm::mat4& projMatrix = camera->GetProjectionMatrix();
+    GLuint lastProgramID = 0;
+
+    for (const DrawCall& dc : drawCalls)
+    {
+        if (dc.shader->GetProgramID() != lastProgramID)
+        {
+            dc.shader->Bind();
+            dc.shader->SetMat4("uView", viewMatrix);
+            dc.shader->SetMat4("uProj", projMatrix);
+            dc.shader->SetFloat("uTime", elapsedTime);
+            lastProgramID = dc.shader->GetProgramID();
+        }
+
+        dc.shader->SetMat4("uModel", dc.transform->GetWorldMatrix());
+        dc.mat->ApplyUniforms();
+        dc.renderer->OverrideUniforms();
 
         glad_glDrawArrays(GL_TRIANGLES, 0, 6);
     }

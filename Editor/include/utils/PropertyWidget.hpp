@@ -38,7 +38,7 @@ public:
         spin = new QDoubleSpinBox();
         spin->setRange(desc.min, desc.max);
         spin->setSingleStep(desc.step);
-        spin->setDecimals(2);
+        spin->setDecimals(desc.tag == Properties::Tags::INT ? 0 : 2);
         spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
         QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this](double val) {

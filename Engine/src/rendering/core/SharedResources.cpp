@@ -6,8 +6,7 @@
 using namespace EngineUtils;
 
 void SharedResources::Deserialize(const YAML::Node& node){
-    std::string configPath = GetAssetPath("Domain/lib/configs/resources_config.yaml");
-    const YAML::Node root = YAML::LoadFile(configPath);
+    const YAML::Node root = node;
     const YAML::Node data = root["Resources"];
     
     for (auto& texNode : data["Textures"])

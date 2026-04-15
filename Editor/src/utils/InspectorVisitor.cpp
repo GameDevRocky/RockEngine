@@ -7,6 +7,8 @@
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ScriptComponent.hpp"
+#include "engine/core/LayerManager.hpp"
+#include "Engine.hpp"
 
 using namespace Properties;
 
@@ -112,12 +114,46 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
 
 
 
+
     BindProperty<glm::vec4>(renderer, "Color: ", color_get, color_set, renderer->COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
     BindProperty<bool>(renderer, "Flip X: ", flipX_get, flipX_set, renderer->FLIP_X_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<bool>(renderer, "Flip Y: ", flipY_get, flipY_set, renderer->FLIP_Y_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<bool>(renderer, "Visible: ", visible_get, visible_set, renderer->VISIBILITY_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<std::string>(renderer, "Material: ", material_get, material_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF));
     BindProperty<std::string>(renderer, "Sprite: ", sprite_get, sprite_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF));
+
+    LayerManager* layerManager = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>();
+    if (layerManager)
+    {
+        // Build dropdown options: label = layer name, value = priority int
+        std::vector<std::pair<std::string, std::any>> layerOptions;
+        for (const auto& layer : layerManager->GetLayers())
+            layerOptions.push_back({ layer.name, layer.priority });
+
+        auto layer_get = [=]() -> int {
+            return layerManager->GetPriority(renderer->GetSortingLayer());
+        };
+        auto layer_set = [=](int priority) {
+            for (const auto& layer : layerManager->GetLayers())
+            {
+                if (layer.priority == priority)
+                {
+                    renderer->SetSortingLayer(layer.name);
+                    return;
+                }
+            }
+        };
+
+        BindProperty<int>(renderer, "Sorting Layer: ", layer_get, layer_set,
+            renderer->SORTING_LAYER_CHANGED_EVENT,
+            PropDesc().Tag(Tags::DROPDOWN).DropVals(layerOptions));
+    }
+
+    auto order_get = [=]() -> float { return static_cast<float>(renderer->GetSortingOrder()); };
+    auto order_set = [=](float val) { renderer->SetSortingOrder(static_cast<int>(val)); };
+    BindProperty<float>(renderer, "Order in Layer: ", order_get, order_set,
+        renderer->SORTING_ORDER_CHANGED_EVENT,
+        PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
     
 }
 

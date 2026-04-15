@@ -6,6 +6,7 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/SharedResources.hpp"
 #include "engine/debug/Console.hpp"
+#include "engine/core/LayerManager.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>

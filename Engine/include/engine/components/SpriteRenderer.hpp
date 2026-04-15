@@ -17,6 +17,8 @@ class SpriteRenderer : public Component
     static inline const Event COLOR_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     static inline const Event FLIP_X_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     static inline const Event FLIP_Y_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event SORTING_LAYER_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event SORTING_ORDER_CHANGED_EVENT = SpriteRenderer::CreateEvent();
 
 
 
@@ -34,7 +36,10 @@ class SpriteRenderer : public Component
     void SetColor(const glm::vec4& c) { color = c; Notify(COLOR_CHANGED_EVENT); }
     glm::vec4 GetColor() const { return color; }
     
-    void SetSortingOrder(int order) { sortingOrder = order; }
+    void SetSortingLayer(const std::string& layer);
+    const std::string& GetSortingLayer() const { return sortingLayer; }
+
+    void SetSortingOrder(int order);
     int GetSortingOrder() const { return sortingOrder; }
     
     void SetVisible(bool& value);
@@ -58,6 +63,7 @@ private:
     glm::vec2 uvScale;
     glm::vec4 color = glm::vec4(1, 1, 1, 1);
 
+    std::string sortingLayer = "Default";
     int sortingOrder = 0;
     bool flipX = false;
     bool flipY = false;

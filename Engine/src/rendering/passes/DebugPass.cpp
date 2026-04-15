@@ -15,272 +15,176 @@
 using namespace EngineUtils::RenderUtils;
 using namespace EngineUtils::MathUtils;
 
-void DebugPass::Init(){
-
-    float lineVerts[] = {
-        -0.5f, -0.5f,  
-         0.5f, -0.5f, 
-         0.5f,  0.5f, 
-        -0.5f,  0.5f  
-    };
-
+static unsigned int CreateVAO(unsigned int& vbo, const float* data, size_t dataSize)
+{
+    unsigned int vao;
     glad_glGenVertexArrays(1, &vao);
     glad_glGenBuffers(1, &vbo);
 
     glad_glBindVertexArray(vao);
     glad_glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glad_glBufferData(GL_ARRAY_BUFFER, sizeof(lineVerts), lineVerts, GL_STATIC_DRAW);
+    glad_glBufferData(GL_ARRAY_BUFFER, dataSize, data, GL_STATIC_DRAW);
 
-    glad_glEnableVertexAttribArray(0); 
-    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
+    glad_glEnableVertexAttribArray(0);
+    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+    glad_glEnableVertexAttribArray(1);
+    glad_glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
     glad_glBindVertexArray(0);
+    return vao;
+}
 
-    // Create circle vertices
+void DebugPass::Init()
+{
+    float boxVerts[] = {
+        -0.5f, -0.5f,   0.0f, 0.0f,
+         0.5f, -0.5f,   0.0f, 0.0f,
+         0.5f,  0.5f,   0.0f, 0.0f,
+        -0.5f,  0.5f,   0.0f, 0.0f,
+    };
+    boxVao = CreateVAO(boxVbo, boxVerts, sizeof(boxVerts));
+
     const int segments = 32;
     std::vector<float> circleVerts;
-    for (int i = 0; i < segments; ++i) {
+    for (int i = 0; i < segments; ++i)
+    {
         float angle = (2.0f * PI * i) / segments;
-        circleVerts.push_back(cos(angle));
-        circleVerts.push_back(sin(angle));
+        circleVerts.push_back(std::cos(angle)); 
+        circleVerts.push_back(std::sin(angle)); 
+        circleVerts.push_back(0.0f);           
+        circleVerts.push_back(0.0f);            
+    }
+    circleVertexCount = segments;
+    circleVao = CreateVAO(circleVbo, circleVerts.data(), circleVerts.size() * sizeof(float));
+
+    const int semiSegments = 17;
+    std::vector<float> capsuleVerts;
+    for (int i = 0; i < semiSegments; ++i)
+    {
+        float angle = (PI * i) / (semiSegments - 1);
+        capsuleVerts.push_back(0.0f);        
+        capsuleVerts.push_back(0.5f);            
+        capsuleVerts.push_back(std::cos(angle));
+        capsuleVerts.push_back(std::sin(angle)); 
     }
 
-    glad_glGenVertexArrays(1, &circleVao);
-    glad_glGenBuffers(1, &circleVbo);
-
-    glad_glBindVertexArray(circleVao);
-    glad_glBindBuffer(GL_ARRAY_BUFFER, circleVbo);
-    glad_glBufferData(GL_ARRAY_BUFFER, circleVerts.size() * sizeof(float), circleVerts.data(), GL_STATIC_DRAW);
-
-    glad_glEnableVertexAttribArray(0);
-    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
-    glad_glBindVertexArray(0);
-
-    // Create capsule line vertices (two vertical lines)
-    float capsuleLineVerts[] = {
-        // Left vertical line
-        -0.5f, -0.5f,
-        -0.5f,  0.5f,
-        // Right vertical line
-         0.5f, -0.5f,
-         0.5f,  0.5f
-    };
-
-    glad_glGenVertexArrays(1, &capsuleVao);
-    glad_glGenBuffers(1, &capsuleVbo);
-
-    glad_glBindVertexArray(capsuleVao);
-    glad_glBindBuffer(GL_ARRAY_BUFFER, capsuleVbo);
-    glad_glBufferData(GL_ARRAY_BUFFER, sizeof(capsuleLineVerts), capsuleLineVerts, GL_STATIC_DRAW);
-
-    glad_glEnableVertexAttribArray(0);
-    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
-    glad_glBindVertexArray(0);
-
-    // Create semicircle vertices for capsule top (0 to PI)
-    const int semiSegments = 17; // 17 points for a semicircle (including endpoints)
-    std::vector<float> topSemiVerts;
-    for (int i = 0; i < semiSegments; ++i) {
-        float angle = (PI* i) / (semiSegments - 1); // 0 to PI
-        topSemiVerts.push_back(cos(angle));
-        topSemiVerts.push_back(sin(angle));
+    for (int i = 0; i < semiSegments; ++i)
+    {
+        float angle = PI + (PI * i) / (semiSegments - 1);
+        capsuleVerts.push_back(0.0f);            
+        capsuleVerts.push_back(-0.5f);           
+        capsuleVerts.push_back(std::cos(angle)); 
+        capsuleVerts.push_back(std::sin(angle)); 
     }
 
-    glad_glGenVertexArrays(1, &topSemiVao);
-    glad_glGenBuffers(1, &topSemiVbo);
+    capsuleVertexCount = semiSegments * 2;
+    capsuleVao = CreateVAO(capsuleVbo, capsuleVerts.data(), capsuleVerts.size() * sizeof(float));
 
-    glad_glBindVertexArray(topSemiVao);
-    glad_glBindBuffer(GL_ARRAY_BUFFER, topSemiVbo);
-    glad_glBufferData(GL_ARRAY_BUFFER, topSemiVerts.size() * sizeof(float), topSemiVerts.data(), GL_STATIC_DRAW);
+    glad_glGenBuffers(1, &ssbo);
 
-    glad_glEnableVertexAttribArray(0);
-    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
-    glad_glBindVertexArray(0);
-
-    // Create semicircle vertices for capsule bottom (PI to 2*PI)
-    std::vector<float> bottomSemiVerts;
-    for (int i = 0; i < semiSegments; ++i) {
-        float angle = PI + (PI * i) / (semiSegments - 1); // PI to 2*PI
-        bottomSemiVerts.push_back(cos(angle));
-        bottomSemiVerts.push_back(sin(angle));
-    }
-
-    glad_glGenVertexArrays(1, &bottomSemiVao);
-    glad_glGenBuffers(1, &bottomSemiVbo);
-
-    glad_glBindVertexArray(bottomSemiVao);
-    glad_glBindBuffer(GL_ARRAY_BUFFER, bottomSemiVbo);
-    glad_glBufferData(GL_ARRAY_BUFFER, bottomSemiVerts.size() * sizeof(float), bottomSemiVerts.data(), GL_STATIC_DRAW);
-
-    glad_glEnableVertexAttribArray(0);
-    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
-
-    glad_glBindVertexArray(0);
-
-    // Load debug shader
     debugShader = SharedResources::Get().GetShaderByName("debug");
 }
 
-void DebugPass::Execute(RenderCamera* camera, Scene* scene){
-    if (!debugShader) return;
+void DebugPass::DrawInstanced(unsigned int vao, int vertexCount, GLenum mode,
+                              const std::vector<DebugInstanceData>& instances)
+{
+    if (instances.empty()) return;
 
-    const auto& objects = scene->GetAllGameObjects();
+    glad_glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    glad_glBufferData(GL_SHADER_STORAGE_BUFFER,
+                      instances.size() * sizeof(DebugInstanceData),
+                      instances.data(), GL_DYNAMIC_DRAW);
+    glad_glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+
     glad_glBindVertexArray(vao);
+    glad_glDrawArraysInstanced(mode, 0, vertexCount, static_cast<GLsizei>(instances.size()));
+}
+
+void DebugPass::Execute(RenderCamera* camera, Scene* scene)
+{
+    if (!debugShader) return;
 
     debugShader->Bind();
     debugShader->SetMat4("uView", camera->GetViewMatrix());
     debugShader->SetMat4("uProj", camera->GetProjectionMatrix());
 
-    for (auto* obj : objects)
-    {
-        if (!obj) continue;
-        if (!obj->GetActive()) continue;
-        Transform* transform = obj->GetComponent<Transform>();
-        BoxCollider* collider = obj->GetComponent<BoxCollider>();
+    const auto& objects = scene->GetAllGameObjects();
 
-        if (!transform || !collider) continue;
-
-        glm::vec2 size = collider->GetSize();
-        glm::vec2 center = collider->GetCenter();
-
-        debugShader->SetMat4("uModel", transform->GetWorldMatrix());
-        debugShader->SetVec2("uSize", size);
-        debugShader->SetVec2("uPivot", glm::vec2(0.0f, 0.0f));
-        debugShader->SetVec2("uOffset", center);
-        debugShader->SetVec4("uColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-
-        glad_glDrawArrays(GL_LINE_LOOP, 0, 4);
-    }
-
-    // Render circles for CircleColliders
-    glad_glBindVertexArray(circleVao);
-    for (auto* obj : objects)
-    {
-        if (!obj) continue;
-        if (!obj->GetActive()) continue;
-        Transform* transform = obj->GetComponent<Transform>();
-        CircleCollider* collider = obj->GetComponent<CircleCollider>();
-
-        if (!transform || !collider) continue;
-
-        float radius = collider->GetRadius();
-        glm::vec2 center = collider->GetCenter();
-
-        debugShader->SetMat4("uModel", transform->GetWorldMatrix());
-        debugShader->SetVec2("uSize", glm::vec2(radius, radius));
-        debugShader->SetVec2("uPivot", glm::vec2(0.0f, 0.0f));
-        debugShader->SetVec2("uOffset", center);
-        debugShader->SetVec4("uColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-
-        glad_glDrawArrays(GL_LINE_LOOP, 0, 32);
-    }
+    std::vector<DebugInstanceData> boxInstances;
+    std::vector<DebugInstanceData> circleInstances;
+    std::vector<DebugInstanceData> capsuleInstances;
 
     for (auto* obj : objects)
     {
-        if (!obj) continue;
-        if (!obj->GetActive()) continue;
+        if (!obj || !obj->GetActive()) continue;
+
         Transform* transform = obj->GetComponent<Transform>();
-        CapsuleCollider* collider = obj->GetComponent<CapsuleCollider>();
+        if (!transform) continue;
 
-        if (!transform || !collider) continue;
-
-        float radius = collider->GetRadius();
-        float height = collider->GetHeight();
-        glm::vec2 center = collider->GetCenter();
-        glm::vec2 worldScale = glm::abs(transform->GetWorldScale());
-        
-        // Apply scale to match physics (radius scales with X, height with Y)
-        float scaledRadius = radius * worldScale.x;
-        float scaledHeight = height * worldScale.y;
-        
-        // Calculate dimensions - boxWidth is the visual radius for semicircles
-        float boxHeight = scaledHeight;
-        float boxWidth = scaledRadius;
-        
-        // Draw middle vertical lines (if there's a straight section)
-        if (boxHeight > 0.0f) {
-            glad_glBindVertexArray(capsuleVao);
-            debugShader->SetMat4("uModel", transform->GetWorldMatrix());
-            debugShader->SetVec2("uSize", glm::vec2(boxWidth / worldScale.x, boxHeight / worldScale.y));
-            debugShader->SetVec2("uPivot", glm::vec2(0.0f, 0.0f));
-            debugShader->SetVec2("uOffset", center);
-            debugShader->SetVec4("uColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-            glad_glDrawArrays(GL_LINES, 0, 4); // Draw both vertical lines
+        if (BoxCollider* collider = obj->GetComponent<BoxCollider>())
+        {
+            DebugInstanceData inst{};
+            inst.model = transform->GetWorldMatrix();
+            inst.size = collider->GetSize();
+            inst.semiSize = glm::vec2(0.0f);
+            inst.offset = collider->GetCenter();
+            inst.pivot = glm::vec2(0.0f);
+            inst.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+            boxInstances.push_back(inst);
         }
-        
-        // Draw top semicircle - radius is scaledRadius/2 (diameter is scaledRadius)
-        glad_glBindVertexArray(topSemiVao);
-        float topOffset = (height / 2.0f);
-        debugShader->SetMat4("uModel", transform->GetWorldMatrix());
-        // Semicircle size needs to be in local space (will be scaled by matrix)
-        debugShader->SetVec2("uSize", glm::vec2(radius / 2.0f, radius / 2.0f * worldScale.x / worldScale.y));
-        debugShader->SetVec2("uPivot", glm::vec2(0.0f, 0.0f));
-        debugShader->SetVec2("uOffset", center + glm::vec2(0.0f, topOffset));
-        debugShader->SetVec4("uColor", glm::vec4(0.0f, 1.0f, 0.0f, 1.0f));
-        glad_glDrawArrays(GL_LINE_STRIP, 0, 17);
-        
-        // Draw bottom semicircle
-        glad_glBindVertexArray(bottomSemiVao);
-        float bottomOffset = -(height / 2.0f);
-        debugShader->SetVec2("uOffset", center + glm::vec2(0.0f, bottomOffset));
-        glad_glDrawArrays(GL_LINE_STRIP, 0, 17);
-    }
 
-    // Draw white box around selected object if it has a SpriteRenderer
-    Container* container = scene->GetContainer();
-    if (container) {
-        SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
-        if (selectionManager && selectionManager->HasSelection()) {
-            GameObject* selectedObj = selectionManager->GetGameObject();
-            if (selectedObj) {
-                if (selectedObj->GetActive()){
+        if (CircleCollider* collider = obj->GetComponent<CircleCollider>())
+        {
+            float radius = collider->GetRadius();
+            DebugInstanceData inst{};
+            inst.model = transform->GetWorldMatrix();
+            inst.size = glm::vec2(radius, radius);
+            inst.semiSize = glm::vec2(0.0f);
+            inst.offset = collider->GetCenter();
+            inst.pivot = glm::vec2(0.0f);
+            inst.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+            circleInstances.push_back(inst);
+        }
 
-                Transform* transform = selectedObj->GetComponent<Transform>();
-                SpriteRenderer* spriteRenderer = selectedObj->GetComponent<SpriteRenderer>();
-                
-                if (transform && spriteRenderer) {
-                    Sprite* sprite = spriteRenderer->GetSprite();
-                    if (sprite) {
-                        glm::vec2 worldSize = EngineUtils::RenderUtils::PixelsToWorld(sprite->GetPixelSize());
-                        glm::vec2 pivot = sprite->GetPivot();
+        if (CapsuleCollider* collider = obj->GetComponent<CapsuleCollider>())
+        {
+            float radius = collider->GetRadius();
+            float height = collider->GetHeight();
+            glm::vec2 worldScale = glm::abs(transform->GetWorldScale());
 
-                        glad_glBindVertexArray(vao);
-                        debugShader->SetMat4("uModel", transform->GetWorldMatrix());
-                        debugShader->SetVec2("uSize", worldSize);
-                        debugShader->SetVec2("uPivot", pivot);
-                        debugShader->SetVec2("uOffset", glm::vec2(0.0f, 0.0f));
-                        debugShader->SetVec4("uColor", glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
-
-                        glad_glDrawArrays(GL_LINE_LOOP, 0, 4);
-
-                        }
-                    }
-                }
-            }
+            DebugInstanceData inst{};
+            inst.model = transform->GetWorldMatrix();
+            inst.size = glm::vec2(0.0f, height);
+            inst.semiSize = glm::vec2(radius / 2.0f,
+                                      radius / 2.0f * worldScale.x / worldScale.y);
+            inst.offset = collider->GetCenter();
+            inst.pivot = glm::vec2(0.0f);
+            inst.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
+            capsuleInstances.push_back(inst);
         }
     }
+    DrawInstanced(boxVao, 4, GL_LINE_LOOP, boxInstances);
+    DrawInstanced(circleVao, circleVertexCount, GL_LINE_LOOP, circleInstances);
+    DrawInstanced(capsuleVao, capsuleVertexCount, GL_LINE_LOOP, capsuleInstances);
 
     glad_glBindVertexArray(0);
 }
 
-void DebugPass::Resize(int width, int height){
+void DebugPass::Resize(int width, int height)
+{
     viewportWidth = width;
     viewportHeight = height;
 }
 
-void DebugPass::Shutdown(){
-    if (vbo) glad_glDeleteBuffers(1, &vbo);
-    if (vao) glad_glDeleteVertexArrays(1, &vao);
+void DebugPass::Shutdown()
+{
+    if (boxVbo) glad_glDeleteBuffers(1, &boxVbo);
+    if (boxVao) glad_glDeleteVertexArrays(1, &boxVao);
     if (circleVbo) glad_glDeleteBuffers(1, &circleVbo);
     if (circleVao) glad_glDeleteVertexArrays(1, &circleVao);
     if (capsuleVbo) glad_glDeleteBuffers(1, &capsuleVbo);
     if (capsuleVao) glad_glDeleteVertexArrays(1, &capsuleVao);
-    if (topSemiVbo) glad_glDeleteBuffers(1, &topSemiVbo);
-    if (topSemiVao) glad_glDeleteVertexArrays(1, &topSemiVao);
-    if (bottomSemiVbo) glad_glDeleteBuffers(1, &bottomSemiVbo);
-    if (bottomSemiVao) glad_glDeleteVertexArrays(1, &bottomSemiVao);
+    if (ssbo) glad_glDeleteBuffers(1, &ssbo);
     if (debugShader) delete debugShader;
 }

@@ -1,0 +1,9 @@
+SortingLayers:
+  - name: "Background"
+    priority: 0
+
+  - name: "Default"
+    priority: 1
+
+  - name: "UI"
+    priority: 2

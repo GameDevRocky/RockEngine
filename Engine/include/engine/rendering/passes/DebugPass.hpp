@@ -6,6 +6,16 @@
 #include <vector>
 #include <glm/glm.hpp>
 
+struct DebugInstanceData
+{
+    glm::mat4 model;
+    glm::vec2 size;
+    glm::vec2 semiSize;
+    glm::vec2 offset;
+    glm::vec2 pivot;
+    glm::vec4 color;
+};
+
 class DebugPass : public RenderPass
 {
 public:
@@ -15,21 +25,22 @@ public:
 
     void Resize(int width, int height) override;
 
-    void Execute(RenderCamera* camera, Scene* scene) override ;
+    void Execute(RenderCamera* camera, Scene* scene) override;
 
-    void Shutdown() override ;
+    void Shutdown() override;
 
 private:
-    unsigned int vao = 0;
-    unsigned int vbo = 0;
-    unsigned int circleVao = 0;
-    unsigned int circleVbo = 0;
-    unsigned int capsuleVao = 0;
-    unsigned int capsuleVbo = 0;
-    unsigned int topSemiVao = 0;
-    unsigned int topSemiVbo = 0;
-    unsigned int bottomSemiVao = 0;
-    unsigned int bottomSemiVbo = 0;
+    void DrawInstanced(unsigned int vao, int vertexCount, GLenum mode,
+                       const std::vector<DebugInstanceData>& instances);
+
+    unsigned int boxVao = 0, boxVbo = 0;
+    unsigned int circleVao = 0, circleVbo = 0;
+    unsigned int capsuleVao = 0, capsuleVbo = 0;
+    unsigned int ssbo = 0;
+
+    int circleVertexCount = 0;
+    int capsuleVertexCount = 0;
+
     Shader* debugShader = nullptr;
     int viewportWidth = 0;
     int viewportHeight = 0;

@@ -24,6 +24,7 @@ void SpriteRenderer::Deserialize(const YAML::Node& node)
     flipY = node["flipY"].as<bool>();
     visible = node["visible"].as<bool>();
     sortingOrder = node["sortingOrder"].as<int>();
+    sortingLayer = node["sortingLayer"].as<std::string>("Default");
     state = State::Loaded;
 }
 
@@ -73,6 +74,20 @@ void SpriteRenderer::SetVisible(bool& val){
     this->Notify(SpriteRenderer::VISIBILITY_CHANGED_EVENT);
     this->Notify(SpriteRenderer::CHANGED_EVENT);
 
+}
+
+void SpriteRenderer::SetSortingLayer(const std::string& layer){
+    if (sortingLayer == layer) return;
+    sortingLayer = layer;
+    this->Notify(SpriteRenderer::SORTING_LAYER_CHANGED_EVENT);
+    this->Notify(SpriteRenderer::CHANGED_EVENT);
+}
+
+void SpriteRenderer::SetSortingOrder(int order){
+    if (sortingOrder == order) return;
+    sortingOrder = order;
+    this->Notify(SpriteRenderer::SORTING_ORDER_CHANGED_EVENT);
+    this->Notify(SpriteRenderer::CHANGED_EVENT);
 }
 
 void SpriteRenderer::OverrideUniforms()

@@ -23,7 +23,7 @@ class TestScript(ScriptableComponent):
         if Input.is_key_down(Keys.D):
             self.rb.apply_force((self.speed, 0))
             self.sprite_renderer.flipX = False
-        result = Physics.cast_ray(self.transform.position + (0, 0), Vector2(0, -64))
+        result = Physics.cast_ray(self.transform.position + (0, 0), Vector2(0, -28))
         if result:
             self.rb.velocity = (self.rb.velocity.x, 0)
             self.grounded = True
@@ -31,4 +31,3 @@ class TestScript(ScriptableComponent):
             self.grounded = False
         if self.grounded and Input.is_key_down(Keys.W):
             self.rb.apply_impulse((0, self.jump_force))
-
