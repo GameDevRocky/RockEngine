@@ -46,6 +46,9 @@ class Vector2:
     def __mul__(self, scalar):
         return Vector2(self.x * scalar, self.y * scalar)
 
+    def __neg__(self):
+        return Vector2(-self.x, -self.y)
+
     # --- Geometry Logic ---
     def length(self):
         return math.sqrt(self.x**2 + self.y**2)

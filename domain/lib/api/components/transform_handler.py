@@ -2,6 +2,7 @@ from rock_engine.components import transform_module
 from ...utils.re_math import Vector2
 from .component_handler import Component
 from ..core.gameobject_handler import get_gameobject
+import math
 
 class Transform(Component):
 
@@ -55,6 +56,16 @@ class Transform(Component):
     @world_rotation.setter
     def world_rotation(self, value):
         transform_module.set_world_rotation(self._gameobject_id, float(value))
+
+    @property
+    def right(self) -> Vector2:
+        rad = math.radians(self.world_rotation)
+        return Vector2(math.cos(rad), math.sin(rad))
+
+    @property
+    def up(self) -> Vector2:
+        rad = math.radians(self.world_rotation)
+        return Vector2(-math.sin(rad), math.cos(rad))
 
     @property
     def world_scale(self):

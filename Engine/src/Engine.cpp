@@ -8,7 +8,6 @@
 #include "engine/core/PhysicsSystem.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/LayerManager.hpp"
-
 #define SAMPLE_SCENE_PATH "Domain/lib/configs/Sample_Scene.yaml"
 
 namespace py = pybind11;

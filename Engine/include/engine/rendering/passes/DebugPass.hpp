@@ -3,6 +3,7 @@
 #include "engine/rendering/passes/RenderPass.hpp"
 #include "engine/core/Scene.hpp"
 #include "engine/rendering/core/Shader.hpp"
+#include "engine/debug/DebugDrawManager.hpp"
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -36,6 +37,7 @@ private:
     unsigned int boxVao = 0, boxVbo = 0;
     unsigned int circleVao = 0, circleVbo = 0;
     unsigned int capsuleVao = 0, capsuleVbo = 0;
+    unsigned int lineVao = 0, lineVbo = 0;
     unsigned int ssbo = 0;
 
     int circleVertexCount = 0;

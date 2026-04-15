@@ -8,9 +8,9 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/Container.hpp"
-#include "Engine.hpp"
 #include <vector>
 #include <cmath>
+#include <glm/gtc/matrix_transform.hpp>
 
 using namespace EngineUtils::RenderUtils;
 using namespace EngineUtils::MathUtils;
@@ -80,6 +80,14 @@ void DebugPass::Init()
 
     capsuleVertexCount = semiSegments * 2;
     capsuleVao = CreateVAO(capsuleVbo, capsuleVerts.data(), capsuleVerts.size() * sizeof(float));
+
+    // Line: 2 verts along the X axis. Shader: scaledPos = aPos * size + offset
+    // So a line from A to B is encoded as offset=A, size=B-A, model=identity
+    float lineVerts[] = {
+        0.0f, 0.0f,  0.0f, 0.0f,
+        1.0f, 0.0f,  0.0f, 0.0f,
+    };
+    lineVao = CreateVAO(lineVbo, lineVerts, sizeof(lineVerts));
 
     glad_glGenBuffers(1, &ssbo);
 
@@ -168,6 +176,92 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
     DrawInstanced(circleVao, circleVertexCount, GL_LINE_LOOP, circleInstances);
     DrawInstanced(capsuleVao, capsuleVertexCount, GL_LINE_LOOP, capsuleInstances);
 
+    // DebugDrawManager commands (from Python scripts)
+    {
+        auto* debug = DebugDrawManager::Get();
+
+        std::vector<DebugInstanceData> scriptBoxInstances;
+        std::vector<DebugInstanceData> scriptCircleInstances;
+        std::vector<DebugInstanceData> scriptLineInstances;
+
+        for (const auto& cmd : debug->GetCommands())
+        {
+            switch (cmd.type)
+            {
+            case DebugDrawCommand::Type::Point:
+            {
+                // Rendered as a small circle
+                DebugInstanceData inst{};
+                inst.model    = glm::mat4(1.0f);
+                inst.size     = glm::vec2(cmd.radius, cmd.radius);
+                inst.semiSize = glm::vec2(0.0f);
+                inst.offset   = cmd.a;
+                inst.pivot    = glm::vec2(0.0f);
+                inst.color    = cmd.color;
+                scriptCircleInstances.push_back(inst);
+                break;
+            }
+            case DebugDrawCommand::Type::Line:
+            {
+                // Vert 0=(0,0), Vert 1=(1,0). Component-wise aPos*size means Y of size
+                // is always zeroed for vert 1. Instead: rotate the model so the local X
+                // axis points from A to B, then use length as the X size.
+                glm::vec2 dir   = cmd.b - cmd.a;
+                float     len   = glm::length(dir);
+                float     angle = std::atan2(dir.y, dir.x);
+
+                glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(cmd.a, 0.0f));
+                model = glm::rotate(model, angle, glm::vec3(0.0f, 0.0f, 1.0f));
+
+                DebugInstanceData inst{};
+                inst.model    = model;
+                inst.size     = glm::vec2(len, 0.0f);
+                inst.semiSize = glm::vec2(0.0f);
+                inst.offset   = glm::vec2(0.0f);
+                inst.pivot    = glm::vec2(0.0f);
+                inst.color    = cmd.color;
+                scriptLineInstances.push_back(inst);
+                break;
+            }
+            case DebugDrawCommand::Type::Box:
+            {
+                float rad = glm::radians(cmd.rotation);
+                glm::mat4 model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(cmd.a, 0.0f));
+                model = glm::rotate(model, rad, glm::vec3(0, 0, 1));
+
+                DebugInstanceData inst{};
+                inst.model    = model;
+                inst.size     = cmd.b;
+                inst.semiSize = glm::vec2(0.0f);
+                inst.offset   = glm::vec2(0.0f); 
+                inst.pivot    = glm::vec2(0.0f);
+                inst.color    = cmd.color;
+                scriptBoxInstances.push_back(inst);
+                break;
+            }
+            case DebugDrawCommand::Type::Circle:
+            {
+                DebugInstanceData inst{};
+                inst.model    = glm::mat4(1.0f);
+                inst.size     = glm::vec2(cmd.radius, cmd.radius);
+                inst.semiSize = glm::vec2(0.0f);
+                inst.offset   = cmd.a;
+                inst.pivot    = glm::vec2(0.0f);
+                inst.color    = cmd.color;
+                scriptCircleInstances.push_back(inst);
+                break;
+            }
+            }
+        }
+
+        DrawInstanced(boxVao,    4,                  GL_LINE_LOOP, scriptBoxInstances);
+        DrawInstanced(circleVao, circleVertexCount,  GL_LINE_LOOP, scriptCircleInstances);
+        DrawInstanced(lineVao,   2,                  GL_LINES,     scriptLineInstances);
+
+        debug->Clear();
+    }
+
     glad_glBindVertexArray(0);
 }
 
@@ -179,12 +273,14 @@ void DebugPass::Resize(int width, int height)
 
 void DebugPass::Shutdown()
 {
-    if (boxVbo) glad_glDeleteBuffers(1, &boxVbo);
-    if (boxVao) glad_glDeleteVertexArrays(1, &boxVao);
-    if (circleVbo) glad_glDeleteBuffers(1, &circleVbo);
-    if (circleVao) glad_glDeleteVertexArrays(1, &circleVao);
+    if (boxVbo)     glad_glDeleteBuffers(1, &boxVbo);
+    if (boxVao)     glad_glDeleteVertexArrays(1, &boxVao);
+    if (circleVbo)  glad_glDeleteBuffers(1, &circleVbo);
+    if (circleVao)  glad_glDeleteVertexArrays(1, &circleVao);
     if (capsuleVbo) glad_glDeleteBuffers(1, &capsuleVbo);
     if (capsuleVao) glad_glDeleteVertexArrays(1, &capsuleVao);
-    if (ssbo) glad_glDeleteBuffers(1, &ssbo);
+    if (lineVbo)    glad_glDeleteBuffers(1, &lineVbo);
+    if (lineVao)    glad_glDeleteVertexArrays(1, &lineVao);
+    if (ssbo)       glad_glDeleteBuffers(1, &ssbo);
     if (debugShader) delete debugShader;
 }

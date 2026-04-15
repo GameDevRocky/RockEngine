@@ -3,7 +3,8 @@ from typing import Annotated as Reflect
 
 class TestScript(ScriptableComponent):
     speed: float = 500
-    jump_force: float = 300
+    jump_force: float = 100
+    scale : Reflect[float, Step(1)] = 32
 
     def init(self):
         pass
@@ -23,11 +24,15 @@ class TestScript(ScriptableComponent):
         if Input.is_key_down(Keys.D):
             self.rb.apply_force((self.speed, 0))
             self.sprite_renderer.flipX = False
-        result = Physics.cast_ray(self.transform.position + (0, 0), Vector2(0, -28))
+        
+
+    def update(self):
+        result = Physics.cast_ray(self.transform.position, -self.transform.up * self.scale)
         if result:
-            self.rb.velocity = (self.rb.velocity.x, 0)
             self.grounded = True
         else:
             self.grounded = False
         if self.grounded and Input.is_key_down(Keys.W):
             self.rb.apply_impulse((0, self.jump_force))
+
+        
