@@ -1,7 +1,6 @@
 from rock_engine.components import transform_module
 from ...utils.re_math import Vector2
 from .component_handler import Component
-from ..core.gameobject_handler import get_gameobject
 import math
 
 class Transform(Component):
@@ -81,7 +80,7 @@ class Transform(Component):
         parent_id = transform_module.get_parent(self._gameobject_id)
         if parent_id is None:
             return None
-        return get_gameobject(parent_id)
+        return Transform(parent_id)
 
     @parent.setter
     def parent(self, value):
@@ -89,13 +88,9 @@ class Transform(Component):
             transform_module.set_parent(self._gameobject_id, None, True)
             return
 
-        parent_id = getattr(value, "id", None)
-        if parent_id is None:
-            parent_id = getattr(value, "_gameobject_id", None)
+        if not isinstance(value, Transform):
+            raise TypeError("Transform.parent expects a Transform or None")
 
-        if parent_id is None:
-            raise TypeError("Transform.parent expects a GameObject, Transform, or None")
-
-        transform_module.set_parent(self._gameobject_id, parent_id, True)
+        transform_module.set_parent(self._gameobject_id, value._gameobject_id, True)
 
     

@@ -94,8 +94,8 @@ void InspectorGui::OnObjectSelected(const std::string& id)
 
     InspectorVisitor* visitor = new InspectorVisitor();
     ObjectHeader* objectHeader = new ObjectHeader();
-    objectHeader->Bind(obj->GetID());
     obj->Accept(visitor);
+    objectHeader->Bind(obj->GetID());
     auto* content = visitor->GetContent();
     if (content){
         objectHeader->AddWidget(content);

@@ -384,5 +384,4 @@ void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
     layout->addWidget(label, gridRow, 0, Qt::AlignLeft);
     layout->addWidget(widget, gridRow, 1);
     gridRow++;
-    containsContent = true;
 }

@@ -34,5 +34,3 @@ class TestScript(ScriptableComponent):
             self.grounded = False
         if self.grounded and Input.is_key_down(Keys.W):
             self.rb.apply_impulse((0, self.jump_force))
-
-        

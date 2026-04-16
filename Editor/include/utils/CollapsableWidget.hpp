@@ -9,9 +9,11 @@
 #include <QPushButton>
 #include <QLineEdit>
 
+
+
 class CollapsableWidget : public QWidget {
     Q_OBJECT 
-
+    
 public: 
     explicit CollapsableWidget(std::string label, QWidget* parent = nullptr);
     void AddWidget(QWidget* widget);

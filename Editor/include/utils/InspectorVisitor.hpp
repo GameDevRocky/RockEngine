@@ -24,7 +24,7 @@ class InspectorVisitor : public IVisitor{
 
 
         QWidget* GetContent(){ return content;}
-        bool HasContent(){return containsContent;}
+        bool HasContent(){return content;}
 
     protected:
 
@@ -39,7 +39,6 @@ class InspectorVisitor : public IVisitor{
         QGridLayout* layout = nullptr;
         int gridRow = 0;
         QWidget* content = nullptr;
-        bool containsContent = false;
 };
 
 template<typename T>
