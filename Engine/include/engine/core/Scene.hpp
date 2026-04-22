@@ -15,6 +15,7 @@ public:
 
     static inline const Event HIERARCHY_CHANGED_EVENT = Scene::CreateEvent();
     static inline const Event NAME_CHANGED_EVENT = Scene::CreateEvent();
+    static inline const Event GAMEOBJECT_ADDED_EVENT = Scene::CreateEvent();
     
 
 

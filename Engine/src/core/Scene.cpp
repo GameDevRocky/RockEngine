@@ -171,16 +171,31 @@ void Scene::SyncAllObjects(const std::string& id){
 
 void Scene::AddGameObject(GameObject *obj)
 {
+    obj->Attach(container);
+    if (!obj->GetTransform()){
+        auto* transform = new Transform();
+        transform->SetGameObject(obj);
+        obj->AddComponent(transform);
+    }
+        
     registry->Register(obj);
     obj->SetScene(this);
     Sync(obj);
 
     gameobject_ids.push_back(obj->GetID());
-    
+    obj->Init();
+    obj->PostInit();
+
+    if (container->GetMode() == Container::Mode::Runtime){
+        obj->Awake();
+        obj->Start();
+    }
+
     Transform* transform = obj->GetTransform();
     if (transform && !transform->GetParent()) {
         rootobject_ids.push_back(obj->GetID());
     }
+    Notify(GAMEOBJECT_ADDED_EVENT, obj->GetID());
 }
 
 void Scene::Sync(GameObject* obj){

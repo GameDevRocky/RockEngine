@@ -164,7 +164,6 @@ void PickingPass::Execute(RenderCamera* camera, Scene* /*scene*/)
     
     for (Scene* currentScene : scenes) {
         if (!currentScene) continue;
-        
         const auto& objects = currentScene->GetAllGameObjects();
         for(auto* obj : objects) {
             if(!obj) continue;

@@ -112,20 +112,16 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
         renderer->SetSprite(val);
     };
 
-
-
-
     BindProperty<glm::vec4>(renderer, "Color: ", color_get, color_set, renderer->COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
     BindProperty<bool>(renderer, "Flip X: ", flipX_get, flipX_set, renderer->FLIP_X_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<bool>(renderer, "Flip Y: ", flipY_get, flipY_set, renderer->FLIP_Y_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<bool>(renderer, "Visible: ", visible_get, visible_set, renderer->VISIBILITY_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<std::string>(renderer, "Material: ", material_get, material_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF));
     BindProperty<std::string>(renderer, "Sprite: ", sprite_get, sprite_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF));
-
+    
     LayerManager* layerManager = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>();
     if (layerManager)
     {
-        // Build dropdown options: label = layer name, value = priority int
         std::vector<std::pair<std::string, std::any>> layerOptions;
         for (const auto& layer : layerManager->GetLayers())
             layerOptions.push_back({ layer.name, layer.priority });

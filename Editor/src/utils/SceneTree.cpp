@@ -4,6 +4,7 @@
 #include "engine/core/SelectionManager.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/serialization/Registry.hpp"
+#include "engine/core/Container.hpp"
 #include "Engine.hpp"
 
 #include <QSizePolicy>
@@ -12,6 +13,8 @@
 #include <QModelIndexList>
 #include <QHeaderView>
 #include <QItemSelectionModel>
+#include <QMenu>
+#include <QEvent>
 #include <stdexcept>
 
 
@@ -93,8 +96,30 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     setDragDropMode(QAbstractItemView::InternalMove);
     setDragDropOverwriteMode(false);
     
+
     header()->setSectionsClickable(true);
+    QIcon icon("Domain/lib/assets/icons/hamburger_icon.png");
+    m_headerBtn = new QPushButton(header());
+    m_headerBtn->setIcon(icon);
+    m_headerBtn->setFixedSize(40, 20);
+    m_headerBtn->setFlat(true);
+    connect(m_headerBtn, &QPushButton::clicked, this, [this]() {
+        QMenu menu(this);
+        menu.addAction("New GameObject", this, [this]() {
+            auto* selectionManager = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+            auto* scene = Registry::FindInRuntime<Scene>(scene_id);
+            if (!scene) return;
+            auto* obj = new GameObject();
+            obj->SetName("GameObject");
+            scene->AddGameObject(obj);
+            selectionManager->Select(obj->GetID());
+        });
+        menu.exec(m_headerBtn->mapToGlobal(m_headerBtn->rect().bottomLeft()));
+    });
+    header()->installEventFilter(this);
+
     connect(header(), &QHeaderView::sectionClicked, this, &SceneTree::OnHeaderClicked);
+
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
@@ -332,6 +357,15 @@ void SceneTree::ReparentItem(const std::string& childId, const std::string& newP
     int row = childItem->row();
     QList<QStandardItem*> taken = oldParent->takeRow(row);
     newParent->appendRow(taken);
+}
+
+bool SceneTree::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == header() && event->type() == QEvent::Resize) {
+        const int margin = 4;
+        m_headerBtn->move(header()->width() - m_headerBtn->width() - margin,
+                          (header()->height() - m_headerBtn->height()) / 2);
+    }
+    return QTreeView::eventFilter(obj, event);
 }
 
 void SceneTree::OnHeaderClicked(int section) {

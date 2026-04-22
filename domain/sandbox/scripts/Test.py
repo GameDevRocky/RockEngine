@@ -5,6 +5,7 @@ class TestScript(ScriptableComponent):
     speed: float = 500
     jump_force: float = 100
     scale : Reflect[float, Step(1)] = 32
+    testVar : float = 0.1
 
     def init(self):
         pass

@@ -17,7 +17,7 @@ void LayerManager::Init()
     }
     catch (const YAML::Exception& e)
     {
-        Console::Alert(std::string("LayerManager: failed to load config: ") + e.what());
+        //Console::Alert(std::string("LayerManager: failed to load config: ") + e.what());
         layers.push_back({ "Default", 0 });
         return;
     }

@@ -23,7 +23,7 @@ public:
     virtual Serializable* Copy() { return nullptr; }
     virtual void Accept(IVisitor* v){};
 
-    Serializable() = default;
+    Serializable();
 
     virtual ~Serializable() = default; 
 
