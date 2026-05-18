@@ -57,10 +57,10 @@ class SpriteRenderer : public Component
     std::string GetTypeName() const override { return "SpriteRenderer"; }
 
 private:
-    std::string material_id;
-    std::string sprite_id;
-    glm::vec2 uvOffset;
-    glm::vec2 uvScale;
+    std::string material_id = "m1";
+    std::string sprite_id = "sprite1";
+    glm::vec2 uvOffset = {0,0};
+    glm::vec2 uvScale = {1, 1};
     glm::vec4 color = glm::vec4(1, 1, 1, 1);
 
     std::string sortingLayer = "Default";

@@ -27,6 +27,8 @@ class GameObject : public RuntimeObject {
     static inline const Event REMOVE_COMPONENT_EVENT = GameObject::CreateEvent();
     static inline const Event SCENE_CHANGED_EVENT = GameObject::CreateEvent();
     static inline const Event NAME_CHANGED_EVENT = GameObject::CreateEvent();
+    static inline const Event TAG_CHANGED_EVENT = GameObject::CreateEvent();
+    static inline const Event LAYER_CHANGED_EVENT = GameObject::CreateEvent();
 
     void Deserialize(const YAML::Node& node) override;
 
@@ -43,8 +45,6 @@ class GameObject : public RuntimeObject {
     
     void FixedUpdate();
     void LateUpdate();
-
-
 
     GameObject* Copy() override;
     GameObject* Copy(Container* container) override;
@@ -102,11 +102,11 @@ class GameObject : public RuntimeObject {
         }
         callback(this);
     }
-    
 
     private:
     bool active = true;
     std::map<std::string, std::string> component_ids;
     std::string transform_id;
     std::string scene_id;
+    
 };

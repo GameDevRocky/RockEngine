@@ -59,7 +59,7 @@ private:
     void OnTransformChanged();
     
     PhysicsSystem* physicsSystem = nullptr;
-    TimeManager* timeManager;
+    TimeManager* timeManager = nullptr;
     b2BodyId bodyId = b2_nullBodyId;
     b2BodyType bodyType = b2BodyType::b2_dynamicBody;
     bool useGravity = true;

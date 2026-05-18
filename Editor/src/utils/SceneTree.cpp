@@ -6,6 +6,9 @@
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/Container.hpp"
 #include "Engine.hpp"
+#include "engine/components/SpriteRenderer.hpp"
+#include "engine/components/BoxCollider.hpp"
+#include "engine/components/RigidBody.hpp"
 
 #include <QSizePolicy>
 #include "utils/SceneTreeItemDelegate.hpp"
@@ -63,6 +66,7 @@ GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* game
         liveItem->setText(obj->GetName().c_str());
         return true;
     }, GameObject::NAME_CHANGED_EVENT);
+
     return item;
 }
 
@@ -95,7 +99,6 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     setDefaultDropAction(Qt::MoveAction);
     setDragDropMode(QAbstractItemView::InternalMove);
     setDragDropOverwriteMode(false);
-    
 
     header()->setSectionsClickable(true);
     QIcon icon("Domain/lib/assets/icons/hamburger_icon.png");
@@ -103,6 +106,7 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     m_headerBtn->setIcon(icon);
     m_headerBtn->setFixedSize(40, 20);
     m_headerBtn->setFlat(true);
+
     connect(m_headerBtn, &QPushButton::clicked, this, [this]() {
         QMenu menu(this);
         menu.addAction("New GameObject", this, [this]() {
@@ -111,7 +115,17 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
             if (!scene) return;
             auto* obj = new GameObject();
             obj->SetName("GameObject");
+            SpriteRenderer* sr = new SpriteRenderer();
+            RigidBody* rb = new RigidBody();
+            BoxCollider* bc = new BoxCollider();
+            Transform* t = new Transform();
+            t->SetScale({10, 10});
+            
             scene->AddGameObject(obj);
+            obj->AddComponent(t);
+            obj->AddComponent(sr);
+            obj->AddComponent(rb);
+            obj->AddComponent(bc);
             selectionManager->Select(obj->GetID());
         });
         menu.exec(m_headerBtn->mapToGlobal(m_headerBtn->rect().bottomLeft()));
@@ -148,6 +162,7 @@ void SceneTree::RebuildFromScene(Scene* scene) {
         deleteLater();
         return;
     }
+    header()->setFixedHeight(30);
 
     model->setHorizontalHeaderLabels({scene->GetName().c_str()});
     scene->Subscribe([this](const std::any& data){
@@ -167,15 +182,10 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     auto* container = Engine::Get()->GetActiveContainer();    
     auto* selectionManager = container->FindSystem<SelectionManager>();
     selectionManager->Subscribe([this](const std::any& data) {
-        if (!data.has_value()) return false;
-        
-        try {
+
             const std::string& selectedId = std::any_cast<const std::string&>(data);
             OnObjectSelected(selectedId);
             return true;
-        } catch (const std::bad_any_cast&) {
-            return false;
-        }
     }, SelectionManager::SELECTION_CHANGED_EVENT);
 
     expandAll();
@@ -246,7 +256,6 @@ void SceneTree::dropEvent(QDropEvent* event) {
 }
 
 void SceneTree::OnObjectSelected(const std::string& id) {
-    // Handle deselection
     if (id.empty()) {
         clearSelection();
         setCurrentIndex(QModelIndex());

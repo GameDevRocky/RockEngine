@@ -89,7 +89,7 @@ void Editor::PostInit() {
         Update();
     });
 
-    timer->start(8);
+    timer->start(16);
     app->exec();
 
 }

@@ -13,6 +13,13 @@ void GameObject::AddComponent(Component* comp) {
     registry->Register(comp);
     component_ids[comp->GetTypeName()] = comp->GetID(); 
     comp->SetGameObject(this);
+    comp->Init();
+    comp->PostInit();
+
+    if (container->GetMode() == Container::Mode::Runtime){
+        comp->Awake();
+        comp->Start();
+    }
     this->Notify(GameObject::ADD_COMPONENT_EVENT);
 }
 
