@@ -9,6 +9,7 @@
 #include <QLabel>
 #include <QPixmap>
 #include <QTreeView>
+#include <QScrollArea>
 #include <unordered_map>
 #include "utils/SceneTree.hpp"
 
@@ -44,7 +45,9 @@ protected:
 
 private:
     ~HierarchyGui() override;
-    QVBoxLayout* layout = nullptr;
+    QScrollArea*  scrollArea   = nullptr;
+    QWidget*      scrollWidget = nullptr;
+    QVBoxLayout*  scrollLayout = nullptr;
     std::map<std::string, SceneTree*> sceneTrees;
 
 

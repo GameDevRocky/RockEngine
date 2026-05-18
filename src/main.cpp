@@ -12,5 +12,5 @@ int main(int argc, char *argv[]) {
     editor->PostInit();
     editor->Shutdown();
     engine->Shutdown();
-    return -1;
+    return 0;
 }

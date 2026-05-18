@@ -286,10 +286,17 @@ void InspectorVisitor::Visit(RigidBody* rb){
 void InspectorVisitor::Visit(ScriptComponent* sc){
     const auto& fields = sc->GetFields();
 
+    // Fetch all field values in a single GIL acquisition to avoid N separate
+    // GIL acquire/release round-trips blocking the main thread on selection.
+    auto allValues = sc->GetAllFieldValues();
+
     for (const auto& field : fields) {
         std::string label = field.name + ": ";
+        auto it = allValues.find(field.name);
 
         if (field.typeName == "float") {
+            float initial = (it != allValues.end() && std::holds_alternative<float>(it->second))
+                ? std::get<float>(it->second) : 0.0f;
             auto getter = [sc, name = field.name]() -> float {
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<float>(val) ? std::get<float>(val) : 0.0f;
@@ -297,10 +304,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](float v) {
                 sc->SetFieldValue(name, v);
             };
-            BindProperty<float>(sc, label, getter, setter, field.changeEvent,
+            BindPropertyWithInitial<float>(sc, label, initial, getter, setter, field.changeEvent,
                 PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(field.step));
         }
         else if (field.typeName == "int") {
+            float initial = (it != allValues.end() && std::holds_alternative<int>(it->second))
+                ? static_cast<float>(std::get<int>(it->second)) : 0.0f;
             auto getter = [sc, name = field.name]() -> float {
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<int>(val) ? static_cast<float>(std::get<int>(val)) : 0.0f;
@@ -308,10 +317,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](float v) {
                 sc->SetFieldValue(name, static_cast<int>(v));
             };
-            BindProperty<float>(sc, label, getter, setter, field.changeEvent,
+            BindPropertyWithInitial<float>(sc, label, initial, getter, setter, field.changeEvent,
                 PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(1));
         }
         else if (field.typeName == "bool") {
+            bool initial = (it != allValues.end() && std::holds_alternative<bool>(it->second))
+                ? std::get<bool>(it->second) : false;
             auto getter = [sc, name = field.name]() -> bool {
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<bool>(val) ? std::get<bool>(val) : false;
@@ -319,10 +330,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](bool v) {
                 sc->SetFieldValue(name, v);
             };
-            BindProperty<bool>(sc, label, getter, setter, field.changeEvent,
+            BindPropertyWithInitial<bool>(sc, label, initial, getter, setter, field.changeEvent,
                 PropDesc().Tag(Tags::TOGGLE));
         }
         else if (field.typeName == "str") {
+            std::string initial = (it != allValues.end() && std::holds_alternative<std::string>(it->second))
+                ? std::get<std::string>(it->second) : "";
             auto getter = [sc, name = field.name]() -> std::string {
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<std::string>(val) ? std::get<std::string>(val) : "";
@@ -330,10 +343,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](std::string v) {
                 sc->SetFieldValue(name, v);
             };
-            BindProperty<std::string>(sc, label, getter, setter, field.changeEvent,
+            BindPropertyWithInitial<std::string>(sc, label, initial, getter, setter, field.changeEvent,
                 PropDesc());
         }
         else if (field.typeName == "vec2") {
+            glm::vec2 initial = (it != allValues.end() && std::holds_alternative<glm::vec2>(it->second))
+                ? std::get<glm::vec2>(it->second) : glm::vec2(0.0f);
             auto getter = [sc, name = field.name]() -> glm::vec2 {
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<glm::vec2>(val) ? std::get<glm::vec2>(val) : glm::vec2(0.0f);
@@ -341,10 +356,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](glm::vec2 v) {
                 sc->SetFieldValue(name, v);
             };
-            BindProperty<glm::vec2>(sc, label, getter, setter, field.changeEvent,
+            BindPropertyWithInitial<glm::vec2>(sc, label, initial, getter, setter, field.changeEvent,
                 PropDesc().Tag(Tags::VECTOR2).Step(field.step));
         }
         else if (field.typeName == "vec3") {
+            glm::vec3 initial = (it != allValues.end() && std::holds_alternative<glm::vec3>(it->second))
+                ? std::get<glm::vec3>(it->second) : glm::vec3(0.0f);
             auto getter = [sc, name = field.name]() -> glm::vec3 {
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<glm::vec3>(val) ? std::get<glm::vec3>(val) : glm::vec3(0.0f);
@@ -352,10 +369,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](glm::vec3 v) {
                 sc->SetFieldValue(name, v);
             };
-            BindProperty<glm::vec3>(sc, label, getter, setter, field.changeEvent,
+            BindPropertyWithInitial<glm::vec3>(sc, label, initial, getter, setter, field.changeEvent,
                 PropDesc().Tag(Tags::VECTOR3).Step(field.step));
         }
         else if (field.typeName == "vec4") {
+            glm::vec4 initial = (it != allValues.end() && std::holds_alternative<glm::vec4>(it->second))
+                ? std::get<glm::vec4>(it->second) : glm::vec4(0.0f);
             auto getter = [sc, name = field.name]() -> glm::vec4 {
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<glm::vec4>(val) ? std::get<glm::vec4>(val) : glm::vec4(0.0f);
@@ -363,7 +382,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](glm::vec4 v) {
                 sc->SetFieldValue(name, v);
             };
-            BindProperty<glm::vec4>(sc, label, getter, setter, field.changeEvent,
+            BindPropertyWithInitial<glm::vec4>(sc, label, initial, getter, setter, field.changeEvent,
                 PropDesc().Tag(Tags::VECTOR4).Step(field.step));
         }
     }

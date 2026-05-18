@@ -36,6 +36,14 @@ class GameObject:
         from ..components.transform_handler import Transform
         return self.get_component(Transform)
 
+    def add_component(self, cls: Type[T]) -> Optional[T]:
+        type_name = getattr(cls, '_type_name', None)
+        if type_name:
+            comp_id = gameobject_module.add_component(self.id, type_name)
+            if not comp_id:
+                return None
+        return self.get_component(cls)
+
     def get_component(self, cls: Type[T]) -> Optional[T]:
         # cls is the Class type (e.g., Transform)
         if cls in self._comp_cache:

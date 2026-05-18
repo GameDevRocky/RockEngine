@@ -62,11 +62,26 @@ void SubscribeToSceneTransforms(Scene* scene, SceneTree* tree) {
 HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
     setMinimumWidth(200);
     setMaximumWidth(400);
-    layout = new QVBoxLayout();
-    layout->setContentsMargins(4,4,4,4);
-    layout->addStretch(1);
-    
-    setLayout(layout);
+
+    // Inner widget that holds the scene trees
+    scrollWidget = new QWidget();
+    scrollLayout = new QVBoxLayout(scrollWidget);
+    scrollLayout->setContentsMargins(0, 0, 0, 0);
+    scrollLayout->setSpacing(0);
+    scrollLayout->addStretch(1);
+
+    // Scroll area wrapping the inner widget
+    scrollArea = new QScrollArea(this);
+    scrollArea->setWidget(scrollWidget);
+    scrollArea->setWidgetResizable(true);
+    scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    scrollArea->setFrameShape(QFrame::NoFrame);
+
+    QVBoxLayout* outerLayout = new QVBoxLayout(this);
+    outerLayout->setContentsMargins(4, 4, 4, 4);
+    outerLayout->addWidget(scrollArea);
+    setLayout(outerLayout);
     setAcceptDrops(true);
 }
 
@@ -115,9 +130,9 @@ void HierarchyGui::AddSceneTree(const std::string& scene_id) {
     tree->RebuildFromScene(scene);
     tree->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     SubscribeToSceneTransforms(scene, tree);
-    int insertIndex = layout->count() - 1;
-    layout->insertWidget(insertIndex, tree);
-    
+    // Insert before the trailing stretch
+    int insertIndex = scrollLayout->count() - 1;
+    scrollLayout->insertWidget(insertIndex, tree);
 }
 
 

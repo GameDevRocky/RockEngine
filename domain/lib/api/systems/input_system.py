@@ -101,11 +101,31 @@ class Keys:
     F11 = 0x0100003a
     F12 = 0x0100003b
 
+class MouseButton:
+    LEFT   = 1   # Qt::LeftButton
+    RIGHT  = 2   # Qt::RightButton
+    MIDDLE = 4   # Qt::MiddleButton
+
 class Input:
     @staticmethod
     def is_key_down(keycode):
         return bool(input_module.is_key_down(keycode))
-    
+
+    @staticmethod
+    def is_key_pressed(keycode):
+        """Returns True only on the frame the key is first pressed (not while held)."""
+        return bool(input_module.is_key_pressed(keycode))
+
+    @staticmethod
+    def mouse_down(button = MouseButton.LEFT):
+        """Returns True every frame the mouse button is held."""
+        return bool(input_module.is_mouse_button_down(button))
+
+    @staticmethod
+    def mouse_pressed(button = MouseButton.LEFT):
+        """Returns True only on the frame the mouse button is first pressed."""
+        return bool(input_module.is_mouse_button_pressed(button))
+
     @staticmethod
     def get_mouse_pos():
         return Vector2(input_module.get_mouse_pos())

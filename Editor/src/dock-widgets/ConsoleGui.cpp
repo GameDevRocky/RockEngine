@@ -57,19 +57,20 @@ void ConsoleGui::resizeEvent(QResizeEvent* event)
 void ConsoleGui::GenerateWidgets()
 {
     auto& messages = Console::Get().GetMessages();
-    
-    
+
+    bool added = false;
     for (auto& [key, msg] : messages) {
         if (message_widgets.find(key) == message_widgets.end()) {
             MessageGui* gui = new MessageGui(this, msg);
             scrollLayout->addWidget(gui);
             message_widgets.emplace(key, gui);
-        }     
+            added = true;
+        }
     }
-    
-    scrollLayout->parentWidget()->adjustSize();
-    scrollLayout->update();
-    content->updateGeometry();
-    
-    
+
+    if (added) {
+        scrollLayout->parentWidget()->adjustSize();
+        scrollLayout->update();
+        content->updateGeometry();
+    }
 }

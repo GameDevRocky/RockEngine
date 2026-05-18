@@ -188,6 +188,19 @@ void SceneTree::RebuildFromScene(Scene* scene) {
             return true;
     }, SelectionManager::SELECTION_CHANGED_EVENT);
 
+    scene->Subscribe([this](const std::any& data) {
+        const std::string& newId = std::any_cast<const std::string&>(data);
+        Registry* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(newId);
+        if (!go) return true;
+        Transform* t = go->GetTransform();
+        std::string parentId;
+        if (t && t->GetParent() && t->GetParent()->GetGameObject())
+            parentId = t->GetParent()->GetGameObject()->GetID();
+        AddItem(parentId, go);
+        return true;
+    }, Scene::GAMEOBJECT_ADDED_EVENT);
+
     expandAll();
 }
 

@@ -7,7 +7,11 @@ void InputManager::Init() {
 }
 
 void InputManager::Update(){
+    m_keysJustPressed = m_keysJustPressedQueue;
+    m_keysJustPressedQueue.clear();
 
+    m_mouseButtonsJustPressed = m_mouseButtonsJustPressedQueue;
+    m_mouseButtonsJustPressedQueue.clear();
 }
 
 void InputManager::Shutdown() {

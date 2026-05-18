@@ -32,6 +32,7 @@ class SpriteRenderer : public Component
     
     Sprite* GetSprite();
     void SetSprite(std::string& id);
+    const std::string& GetSpriteID() const { return sprite_id; }
     
     void SetColor(const glm::vec4& c) { color = c; Notify(COLOR_CHANGED_EVENT); }
     glm::vec4 GetColor() const { return color; }

@@ -1,10 +1,23 @@
 from rock_engine.components import sprite_renderer_module
 from ...utils.re_math import Vector2
 from .component_handler import Component
+from .sprite_handler import Sprite
 
 class SpriteRenderer(Component):
+    _type_name = "SpriteRenderer"
+
     def __init__(self, obj_id= None):
         super().__init__(obj_id)
+
+    @property
+    def sprite(self) -> Sprite:
+        sprite_id = sprite_renderer_module.get_sprite_id(self._gameobject_id)
+        return Sprite(sprite_id) if sprite_id else None
+
+    @sprite.setter
+    def sprite(self, value: Sprite):
+        if value is not None:
+            sprite_renderer_module.set_sprite_id(self._gameobject_id, value.id)
 
     @property
     def transform(self):

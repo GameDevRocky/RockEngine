@@ -173,7 +173,7 @@ void RigidBody::LateUpdate() {
 }
 
 void RigidBody::OnEnabled(){
-    Component::OnDisabled();
+    Component::OnEnabled();
     b2Body_Enable(this->bodyId);
     
 }

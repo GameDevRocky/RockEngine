@@ -61,6 +61,25 @@ void BindSpriteRenderer(pybind11::module_& m) {
         return std::make_tuple(1.0f, 1.0f, 1.0f, 1.0f);
     });
 
+    sprite_renderer_module.def("get_sprite_id", [](const std::string& id) -> std::string {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* renderer = go->GetComponent<SpriteRenderer>())
+                return renderer->GetSpriteID();
+        }
+        return {};
+    });
 
-    
+    sprite_renderer_module.def("set_sprite_id", [](const std::string& go_id, std::string sprite_id) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(go_id);
+        if (go) {
+            if (auto* renderer = go->GetComponent<SpriteRenderer>())
+                renderer->SetSprite(sprite_id);
+        }
+    });
+
 }

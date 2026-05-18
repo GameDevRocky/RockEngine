@@ -31,7 +31,8 @@ void SpriteRenderer::Deserialize(const YAML::Node& node)
 Material* SpriteRenderer::GetMaterial(){
     Material* mat = SharedResources::Get().GetMaterial(material_id);
     if (!mat){
-        Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s material");
+        if (!material_id.empty())
+            Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s material");
         return nullptr;
     }
     return mat;
@@ -52,7 +53,8 @@ void SpriteRenderer::SetMaterial(std::string& id){
 Sprite* SpriteRenderer::GetSprite(){
     Sprite* sprite = SharedResources::Get().GetSprite(sprite_id);
     if (!sprite){
-        Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s Sprite");
+        if (!sprite_id.empty())
+            Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s Sprite");
         return nullptr;
     }
     return sprite;

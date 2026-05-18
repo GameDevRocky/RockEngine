@@ -65,5 +65,5 @@ private:
     void MarkDirty();
     std::string parent_id;
     std::vector<std::string> children_ids;
-    Registry* registry;
+    Registry* registry = nullptr;
 };

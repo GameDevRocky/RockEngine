@@ -98,7 +98,7 @@ void MainWindow::Init()
     setCorner(Qt::TopRightCorner, Qt::TopDockWidgetArea);
     setDockNestingEnabled(false);
     setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::ForceTabbedDocks);
-    LoadLayout();
+    //LoadLayout();
     //ClearLayout();
     std::cout << "Main Window Initialized " << std::endl;
 

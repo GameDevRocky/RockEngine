@@ -173,12 +173,20 @@ void GameViewGui::wheelEvent(QWheelEvent* event)
 
 void GameViewGui::mousePressEvent(QMouseEvent* event)
 {
+    Engine* engine = Engine::Get();
+    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+    if (inputManager)
+        inputManager->SetMouseButtonState(static_cast<int>(event->button()), true);
     event->accept();
 }
 
 
 void GameViewGui::mouseReleaseEvent(QMouseEvent* event)
 {
+    Engine* engine = Engine::Get();
+    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+    if (inputManager)
+        inputManager->SetMouseButtonState(static_cast<int>(event->button()), false);
     event->accept();
 }
 

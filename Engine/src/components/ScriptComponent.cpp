@@ -372,6 +372,49 @@ ScriptFieldValue ScriptComponent::GetFieldValue(const std::string& name)
     return 0.0f;
 }
 
+std::map<std::string, ScriptFieldValue> ScriptComponent::GetAllFieldValues()
+{
+    std::map<std::string, ScriptFieldValue> result;
+    py::gil_scoped_acquire gil;
+    auto& scriptInstance = m_pyData->scriptInstance;
+    if (!scriptInstance || scriptInstance.is_none()) return result;
+
+    for (const auto& field : m_fields) {
+        try {
+            py::object val = py::getattr(scriptInstance, field.name.c_str());
+            if (field.typeName == "float") {
+                result[field.name] = val.cast<float>();
+            } else if (field.typeName == "int") {
+                result[field.name] = val.cast<int>();
+            } else if (field.typeName == "bool") {
+                result[field.name] = val.cast<bool>();
+            } else if (field.typeName == "str") {
+                result[field.name] = val.cast<std::string>();
+            } else if (field.typeName == "vec2") {
+                float x = py::getattr(val, "x").cast<float>();
+                float y = py::getattr(val, "y").cast<float>();
+                result[field.name] = glm::vec2(x, y);
+            } else if (field.typeName == "vec3") {
+                float x = py::getattr(val, "x").cast<float>();
+                float y = py::getattr(val, "y").cast<float>();
+                float z = py::getattr(val, "z").cast<float>();
+                result[field.name] = glm::vec3(x, y, z);
+            } else if (field.typeName == "vec4") {
+                float x = py::getattr(val, "x").cast<float>();
+                float y = py::getattr(val, "y").cast<float>();
+                float z = py::getattr(val, "z").cast<float>();
+                float w = py::getattr(val, "w").cast<float>();
+                result[field.name] = glm::vec4(x, y, z, w);
+            }
+        }
+        catch (const py::error_already_set& e) {
+            std::cerr << "[ScriptComponent] Error in GetAllFieldValues for '" << field.name
+                      << "': " << e.what() << std::endl;
+        }
+    }
+    return result;
+}
+
 void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldValue& value)
 {
     py::gil_scoped_acquire gil;

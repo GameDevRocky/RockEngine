@@ -1,10 +1,19 @@
 from .component_handler import Component
 from .collider_handler import Collider
+from rock_engine.core import gameobject_module
 
 
 class ScriptableComponent(Component):
     def __init__(self, obj_id=None):
         super().__init__(obj_id)
+
+    def instantiate(self, name: str = "GameObject"):
+        """Create a new GameObject in the same scene as this script's object."""
+        from ..core.gameobject_handler import get_gameobject
+        new_id = gameobject_module.instantiate(self._gameobject_id, name)
+        if not new_id:
+            return None
+        return get_gameobject(new_id)
 
     def on_collision_enter(self, other: Collider):
         pass

@@ -53,6 +53,7 @@ public:
     // Exposed field introspection API (no pybind11 types in interface)
     const std::vector<ScriptFieldInfo>& GetFields() const { return m_fields; }
     ScriptFieldValue GetFieldValue(const std::string& name);
+    std::map<std::string, ScriptFieldValue> GetAllFieldValues();
     void SetFieldValue(const std::string& name, const ScriptFieldValue& value);
 
     ScriptComponent();

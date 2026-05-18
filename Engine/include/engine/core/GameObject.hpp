@@ -103,6 +103,10 @@ class GameObject : public RuntimeObject {
         callback(this);
     }
 
+    bool HasComponentByName(const std::string& type_name) const {
+        return component_ids.count(type_name) > 0;
+    }
+
     private:
     bool active = true;
     std::map<std::string, std::string> component_ids;

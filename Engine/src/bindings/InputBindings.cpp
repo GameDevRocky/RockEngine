@@ -12,7 +12,25 @@ void BindInputManager(pybind11::module_& m) {
         InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
         return inputManager->IsKeyDown(keycode);
     });
-    
+
+    input_module.def("is_key_pressed", [](int keycode) {
+        Engine* engine = Engine::Get();
+        InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+        return inputManager->IsKeyPressed(keycode);
+    });
+
+    input_module.def("is_mouse_button_down", [](int button) {
+        Engine* engine = Engine::Get();
+        InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+        return inputManager->IsMouseButtonDown(button);
+    });
+
+    input_module.def("is_mouse_button_pressed", [](int button) {
+        Engine* engine = Engine::Get();
+        InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+        return inputManager->IsMouseButtonPressed(button);
+    });
+
     input_module.def("get_mouse_pos", []() {
         Engine* engine = Engine::Get();
         InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();

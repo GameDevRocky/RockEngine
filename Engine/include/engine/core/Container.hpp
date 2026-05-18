@@ -61,7 +61,7 @@ public:
 
 private:
     bool initialized = false;
-	Mode mode;
+	Mode mode = Mode::Editor;
 	std::vector<System*> systems;
 
 };

@@ -15,7 +15,7 @@ public:
     using payload_function = std::function<bool(std::any)>;
 
     static constexpr Event ANY_EVENT = 0;
-    static constexpr Event ALL_EVENT = INT64_MAX;
+    static constexpr Event ALL_EVENT = UINT64_MAX;
 
     static Event CreateEvent();
 

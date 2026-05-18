@@ -60,6 +60,7 @@ void SceneManager::Update() {
             Scene* scene = registry->Find<Scene>(scene_id);
             if (!scene){
                 std::cout << "Error in Scene Manager, scene is null" << std::endl;
+                continue;
             }
             scene->FixedUpdate();
         }

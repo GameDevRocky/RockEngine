@@ -12,6 +12,12 @@ Resources:
       path: "Domain/lib/assets/textures/mushroom_texture.png" 
       filtering: "linear"
       wrap: "repeat"
+
+    - id: "t3"
+      name: "smiley_texture"
+      path: "Domain/lib/assets/textures/smiley_texture.png" 
+      filtering: "linear"
+      wrap: "repeat"
  
   Shaders:
     - id: "s1"
@@ -71,6 +77,13 @@ Resources:
     - id: "sprite2"
       name: "mushroom_frame_1"
       texture_id: "t2"
+      uvMin: [0.0, 0.0]       
+      uvMax: [1.0, 1.0]       
+      pivot: [0, 0]     
+
+    - id: "sprite3"
+      name: "smiley_texture"
+      texture_id: "t3"
       uvMin: [0.0, 0.0]       
       uvMax: [1.0, 1.0]       
       pivot: [0, 0]     

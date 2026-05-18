@@ -19,9 +19,6 @@ void Transform::Init(){
 
 void Transform::PostInit(){
     if (state >= State::PostInitialized) return;
-    
-    Console::Comment("Transform::PostInit called for " + GetID() + ", parent_id: '" + parent_id + "'");
-  
     state = State::PostInitialized; 
 }
 

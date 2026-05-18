@@ -4,6 +4,7 @@ from .component_handler import Component
 import math
 
 class Transform(Component):
+    _type_name = "Transform"
 
     def __init__(self, obj_id= None):
         super().__init__(obj_id)
