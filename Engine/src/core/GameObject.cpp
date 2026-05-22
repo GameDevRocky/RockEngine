@@ -181,7 +181,6 @@ void GameObject::SetActive(bool active){
         comp->SetEnabled(active);
     }
 
-
     if (notify) Notify(GameObject::ACTIVE_CHANGED_EVENT, active); 
 }
 void GameObject::SetName(const std::string& name){
@@ -193,8 +192,13 @@ void GameObject::SetName(const std::string& name){
     if (notify) Notify(GameObject::NAME_CHANGED_EVENT, name); 
 }
 void GameObject::Shutdown(){
-    subscribers.clear();
-    component_ids.clear();
+    auto ids = component_ids;
+    for (auto& [type, id] : ids) {
+        Component* comp = registry->Find<Component>(id);
+        if (!comp) continue;
+        comp->Shutdown();
+    }
+    RuntimeObject::Shutdown();
 }
 
 

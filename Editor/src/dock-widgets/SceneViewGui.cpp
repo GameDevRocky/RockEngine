@@ -215,6 +215,17 @@ void SceneViewGui::keyPressEvent(QKeyEvent* event) {
     auto* container = engine->GetActiveContainer();
     InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
 
+    if (event->key() == Qt::Key_Delete) {
+        auto* selMgr = container->FindSystem<SelectionManager>();
+        if (selMgr) {
+            GameObject* go = selMgr->GetGameObject();
+            if (go) {
+                go->Shutdown();
+                return;
+            }
+        }
+    }
+
     inputManager->SetKeyState(event->key(), true);
 }
 

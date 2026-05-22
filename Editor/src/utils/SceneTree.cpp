@@ -11,6 +11,7 @@
 #include "engine/components/RigidBody.hpp"
 
 #include <QSizePolicy>
+#include <QKeyEvent>
 #include "utils/SceneTreeItemDelegate.hpp"
 #include <QStandardItem>
 #include <QModelIndexList>
@@ -154,6 +155,23 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
 }
 
 void SceneTree::RebuildFromScene(Scene* scene) {
+    // Unsubscribe previous subscriptions to prevent accumulation across rebuilds.
+    if (!scene_id.empty()) {
+        Registry* reg = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+        Scene* prevScene = reg ? reg->Find<Scene>(scene_id) : nullptr;
+        if (prevScene) {
+            if (sceneNameSubscriptionId != -1) prevScene->Unsubscribe(sceneNameSubscriptionId);
+            if (sceneAddedSubscriptionId != -1) prevScene->Unsubscribe(sceneAddedSubscriptionId);
+        }
+        sceneNameSubscriptionId = -1;
+        sceneAddedSubscriptionId = -1;
+    }
+    if (selectionSubscriptionId != -1) {
+        auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+        if (selMgr) selMgr->Unsubscribe(selectionSubscriptionId);
+        selectionSubscriptionId = -1;
+    }
+
     model->clear();
 
     if (!scene) {
@@ -165,7 +183,7 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     header()->setFixedHeight(30);
 
     model->setHorizontalHeaderLabels({scene->GetName().c_str()});
-    scene->Subscribe([this](const std::any& data){
+    sceneNameSubscriptionId = scene->Subscribe([this](const std::any& data){
         const std::string& name = std::any_cast<std::string>(data);
         model->setHorizontalHeaderLabels({name.c_str()});
         return true;
@@ -181,14 +199,14 @@ void SceneTree::RebuildFromScene(Scene* scene) {
 
     auto* container = Engine::Get()->GetActiveContainer();    
     auto* selectionManager = container->FindSystem<SelectionManager>();
-    selectionManager->Subscribe([this](const std::any& data) {
+    selectionSubscriptionId = selectionManager->Subscribe([this](const std::any& data) {
 
             const std::string& selectedId = std::any_cast<const std::string&>(data);
             OnObjectSelected(selectedId);
             return true;
     }, SelectionManager::SELECTION_CHANGED_EVENT);
 
-    scene->Subscribe([this](const std::any& data) {
+    sceneAddedSubscriptionId = scene->Subscribe([this](const std::any& data) {
         const std::string& newId = std::any_cast<const std::string&>(data);
         Registry* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(newId);
@@ -388,6 +406,20 @@ bool SceneTree::eventFilter(QObject* obj, QEvent* event) {
                           (header()->height() - m_headerBtn->height()) / 2);
     }
     return QTreeView::eventFilter(obj, event);
+}
+
+void SceneTree::keyPressEvent(QKeyEvent* event) {
+    if (event->key() == Qt::Key_Delete) {
+        QModelIndex index = currentIndex();
+        if (!index.isValid()) return;
+        QString idQt = index.data(GAMEOBJECT_ID_ROLE).toString();
+        if (idQt.isEmpty()) return;
+        Registry* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(idQt.toStdString());
+        if (go) go->Shutdown();
+        return;
+    }
+    QTreeView::keyPressEvent(event);
 }
 
 void SceneTree::OnHeaderClicked(int section) {

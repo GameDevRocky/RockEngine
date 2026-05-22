@@ -10,11 +10,13 @@ class RuntimeObject;
 class Registry : public System {
 private:
     std::unordered_map<std::string, RuntimeObject*> runtimeObjects;
+    std::vector<RuntimeObject*> pendingDeletes;
     static Registry* GetRuntimeRegistry();
 
 public:
 
     Registry() = default;
+    void Update() override;
     void Shutdown() override;
     Registry* Copy() override;
     Registry* Copy(Container* container) override;

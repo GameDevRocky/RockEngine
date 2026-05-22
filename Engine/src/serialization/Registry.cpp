@@ -17,7 +17,17 @@ Registry* Registry::GetRuntimeRegistry() {
 
 void Registry::Register(RuntimeObject* obj) {
     if (!obj) return;
-    auto result = runtimeObjects.insert({obj->GetID(), obj});
+    std::string id = obj->GetID();
+    auto result = runtimeObjects.insert({id, obj});
+    obj->Subscribe([id](std::any data){
+        auto* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+        if (!registry) return true;
+        auto* obj = registry->Find<RuntimeObject>(id);
+        if (!obj) return true;
+        registry->runtimeObjects.erase(id);
+        registry->pendingDeletes.push_back(obj);
+        return true;
+    }, RuntimeObject::SHUTDOWN_EVENT);
 
     if (!result.second) {
         printf("Warning: Object with ID %s already registered. Skipping.\n", obj->GetID().c_str());
@@ -31,8 +41,23 @@ void Registry::Unregister(RuntimeObject* obj) {
         runtimeObjects.erase(it);
 }
 
+void Registry::Update() {
+    for (auto* obj : pendingDeletes)
+        delete obj;
+    pendingDeletes.clear();
+}
+
 void Registry::Shutdown(){
-    for (auto& [key, obj] : runtimeObjects){
+    // Drain any objects already shut down but awaiting deletion.
+    for (auto* obj : pendingDeletes)
+        delete obj;
+    pendingDeletes.clear();
+
+    // Snapshot and clear first so the SHUTDOWN_EVENT lambda is a no-op
+    // (avoids erase-during-iteration and double-delete).
+    auto objects = runtimeObjects;
+    runtimeObjects.clear();
+    for (auto& [key, obj] : objects){
         obj->Shutdown();
         delete obj;
     }

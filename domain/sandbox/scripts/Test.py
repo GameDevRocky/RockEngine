@@ -25,7 +25,7 @@ class TestScript(ScriptableComponent):
         if Input.is_key_down(Keys.D):
             self.rb.apply_force((self.speed, 0))
             self.sprite_renderer.flipX = False
-        if Input.mouse_down():
+        if Input.is_key_down(Keys.SPACE):
             pos = Input.get_mouse_pos()
             new_obj = self.instantiate("GameObject")
             new_obj.transform.position = pos
@@ -34,7 +34,8 @@ class TestScript(ScriptableComponent):
             rb = new_obj.add_component(Rigidbody)
             cc = new_obj.add_component(CircleCollider)
             cc.friction = 0.5
-            cc.bounciness = 0.5
+            cc.bounciness = 1.0
+            rb.apply_impulse([random.randint(-500, 500), 500])
             
 
             

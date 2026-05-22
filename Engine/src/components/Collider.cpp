@@ -2,6 +2,7 @@
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ComponentImpl.hpp"
 #include "engine/core/GameObjectImpl.hpp"
+#include "engine/core/PhysicsSystem.hpp"
 #include "yaml-cpp/yaml.h" 
 #include <exception>
 
@@ -20,6 +21,7 @@ void Collider::Deserialize(const YAML::Node& node){
 
 void Collider::Init(){
     if (state >= State::Initialized) return;
+    physicsSystem = container->FindSystem<PhysicsSystem>();
     rigidBody = GetComponent<RigidBody>();
     if (!rigidBody){
         rigidBody = this->RequireComponent<RigidBody>();
@@ -114,3 +116,8 @@ void Collider::Accept(IVisitor* v) {
     v->Visit(this); 
 }
 
+void Collider::Shutdown(){
+    physicsSystem->DestroyShape(shapeId);
+    shapeId = b2_nullShapeId;
+    Component::Shutdown();
+}

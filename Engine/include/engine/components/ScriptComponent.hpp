@@ -41,9 +41,8 @@ public:
 	void OnCollisionExit(GameObject* other) override;
 	void OnTriggerEnter(GameObject* other) override;
     void OnTriggerExit(GameObject* other) override;
-    void Destroy() override;
-
     void Shutdown() override;
+    
     void Accept(IVisitor* v) override;
 
     ScriptComponent* Copy() override;

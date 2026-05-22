@@ -32,7 +32,7 @@ public:
     virtual void OnEnabled() override;
     virtual void OnDisabled() override;
     virtual void OnTransformScaleUpdate();
-
+    virtual void Shutdown() override;
     glm::vec2 GetCenter(){return center;}
     float GetDensity(){return density;}
     float GetBounciness(){return bounciness;}
@@ -46,8 +46,9 @@ public:
     Collider() = default;
 
 protected:
+    PhysicsSystem* physicsSystem = nullptr;
     RigidBody* rigidBody = nullptr;
-    b2ShapeId shapeId;
+    b2ShapeId shapeId = b2_nullShapeId;
     glm::vec2 center = {0, 0};
     b2Filter filter = b2DefaultFilter();
     bool isSensor = false;

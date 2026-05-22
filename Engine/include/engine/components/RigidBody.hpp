@@ -25,6 +25,7 @@ public:
     void UpdateTransform();
     void OnEnabled() override;
     void OnDisabled() override;
+    void Shutdown() override;
 
     void SetBodyType(b2BodyType type);
     b2BodyType GetBodyType(){return bodyType;}

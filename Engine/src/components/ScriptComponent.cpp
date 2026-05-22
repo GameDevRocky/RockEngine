@@ -147,18 +147,15 @@ void ScriptComponent::OnTriggerEnter(GameObject* other) { if (container->GetMode
 void ScriptComponent::OnTriggerExit(GameObject* other) { if (container->GetMode() == Container::Mode::Runtime) CallMethodStr("handle_trigger_exit", other->GetID().c_str());
 }
 
-
-void ScriptComponent::Destroy() {
-    py::gil_scoped_acquire gil;
-    CallMethod("on_destroy"); 
-    m_pyData->scriptInstance = py::object();
-}
-
 void ScriptComponent::Shutdown() {
-    if (Py_IsInitialized()) {
+    if (container->GetMode() == Container::Mode::Runtime)
+        CallMethod("on_shutdown");
+
+    if (Py_IsInitialized() && m_pyData) {
         py::gil_scoped_acquire gil;
-        m_pyData->scriptInstance = py::object(); 
+        m_pyData->scriptInstance = py::object();
     }
+    Component::Shutdown();
 }
 
 void ScriptComponent::InstantiateScript()

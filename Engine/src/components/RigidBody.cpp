@@ -268,3 +268,12 @@ RigidBody* RigidBody::Copy(Container* container){
     copy->Attach(container);
     return copy;
 }
+
+
+void RigidBody::Shutdown(){
+    physicsSystem->DestroyBody(bodyId);
+    physicsSystem = nullptr;
+    timeManager = nullptr;
+    bodyId = b2_nullBodyId;
+    Component::Shutdown();
+}

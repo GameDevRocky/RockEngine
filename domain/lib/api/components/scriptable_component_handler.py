@@ -23,6 +23,8 @@ class ScriptableComponent(Component):
         pass
     def on_trigger_exit(self, other: Collider):
         pass
+    def on_shutdown(self):
+        pass
 
     def handle_collision_enter(self, id):
         other = Collider(id)

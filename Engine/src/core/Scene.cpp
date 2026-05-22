@@ -209,6 +209,7 @@ void Scene::Sync(GameObject* obj){
 
     obj->GetTransform()->Subscribe([obj_id, scene_id](const std::any& data){
         Scene* scene = Registry::FindInRuntime<Scene>(scene_id);
+        if (!scene) return false;
         std::string parent_id = std::any_cast<std::string>(data);
         scene->SyncRootObjects(obj_id, parent_id);
         return true;
@@ -216,12 +217,14 @@ void Scene::Sync(GameObject* obj){
 
     obj->Subscribe([obj_id, scene_id](std::any data){
         Scene* scene = Registry::FindInRuntime<Scene>(scene_id);
+        if (!scene) return false;
         scene->SyncAllObjects(obj_id);
         return true;
     }, GameObject::SCENE_CHANGED_EVENT);  
 
     obj->Subscribe([obj_id, scene_id](std::any data){
         Scene* scene = Registry::FindInRuntime<Scene>(scene_id);
+        if (!scene) return false;
         scene->SyncAllObjects(obj_id);
         return true;
     }, GameObject::SHUTDOWN_EVENT);  

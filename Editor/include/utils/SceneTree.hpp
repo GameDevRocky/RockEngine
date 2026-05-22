@@ -14,6 +14,7 @@
 #include <QStandardItemModel>
 #include <QMenu>
 #include "engine/core/Scene.hpp"
+#include "engine/core/SelectionManager.hpp"
 #include "Engine.hpp"
 #include "engine/serialization/Registry.hpp"
 
@@ -36,6 +37,7 @@ class SceneTree : public QTreeView{
     protected:
         void dropEvent(QDropEvent* event) override;
         bool eventFilter(QObject* obj, QEvent* event) override;
+        void keyPressEvent(QKeyEvent* event) override;
 
     private slots:
         void OnHeaderClicked(int section);
@@ -50,6 +52,11 @@ class SceneTree : public QTreeView{
         bool collapsed = false;
         bool updatingFromSelectionManager = false;
         int selectionSubscriptionId = -1;
+        int sceneNameSubscriptionId = -1;
+        int sceneAddedSubscriptionId = -1;
+        int gameObjectAddedSubscriptionId = -1;
+        Scene* subscribedScene = nullptr;
+        SelectionManager* subscribedSelectionManager = nullptr;
 };
 
 class GameObjectItem : public QStandardItem {

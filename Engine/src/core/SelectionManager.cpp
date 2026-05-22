@@ -40,6 +40,16 @@ void SelectionManager::Select(const std::string& objectId)
     if (selectedObjectId == objectId) return;
     
     selectedObjectId = objectId;
+
+    auto* registry = container->FindSystem<Registry>();
+    auto* obj = registry->Find<GameObject>(selectedObjectId);  
+
+    obj->Subscribe([](std::any data){
+        auto* sm = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+        sm->Deselect();
+        return true;
+    }, RuntimeObject::SHUTDOWN_EVENT);
+
     Notify(SELECTION_CHANGED_EVENT, selectedObjectId);
 }
 
