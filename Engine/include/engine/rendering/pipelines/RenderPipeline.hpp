@@ -23,7 +23,6 @@ public:
     void Render(RenderCamera* camera, std::vector<Scene*> scenes);
     void Shutdown() override;
 
-    // For SceneView / GameView to display the rendered result
     unsigned int GetOutputTexture() const { return outputTexture; }
 
 private:

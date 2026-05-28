@@ -14,6 +14,8 @@
 #include <QWheelEvent>
 #include <QPoint>
 #include <QMouseEvent>
+#include "Engine.hpp"
+using namespace EngineUtils;
 
 class GameViewGui : public QOpenGLWidget, protected QOpenGLFunctions {
     Q_OBJECT
@@ -45,6 +47,8 @@ protected:
 private:
     RenderPipeline* renderPipeline = nullptr;
     RenderCamera* camera = nullptr;
+    static inline Proxy<SceneManager> sceneManager;
+    static inline Proxy<InputManager> inputManager;
 
     QOpenGLShaderProgram program;
     QOpenGLBuffer vbo{QOpenGLBuffer::VertexBuffer};

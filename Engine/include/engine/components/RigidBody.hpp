@@ -29,8 +29,6 @@ public:
 
     void SetBodyType(b2BodyType type);
     b2BodyType GetBodyType(){return bodyType;}
-    void SetMass(float mass);
-    float GetMass() const;
     void SetUseGravity(bool value);
     bool GetUseGravity() const;
     void SetLockRotation(bool value);
@@ -46,6 +44,7 @@ public:
     void ApplyImpulse(const glm::vec2& impulse, const glm::vec2& point);
     void ApplyLinearImpulse(const glm::vec2& impulse);
     void ApplyAngularImpulse(float impulse);
+    void ApplyTorque(float torque);
     
     std::string GetTypeName() const override {return "RigidBody";}
     void Accept(IVisitor* v) override;

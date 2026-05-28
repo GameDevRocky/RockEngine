@@ -239,6 +239,12 @@ void RigidBody::ApplyLinearImpulse(const glm::vec2& impulse) {
     }
 }
 
+void RigidBody::ApplyTorque(float torque) {
+    if (b2Body_IsValid(bodyId)) {
+        b2Body_ApplyTorque(bodyId, torque, false);
+    }
+}
+
 void RigidBody::ApplyAngularImpulse(float impulse) {
     if (b2Body_IsValid(bodyId)) {
         b2Body_ApplyAngularImpulse(bodyId, impulse * DEG_2_RAD, true);

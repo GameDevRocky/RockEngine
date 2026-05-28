@@ -17,6 +17,14 @@ class Rigidbody(Component):
         force = Vector2(force)
         rigidbody_module.apply_impulse(self._gameobject_id, force.x, force.y)
 
+    def apply_torque(self, torque : float):
+        torque = float(torque)
+        rigidbody_module.apply_torque(self._gameobject_id, torque)
+        
+    def apply_angular_impulse(self, impulse : float):
+        impulse = Vector2(impulse)
+        rigidbody_module.apply_angular_impulse(self._gameobject_id, impulse)
+
     @property
     def velocity(self) -> Vector2:
         return Vector2(rigidbody_module.get_velocity(self._gameobject_id))

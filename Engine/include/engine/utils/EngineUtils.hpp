@@ -15,7 +15,6 @@
 #endif
 
 namespace EngineUtils {
-
     inline std::string GetAssetPath(const std::string& relativePath) {
         std::string root = PROJECT_ROOT;
         return root + "/" + relativePath;

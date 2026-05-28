@@ -26,6 +26,27 @@ void BindRigidBody(pybind11::module_& m) {
             rb->ApplyLinearImpulse({x, y});
         }
     });
+
+    rigidbody_module.def("apply_torque", [](const std::string& id, float torque) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        auto* rb = go->GetComponent<RigidBody>();
+        if (rb) {
+            rb->ApplyTorque(torque);
+        }
+    });
+
+    rigidbody_module.def("apply_angular_impulse", [](const std::string& id, float impulse) {
+        Engine* engine = Engine::Get();
+        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+        GameObject* go = registry->Find<GameObject>(id);
+        auto* rb = go->GetComponent<RigidBody>();
+        if (rb) {
+            rb->ApplyAngularImpulse(impulse);
+        }
+    });
+
     rigidbody_module.def("set_velocity", [](const std::string& id, float x, float y) {
         Engine* engine = Engine::Get();
         Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();

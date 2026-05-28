@@ -55,4 +55,5 @@ void Container::Shutdown() {
         delete system;
     }
     systems.clear();
+    systemIndex.clear();
 }

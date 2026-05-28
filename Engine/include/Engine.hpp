@@ -44,3 +44,19 @@ public:
 
     
 };
+
+namespace EngineUtils {
+    template <typename T>
+    class Proxy {
+    public:
+        T* operator->() const {
+            return Engine::Get()->GetActiveContainer()->FindSystem<T>();
+        }
+        T& operator*() const {
+            return *Engine::Get()->GetActiveContainer()->FindSystem<T>();
+        }
+        explicit operator bool() const {
+            return Engine::Get()->GetActiveContainer()->FindSystem<T>() != nullptr;
+        }
+    };
+}

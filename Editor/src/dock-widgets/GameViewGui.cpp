@@ -27,7 +27,6 @@ void GameViewGui::initializeRenderPipeline(){
     
     renderPipeline = new RenderPipeline();
     camera = new RenderCamera();
-
     
     ClearPass* clearPass = new ClearPass();
     ScenePass* scenePass = new ScenePass();
@@ -44,9 +43,7 @@ void GameViewGui::initializeRenderPipeline(){
 
 void GameViewGui::initializeGL() {
     initializeOpenGLFunctions();
-
-    // We use glad_gl* calls throughout the renderer/passes; GLAD must be loaded
-    // after a context is current (Qt makes the context current for initializeGL).
+    
     if (!gladLoadGL()) {
         std::cerr << "Failed to initialize GLAD" << std::endl;
         return;
@@ -141,25 +138,14 @@ void GameViewGui::paintGL() {
 }
 
 void GameViewGui::Render(){
-    Engine* engine = Engine::Get();
-    auto* container = engine->GetActiveContainer();
-    SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
-
     renderPipeline->Render(camera, sceneManager->GetScenes());
-    
 }
 
 void GameViewGui::keyPressEvent(QKeyEvent* event) {
-    Engine* engine = Engine::Get();
-    auto* container = engine->GetActiveContainer();
-    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
-
     inputManager->SetKeyState(event->key(), true);
 }
 
 void GameViewGui::keyReleaseEvent(QKeyEvent* event) {
-    Engine* engine = Engine::Get();
-    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
     inputManager->SetKeyState(event->key(), false);
 }
 
@@ -173,42 +159,27 @@ void GameViewGui::wheelEvent(QWheelEvent* event)
 
 void GameViewGui::mousePressEvent(QMouseEvent* event)
 {
-    Engine* engine = Engine::Get();
-    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
-    if (inputManager)
-        inputManager->SetMouseButtonState(static_cast<int>(event->button()), true);
+    inputManager->SetMouseButtonState(static_cast<int>(event->button()), true);
     event->accept();
 }
 
 
 void GameViewGui::mouseReleaseEvent(QMouseEvent* event)
 {
-    Engine* engine = Engine::Get();
-    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
-    if (inputManager)
-        inputManager->SetMouseButtonState(static_cast<int>(event->button()), false);
+    inputManager->SetMouseButtonState(static_cast<int>(event->button()), false);
     event->accept();
 }
 
 
 void GameViewGui::mouseMoveEvent(QMouseEvent* e)
 {
-    Engine* engine = Engine::Get();
-    InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
-    
     if (!inputManager || !camera) {
         e->accept();
         return;
     }
     
-    // Get screen coordinates
     glm::vec2 screenPos = { static_cast<float>(e->pos().x()), static_cast<float>(e->pos().y()) };
-    
-    // Convert to world coordinates using widget dimensions (not framebuffer dimensions)
     glm::vec2 worldPos = camera->ScreenToWorld(screenPos, width(), height());
-    
-    // Set the world position in InputManager
     inputManager->SetMousePosition(worldPos);
-    
     e->accept();
 }

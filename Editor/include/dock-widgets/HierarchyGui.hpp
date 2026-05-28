@@ -12,12 +12,16 @@
 #include <QScrollArea>
 #include <unordered_map>
 #include "utils/SceneTree.hpp"
+#include "Engine.hpp"
+
+using namespace EngineUtils;
 
 class HierarchyTreeModel;
 class Scene;
 class Callback;
 class Transform;
 class Container;
+
 
 class HierarchyGui : public QWidget {
     Q_OBJECT
@@ -49,6 +53,7 @@ private:
     QWidget*      scrollWidget = nullptr;
     QVBoxLayout*  scrollLayout = nullptr;
     std::map<std::string, SceneTree*> sceneTrees;
-
+    Proxy<SceneManager> sceneManager;
+    Proxy<Registry> registry;
 
 };

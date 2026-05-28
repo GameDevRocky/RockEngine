@@ -95,7 +95,6 @@ void HierarchyGui::Init(){
 
 void HierarchyGui::PostInit(){
     std::cout << "Hierarchy Post Initialized" << std::endl;
-    auto* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
     sceneManager->Subscribe([this](const std::any& data){
         const std::string& id = std::any_cast<std::string>(data);
         this->AddSceneTree(id);
@@ -121,7 +120,6 @@ void HierarchyGui::PostInit(){
 
 
 void HierarchyGui::AddSceneTree(const std::string& scene_id) {
-    auto* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
     Scene* scene = registry->Find<Scene>(scene_id);
     
     SceneTree* tree = new SceneTree();
@@ -143,7 +141,6 @@ void HierarchyGui::RemoveSceneTree(const std::string& id) {
 }
 
 void HierarchyGui::RefreshHierarchy() {
-    SceneManager* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
     const auto& scenes = sceneManager->GetScenes();
 
     std::unordered_set<std::string> currentSceneIds;
@@ -236,23 +233,13 @@ void HierarchyGui::dropEvent(QDropEvent* event) {
             continue;
         
         std::string sceneFilePath = filePath.toStdString();
-        Engine* engine = Engine::Get();
-        if (engine && engine->GetActiveContainer()) {
-            SceneManager* sceneManager = engine->GetActiveContainer()->FindSystem<SceneManager>();
-            if (sceneManager) {
-                Console::Comment("Loading scene from: " + sceneFilePath);
-                sceneManager->LoadScene(sceneFilePath);                
-                event->acceptProposedAction();
-                return;
-            } else {
-                Console::Alert("SceneManager not found!");
-            }
-        } else {
-            Console::Alert("Engine or active container not available!");
-        }
-    }
-    
+        Console::Comment("Loading scene from: " + sceneFilePath);
+        sceneManager->LoadScene(sceneFilePath);                
+        event->acceptProposedAction();
+        return;
+          
     event->ignore();
+    }
 }
 
 void HierarchyGui::dragLeaveEvent(QDragLeaveEvent* event) {

@@ -7,6 +7,8 @@
 #include "engine/core/RuntimeObject.hpp"
 
 #include <type_traits>
+#include <typeindex>
+#include <unordered_map>
 #include <vector>
 
 class Container : public RuntimeObject {
@@ -42,18 +44,18 @@ public:
 	void AddSystem(T* system) {
 		static_assert(std::is_base_of_v<System, T>, "T must derive from System");
 		if (!system) return;
-	
+
 		systems.push_back(system);
+		systemIndex[typeid(*system)] = system;
 		system->Attach(this);
 	}
 
 	template <typename T>
-	T* FindSystem() { 
+	T* FindSystem() {
 		static_assert(std::is_base_of_v<System, T>, "T must derive from System");
-		for (System* system : systems) {
-			if (auto* casted = dynamic_cast<T*>(system))
-				return casted;
-		}
+		auto it = systemIndex.find(typeid(T));
+		if (it != systemIndex.end())
+			return static_cast<T*>(it->second);
 		return nullptr;
 	}
 	
@@ -63,5 +65,6 @@ private:
     bool initialized = false;
 	Mode mode = Mode::Editor;
 	std::vector<System*> systems;
+	std::unordered_map<std::type_index, System*> systemIndex;
 
 };

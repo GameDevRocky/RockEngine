@@ -67,7 +67,6 @@ void InspectorGui::Init(){
 }
 
 void InspectorGui::SubscribeToSelector(){
-    auto* selectionManager = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
     selectionManager->Subscribe([this](std::any data){
         const std::string& id = std::any_cast<std::string>(data);
         OnObjectSelected(id);

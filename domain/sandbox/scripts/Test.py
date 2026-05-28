@@ -1,17 +1,37 @@
 from Domain import *
 from typing import Annotated as Reflect
-
+import random
 class TestScript(ScriptableComponent):
     speed: float = 500
     jump_force: float = 100
     scale : Reflect[float, Step(1)] = 32
     testVar : float = 0.1
+    anotherVar : float = 0.0
 
     def init(self):
+        self.inactive_pool : set[GameObject] = set()
+        self.active_pool : set[GameObject] = set()
         pass
 
     def awake(self):
         self.grounded = False
+
+        for i in range(1000):
+            new_obj = self.instantiate("GameObject")
+            sr = new_obj.add_component(SpriteRenderer)
+            sr.sprite = Sprite("sprite3")
+            rb = new_obj.add_component(Rigidbody)
+            cc = new_obj.add_component(CircleCollider)
+            sr.color = Vector4(random.random(), random.random(), random.random(), 1.0)
+            cc.friction = 0.5
+            cc.bounciness = 1.0
+            cc.density = 10
+            new_obj.transform.scale = (0.5, 0.5)
+            new_obj.active = False
+            self.inactive_pool.add(new_obj)
+
+
+
     def start(self):
         self.rb = self.get_component(Rigidbody)
         self.rb.enabled = False
@@ -26,22 +46,30 @@ class TestScript(ScriptableComponent):
             self.rb.apply_force((self.speed, 0))
             self.sprite_renderer.flipX = False
         if Input.is_key_down(Keys.SPACE):
-            pos = Input.get_mouse_pos()
-            new_obj = self.instantiate("GameObject")
-            new_obj.transform.position = pos
-            sr = new_obj.add_component(SpriteRenderer)
-            sr.sprite = Sprite("sprite3")
-            rb = new_obj.add_component(Rigidbody)
-            cc = new_obj.add_component(CircleCollider)
-            cc.friction = 0.5
-            cc.bounciness = 1.0
-            rb.apply_impulse([random.randint(-500, 500), 500])
-            
+            if self.inactive_pool:
+                obj = self.inactive_pool.pop()
+                obj.active = True
+                pos = (0, 0)
+                obj.transform.position = pos
+                mouse_pos = Input.get_mouse_pos()
+                shoot_dir = (mouse_pos - pos).normalize()
+                obj.get_component(Rigidbody).apply_impulse(shoot_dir * 2000)
+                self.active_pool.add(obj)
+        
 
             
         
 
     def update(self):
+        recycled = set()
+        for obj in self.active_pool:
+            if obj.transform.position.y < -1000:
+                obj.transform.scale = (0.5, 0.5)
+                obj.active = False
+                recycled.add(obj)
+        self.active_pool -= recycled
+        self.inactive_pool |= recycled
+
         result = Physics.cast_ray(self.transform.position, -self.transform.up * self.scale)
         if result:
             self.grounded = True

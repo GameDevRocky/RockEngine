@@ -11,7 +11,7 @@ void PhysicsSystem::Init(){
 	worldDef.enableContinuous = true;
     worldDef.enableSleep = false;
     worldDef.gravity = {0.0f, -9.8f};
-    worldDef.gravity *= 1.0f; 
+    worldDef.gravity *= 2.0f; 
     worldId = b2CreateWorld(&worldDef);
     std::cout << "PhysicsSystem: World created, valid=" << B2_IS_NON_NULL(worldId) << std::endl;
 }

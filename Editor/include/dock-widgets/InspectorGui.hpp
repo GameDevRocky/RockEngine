@@ -9,6 +9,10 @@
 #include <QScrollArea>
 #include <iostream>
 #include "component-widgets/ObjectHeader.hpp"
+#include "Engine.hpp"
+#include "engine/core/SelectionManager.hpp"
+
+using namespace EngineUtils;
 
 class InspectorGui : public QWidget {
     Q_OBJECT
@@ -33,4 +37,5 @@ private:
     QWidget* contentWidget = nullptr;
     ObjectHeader* header = nullptr;
     QVBoxLayout* mainLayout = nullptr;
+    Proxy<SelectionManager> selectionManager;
 };
