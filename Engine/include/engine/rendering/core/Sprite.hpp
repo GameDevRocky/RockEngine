@@ -11,6 +11,12 @@ class Texture2D;
 class Sprite : public Resource {
 
 public:
+
+    static inline const Event UV_MIN_CHANGED_EVENT = Sprite::CreateEvent();
+    static inline const Event UV_MAX_CHANGED_EVENT = Sprite::CreateEvent();
+    static inline const Event PIVOT_CHANGED_EVENT = Sprite::CreateEvent();
+
+
     Sprite() = default;
     
     YAML::Node Serialize() override { return YAML::Node(); }
@@ -22,7 +28,7 @@ public:
 
     glm::vec2 GetUVMin() {return uvMin;}
     glm::vec2 GetUVMax() {return uvMax;}
-    glm::vec2 GetPixelSize() {return pixelSize;}
+    glm::vec2 GetPixelSize();
     glm::vec2 GetPivot() {return pivot;}
 
     void SetUVMin(glm::vec2 min);
@@ -38,7 +44,6 @@ private:
     glm::vec2 uvMin;
     glm::vec2 uvMax;
     glm::vec2 pivot;
-    glm::vec2 pixelSize; 
 
 
 };

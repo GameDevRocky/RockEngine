@@ -4,8 +4,49 @@ from rock_engine.core import gameobject_module
 
 
 class ScriptableComponent(Component):
+    def __init_subclass__(cls, **kwargs):
+        super().__init_subclass__(**kwargs)
+        for method_name in ('update', 'fixed_update', 'late_update'):
+            if method_name in cls.__dict__:
+                original = cls.__dict__[method_name]
+                def _make_wrapper(orig, mn=method_name):
+                    def _wrapper(self):
+                        self._tick_coroutines()
+                        orig(self)
+                    _wrapper.__name__ = mn
+                    return _wrapper
+                setattr(cls, method_name, _make_wrapper(original))
+
     def __init__(self, obj_id=None):
         super().__init__(obj_id)
+        self._coroutines = []  # list of [generator, instruction]
+
+    def start_coroutine(self, gen):
+        """Begin executing a generator-based coroutine."""
+        try:
+            instruction = next(gen)
+            self._coroutines.append([gen, instruction])
+        except StopIteration:
+            pass
+
+    def stop_all_coroutines(self):
+        """Cancel all running coroutines on this component."""
+        self._coroutines.clear()
+
+    def _tick_coroutines(self):
+        from ..systems.time_system import Time
+        dt = Time.delta_time
+        still_running = []
+        for gen, instruction in self._coroutines:
+            if instruction is None or instruction.tick(dt):
+                try:
+                    next_instruction = next(gen)
+                    still_running.append([gen, next_instruction])
+                except StopIteration:
+                    pass  # coroutine finished
+            else:
+                still_running.append([gen, instruction])
+        self._coroutines = still_running
 
     def instantiate(self, name: str = "GameObject"):
         """Create a new GameObject in the same scene as this script's object."""

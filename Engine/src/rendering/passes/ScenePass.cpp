@@ -43,13 +43,8 @@ void ScenePass::Resize(int width, int height)
 void ScenePass::Execute(RenderCamera* camera, Scene* scene)
 {
     const auto& objects = scene->GetAllGameObjects();
-
-    TimeManager* timeManager = Engine::Get()->GetActiveContainer()->FindSystem<TimeManager>();
     float elapsedTime = timeManager ? timeManager->ElapsedTime() : 0.0f;
 
-    LayerManager* layerManager = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>();
-
-    // Collect visible, renderable objects
     struct DrawCall
     {
         Transform*      transform;
@@ -72,7 +67,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
 
         if (!transform)
         {
-            Console::Alert("No Loaded Transform or Sprite");
+            Console::Alert("No Loaded Transform");
             continue;
         }
         if (!renderer) continue;
@@ -111,7 +106,6 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
             dc.shader->Bind();
             dc.shader->SetMat4("uView", viewMatrix);
             dc.shader->SetMat4("uProj", projMatrix);
-            dc.shader->SetFloat("uTime", elapsedTime);
             lastProgramID = dc.shader->GetProgramID();
         }
 

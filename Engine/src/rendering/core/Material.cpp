@@ -12,21 +12,18 @@ void Material::Deserialize(const YAML::Node& node) {
     const YAML::Node& uniforms = node["uniforms"];
     if (!uniforms || !uniforms.IsMap()) return;
 
-    // Textures
     if (uniforms["textures"] && uniforms["textures"].IsMap()) {
         for (auto pair : uniforms["textures"]) {
             SetTexture(pair.first.as<std::string>(), pair.second.as<std::string>());
         }
     }
 
-    // Floats
     if (uniforms["floats"] && uniforms["floats"].IsMap()) {
         for (auto pair : uniforms["floats"]) {
             SetFloat(pair.first.as<std::string>(), pair.second.as<float>());
         }
     }
 
-    // Vec2 (Accessing the value as a sequence [0, 0])
     if (uniforms["vec2"] && uniforms["vec2"].IsMap()) {
         for (auto pair : uniforms["vec2"]) {
             YAML::Node v = pair.second;
@@ -63,12 +60,9 @@ void Material::Validate() {
 
     auto& shaderUniforms = shader->GetActiveUniforms();
 
-    // Helper to prune a map
     auto prune = [&](auto& map, GLenum expectedType1, GLenum expectedType2 = 0) {
         for (auto it = map.begin(); it != map.end(); ) {
             auto search = shaderUniforms.find(it->first);
-            
-            // If not in shader, or type mismatch, remove it
             if (search == shaderUniforms.end()) {
                 Console::Alert("Material: Pruning unused uniform [" + it->first + "]");
                 it = map.erase(it);
@@ -96,6 +90,7 @@ void Material::SetShader(std::string& id){
     if (shader){
         shader_id = shader->GetID();
         Validate();
+        Notify(SHADER_CHANGED_EVENT);
         return;
     }
     

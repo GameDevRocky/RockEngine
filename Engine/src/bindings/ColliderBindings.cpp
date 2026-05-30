@@ -7,7 +7,6 @@
 #include "engine/components/CircleCollider.hpp"
 #include "Engine.hpp"
 
-// Returns the first Collider-derived component on a GameObject (any shape type).
 static Collider* FindCollider(GameObject* go) {
     if (auto* c = go->GetComponent<BoxCollider>())     return c;
     if (auto* c = go->GetComponent<CapsuleCollider>()) return c;
@@ -17,14 +16,10 @@ static Collider* FindCollider(GameObject* go) {
 
 void BindCollider(pybind11::module_& m) {
 
-    // -----------------------------------------------------------------------
-    // Base collider — shared properties across all collider shapes
-    // -----------------------------------------------------------------------
     pybind11::module_ collider_module = m.def_submodule("collider_module", "Base Collider Bindings");
 
     collider_module.def("get_center", [](const std::string& go_id) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -34,8 +29,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("set_center", [](const std::string& go_id, float x, float y) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -44,8 +37,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("get_density", [](const std::string& go_id) -> float {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -55,8 +46,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("set_density", [](const std::string& go_id, float val) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -65,8 +54,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("get_bounciness", [](const std::string& go_id) -> float {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -76,8 +63,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("set_bounciness", [](const std::string& go_id, float val) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -86,8 +71,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("get_friction", [](const std::string& go_id) -> float {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -97,8 +80,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("set_friction", [](const std::string& go_id, float val) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -107,8 +88,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("get_rolling_resistance", [](const std::string& go_id) -> float {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -118,8 +97,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("set_rolling_resistance", [](const std::string& go_id, float val) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -128,8 +105,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("get_is_sensor", [](const std::string& go_id) -> bool {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -139,8 +114,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     collider_module.def("set_is_sensor", [](const std::string& go_id, bool val) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (Collider* c = FindCollider(go))
@@ -154,8 +127,6 @@ void BindCollider(pybind11::module_& m) {
     pybind11::module_ box_collider_module = m.def_submodule("box_collider_module", "BoxCollider Bindings");
 
     box_collider_module.def("get_size", [](const std::string& go_id) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (auto* c = go->GetComponent<BoxCollider>())
@@ -165,8 +136,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     box_collider_module.def("set_size", [](const std::string& go_id, float w, float h) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (auto* c = go->GetComponent<BoxCollider>())
@@ -180,8 +149,6 @@ void BindCollider(pybind11::module_& m) {
     pybind11::module_ capsule_collider_module = m.def_submodule("capsule_collider_module", "CapsuleCollider Bindings");
 
     capsule_collider_module.def("get_radius", [](const std::string& go_id) -> float {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (auto* c = go->GetComponent<CapsuleCollider>())
@@ -191,8 +158,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     capsule_collider_module.def("set_radius", [](const std::string& go_id, float val) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (auto* c = go->GetComponent<CapsuleCollider>())
@@ -201,8 +166,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     capsule_collider_module.def("get_height", [](const std::string& go_id) -> float {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (auto* c = go->GetComponent<CapsuleCollider>())
@@ -212,8 +175,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     capsule_collider_module.def("set_height", [](const std::string& go_id, float val) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (auto* c = go->GetComponent<CapsuleCollider>())
@@ -227,8 +188,6 @@ void BindCollider(pybind11::module_& m) {
     pybind11::module_ circle_collider_module = m.def_submodule("circle_collider_module", "CircleCollider Bindings");
 
     circle_collider_module.def("get_radius", [](const std::string& go_id) -> float {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (auto* c = go->GetComponent<CircleCollider>())
@@ -238,8 +197,6 @@ void BindCollider(pybind11::module_& m) {
     });
 
     circle_collider_module.def("set_radius", [](const std::string& go_id, float val) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
             if (auto* c = go->GetComponent<CircleCollider>())

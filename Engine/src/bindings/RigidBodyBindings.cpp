@@ -9,8 +9,6 @@ void BindRigidBody(pybind11::module_& m) {
     pybind11::module_ rigidbody_module = m.def_submodule("rigidbody_module", "RigidBody");
     
     rigidbody_module.def("apply_force", [](const std::string& id, float x, float y) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         auto* rb = go->GetComponent<RigidBody>();
         if (rb) {
@@ -18,8 +16,6 @@ void BindRigidBody(pybind11::module_& m) {
         }
     });
     rigidbody_module.def("apply_impulse", [](const std::string& id, float x, float y) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         auto* rb = go->GetComponent<RigidBody>();
         if (rb) {
@@ -28,8 +24,6 @@ void BindRigidBody(pybind11::module_& m) {
     });
 
     rigidbody_module.def("apply_torque", [](const std::string& id, float torque) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         auto* rb = go->GetComponent<RigidBody>();
         if (rb) {
@@ -38,8 +32,6 @@ void BindRigidBody(pybind11::module_& m) {
     });
 
     rigidbody_module.def("apply_angular_impulse", [](const std::string& id, float impulse) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         auto* rb = go->GetComponent<RigidBody>();
         if (rb) {
@@ -48,8 +40,6 @@ void BindRigidBody(pybind11::module_& m) {
     });
 
     rigidbody_module.def("set_velocity", [](const std::string& id, float x, float y) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         auto* rb = go->GetComponent<RigidBody>();
         if (rb) {
@@ -57,8 +47,6 @@ void BindRigidBody(pybind11::module_& m) {
         }
     });
     rigidbody_module.def("get_velocity", [](const std::string& id) {
-        Engine* engine = Engine::Get();
-        Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
         GameObject* go = registry->Find<GameObject>(id);
         auto* rb = go->GetComponent<RigidBody>();
         if (rb) {
@@ -66,6 +54,21 @@ void BindRigidBody(pybind11::module_& m) {
             
             return std::make_tuple(vel.x, vel.y);
         }
+    });
+
+    rigidbody_module.def("set_use_gravity", [](const std::string& id, bool val) {
+        GameObject* go = registry->Find<GameObject>(id);
+        auto* rb = go->GetComponent<RigidBody>();
+        if (!rb) return;
+        rb->SetUseGravity(val);
+    });
+
+    rigidbody_module.def("get_use_gravity", [](const std::string& id) {
+        GameObject* go = registry->Find<GameObject>(id);
+        auto* rb = go->GetComponent<RigidBody>();
+        if (!rb) return false;
+
+       return rb->GetUseGravity();
     });
 
 

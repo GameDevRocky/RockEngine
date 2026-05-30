@@ -3,6 +3,7 @@
 #include "engine/utils/IVisitor.hpp"
 #include <QGridLayout>
 #include <QLabel>
+#include <optional>
 #include "utils/ProperyFactory.hpp"
 #include "engine/core/Observable.hpp"
 
@@ -31,13 +32,8 @@ class InspectorVisitor : public IVisitor{
         template<typename T>
         void BindProperty(Observable* instance, const std::string& label,
                           std::function<T()> getter, std::function<void(T)> setter,
-                          Observable::Event event_id, const Properties::PropDesc& desc);
-
-        template<typename T>
-        void BindPropertyWithInitial(Observable* instance, const std::string& label,
-                                     T initialValue,
-                                     std::function<T()> getter, std::function<void(T)> setter,
-                                     Observable::Event event_id, const Properties::PropDesc& desc);
+                          Observable::Event event_id, const Properties::PropDesc& desc,
+                          std::optional<T> initialValue = std::nullopt);
 
     private:
         void AddRow(const std::string& text, QWidget* widget);
@@ -50,34 +46,17 @@ class InspectorVisitor : public IVisitor{
 template<typename T>
 void InspectorVisitor::BindProperty(Observable* instance, const std::string& label,
                                     std::function<T()> getter, std::function<void(T)> setter,
-                                    Observable::Event event_id, const Properties::PropDesc& desc)
+                                    Observable::Event event_id, const Properties::PropDesc& desc,
+                                    std::optional<T> initialValue)
 {
     auto* pw = PropertyFactory::Create<T>(desc);
 
     pw->onChanged = setter;
-    pw->SetValue(getter());
-
-    instance->Subscribe([pw, getter]() {
-        if (!pw->IsValid()) return false;
+    if (initialValue.has_value()) {
+        pw->SetValue(*initialValue);
+    } else {
         pw->SetValue(getter());
-        return true;
-    }, event_id);
-
-    AddRow(label, pw->GetWidget());
-}
-
-// Variant of BindProperty that uses a pre-fetched initial value instead of calling
-// getter() at construction time. The getter is still used for event-driven refreshes.
-template<typename T>
-void InspectorVisitor::BindPropertyWithInitial(Observable* instance, const std::string& label,
-                                               T initialValue,
-                                               std::function<T()> getter, std::function<void(T)> setter,
-                                               Observable::Event event_id, const Properties::PropDesc& desc)
-{
-    auto* pw = PropertyFactory::Create<T>(desc);
-
-    pw->onChanged = setter;
-    pw->SetValue(initialValue);
+    }
 
     instance->Subscribe([pw, getter]() {
         if (!pw->IsValid()) return false;

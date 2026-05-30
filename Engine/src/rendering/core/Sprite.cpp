@@ -26,34 +26,38 @@ void Sprite::SetTexture(std::string& id){
 
 }
 
-void Sprite::Awake()
-{
-    Texture2D* tex = GetTexture();
-    if (!tex)
-        return;
+void Sprite::Awake(){}
 
+glm::vec2 Sprite::GetPixelSize(){
+    Texture2D* tex = GetTexture();
+    if (!tex) return {0.0f, 0.0f};
     const float texWidth  = static_cast<float>(tex->GetWidth());
     const float texHeight = static_cast<float>(tex->GetHeight());
 
-    pixelSize = {
+    return {
         (uvMax.x - uvMin.x) * texWidth,
         (uvMax.y - uvMin.y) * texHeight
     };
 }
 
-
 void Sprite::SetUVMin(glm::vec2 min)
 {
+    if (uvMin == min) return;
     uvMin = min;
+    Notify(UV_MIN_CHANGED_EVENT);
 }
 
 void Sprite::SetUVMax(glm::vec2 max)
 {
+    if (uvMax == max) return;
     uvMax = max;
+    Notify(UV_MAX_CHANGED_EVENT);
 }
 
 
 void Sprite::SetPivot(glm::vec2 p)
 {
+    if (pivot == p) return;
     pivot = p;
+    Notify(PIVOT_CHANGED_EVENT);
 }

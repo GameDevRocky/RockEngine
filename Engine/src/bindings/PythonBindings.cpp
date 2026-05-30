@@ -6,6 +6,11 @@
 #include "engine/core/GameObject.hpp"
 #include <string>
 
+Proxy<PhysicsSystem> physicsSystem;
+Proxy<Registry> registry;
+Proxy<InputManager> inputManager;
+Proxy<TimeManager> timeManager;
+
 namespace py = pybind11;
 
 // SYSTEMS
@@ -25,6 +30,13 @@ void BindSpriteRenderer(py::module_& m);
 void BindRigidBody(py::module_& m);
 void BindCollider(py::module_& m);
 
+// RENDERING
+void BindSprite(py::module_ & m);
+void BindMaterial(py::module_ & m);
+
+// TIME
+void BindTime(py::module_& m);
+
 
 PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     m.doc() = "C++ Core Logic for Python Handles"; 
@@ -39,6 +51,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindConsoleManager(systems);
     BindPhysics(systems);
     BindDebugDraw(systems);
+    BindTime(systems);
 
     // COMPONENTS
     py::module_ components = m.def_submodule("components", " RockEngine components APIs");
@@ -47,6 +60,11 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindSpriteRenderer(components);
     BindRigidBody(components);
     BindCollider(components);
+
+    // RENDERING
+    py::module_ rendering = m.def_submodule("rendering", "ReockEngine rendering APIs");
+    BindSprite(rendering);
+    BindMaterial(rendering);
 
 
 } 

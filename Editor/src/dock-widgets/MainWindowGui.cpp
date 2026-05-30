@@ -15,7 +15,6 @@ MainWindow::~MainWindow(){SaveLayout();}
 
 void MainWindow::Init()
 {
-    // --- Retrieve all widgets ---
     ConsoleGui* console_widget = ConsoleGui::Get();
     GameViewGui* game_view = GameViewGui::Get();
     SceneViewGui* scene_view = SceneViewGui::Get();
@@ -98,7 +97,7 @@ void MainWindow::Init()
     setCorner(Qt::TopRightCorner, Qt::TopDockWidgetArea);
     setDockNestingEnabled(false);
     setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::ForceTabbedDocks);
-    //LoadLayout();
+    LoadLayout();
     //ClearLayout();
     std::cout << "Main Window Initialized " << std::endl;
 

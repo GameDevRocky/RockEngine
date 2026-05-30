@@ -12,9 +12,6 @@ void BindPhysics(py::module_& m) {
     py::module_ physics_module = m.def_submodule("physics_module", "Physics Bindings");
     
     physics_module.def("cast_ray", [](py::object py_origin, py::object py_direction) -> py::object {
-        auto* container = Engine::Get()->GetActiveContainer();
-        auto* physicsSystem = container->FindSystem<PhysicsSystem>();
-
         // Convert from pixels to Box2D world units
         b2Vec2 origin = { PixelsToWorld(py_origin.attr("x").cast<float>()),
                           PixelsToWorld(py_origin.attr("y").cast<float>()) };

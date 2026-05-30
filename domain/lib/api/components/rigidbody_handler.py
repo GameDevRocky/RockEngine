@@ -33,3 +33,12 @@ class Rigidbody(Component):
     def velocity(self, velocity : Vector2):
         velocity = Vector2(velocity)
         rigidbody_module.set_velocity(self._gameobject_id, velocity.x, velocity.y)
+
+    @property
+    def use_gravity(self) -> bool:
+        return rigidbody_module.get_use_gravity(self._gameobject_id)
+
+    @use_gravity.setter
+    def use_gravity(self, val : bool):
+        val = bool(val)
+        rigidbody_module.set_use_gravity(self._gameobject_id, val)

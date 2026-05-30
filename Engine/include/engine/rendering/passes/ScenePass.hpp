@@ -11,6 +11,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include "Engine.hpp"
+#include "engine/utils/EngineUtils.hpp"
+
+using namespace EngineUtils;
 
 class ScenePass : public RenderPass
 { 
@@ -26,6 +29,9 @@ public:
     void Shutdown() override ;
 
 private:
+    Proxy<LayerManager> layerManager;
+    Proxy<TimeManager> timeManager;
+
     unsigned int vao = 0;
     unsigned int vbo = 0;
     int viewportWidth = 0;

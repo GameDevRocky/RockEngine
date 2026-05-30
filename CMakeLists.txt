@@ -45,14 +45,14 @@ target_link_libraries(RockEngineLauncher
     PRIVATE
         RockEngineCore
         RockEngineEditor
-)  
+)    
 
 qt_finalize_executable(RockEngineLauncher)
 if(MSVC)
     # 1. Dynamically find where Qt's binaries are located
     get_target_property(_qt_executable Qt6::Core LOCATION)
     get_filename_component(_qt_bin_dir "${_qt_executable}" DIRECTORY)
-    find_program(WINDEPLOY_PATH windeployqt HINTS "${_qt_bin_dir}")
+    find_program(WINDEPLOY_PATH windeployqt HINTS "${_qt_bin_dir}") 
 
     # 2. Run the deployment tool after the build finishes
     add_custom_command(TARGET RockEngineLauncher POST_BUILD

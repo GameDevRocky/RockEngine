@@ -304,8 +304,8 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](float v) {
                 sc->SetFieldValue(name, v);
             };
-            BindPropertyWithInitial<float>(sc, label, initial, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(field.step));
+            BindProperty<float>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(field.step), initial);
         }
         else if (field.typeName == "int") {
             float initial = (it != allValues.end() && std::holds_alternative<int>(it->second))
@@ -317,8 +317,8 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](float v) {
                 sc->SetFieldValue(name, static_cast<int>(v));
             };
-            BindPropertyWithInitial<float>(sc, label, initial, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(1));
+            BindProperty<float>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(1), initial);
         }
         else if (field.typeName == "bool") {
             bool initial = (it != allValues.end() && std::holds_alternative<bool>(it->second))
@@ -330,8 +330,8 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](bool v) {
                 sc->SetFieldValue(name, v);
             };
-            BindPropertyWithInitial<bool>(sc, label, initial, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::TOGGLE));
+            BindProperty<bool>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::TOGGLE), initial);
         }
         else if (field.typeName == "str") {
             std::string initial = (it != allValues.end() && std::holds_alternative<std::string>(it->second))
@@ -343,8 +343,8 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](std::string v) {
                 sc->SetFieldValue(name, v);
             };
-            BindPropertyWithInitial<std::string>(sc, label, initial, getter, setter, field.changeEvent,
-                PropDesc());
+            BindProperty<std::string>(sc, label, getter, setter, field.changeEvent,
+                PropDesc(), initial);
         }
         else if (field.typeName == "vec2") {
             glm::vec2 initial = (it != allValues.end() && std::holds_alternative<glm::vec2>(it->second))
@@ -356,8 +356,8 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](glm::vec2 v) {
                 sc->SetFieldValue(name, v);
             };
-            BindPropertyWithInitial<glm::vec2>(sc, label, initial, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::VECTOR2).Step(field.step));
+            BindProperty<glm::vec2>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::VECTOR2).Step(field.step), initial);
         }
         else if (field.typeName == "vec3") {
             glm::vec3 initial = (it != allValues.end() && std::holds_alternative<glm::vec3>(it->second))
@@ -369,8 +369,8 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](glm::vec3 v) {
                 sc->SetFieldValue(name, v);
             };
-            BindPropertyWithInitial<glm::vec3>(sc, label, initial, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::VECTOR3).Step(field.step));
+            BindProperty<glm::vec3>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::VECTOR3).Step(field.step), initial);
         }
         else if (field.typeName == "vec4") {
             glm::vec4 initial = (it != allValues.end() && std::holds_alternative<glm::vec4>(it->second))
@@ -382,8 +382,8 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](glm::vec4 v) {
                 sc->SetFieldValue(name, v);
             };
-            BindPropertyWithInitial<glm::vec4>(sc, label, initial, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::VECTOR4).Step(field.step));
+            BindProperty<glm::vec4>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::VECTOR4).Step(field.step), initial);
         }
     }
 }

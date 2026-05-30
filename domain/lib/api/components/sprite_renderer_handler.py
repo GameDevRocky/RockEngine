@@ -1,7 +1,7 @@
 from rock_engine.components import sprite_renderer_module
 from ...utils.re_math import Vector2
 from .component_handler import Component
-from .sprite_handler import Sprite
+from ..rendering.sprite_handler import Sprite
 
 class SpriteRenderer(Component):
     _type_name = "SpriteRenderer"
@@ -45,7 +45,6 @@ class SpriteRenderer(Component):
 
     @property
     def color(self) -> list:
-        # Returns (r, g, b, a)
         return sprite_renderer_module.get_color(self._gameobject_id)
 
     @color.setter
@@ -54,3 +53,39 @@ class SpriteRenderer(Component):
         sprite_renderer_module.set_color(self._gameobject_id, float(r), float(g), float(b), float(a))
 
     
+    @property
+    def uv_offset(self) -> Vector2:
+        return Vector2(sprite_renderer_module.get_uv_offset(self._gameobject_id))
+
+    @uv_offset.setter
+    def uv_offset(self, value):
+        value = Vector2(value)
+        sprite_renderer_module.set_uv_offset(self._gameobject_id, value.x, value.y)
+
+    @property
+    def uv_scale(self) -> Vector2:
+        return Vector2(sprite_renderer_module.get_uv_scale(self._gameobject_id))
+
+    @uv_scale.setter
+    def uv_scale(self, value):
+        value = Vector2(value)
+        sprite_renderer_module.set_uv_scale(self._gameobject_id, value.x, value.y)
+
+
+    def set_uniform(self, name: str, value):
+        if isinstance(value, str):
+            sprite_renderer_module.set_uniform_texture(self._gameobject_id, name, value)
+        elif isinstance(value, (int, float)):
+            sprite_renderer_module.set_uniform_float(self._gameobject_id, name, float(value))
+        else:
+            v = tuple(value)
+            if len(v) == 2:
+                sprite_renderer_module.set_uniform_vec2(self._gameobject_id, name, float(v[0]), float(v[1]))
+            elif len(v) == 3:
+                sprite_renderer_module.set_uniform_vec3(self._gameobject_id, name, float(v[0]), float(v[1]), float(v[2]))
+            elif len(v) == 4:
+                sprite_renderer_module.set_uniform_vec4(self._gameobject_id, name, float(v[0]), float(v[1]), float(v[2]), float(v[3]))
+
+    def remove_uniform(self, name: str):
+        sprite_renderer_module.remove_uniform(self._gameobject_id, name)
+

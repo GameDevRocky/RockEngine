@@ -7,35 +7,24 @@
 void BindInputManager(pybind11::module_& m) {
     pybind11::module_ input_module = m.def_submodule("input_module", "InputManagerBindings");
     
-    input_module.def("is_key_down", [](int keycode) {
-        Engine* engine = Engine::Get();
-        InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+    input_module.def("is_key_down", [](int keycode) {      
         return inputManager->IsKeyDown(keycode);
     });
 
-    input_module.def("is_key_pressed", [](int keycode) {
-        Engine* engine = Engine::Get();
-        InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+    input_module.def("is_key_pressed", [](int keycode) {       
         return inputManager->IsKeyPressed(keycode);
     });
 
     input_module.def("is_mouse_button_down", [](int button) {
-        Engine* engine = Engine::Get();
-        InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
         return inputManager->IsMouseButtonDown(button);
     });
 
     input_module.def("is_mouse_button_pressed", [](int button) {
-        Engine* engine = Engine::Get();
-        InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
         return inputManager->IsMouseButtonPressed(button);
     });
 
     input_module.def("get_mouse_pos", []() {
-        Engine* engine = Engine::Get();
-        InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
         glm::vec2 val = inputManager->GetMousePosition();
-        // Returning a tuple is the most memory-efficient way for "light" data
         return std::make_tuple(val.x, val.y); 
     });
 }

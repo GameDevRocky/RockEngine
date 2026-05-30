@@ -92,6 +92,16 @@ void SpriteRenderer::SetSortingOrder(int order){
     this->Notify(SpriteRenderer::CHANGED_EVENT);
 }
 
+void SpriteRenderer::SetUniformOverride(const std::string& name, const UniformValue& value)
+{
+    uniformOverrides[name] = value;
+}
+
+void SpriteRenderer::RemoveUniformOverride(const std::string& name)
+{
+    uniformOverrides.erase(name);
+}
+
 void SpriteRenderer::OverrideUniforms()
 {
     Material* mat = GetMaterial();
@@ -106,15 +116,9 @@ void SpriteRenderer::OverrideUniforms()
     if (!shader || !tex)
         return;
 
-    // --------------------------------------------------
-    // Bind texture (sprite overrides material)
-    // --------------------------------------------------
     tex->Bind(0);
     shader->SetTexture("uTexture", 0);
 
-    // --------------------------------------------------
-    // UVs (atlas + flipping + per-instance tweaks)
-    // --------------------------------------------------
     glm::vec2 uvScale = sprite->GetUVMax() - sprite->GetUVMin();
     glm::vec2 uvOffset = sprite->GetUVMin();
 
@@ -128,33 +132,42 @@ void SpriteRenderer::OverrideUniforms()
         uvOffset.y = sprite->GetUVMax().y;
     }
 
-    uvScale *= this->uvScale;     // per-instance tweak
-    uvOffset += this->uvOffset;   // per-instance tweak
+    uvScale *= this->uvScale;   
+    uvOffset += this->uvOffset; 
 
     shader->SetVec2("uUVScale", uvScale);
     shader->SetVec2("uUVOffset", uvOffset);
 
-    // --------------------------------------------------
-    // PIXELS → WORLD SIZE (THIS IS THE IMPORTANT PART)
-    // --------------------------------------------------
-    Transform* transform = GetGameObject()->GetComponent<Transform>();
-    if (!transform)
-        return;
-
-    // Sprite size in pixels (atlas-aware)
     const glm::vec2 pixelSize = sprite->GetPixelSize();
 
-    // Convert pixels → world units
     glm::vec2 worldSize = PixelsToWorld(pixelSize);
 
 
     shader->SetVec2("uSize", worldSize);
     shader->SetVec2("uPivot", sprite->GetPivot());
-
-    // --------------------------------------------------
-    // Per-instance color
-    // --------------------------------------------------
     shader->SetVec4("uColor", color);
+
+    int textureSlot = 1;
+    for (const auto& [uName, uValue] : uniformOverrides) {
+        std::visit([&](const auto& v) {
+            using T = std::decay_t<decltype(v)>;
+            if constexpr (std::is_same_v<T, float>)
+                shader->SetFloat(uName, v);
+            else if constexpr (std::is_same_v<T, glm::vec2>)
+                shader->SetVec2(uName, v);
+            else if constexpr (std::is_same_v<T, glm::vec3>)
+                shader->SetVec3(uName, v);
+            else if constexpr (std::is_same_v<T, glm::vec4>)
+                shader->SetVec4(uName, v);
+            else if constexpr (std::is_same_v<T, std::string>) {
+                Texture2D* tex = SharedResources::Get().GetTexture(v);
+                if (tex) {
+                    tex->Bind(textureSlot);
+                    shader->SetTexture(uName, textureSlot++);
+                }
+            }
+        }, uValue);
+    }
 }
 
 void SpriteRenderer::Accept(IVisitor* v) {
@@ -177,6 +190,7 @@ SpriteRenderer* SpriteRenderer::Copy()
     copy->flipX = flipX;
     copy->flipY = flipY;
     copy->visible = visible;
+    copy->uniformOverrides = uniformOverrides;
     return copy;
 
 

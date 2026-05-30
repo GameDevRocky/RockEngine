@@ -19,6 +19,8 @@ class SpriteRenderer : public Component
     static inline const Event FLIP_Y_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     static inline const Event SORTING_LAYER_CHANGED_EVENT = SpriteRenderer::CreateEvent();
     static inline const Event SORTING_ORDER_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event UV_SCALE_CHANGED_EVENT = SpriteRenderer::CreateEvent();
+    static inline const Event UV_OFFSET_CHANGED_EVENT = SpriteRenderer::CreateEvent();
 
 
 
@@ -52,6 +54,15 @@ class SpriteRenderer : public Component
     void SetFlipX(bool v) { flipX = v; Notify(FLIP_X_CHANGED_EVENT);}
     void SetFlipY(bool v) { flipY = v; Notify(FLIP_Y_CHANGED_EVENT);}
 
+    glm::vec2 GetUVScale(){return this->uvScale;}
+    glm::vec2 GetUVOffset(){return this->uvOffset;}
+
+    void SetUVScale(glm::vec2 scale){uvScale = scale; Notify(UV_SCALE_CHANGED_EVENT);}
+    void SetUVOffset(glm::vec2 offset){uvOffset = offset; Notify(UV_OFFSET_CHANGED_EVENT);}
+
+    void SetUniformOverride(const std::string& name, const UniformValue& value);
+    void RemoveUniformOverride(const std::string& name);
+
     void OverrideUniforms();
     void Accept(IVisitor* v) override;
 
@@ -69,4 +80,5 @@ private:
     bool flipX = false;
     bool flipY = false;
     bool visible = true;
+    std::unordered_map<std::string, UniformValue> uniformOverrides;
 };

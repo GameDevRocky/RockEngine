@@ -4,14 +4,18 @@
 #include "engine/rendering/core/Resource.hpp"
 #include <unordered_map>
 #include <string>
+#include <variant>
 #include <glm/glm.hpp>
 #include "yaml-cpp/yaml.h"
+
+using UniformValue = std::variant<float, glm::vec2, glm::vec3, glm::vec4, std::string>;
 
 class Material : public Resource
 {
 public:
     static inline const Event NAME_CHANGED_EVENT = Material::CreateEvent();
     static inline const Event SHADER_CHANGED_EVENT = Material::CreateEvent();
+    static inline const Event UNIFORM_CHANGED_EVENT = Material::CreateEvent();
 
     Material() = default;
 

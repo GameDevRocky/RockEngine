@@ -58,7 +58,7 @@ Resources:
 
     - id: "m2"
       name: "mushroom_material"
-      shader_id: "s1"
+      shader_id: "s3"
       uniforms: {
         textures: { uTexture: "t2"},
         floats: { },
