@@ -1,4 +1,5 @@
 #include "engine/core/SceneManager.hpp"
+#include <algorithm>
 #include <iostream>
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/TimeManager.hpp"
@@ -128,14 +129,18 @@ void SceneManager::LoadScene(const std::string& file_path){
 
 
 void SceneManager::RemoveScene(const std::string& scene_id) {
-    
+    auto* scene = registry->Find<Scene>(scene_id);
+    if(!scene) return;
+    scene_ids.erase(std::remove(scene_ids.begin(), scene_ids.end(), scene_id), scene_ids.end());
+    scene->Shutdown();
+    Notify(REMOVED_SCENE_EVENT, scene_id);
 }
 
 std::vector<Scene*> SceneManager::GetScenes() const {
     std::vector<Scene*> scenes;
     for (auto& s_id : scene_ids){
         Scene* scene = registry->Find<Scene>(s_id);
-        scenes.push_back(scene);
+        if (scene) scenes.push_back(scene);
     }
     return scenes;
 }

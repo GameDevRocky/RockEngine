@@ -42,6 +42,7 @@ void ScenePass::Resize(int width, int height)
 
 void ScenePass::Execute(RenderCamera* camera, Scene* scene)
 {
+    if (!scene) return;
     const auto& objects = scene->GetAllGameObjects();
     float elapsedTime = timeManager ? timeManager->ElapsedTime() : 0.0f;
 

@@ -51,6 +51,7 @@ class ScriptableComponent(Component):
     def instantiate(self, name: str = "GameObject"):
         """Create a new GameObject in the same scene as this script's object."""
         from ..core.gameobject_handler import get_gameobject
+        name = str(name)
         new_id = gameobject_module.instantiate(self._gameobject_id, name)
         if not new_id:
             return None

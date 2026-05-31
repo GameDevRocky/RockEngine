@@ -9,6 +9,12 @@
 #include <memory>
 #include <glm/glm.hpp>
 
+// Windows.h (pulled in via Python.h / pybind11) defines CreateEvent as a macro.
+// Undefine it here so Observable::CreateEvent() compiles correctly.
+#ifdef CreateEvent
+#undef CreateEvent
+#endif
+
 // Variant type for script field values — no pybind11 types exposed
 using ScriptFieldValue = std::variant<float, int, bool, std::string, glm::vec2, glm::vec3, glm::vec4>;
 
@@ -27,6 +33,8 @@ struct ScriptInstanceData;
 
 class ScriptComponent : public Component {
 public:
+
+    static inline const Event SCRIPT_RELOADED_EVENT = Observable::CreateEvent();
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
@@ -67,8 +75,12 @@ private:
 
     std::string moduleName;  
     std::string className;
+    std::string m_scriptFilePath;
+    int m_fileWatchSubId = -1;
     std::unique_ptr<ScriptInstanceData> m_pyData;
     std::vector<ScriptFieldInfo> m_fields;
     std::map<std::string, YAML::Node> m_pendingFieldValues;
+
+    void ApplyHotReload();
 
 };

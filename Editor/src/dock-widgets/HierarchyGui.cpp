@@ -105,7 +105,7 @@ void HierarchyGui::PostInit(){
         const std::string& id = std::any_cast<std::string>(data);
         this->RemoveSceneTree(id);
         return true;
-    }, SceneManager::LOADED_SCENE_EVENT);
+    }, SceneManager::REMOVED_SCENE_EVENT);
 
     Engine::Get()->Subscribe([this](){
         this->RefreshHierarchy();
@@ -136,8 +136,14 @@ void HierarchyGui::AddSceneTree(const std::string& scene_id) {
 
 
 void HierarchyGui::RemoveSceneTree(const std::string& id) {
-    
-    
+    auto it = sceneTrees.find(id);
+    if (it == sceneTrees.end()) return;
+
+    SceneTree* tree = it->second;
+    scrollLayout->removeWidget(tree);
+    tree->deleteLater();
+    sceneTrees.erase(it);
+    RefreshHierarchy();
 }
 
 void HierarchyGui::RefreshHierarchy() {

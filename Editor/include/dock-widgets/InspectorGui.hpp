@@ -8,6 +8,9 @@
 #include <QLineEdit>
 #include <QScrollArea>
 #include <iostream>
+#include <string>
+#include <utility>
+#include <vector>
 #include "component-widgets/ObjectHeader.hpp"
 #include "Engine.hpp"
 #include "engine/core/SelectionManager.hpp"
@@ -38,4 +41,5 @@ private:
     ObjectHeader* header = nullptr;
     QVBoxLayout* mainLayout = nullptr;
     Proxy<SelectionManager> selectionManager;
+    std::vector<std::pair<std::string, int>> m_scriptReloadSubs;
 };

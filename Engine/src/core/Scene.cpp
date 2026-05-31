@@ -248,8 +248,8 @@ std::vector<GameObject*> Scene::GetRootObjects()
 
 std::vector<GameObject*> Scene::GetAllGameObjects()
 {
-
     std::vector<GameObject*> result;
+    if (!container) return result;
     Registry* registry = container->FindSystem<Registry>();
     for (auto& id : gameobject_ids){
         GameObject* obj = registry->Find<GameObject>(id);
@@ -265,8 +265,12 @@ void Scene::SetName(const std::string& name){
 }
 
 void Scene::Shutdown(){
-    
-
+    for (GameObject* obj : GetRootObjects()){
+        obj->recurseBottomUp([&](GameObject* obj){
+            obj->Shutdown();
+        });
+    }
+    RuntimeObject::Shutdown();
 }
 
 Scene *Scene::Copy()

@@ -5,7 +5,6 @@
 #include <QHBoxLayout>
 #include <QSizePolicy>
 #include <QIcon>
-#include <QPushButton>
 #include <QLabel>
 #include <QPixmap>
 #include <QDropEvent>
@@ -17,6 +16,9 @@
 #include "engine/core/SelectionManager.hpp"
 #include "Engine.hpp"
 #include "engine/serialization/Registry.hpp"
+#include "Engine.hpp"
+
+using namespace EngineUtils;
 
 class GameObject;
 
@@ -25,6 +27,7 @@ class SceneTree : public QTreeView{
 
     public:
         SceneTree(QWidget* parent = nullptr);
+        ~SceneTree();
         void RebuildFromScene(Scene* scene);
         void AddItem(const std::string& parentId, GameObject* child);
         void RemoveItem(const std::string& id);
@@ -39,24 +42,21 @@ class SceneTree : public QTreeView{
         bool eventFilter(QObject* obj, QEvent* event) override;
         void keyPressEvent(QKeyEvent* event) override;
 
-    private slots:
-        void OnHeaderClicked(int section);
-
     private:
         QModelIndex FindItemById(const std::string& id) const;
         void OnObjectSelected(const std::string& selectedId);        
         std::string scene_id;
         QStandardItemModel* model = nullptr;
-        QPushButton* m_headerBtn = nullptr;
         bool handlingDrop = false;
         bool collapsed = false;
-        bool updatingFromSelectionManager = false;
         int selectionSubscriptionId = -1;
         int sceneNameSubscriptionId = -1;
         int sceneAddedSubscriptionId = -1;
-        int gameObjectAddedSubscriptionId = -1;
-        Scene* subscribedScene = nullptr;
-        SelectionManager* subscribedSelectionManager = nullptr;
+
+
+        Proxy<SceneManager> sceneManager;
+        Proxy<Registry> registry;
+        Proxy<SelectionManager> selectionManager;
 };
 
 class GameObjectItem : public QStandardItem {

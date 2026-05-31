@@ -36,7 +36,7 @@ public:
     virtual void Awake(){state = State::Awakened;}
     virtual void Start(){state = State::Started;}
     virtual void Update(){}
-    virtual void Shutdown(){Notify(SHUTDOWN_EVENT);}
+    virtual void Shutdown(){Notify(SHUTDOWN_EVENT, id);}
 
     Container* GetContainer() const { return container; }
     virtual void Attach(Container* container);

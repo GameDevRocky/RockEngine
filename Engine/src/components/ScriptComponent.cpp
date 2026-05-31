@@ -1,6 +1,7 @@
 #include <pybind11/gil.h>
 #include <pybind11/embed.h>
 #include "engine/components/ScriptComponent.hpp"
+#include "engine/core/FileWatcherSystem.hpp"
 #include <iostream>
 #include <filesystem>
 #include "engine/utils/EngineUtils.hpp"
@@ -118,6 +119,19 @@ void ScriptComponent::Init(){
     IntrospectFields();
     ApplyPendingFields();
     CallMethod("init");
+
+    // Subscribe to FileWatcherSystem for hot-reload
+    if (!m_scriptFilePath.empty()) {
+        auto* fws = container->FindSystem<FileWatcherSystem>();
+        if (fws) {
+            m_fileWatchSubId = fws->Subscribe([this](std::any data) {
+                if (std::any_cast<std::string>(data) == m_scriptFilePath)
+                    ApplyHotReload();
+                return true;
+            }, FileWatcherSystem::FILE_CHANGED_EVENT);
+        }
+    }
+
     state = State::Initialized;
 }
 void ScriptComponent::Awake(){ 
@@ -150,6 +164,13 @@ void ScriptComponent::OnTriggerExit(GameObject* other) { if (container->GetMode(
 void ScriptComponent::Shutdown() {
     if (container->GetMode() == Container::Mode::Runtime)
         CallMethod("on_shutdown");
+
+    // Unsubscribe from FileWatcherSystem
+    if (m_fileWatchSubId != -1) {
+        auto* fws = container->FindSystem<FileWatcherSystem>();
+        if (fws) fws->Unsubscribe(m_fileWatchSubId);
+        m_fileWatchSubId = -1;
+    }
 
     if (Py_IsInitialized() && m_pyData) {
         py::gil_scoped_acquire gil;
@@ -198,7 +219,14 @@ void ScriptComponent::InstantiateScript()
         }
 
 
-        py::module module = py::module::import(moduleName.c_str());
+        py::dict sys_modules = sys.attr("modules");
+        py::module module;
+        if (sys_modules.contains(moduleName.c_str())) {
+            py::module importlib = py::module::import("importlib");
+            module = importlib.attr("reload")(sys_modules[moduleName.c_str()]);
+        } else {
+            module = py::module::import(moduleName.c_str());
+        }
 
         py::object cls = module.attr(className.c_str());
         m_pyData->scriptInstance = cls();
@@ -209,6 +237,17 @@ void ScriptComponent::InstantiateScript()
             m_pyData->scriptInstance.attr("_gameobject_id") = go->GetID();
         else
             std::cerr << "[ScriptComponent] Warning: GameObject not found for script.\n";
+
+        // Store normalized file path for hot-reload matching
+        py::module os = py::module::import("os");
+        py::object os_path = os.attr("path");
+        if (sys_modules.contains(moduleName.c_str())) {
+            py::object mod_file = py::getattr(sys_modules[moduleName.c_str()], "__file__", py::none());
+            if (!mod_file.is_none()) {
+                m_scriptFilePath = os_path.attr("normcase")(
+                    os_path.attr("abspath")(mod_file)).cast<std::string>();
+            }
+        }
 
     }
     catch (const py::error_already_set& e) {
@@ -223,6 +262,39 @@ void ScriptComponent::InstantiateScript()
     }
 }
 
+
+void ScriptComponent::ApplyHotReload()
+{
+    {
+        py::gil_scoped_acquire gil;
+        try {
+            py::module sys = py::module::import("sys");
+            py::dict sys_modules = sys.attr("modules");
+            if (!sys_modules.contains(moduleName.c_str())) return;
+
+            py::module importlib = py::module::import("importlib");
+            py::module mod = importlib.attr("reload")(sys_modules[moduleName.c_str()]);
+            py::object cls = mod.attr(className.c_str());
+            py::object newInstance = cls();
+
+            // Transfer field values from old instance to new
+            py::module scriptReload = py::module::import("Domain.lib.utils.script_reload");
+            scriptReload.attr("transfer_fields")(m_pyData->scriptInstance, newInstance);
+
+            m_pyData->scriptInstance = std::move(newInstance);
+            m_pyData->scriptInstance.attr("_component_id") = GetID();
+            GameObject* go = GetGameObject();
+            if (go) m_pyData->scriptInstance.attr("_gameobject_id") = go->GetID();
+        } catch (const py::error_already_set& e) {
+            std::cerr << "[ScriptComponent] Python error in ApplyHotReload():\n"
+                      << e.what() << std::endl;
+            return;
+        }
+    }
+
+    IntrospectFields();
+    Notify(SCRIPT_RELOADED_EVENT);
+}
 
 void ScriptComponent::IntrospectFields()
 {

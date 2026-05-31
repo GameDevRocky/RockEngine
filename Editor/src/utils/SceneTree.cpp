@@ -2,6 +2,7 @@
 #include "engine/core/Scene.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/SelectionManager.hpp"
+#include "engine/core/SceneManager.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/Container.hpp"
@@ -12,6 +13,7 @@
 
 #include <QSizePolicy>
 #include <QKeyEvent>
+#include <QPointer>
 #include "utils/SceneTreeItemDelegate.hpp"
 #include <QStandardItem>
 #include <QModelIndexList>
@@ -48,10 +50,12 @@ GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* game
     item->SetGameObjectId(id);
     item->setFlags(item->flags() | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
     
-    gameObject->Subscribe([model, id](){
+    QPointer<QStandardItemModel> weakModel = model;
+    gameObject->Subscribe([weakModel, id](){
+        if (!weakModel) return false;
         QString idQt = QString::fromStdString(id);
-        QModelIndexList matches = model->match(
-            model->index(0, 0),
+        QModelIndexList matches = weakModel->match(
+            weakModel->index(0, 0),
             Qt::UserRole + 1,
             idQt,
             1,
@@ -62,7 +66,7 @@ GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* game
         auto* obj = Registry::FindInRuntime<GameObject>(id);
         if (!obj) return false;
 
-        auto* liveItem = static_cast<GameObjectItem*>(model->itemFromIndex(matches.front()));
+        auto* liveItem = static_cast<GameObjectItem*>(weakModel->itemFromIndex(matches.front()));
         if (!liveItem) return false;
         liveItem->setText(obj->GetName().c_str());
         return true;
@@ -87,7 +91,27 @@ void AddGameObjectNode(QStandardItemModel* model, QStandardItem* parentItem, Gam
         AddGameObjectNode(model, item, childObject);
     }
 }
+
+void UnsubscribeFromContainer(Container* container, const std::string& scene_id,
+                               int selId, int nameId, int addedId) {
+    if (!container) return;
+
+    if (selId != -1) {
+        if (auto* selMgr = container->FindSystem<SelectionManager>())
+            selMgr->Unsubscribe(selId);
+    }
+
+    if (!scene_id.empty() && (nameId != -1 || addedId != -1)) {
+        if (auto* reg = container->FindSystem<Registry>()) {
+            if (auto* scene = reg->Find<Scene>(scene_id)) {
+                if (nameId != -1) scene->Unsubscribe(nameId);
+                if (addedId != -1) scene->Unsubscribe(addedId);
+            }
+        }
+    }
 }
+
+} // namespace
 
 SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     model = new QStandardItemModel(this);
@@ -101,76 +125,78 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     setDragDropMode(QAbstractItemView::InternalMove);
     setDragDropOverwriteMode(false);
 
-    header()->setSectionsClickable(true);
-    QIcon icon("Domain/lib/assets/icons/hamburger_icon.png");
-    m_headerBtn = new QPushButton(header());
-    m_headerBtn->setIcon(icon);
-    m_headerBtn->setFixedSize(40, 20);
-    m_headerBtn->setFlat(true);
-
-    connect(m_headerBtn, &QPushButton::clicked, this, [this]() {
+    header()->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(header(), &QHeaderView::customContextMenuRequested, this, [this](const QPoint& pos) {
         QMenu menu(this);
+
+        menu.addAction("Remove Scene", this, [this](){
+            sceneManager->RemoveScene(scene_id);
+        });
+
         menu.addAction("New GameObject", this, [this]() {
-            auto* selectionManager = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
-            auto* scene = Registry::FindInRuntime<Scene>(scene_id);
+            auto* scene = registry->Find<Scene>(scene_id);
             if (!scene) return;
             auto* obj = new GameObject();
             obj->SetName("GameObject");
-            SpriteRenderer* sr = new SpriteRenderer();
-            RigidBody* rb = new RigidBody();
-            BoxCollider* bc = new BoxCollider();
-            Transform* t = new Transform();
-            t->SetScale({10, 10});
-            
             scene->AddGameObject(obj);
-            obj->AddComponent(t);
-            obj->AddComponent(sr);
-            obj->AddComponent(rb);
-            obj->AddComponent(bc);
             selectionManager->Select(obj->GetID());
         });
-        menu.exec(m_headerBtn->mapToGlobal(m_headerBtn->rect().bottomLeft()));
-    });
-    header()->installEventFilter(this);
 
-    connect(header(), &QHeaderView::sectionClicked, this, &SceneTree::OnHeaderClicked);
+        QAction* collapseAction = menu.addAction("Collapse");
+        collapseAction->setCheckable(true);
+        collapseAction->setChecked(collapsed);
+        connect(collapseAction, &QAction::triggered, this, [this]() {
+            collapsed = !collapsed;
+            for (int i = 0; i < model->rowCount(); ++i)
+                setRowHidden(i, QModelIndex(), collapsed);
+            if (collapsed) {
+                setFixedHeight(header()->height());
+                setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+            } else {
+                setMaximumHeight(16777215);
+                setMinimumHeight(0);
+                setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+                updateGeometry();
+                adjustSize();
+            }
+        });
+        menu.exec(header()->mapToGlobal(pos));
+    });
 
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     setItemDelegate(new SceneTreeItemDelegate(this));
     
     connect(this, &QTreeView::clicked, this, [this](const QModelIndex& index) {
             if (!index.isValid()) return;
-            
             QString gameObjectId = index.data(Qt::UserRole + 1).toString();
             if (gameObjectId.isEmpty()) return;
-            
-            Container* container = Engine::Get()->GetActiveContainer();
-            SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
             selectionManager->Select(gameObjectId.toStdString());
             
         });
 }
 
+SceneTree::~SceneTree() {
+    UnsubscribeFromContainer(Engine::Get()->GetEditorContainer(), scene_id,
+        selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId);
+    if (Engine::Get()->GetRuntimeContainer()) {
+        UnsubscribeFromContainer(Engine::Get()->GetRuntimeContainer(), scene_id,
+            selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId);
+    }
+}
+
 void SceneTree::RebuildFromScene(Scene* scene) {
-    // Unsubscribe previous subscriptions to prevent accumulation across rebuilds.
-    if (!scene_id.empty()) {
-        Registry* reg = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
-        Scene* prevScene = reg ? reg->Find<Scene>(scene_id) : nullptr;
-        if (prevScene) {
-            if (sceneNameSubscriptionId != -1) prevScene->Unsubscribe(sceneNameSubscriptionId);
-            if (sceneAddedSubscriptionId != -1) prevScene->Unsubscribe(sceneAddedSubscriptionId);
-        }
-        sceneNameSubscriptionId = -1;
-        sceneAddedSubscriptionId = -1;
+    UnsubscribeFromContainer(Engine::Get()->GetEditorContainer(), scene_id,
+        selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId);
+    if (Engine::Get()->GetRuntimeContainer()) {
+        UnsubscribeFromContainer(Engine::Get()->GetRuntimeContainer(), scene_id,
+            selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId);
     }
-    if (selectionSubscriptionId != -1) {
-        auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
-        if (selMgr) selMgr->Unsubscribe(selectionSubscriptionId);
-        selectionSubscriptionId = -1;
-    }
+    sceneNameSubscriptionId = -1;
+    sceneAddedSubscriptionId = -1;
+    selectionSubscriptionId = -1;
 
     model->clear();
 
@@ -400,11 +426,6 @@ void SceneTree::ReparentItem(const std::string& childId, const std::string& newP
 }
 
 bool SceneTree::eventFilter(QObject* obj, QEvent* event) {
-    if (obj == header() && event->type() == QEvent::Resize) {
-        const int margin = 4;
-        m_headerBtn->move(header()->width() - m_headerBtn->width() - margin,
-                          (header()->height() - m_headerBtn->height()) / 2);
-    }
     return QTreeView::eventFilter(obj, event);
 }
 
@@ -420,26 +441,4 @@ void SceneTree::keyPressEvent(QKeyEvent* event) {
         return;
     }
     QTreeView::keyPressEvent(event);
-}
-
-void SceneTree::OnHeaderClicked(int section) {
-    Q_UNUSED(section);
-    
-    collapsed = !collapsed;
-    
-    for (int i = 0; i < model->rowCount(); ++i) {
-        setRowHidden(i, QModelIndex(), collapsed);
-    }
-
-    if (collapsed) {
-        int headerHeight = header()->height();
-        setFixedHeight(headerHeight);
-        setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    } else {
-        setMaximumHeight(16777215); 
-        setMinimumHeight(0);
-        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-        updateGeometry();
-        adjustSize(); 
-    }
 }

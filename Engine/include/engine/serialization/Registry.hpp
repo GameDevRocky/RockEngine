@@ -5,6 +5,7 @@
 #include <functional>
 #include <iostream>
 #include "engine/core/System.hpp"
+
 class RuntimeObject;
 
 class Registry : public System {
@@ -42,7 +43,7 @@ public:
         }
         return nullptr;
     }
-
+private:
 
     std::unordered_map<std::string, RuntimeObject*>& GetAll() { return runtimeObjects; }
 };

@@ -27,5 +27,6 @@ public:
     bool HasSelection() const { return !selectedObjectId.empty(); }
 
 private:
+    Registry* registry = nullptr;
     std::string selectedObjectId;
 };

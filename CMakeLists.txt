@@ -45,10 +45,10 @@ target_link_libraries(RockEngineLauncher
     PRIVATE
         RockEngineCore
         RockEngineEditor
-)    
+)     
 
 qt_finalize_executable(RockEngineLauncher)
-if(MSVC)
+if(MSVC) 
     # 1. Dynamically find where Qt's binaries are located
     get_target_property(_qt_executable Qt6::Core LOCATION)
     get_filename_component(_qt_bin_dir "${_qt_executable}" DIRECTORY)

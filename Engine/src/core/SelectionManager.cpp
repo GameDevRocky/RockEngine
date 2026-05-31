@@ -5,6 +5,7 @@
 
 void SelectionManager::Init()
 {
+    registry = container->FindSystem<Registry>();
     selectedObjectId.clear();
 }
 
@@ -40,9 +41,11 @@ void SelectionManager::Select(const std::string& objectId)
     if (selectedObjectId == objectId) return;
     
     selectedObjectId = objectId;
-
-    auto* registry = container->FindSystem<Registry>();
     auto* obj = registry->Find<GameObject>(selectedObjectId);  
+    if (!obj){
+        Deselect();
+        return;
+    }
 
     obj->Subscribe([](std::any data){
         auto* sm = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();

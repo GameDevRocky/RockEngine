@@ -8,6 +8,7 @@
 #include "engine/core/PhysicsSystem.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/LayerManager.hpp"
+#include "engine/core/FileWatcherSystem.hpp"
 #define SAMPLE_SCENE_PATH "Domain/lib/configs/Sample_Scene.yaml"
 
 namespace py = pybind11;
@@ -27,6 +28,7 @@ void Engine::Init() {
     editorContainer->AddSystem(new SceneManager());
     editorContainer->AddSystem(new SelectionManager());
     editorContainer->AddSystem(new LayerManager());
+    editorContainer->AddSystem(new FileWatcherSystem());
 
     editorContainer->SetMode(Container::Mode::Editor);
     editorContainer->Init();
@@ -61,6 +63,7 @@ void Engine::EnterPlayMode(){
 void Engine::ExitPlayMode(){
     runtimeContainer->Shutdown();
     delete runtimeContainer;
+    runtimeContainer = nullptr;
     activeContainer = editorContainer;
     Notify(EXIT_PLAY_MODE_EVENT);
 }

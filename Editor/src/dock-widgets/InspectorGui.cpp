@@ -4,6 +4,7 @@
 #include "engine/core/SelectionManager.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/GameObject.hpp"
+#include "engine/components/ScriptComponent.hpp"
 #include "utils/CollapsableWidget.hpp"
 #include "component-widgets/ComponentHeader.hpp"
 #include "utils/InspectorVisitor.hpp"
@@ -77,7 +78,14 @@ void InspectorGui::SubscribeToSelector(){
 
 void InspectorGui::OnObjectSelected(const std::string& id)
 {
-     if (contentWidget) {
+    // Unsubscribe previous script-reload listeners
+    for (auto& [compId, subId] : m_scriptReloadSubs) {
+        auto* sc = Registry::FindInRuntime<ScriptComponent>(compId);
+        if (sc) sc->Unsubscribe(subId);
+    }
+    m_scriptReloadSubs.clear();
+
+    if (contentWidget) {
         contentWidget->deleteLater();
         contentWidget = nullptr;
     }
@@ -112,6 +120,16 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         compWidget->AddWidget(content);
         contentLayout->addWidget(compWidget);
         delete visitor;
+
+        // Subscribe to hot-reload event so the inspector rebuilds when the script changes
+        if (auto* sc = dynamic_cast<ScriptComponent*>(comp)) {
+            std::string capturedId = id;
+            int subId = sc->Subscribe([this, capturedId](std::any) {
+                OnObjectSelected(capturedId);
+                return true;
+            }, ScriptComponent::SCRIPT_RELOADED_EVENT);
+            m_scriptReloadSubs.emplace_back(sc->GetID(), subId);
+        }
     }
 
     scrollArea->setWidget(contentWidget);
