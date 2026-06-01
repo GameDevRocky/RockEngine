@@ -79,7 +79,7 @@ void Scene::Update()
     for (auto &root : GetRootObjects())
     {
         root->recurseTopDown([&](GameObject *obj)
-                             { if (obj->GetActive()) obj->Update(); });
+                             { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->Update(); });
     }
 }
 void Scene::FixedUpdate()
@@ -87,7 +87,7 @@ void Scene::FixedUpdate()
     for (auto &root : GetRootObjects())
     {
         root->recurseTopDown([&](GameObject *obj)
-                             {  if (obj->GetActive()) obj->FixedUpdate(); });
+                             { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->FixedUpdate(); });
     }
 }
 void Scene::LateUpdate()
@@ -95,7 +95,7 @@ void Scene::LateUpdate()
     for (auto &root : GetRootObjects())
     {
         root->recurseTopDown([&](GameObject *obj)
-                             {  if (obj->GetActive()) obj->LateUpdate(); });
+                             { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->LateUpdate(); });
     }
 }
 
@@ -207,7 +207,7 @@ void Scene::Sync(GameObject* obj){
     const std::string& obj_id = obj->GetID();
     const std::string& scene_id = GetID();
 
-    obj->GetTransform()->Subscribe([obj_id, scene_id](const std::any& data){
+    transform->Subscribe([obj_id, scene_id](const std::any& data){
         Scene* scene = Registry::FindInRuntime<Scene>(scene_id);
         if (!scene) return false;
         std::string parent_id = std::any_cast<std::string>(data);

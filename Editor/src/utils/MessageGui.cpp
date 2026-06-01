@@ -2,6 +2,7 @@
 #include "dock-widgets/ConsoleGui.hpp"
 #include <QFrame>
 #include "utils/EditorUtils.hpp"
+#include "engine/utils/EngineUtils.hpp"
 
 // Dark Theme Colors
 static constexpr const char* FONT_FAMILY = "Consolas";
@@ -142,8 +143,7 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     Update();
 
     // Set path
-    std::string projectRoot = "C:/Users/rockl/Coding Projects/RockEngine";
-    fullPath = projectRoot + msg->file_name;
+    fullPath = EngineUtils::GetAssetPath(msg->file_name) + ":" + msg->line_num;
     file_path->setFilePath(QString::fromStdString(fullPath));
 
     connect(file_path, &EditorUtils::ClickableLabel::clicked, [this]() {

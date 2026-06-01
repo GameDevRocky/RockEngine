@@ -1,5 +1,5 @@
 from rock_engine.systems import physics_module
-from utils.re_math import Vector2
+from ...utils.re_math import Vector2
 from ..core.gameobject_handler import GameObject
 
 class RaycastResult:

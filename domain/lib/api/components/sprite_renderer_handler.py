@@ -89,3 +89,11 @@ class SpriteRenderer(Component):
     def remove_uniform(self, name: str):
         sprite_renderer_module.remove_uniform(self._gameobject_id, name)
 
+    @property
+    def visible(self) -> bool:
+        return sprite_renderer_module.get_visible(self._gameobject_id)
+
+    @visible.setter
+    def visible(self, val: bool):
+        sprite_renderer_module.set_visible(self._gameobject_id, bool(val))
+

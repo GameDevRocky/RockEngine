@@ -265,6 +265,7 @@ void ScriptComponent::InstantiateScript()
 
 void ScriptComponent::ApplyHotReload()
 {
+    bool reloadSucceeded = false;
     {
         py::gil_scoped_acquire gil;
         try {
@@ -277,7 +278,9 @@ void ScriptComponent::ApplyHotReload()
             py::object cls = mod.attr(className.c_str());
             py::object newInstance = cls();
 
-            // Transfer field values from old instance to new
+            // Transfer field values.  If transfer_fields raises (e.g. unresolvable
+            // type hint in the new script) the exception propagates to the outer
+            // catch → hard stop, old instance is preserved.
             py::module scriptReload = py::module::import("Domain.lib.utils.script_reload");
             scriptReload.attr("transfer_fields")(m_pyData->scriptInstance, newInstance);
 
@@ -285,12 +288,14 @@ void ScriptComponent::ApplyHotReload()
             m_pyData->scriptInstance.attr("_component_id") = GetID();
             GameObject* go = GetGameObject();
             if (go) m_pyData->scriptInstance.attr("_gameobject_id") = go->GetID();
+            reloadSucceeded = true;
         } catch (const py::error_already_set& e) {
-            std::cerr << "[ScriptComponent] Python error in ApplyHotReload():\n"
+            std::cerr << "[ScriptComponent] Hard stop in ApplyHotReload() — old instance preserved:\n"
                       << e.what() << std::endl;
-            return;
         }
     }
+
+    if (!reloadSucceeded) return;
 
     IntrospectFields();
     Notify(SCRIPT_RELOADED_EVENT);
@@ -323,11 +328,52 @@ void ScriptComponent::IntrospectFields()
             if (!d["max"].is_none())
                 info.max = d["max"].cast<float>();
 
+            if (d.contains("ref_type_name") && !d["ref_type_name"].cast<std::string>().empty())
+                info.refTypeName = d["ref_type_name"].cast<std::string>();
+
             // If the instance doesn't have this attribute yet, apply the default
             if (!py::hasattr(scriptInstance, info.name.c_str())) {
                 py::object defaultVal = d["default"];
                 if (!defaultVal.is_none()) {
-                    py::setattr(scriptInstance, info.name.c_str(), defaultVal);
+                    // For unassigned sprite/material refs, set None so handler
+                    // setters' `if value is not None` guards behave correctly.
+                    if ((info.refTypeName == "sprite" || info.refTypeName == "material")
+                        && py::isinstance<py::str>(defaultVal)
+                        && defaultVal.cast<std::string>().empty()) {
+                        py::setattr(scriptInstance, info.name.c_str(), py::none());
+                    } else {
+                        py::setattr(scriptInstance, info.name.c_str(), defaultVal);
+                    }
+                }
+            } else {
+                // The instance already holds a value (e.g. after hot-reload
+                // transferred old data). If the runtime value's type doesn't
+                // match the annotated type, the value wins — re-derive the
+                // displayed typeName from the live object so the inspector
+                // shows the correct widget instead of throwing cast errors.
+                py::object cur = py::getattr(scriptInstance, info.name.c_str());
+                std::string runtimeType;
+                if (py::isinstance<py::bool_>(cur)) {
+                    runtimeType = "bool";
+                } else if (py::isinstance<py::int_>(cur)) {
+                    runtimeType = "int";
+                } else if (py::isinstance<py::float_>(cur)) {
+                    runtimeType = "float";
+                } else if (py::isinstance<py::str>(cur)) {
+                    runtimeType = "str";
+                } else if (!cur.is_none()) {
+                    std::string qual;
+                    try { qual = cur.attr("__class__").attr("__qualname__").cast<std::string>(); }
+                    catch (...) {}
+                    if (qual.find("Vector4") != std::string::npos)      runtimeType = "vec4";
+                    else if (qual.find("Vector3") != std::string::npos) runtimeType = "vec3";
+                    else if (qual.find("Vector2") != std::string::npos) runtimeType = "vec2";
+                }
+                if (!runtimeType.empty() && runtimeType != info.typeName) {
+                    info.typeName = runtimeType;
+                    // refTypeName only applies to the annotated Sprite/Material
+                    // path; if the runtime type no longer matches, clear it.
+                    info.refTypeName.clear();
                 }
             }
 
@@ -362,7 +408,24 @@ void ScriptComponent::ApplyPendingFields()
             } else if (field.typeName == "bool") {
                 py::setattr(scriptInstance, field.name.c_str(), py::bool_(val.as<bool>()));
             } else if (field.typeName == "str") {
-                py::setattr(scriptInstance, field.name.c_str(), py::str(val.as<std::string>()));
+                std::string strVal = val.as<std::string>();
+                if (field.refTypeName == "sprite") {
+                    if (strVal.empty()) {
+                        py::setattr(scriptInstance, field.name.c_str(), py::none());
+                    } else {
+                        py::module_ sprite_mod = py::module_::import("Domain.lib.api.rendering.sprite_handler");
+                        py::setattr(scriptInstance, field.name.c_str(), sprite_mod.attr("Sprite")(strVal));
+                    }
+                } else if (field.refTypeName == "material") {
+                    if (strVal.empty()) {
+                        py::setattr(scriptInstance, field.name.c_str(), py::none());
+                    } else {
+                        py::module_ mat_mod = py::module_::import("Domain.lib.api.rendering.material_handler");
+                        py::setattr(scriptInstance, field.name.c_str(), mat_mod.attr("Material")(strVal));
+                    }
+                } else {
+                    py::setattr(scriptInstance, field.name.c_str(), py::str(strVal));
+                }
             } else if (field.typeName == "vec2") {
                 auto seq = val.as<std::vector<float>>();
                 if (seq.size() == 2) {
@@ -416,6 +479,12 @@ ScriptFieldValue ScriptComponent::GetFieldValue(const std::string& name)
         } else if (fieldInfo->typeName == "bool") {
             return val.cast<bool>();
         } else if (fieldInfo->typeName == "str") {
+            // Ref fields (Sprite, Material, etc.) may be None when unassigned
+            if (val.is_none()) return std::string();
+            // Ref fields store their ID in a .id attribute
+            if (py::hasattr(val, "id")) {
+                return val.attr("id").cast<std::string>();
+            }
             return val.cast<std::string>();
         } else if (fieldInfo->typeName == "vec2") {
             float x = py::getattr(val, "x").cast<float>();
@@ -458,7 +527,14 @@ std::map<std::string, ScriptFieldValue> ScriptComponent::GetAllFieldValues()
             } else if (field.typeName == "bool") {
                 result[field.name] = val.cast<bool>();
             } else if (field.typeName == "str") {
-                result[field.name] = val.cast<std::string>();
+                // Ref fields (Sprite, Material, etc.) may be None when unassigned
+                if (val.is_none()) {
+                    result[field.name] = std::string();
+                } else if (py::hasattr(val, "id")) {
+                    result[field.name] = val.attr("id").cast<std::string>();
+                } else {
+                    result[field.name] = val.cast<std::string>();
+                }
             } else if (field.typeName == "vec2") {
                 float x = py::getattr(val, "x").cast<float>();
                 float y = py::getattr(val, "y").cast<float>();
@@ -490,6 +566,12 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
     auto& scriptInstance = m_pyData->scriptInstance;
     if (!scriptInstance || scriptInstance.is_none()) return;
 
+    // Look up ref type so we can wrap Sprite/Material IDs properly
+    std::string refTypeName;
+    for (const auto& f : m_fields) {
+        if (f.name == name) { refTypeName = f.refTypeName; break; }
+    }
+
     try {
         std::visit([&](auto&& v) {
             using T = std::decay_t<decltype(v)>;
@@ -500,7 +582,23 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
             } else if constexpr (std::is_same_v<T, bool>) {
                 py::setattr(scriptInstance, name.c_str(), py::bool_(v));
             } else if constexpr (std::is_same_v<T, std::string>) {
-                py::setattr(scriptInstance, name.c_str(), py::str(v));
+                if (refTypeName == "sprite") {
+                    if (v.empty()) {
+                        py::setattr(scriptInstance, name.c_str(), py::none());
+                    } else {
+                        py::module_ sprite_mod = py::module_::import("Domain.lib.api.rendering.sprite_handler");
+                        py::setattr(scriptInstance, name.c_str(), sprite_mod.attr("Sprite")(v));
+                    }
+                } else if (refTypeName == "material") {
+                    if (v.empty()) {
+                        py::setattr(scriptInstance, name.c_str(), py::none());
+                    } else {
+                        py::module_ mat_mod = py::module_::import("Domain.lib.api.rendering.material_handler");
+                        py::setattr(scriptInstance, name.c_str(), mat_mod.attr("Material")(v));
+                    }
+                } else {
+                    py::setattr(scriptInstance, name.c_str(), py::str(v));
+                }
             } else if constexpr (std::is_same_v<T, glm::vec2>) {
                 py::module re_math = py::module::import("Domain.lib.utils.re_math");
                 py::object vec2Cls = re_math.attr("Vector2");
@@ -567,7 +665,13 @@ ScriptComponent* ScriptComponent::Copy(){
                 } else if (field.typeName == "bool") {
                     node = val.cast<bool>();
                 } else if (field.typeName == "str") {
-                    node = val.cast<std::string>();
+                    if (val.is_none()) {
+                        node = std::string();
+                    } else if (py::hasattr(val, "id")) {
+                        node = val.attr("id").cast<std::string>();
+                    } else {
+                        node = val.cast<std::string>();
+                    }
                 } else if (field.typeName == "vec2") {
                     node.push_back(py::getattr(val, "x").cast<float>());
                     node.push_back(py::getattr(val, "y").cast<float>());

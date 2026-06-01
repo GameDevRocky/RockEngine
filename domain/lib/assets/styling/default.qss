@@ -279,21 +279,39 @@ SceneTree
     color: palette(text);
 }
 
+SceneTree QHeaderView::section
+{
+}
+
+SceneTree::item{
+    background : rgb(32, 32, 32);
+}
+
+
 SceneTree::item:selected
 {
-    background: rgb(0, 99, 177);
+    border: 1px solid rgb(7, 134, 39);
+    background : rgb(32, 32, 32);
     color: rgb(255, 255, 255);
+
 }
 
 SceneTree::item:selected:!active
 {
-    background: rgb(60, 60, 60);
+    background: rgb(32, 32, 32);
     color: rgb(255, 255, 255);
 }
 
 SceneTree::item:disabled
 {
-    color: rgb(128, 128, 128);
+    color: rgb(90, 90, 90);
+    font-style: italic;
+}
+
+SceneTree::item:disabled:selected
+{
+    border: 1px solid rgb(7, 134, 39);
+    background : rgb(32, 32, 32);
 }
 
 CollapsableWidget ObjectHeader
@@ -319,6 +337,30 @@ CollapsableWidget QLineEdit#Label:disabled
     border: none;
     outline: none;
 }
+/*===========================================================================
+ * ActiveToggleBtn (SceneTree hover active toggle)
+ *===========================================================================*/
+QToolButton#ActiveToggleBtn {
+    border: 2px solid rgb(150, 150, 150);
+    border-radius: 3px;
+    background: transparent;
+    padding: 0px;
+}
+
+QToolButton#ActiveToggleBtn:hover {
+    border-color: rgb(131, 176, 145);
+}
+
+QToolButton#ActiveToggleBtn:checked {
+    border-color: rgb(45, 54, 48);
+    background-color: rgb(69, 185, 106);
+}
+
+QToolButton#ActiveToggleBtn:checked:hover {
+    background-color: rgb(132, 178, 151);
+}
+
+
 /*===========================================================================
  * ColorButton (Inspector color picker)
  *===========================================================================*/

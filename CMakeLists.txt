@@ -11,7 +11,7 @@ add_compile_definitions(PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
 if(MSVC)
     add_compile_options(/Zc:__cplusplus)
     add_compile_options(/EHsc) # <--- ADD THIS LINE TO FIX THE C4530 WARNING
-    
+     
     # Enable Hot Reload (Edit and Continue)
     string(REPLACE "/Zi" "/ZI" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
     string(REPLACE "/Zi" "/ZI" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
@@ -46,7 +46,7 @@ target_link_libraries(RockEngineLauncher
         RockEngineCore
         RockEngineEditor
 )     
-
+ 
 qt_finalize_executable(RockEngineLauncher)
 if(MSVC) 
     # 1. Dynamically find where Qt's binaries are located
@@ -57,7 +57,7 @@ if(MSVC)
     # 2. Run the deployment tool after the build finishes
     add_custom_command(TARGET RockEngineLauncher POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E env PATH="${_qt_bin_dir}" 
-                "${WINDEPLOY_PATH}" 
+                "${WINDEPLOY_PATH}"  
                 --debug 
                 --no-compiler-runtime 
                 --no-translations

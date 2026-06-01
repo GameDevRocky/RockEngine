@@ -11,6 +11,7 @@ class RuntimeObject;
 class Registry : public System {
 private:
     std::unordered_map<std::string, RuntimeObject*> runtimeObjects;
+    std::vector<RuntimeObject*> pendingShutdowns;
     std::vector<RuntimeObject*> pendingDeletes;
     static Registry* GetRuntimeRegistry();
 
@@ -24,6 +25,8 @@ public:
     
     void Register(RuntimeObject* obj);
     void Unregister(RuntimeObject* obj);
+    void Destroy(RuntimeObject* obj);
+    void FlushPendingShutdowns();
 
     template<typename T = RuntimeObject> 
     T* Find(const std::string& id) {

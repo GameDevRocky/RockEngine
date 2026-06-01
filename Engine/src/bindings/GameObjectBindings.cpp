@@ -4,15 +4,32 @@
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/Scene.hpp"
+#include "engine/core/TagManager.hpp"
+#include "engine/debug/Console.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/Component.hpp"
-#include "Engine.hpp"
 
 void BindGameObject(pybind11::module_& m) {
     pybind11::module_ gameobject_module = m.def_submodule("gameobject_module", "GameObject Bindings");
+
+    gameobject_module.def("get_tag", [](const std::string& id) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) return go->GetTag();
+        return std::string("");
+    });
+
+    gameobject_module.def("set_tag", [](const std::string& id, const std::string& tag) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) return;
+        if (!tagManager || !tagManager->HasTag(tag)) {
+            Console::Alert("Tag '" + tag + "' is not registered in TagManager.");
+            return;
+        }
+        go->SetTag(tag);
+    });
 
     gameobject_module.def("set_active", [](const std::string& id, bool val) {
         GameObject* go = registry->Find<GameObject>(id); 
@@ -70,6 +87,12 @@ void BindGameObject(pybind11::module_& m) {
         scene->AddGameObject(obj);
         obj->AddComponent(t);
         return obj->GetID();
+    });
+
+    gameobject_module.def("shut_down", [](const std::string& id){
+        GameObject* obj = registry->Find<GameObject>(id);
+        if (!obj) return;
+        registry->Destroy(obj);
     });
 
 }

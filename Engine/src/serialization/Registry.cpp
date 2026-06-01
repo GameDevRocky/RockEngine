@@ -22,10 +22,10 @@ void Registry::Register(RuntimeObject* obj) {
     obj->Subscribe([id](std::any data){
         auto* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
         if (!registry) return true;
-        auto* obj = registry->Find<RuntimeObject>(id);
-        if (!obj) return true;
-        registry->runtimeObjects.erase(id);
-        registry->pendingDeletes.push_back(obj);
+        auto it = registry->runtimeObjects.find(id);
+        if (it == registry->runtimeObjects.end()) return true;
+        registry->pendingDeletes.push_back(it->second);
+        registry->runtimeObjects.erase(it);
         return true;
     }, RuntimeObject::SHUTDOWN_EVENT);
 
@@ -42,13 +42,37 @@ void Registry::Unregister(RuntimeObject* obj) {
 }
 
 void Registry::Update() {
+}
+
+void Registry::Destroy(RuntimeObject* obj) {
+    if (!obj) return;
+    for (auto* queued : pendingShutdowns)
+        if (queued == obj) return;
+    obj->MarkForDestroy();
+    pendingShutdowns.push_back(obj);
+}
+
+void Registry::FlushPendingShutdowns() {
+    std::vector<RuntimeObject*> toProcess;
+    std::swap(toProcess, pendingShutdowns);
+    for (auto* obj : toProcess) {
+        if (runtimeObjects.find(obj->GetID()) == runtimeObjects.end()) continue;
+        obj->Shutdown();
+        // obj itself is now in pendingDeletes (from its SHUTDOWN_EVENT); remove it
+        // so we can delete it inline rather than double-freeing in the drain below.
+        auto it = std::find(pendingDeletes.begin(), pendingDeletes.end(), obj);
+        if (it != pendingDeletes.end()) pendingDeletes.erase(it);
+        delete obj;
+    }
+    // Delete components (and any other children) that were shut down as a
+    // side-effect of the above GameObject::Shutdown() bottom-up recursion.
     for (auto* obj : pendingDeletes)
         delete obj;
     pendingDeletes.clear();
 }
 
 void Registry::Shutdown(){
-    // Drain any objects already shut down but awaiting deletion.
+    // Drain any components awaiting deletion from a prior flush.
     for (auto* obj : pendingDeletes)
         delete obj;
     pendingDeletes.clear();

@@ -8,6 +8,7 @@
 #include "engine/core/PhysicsSystem.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/LayerManager.hpp"
+#include "engine/core/TagManager.hpp"
 #include "engine/core/FileWatcherSystem.hpp"
 #define SAMPLE_SCENE_PATH "Domain/lib/configs/Sample_Scene.yaml"
 
@@ -28,6 +29,7 @@ void Engine::Init() {
     editorContainer->AddSystem(new SceneManager());
     editorContainer->AddSystem(new SelectionManager());
     editorContainer->AddSystem(new LayerManager());
+    editorContainer->AddSystem(new TagManager());
     editorContainer->AddSystem(new FileWatcherSystem());
 
     editorContainer->SetMode(Container::Mode::Editor);

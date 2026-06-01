@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <algorithm>
 #include <QWidget>
 #include <QPointer>
 #include <QDoubleSpinBox>
@@ -12,8 +13,13 @@
 #include <QComboBox>
 #include <QStyle>
 #include <QApplication>
+#include <QMouseEvent>
 #include <glm/glm.hpp>
 #include "engine/utils/Properties.hpp"
+#include "utils/AssetPickerWidget.hpp"
+#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/core/GameObject.hpp"
+#include "engine/components/ScriptComponent.hpp"
 
 
 class PropertyWidgetBase {
@@ -369,30 +375,108 @@ private:
     QPointer<QLineEdit> edit;
 };
 
+// A QLineEdit that emits clicked() on mouse press — used by ObjectRefPropertyWidget.
+class ClickableLineEdit : public QLineEdit {
+    Q_OBJECT
+public:
+    explicit ClickableLineEdit(QWidget* parent = nullptr) : QLineEdit(parent) {
+        setCursor(Qt::PointingHandCursor);
+    }
+signals:
+    void clicked();
+protected:
+    void mousePressEvent(QMouseEvent* e) override {
+        emit clicked();
+        QLineEdit::mousePressEvent(e);
+    }
+};
+
 class ObjectRefPropertyWidget : public PropertyWidget<std::string> {
 public:
-    explicit ObjectRefPropertyWidget(const Properties::PropDesc& desc) {
-        edit = new QLineEdit();
-        edit->setReadOnly(true);
-        edit->setObjectName("ObjectRefEdit");
+    explicit ObjectRefPropertyWidget(const Properties::PropDesc& desc) : m_desc(desc) {
+        m_container = new QWidget();
+        m_container->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        auto* layout = new QHBoxLayout(m_container);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(4);
+
+        m_edit = new ClickableLineEdit();
+        m_edit->setReadOnly(true);
+        m_edit->setObjectName("ObjectRefEdit");
+        m_edit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        layout->addWidget(m_edit);
+
+        m_btn = new QPushButton("\u2026");  // ellipsis "…"
+        m_btn->setFixedWidth(26);
+        m_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        layout->addWidget(m_btn);
+
+        QObject::connect(m_btn, &QPushButton::clicked, [this]() { openPicker(); });
+        QObject::connect(m_edit, &ClickableLineEdit::clicked, [this]() { openPicker(); });
     }
 
-    QWidget* GetWidget() override { return edit; }
-    bool IsValid() override { return !edit.isNull(); }
+    QWidget* GetWidget() override { return m_container; }
+    bool IsValid() override { return !m_edit.isNull(); }
 
     void SetValue(const std::string& val) override {
-        if (edit.isNull()) return;
-        edit->blockSignals(true);
-        edit->setText(QString::fromStdString(val));
-        edit->blockSignals(false);
+        if (m_edit.isNull()) return;
+        m_edit->blockSignals(true);
+        m_edit->setText(QString::fromStdString(val));
+        m_edit->blockSignals(false);
     }
 
     std::string GetValue() override {
-        return edit.isNull() ? "" : edit->text().toStdString();
+        return m_edit.isNull() ? "" : m_edit->text().toStdString();
     }
 
 private:
-    QPointer<QLineEdit> edit;
+    void openPicker() {
+        auto items = buildItems();
+        auto* picker = new AssetPickerWidget(std::move(items), m_container);
+        picker->onSelected = [this](const std::string& id) {
+            SetValue(id);
+            if (onChanged) onChanged(id);
+        };
+        picker->move(m_container->mapToGlobal(m_container->rect().bottomLeft()));
+        picker->show();
+    }
+
+    std::vector<std::pair<std::string, std::string>> buildItems() {
+        std::vector<std::pair<std::string, std::string>> items;
+
+        if (m_desc.tag == Properties::Tags::MATERIAL) {
+            for (const auto& [id, mat] : SharedResources::Get().GetAllMaterials())
+                items.push_back({mat->GetName(), id});
+        } else if (m_desc.tag == Properties::Tags::SPRITE) {
+            for (const auto& [id, spr] : SharedResources::Get().GetAllSprites())
+                items.push_back({spr->GetName(), id});
+        } else {
+            // Generic OBJECT_REF — enumerate all GameObjects, optionally filtered by script class
+            auto* container = Engine::Get()->GetActiveContainer();
+            if (!container) return items;
+            auto* sm = container->FindSystem<SceneManager>();
+            if (!sm) return items;
+            for (auto* scene : sm->GetScenes()) {
+                for (auto* go : scene->GetAllGameObjects()) {
+                    if (!m_desc.refClassFilter.empty()) {
+                        auto* sc = go->GetComponent<ScriptComponent>();
+                        if (!sc || sc->GetScriptClassName() != m_desc.refClassFilter)
+                            continue;
+                    }
+                    items.push_back({go->GetName(), go->GetID()});
+                }
+            }
+        }
+
+        std::sort(items.begin(), items.end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; });
+        return items;
+    }
+
+    Properties::PropDesc m_desc;
+    QWidget* m_container = nullptr;
+    QPointer<ClickableLineEdit> m_edit;
+    QPointer<QPushButton> m_btn;
 };
 
 class DropdownPropertyWidget : public PropertyWidget<int> {

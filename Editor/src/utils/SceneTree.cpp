@@ -14,6 +14,8 @@
 #include <QSizePolicy>
 #include <QKeyEvent>
 #include <QPointer>
+#include <QMouseEvent>
+#include <QScrollBar>
 #include "utils/SceneTreeItemDelegate.hpp"
 #include <QStandardItem>
 #include <QModelIndexList>
@@ -23,7 +25,8 @@
 #include <QEvent>
 #include <stdexcept>
 
-
+#include "engine/utils/EngineUtils.hpp"
+using namespace EngineUtils;
 namespace {
 constexpr int GAMEOBJECT_ID_ROLE = Qt::UserRole + 1;
 
@@ -49,7 +52,10 @@ GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* game
     auto* item = new GameObjectItem(name.c_str());
     item->SetGameObjectId(id);
     item->setFlags(item->flags() | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
-    
+    item->setIcon(QIcon(EngineUtils::GetAssetPath("Domain/lib/assets/icons/cube.png").c_str()));
+    if (!gameObject->GetActive())
+        item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+
     QPointer<QStandardItemModel> weakModel = model;
     gameObject->Subscribe([weakModel, id](){
         if (!weakModel) return false;
@@ -71,6 +77,30 @@ GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* game
         liveItem->setText(obj->GetName().c_str());
         return true;
     }, GameObject::NAME_CHANGED_EVENT);
+
+    gameObject->Subscribe([weakModel, id](){
+        if (!weakModel) return false;
+        QString idQt = QString::fromStdString(id);
+        QModelIndexList matches = weakModel->match(
+            weakModel->index(0, 0),
+            Qt::UserRole + 1,
+            idQt,
+            1,
+            Qt::MatchExactly | Qt::MatchRecursive
+        );
+        if (matches.empty()) return false;
+
+        auto* obj = Registry::FindInRuntime<GameObject>(id);
+        if (!obj) return false;
+
+        auto* liveItem = weakModel->itemFromIndex(matches.front());
+        if (!liveItem) return false;
+        if (obj->GetActive())
+            liveItem->setFlags(liveItem->flags() | Qt::ItemIsEnabled);
+        else
+            liveItem->setFlags(liveItem->flags() & ~Qt::ItemIsEnabled);
+        return true;
+    }, GameObject::ACTIVE_CHANGED_EVENT);
 
     return item;
 }
@@ -115,7 +145,8 @@ void UnsubscribeFromContainer(Container* container, const std::string& scene_id,
 
 SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     model = new QStandardItemModel(this);
-    model->setHorizontalHeaderLabels({"Hierarchy"});
+    auto* headerItem = new QStandardItem(style()->standardIcon(QStyle::SP_DirIcon), "Hierarchy");
+    model->setHorizontalHeaderItem(0, headerItem);
     setModel(model);
     setHeaderHidden(false);
     setDragEnabled(true);
@@ -126,6 +157,7 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     setDragDropOverwriteMode(false);
 
     header()->setContextMenuPolicy(Qt::CustomContextMenu);
+
     connect(header(), &QHeaderView::customContextMenuRequested, this, [this](const QPoint& pos) {
         QMenu menu(this);
 
@@ -168,7 +200,28 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     setItemDelegate(new SceneTreeItemDelegate(this));
-    
+
+    // Floating active-toggle button (lives in the viewport, shown on hover)
+    m_activeBtn = new QToolButton(viewport());
+    m_activeBtn->setObjectName("ActiveToggleBtn");
+    m_activeBtn->setCheckable(true);
+    m_activeBtn->setFixedSize(18, 18);
+    m_activeBtn->hide();
+
+    viewport()->setMouseTracking(true);
+    viewport()->installEventFilter(this);
+
+    connect(verticalScrollBar(), &QScrollBar::valueChanged, this, [this]() {
+        m_activeBtn->hide();
+        m_hoveredGoId.clear();
+    });
+
+    connect(m_activeBtn, &QToolButton::clicked, this, [this](bool checked) {
+        if (m_hoveredGoId.empty()) return;
+        auto* go = Registry::FindInRuntime<GameObject>(m_hoveredGoId);
+        if (go) go->SetActive(checked);
+    });
+
     connect(this, &QTreeView::clicked, this, [this](const QModelIndex& index) {
             if (!index.isValid()) return;
             QString gameObjectId = index.data(Qt::UserRole + 1).toString();
@@ -199,19 +252,27 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     selectionSubscriptionId = -1;
 
     model->clear();
+    m_activeBtn->hide();
+    m_hoveredGoId.clear();
+
+    auto setHeader = [this](const QString& name) {
+        model->setHorizontalHeaderItem(0, new QStandardItem(
+            QIcon(EngineUtils::GetAssetPath("Domain/lib/assets/icons/scene_icon.png").c_str()), name));
+    };
 
     if (!scene) {
-        model->setHorizontalHeaderLabels({"Hierarchy"});
+        setHeader("Hierarchy");
         scene_id.clear();
         deleteLater();
         return;
     }
     header()->setFixedHeight(30);
 
-    model->setHorizontalHeaderLabels({scene->GetName().c_str()});
+    setHeader(scene->GetName().c_str());
     sceneNameSubscriptionId = scene->Subscribe([this](const std::any& data){
         const std::string& name = std::any_cast<std::string>(data);
-        model->setHorizontalHeaderLabels({name.c_str()});
+        model->setHorizontalHeaderItem(0, new QStandardItem(
+            style()->standardIcon(QStyle::SP_DirIcon), name.c_str()));
         return true;
     }, Scene::NAME_CHANGED_EVENT);
 
@@ -426,7 +487,46 @@ void SceneTree::ReparentItem(const std::string& childId, const std::string& newP
 }
 
 bool SceneTree::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == viewport()) {
+        if (event->type() == QEvent::MouseMove) {
+            auto* me = static_cast<QMouseEvent*>(event);
+            QModelIndex index = indexAt(me->pos());
+            if (index.isValid())
+                OnItemEntered(index);
+            else {
+                m_activeBtn->hide();
+                m_hoveredGoId.clear();
+            }
+        } else if (event->type() == QEvent::Leave) {
+            m_activeBtn->hide();
+            m_hoveredGoId.clear();
+        }
+    }
     return QTreeView::eventFilter(obj, event);
+}
+
+void SceneTree::OnItemEntered(const QModelIndex& index) {
+    QVariant idVar = index.data(Qt::UserRole + 1);
+    if (!idVar.isValid()) {
+        m_activeBtn->hide();
+        m_hoveredGoId.clear();
+        return;
+    }
+
+    m_hoveredGoId = idVar.toString().toStdString();
+    auto* go = Registry::FindInRuntime<GameObject>(m_hoveredGoId);
+
+    QRect itemRect = visualRect(index);
+    int btnSize = m_activeBtn->height();
+    m_activeBtn->move(itemRect.left() + 4,
+                      itemRect.top() + (itemRect.height() - btnSize) / 2);
+
+    m_activeBtn->blockSignals(true);
+    m_activeBtn->setChecked(go ? go->GetActive() : false);
+    m_activeBtn->blockSignals(false);
+
+    m_activeBtn->show();
+    m_activeBtn->raise();
 }
 
 void SceneTree::keyPressEvent(QKeyEvent* event) {

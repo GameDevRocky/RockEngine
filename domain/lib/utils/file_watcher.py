@@ -9,10 +9,25 @@ class _EngineFileEventHandler(FileSystemEventHandler):
         super().__init__()
         self._queue = q
 
+    def _enqueue(self, path: str) -> None:
+        normalized = os.path.normcase(os.path.abspath(path))
+        self._queue.put(normalized)
+
     def on_modified(self, event):
+        # Raised by editors that write in-place.
         if not event.is_directory:
-            normalized = os.path.normcase(os.path.abspath(event.src_path))
-            self._queue.put(normalized)
+            self._enqueue(event.src_path)
+
+    def on_created(self, event):
+        # Raised by some editors on atomic save (write temp → create dest).
+        if not event.is_directory:
+            self._enqueue(event.src_path)
+
+    def on_moved(self, event):
+        # VS Code atomic save: writes a temp file then renames it to the real path.
+        # watchdog reports this as a move event; dest_path is the actual file.
+        if not event.is_directory:
+            self._enqueue(event.dest_path)
 
 
 class FileWatcher:

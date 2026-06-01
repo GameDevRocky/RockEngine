@@ -39,6 +39,8 @@ public:
     virtual void Shutdown(){Notify(SHUTDOWN_EVENT, id);}
 
     Container* GetContainer() const { return container; }
+    bool IsMarkedForDestroy() const { return markedForDestroy; }
+    void MarkForDestroy() { markedForDestroy = true; }
     virtual void Attach(Container* container);
     virtual RuntimeObject* Copy(){ return nullptr; }
     virtual RuntimeObject* Copy(Container* container){ return nullptr; }
@@ -51,5 +53,6 @@ protected:
     InputManager* inputManager = nullptr;
     SceneManager* sceneManager = nullptr;
     State state =  State::Allocated;
+    bool markedForDestroy = false;
 
 };

@@ -8,6 +8,7 @@
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ScriptComponent.hpp"
 #include "engine/core/LayerManager.hpp"
+#include "engine/core/TagManager.hpp"
 #include "Engine.hpp"
 
 using namespace Properties;
@@ -24,7 +25,28 @@ InspectorVisitor::InspectorVisitor(){
 
 void InspectorVisitor::Visit(GameObject* obj){
     
+
+    TagManager* tagManager = Engine::Get()->GetActiveContainer()->FindSystem<TagManager>();
     
+        std::vector<std::pair<std::string, std::any>> tagOptions;
+        const auto& allTags = tagManager->GetTags();
+        for (int i = 0; i < static_cast<int>(allTags.size()); ++i)
+            tagOptions.push_back({ allTags[i], i });
+
+        auto tag_get = [=]() -> int {
+            const auto& t = tagManager->GetTags();
+            auto it = std::find(t.begin(), t.end(), obj->GetTag());
+            return it != t.end() ? static_cast<int>(it - t.begin()) : 0;
+        };
+        auto tag_set = [=](int idx) {
+            const auto& t = tagManager->GetTags();
+            if (idx >= 0 && idx < static_cast<int>(t.size()))
+                obj->SetTag(t[idx]);
+        };
+
+        BindProperty<int>(obj, "Tag: ", tag_get, tag_set,
+            obj->TAG_CHANGED_EVENT,
+            PropDesc().Tag(Tags::DROPDOWN).DropVals(tagOptions));
 }
 
 void InspectorVisitor::Visit(Transform* transform){
@@ -343,8 +365,21 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [sc, name = field.name](std::string v) {
                 sc->SetFieldValue(name, v);
             };
+
+            // Build PropDesc based on optional ref type declared in the Python annotation
+            PropDesc strDesc;
+            if (field.refTypeName == "material") {
+                strDesc = PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF);
+            } else if (field.refTypeName == "sprite") {
+                strDesc = PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF);
+            } else if (field.refTypeName.rfind("gameobject:", 0) == 0) {
+                std::string cls = field.refTypeName.substr(std::string("gameobject:").size());
+                strDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).RefClass(cls);
+            }
+            // else: plain string — PropDesc defaults produce a StringPropertyWidget
+
             BindProperty<std::string>(sc, label, getter, setter, field.changeEvent,
-                PropDesc(), initial);
+                strDesc, initial);
         }
         else if (field.typeName == "vec2") {
             glm::vec2 initial = (it != allValues.end() && std::holds_alternative<glm::vec2>(it->second))

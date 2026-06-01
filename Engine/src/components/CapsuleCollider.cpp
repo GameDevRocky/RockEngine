@@ -81,6 +81,8 @@ void CapsuleCollider::CreateShape(){
     definition.density = density;
     definition.filter = filter;
     definition.isSensor = isSensor;
+    definition.enableContactEvents = true;
+    definition.enableSensorEvents = true;
 
     glm::vec2 worldScale = transform->GetWorldScale();
     glm::vec2 scaledSize = glm::vec2(radius, height) * glm::abs(worldScale);  // Use absolute scale for physics

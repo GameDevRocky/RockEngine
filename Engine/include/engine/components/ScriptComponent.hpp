@@ -20,7 +20,8 @@ using ScriptFieldValue = std::variant<float, int, bool, std::string, glm::vec2, 
 
 struct ScriptFieldInfo {
     std::string name;
-    std::string typeName;   // "float", "int", "bool", "str", "vec2"
+    std::string typeName;      // "float", "int", "bool", "str", "vec2", "vec3", "vec4"
+    std::string refTypeName;   // For str fields: "material", "sprite", "gameobject:<ClassName>" (empty = plain string)
     float min = -std::numeric_limits<float>::max();
     float max =  std::numeric_limits<float>::max();
     float step = 0.1f;
@@ -56,12 +57,14 @@ public:
     ScriptComponent* Copy() override;
 
     std::string GetTypeName() const override { return "ScriptComponent"; }
+    std::string GetScriptClassName() const { return className; }
 
     // Exposed field introspection API (no pybind11 types in interface)
     const std::vector<ScriptFieldInfo>& GetFields() const { return m_fields; }
     ScriptFieldValue GetFieldValue(const std::string& name);
     std::map<std::string, ScriptFieldValue> GetAllFieldValues();
     void SetFieldValue(const std::string& name, const ScriptFieldValue& value);
+    void ApplyHotReload();
 
     ScriptComponent();
     ~ScriptComponent() override;
@@ -81,6 +84,5 @@ private:
     std::vector<ScriptFieldInfo> m_fields;
     std::map<std::string, YAML::Node> m_pendingFieldValues;
 
-    void ApplyHotReload();
-
+    
 };

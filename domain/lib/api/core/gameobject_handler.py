@@ -15,6 +15,14 @@ class GameObject:
         self._comp_cache = {}
 
     @property
+    def tag(self):
+        return gameobject_module.get_tag(self.id)
+
+    @tag.setter
+    def tag(self, val):
+        gameobject_module.set_tag(self.id, str(val))
+
+    @property
     def active(self):
         return gameobject_module.get_active(self.id)
 
@@ -52,3 +60,7 @@ class GameObject:
         comp = cls(self.id)
         self._comp_cache[cls] = comp
         return comp
+    
+    def destroy(self):
+        _GO_REGISTRY.pop(self.id, None)
+        gameobject_module.shut_down(self.id)

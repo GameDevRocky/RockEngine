@@ -5,6 +5,11 @@
 #include "engine/components/Transform.hpp"
 #include "engine/debug/Console.hpp"
 #include "engine/core/Scene.hpp"
+#include "engine/utils/IVisitor.hpp"
+
+void GameObject::Accept(IVisitor* v) {
+    v->Visit(this);
+}
 
 void GameObject::AddComponent(Component* comp) {
     if(!comp) return;
@@ -26,6 +31,10 @@ void GameObject::AddComponent(Component* comp) {
 void GameObject::Deserialize(const YAML::Node& node) {
     Serializable::Deserialize(node);
     name = node["name"].as<std::string>();
+    if (node["tag"]) {
+        tag = node["tag"].as<std::string>("Untagged");
+        if (tag.empty()) tag = "Untagged";
+    };
     if (node["component_ids"] && node["component_ids"].IsMap()) {
         for (auto pair : node["component_ids"]) {
             std::string typeName = pair.first.as<std::string>();
@@ -55,6 +64,7 @@ Transform* GameObject::GetTransform(){
 
 std::vector<Component*> GameObject::GetAllComponents(){
     std::vector<Component*> result;
+    result.reserve(component_ids.size());
     Registry* registry = container->FindSystem<Registry>();
     for (auto& [type, id] : component_ids ){
         auto* comp = registry->Find<Component>(id);
@@ -181,7 +191,21 @@ void GameObject::SetActive(bool active){
         comp->SetEnabled(active);
     }
 
+    Transform* t = GetTransform();
+    if (t) {
+        for (Transform* child : t->GetChildren()) {
+            if (!child) continue;
+            GameObject* childGo = child->GetGameObject();
+            if (childGo) childGo->SetActive(active);
+        }
+    }
+
     if (notify) Notify(GameObject::ACTIVE_CHANGED_EVENT, active); 
+}
+void GameObject::SetTag(const std::string& newTag){
+    if (this->tag == newTag) return;
+    this->tag = newTag;
+    Notify(GameObject::TAG_CHANGED_EVENT, newTag);
 }
 void GameObject::SetName(const std::string& name){
     bool notify = false;
@@ -192,6 +216,15 @@ void GameObject::SetName(const std::string& name){
     if (notify) Notify(GameObject::NAME_CHANGED_EVENT, name); 
 }
 void GameObject::Shutdown(){
+    // Bottom-up: shut down children before self so hierarchy is always
+    // cleaned leaf-first regardless of how Shutdown() is triggered.
+    if (Transform* t = GetTransform()) {
+        for (Transform* child : t->GetChildren()) {
+            if (GameObject* childGo = child->GetGameObject())
+                childGo->Shutdown();
+        }
+    }
+
     auto ids = component_ids;
     for (auto& [type, id] : ids) {
         Component* comp = registry->Find<Component>(id);
@@ -208,6 +241,7 @@ GameObject* GameObject::Copy(){
     copy->name = name;
     copy->subscribers = subscribers;
     copy->active = active;
+    copy->tag = tag;
     copy->component_ids = component_ids;
     copy->transform_id = transform_id;
     copy->scene_id = scene_id;

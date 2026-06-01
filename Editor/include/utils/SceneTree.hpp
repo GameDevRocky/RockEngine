@@ -12,6 +12,7 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QMenu>
+#include <QToolButton>
 #include "engine/core/Scene.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "Engine.hpp"
@@ -44,7 +45,9 @@ class SceneTree : public QTreeView{
 
     private:
         QModelIndex FindItemById(const std::string& id) const;
-        void OnObjectSelected(const std::string& selectedId);        
+        void OnObjectSelected(const std::string& selectedId);
+        void OnItemEntered(const QModelIndex& index);
+
         std::string scene_id;
         QStandardItemModel* model = nullptr;
         bool handlingDrop = false;
@@ -53,6 +56,8 @@ class SceneTree : public QTreeView{
         int sceneNameSubscriptionId = -1;
         int sceneAddedSubscriptionId = -1;
 
+        QToolButton* m_activeBtn = nullptr;
+        std::string m_hoveredGoId;
 
         Proxy<SceneManager> sceneManager;
         Proxy<Registry> registry;

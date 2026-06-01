@@ -11,6 +11,7 @@ void SelectionManager::Init()
 
 void SelectionManager::Shutdown()
 {
+    m_shutdownSubId = -1;
     selectedObjectId.clear();
 }
 
@@ -39,7 +40,14 @@ GameObject* SelectionManager::GetGameObject(){
 void SelectionManager::Select(const std::string& objectId)
 {
     if (selectedObjectId == objectId) return;
-    
+
+    // Unsubscribe from the previously selected object's shutdown event
+    if (m_shutdownSubId != -1) {
+        auto* prevObj = registry->Find<GameObject>(selectedObjectId);
+        if (prevObj) prevObj->Unsubscribe(m_shutdownSubId);
+        m_shutdownSubId = -1;
+    }
+
     selectedObjectId = objectId;
     auto* obj = registry->Find<GameObject>(selectedObjectId);  
     if (!obj){
@@ -47,10 +55,12 @@ void SelectionManager::Select(const std::string& objectId)
         return;
     }
 
-    obj->Subscribe([](std::any data){
+    // Return false so the callback auto-removes itself on fire,
+    // avoiding a re-entrant Unsubscribe during SHUTDOWN_EVENT iteration.
+    m_shutdownSubId = obj->Subscribe([](std::any data){
         auto* sm = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
         sm->Deselect();
-        return true;
+        return false;
     }, RuntimeObject::SHUTDOWN_EVENT);
 
     Notify(SELECTION_CHANGED_EVENT, selectedObjectId);
@@ -59,7 +69,13 @@ void SelectionManager::Select(const std::string& objectId)
 void SelectionManager::Deselect()
 {
     if (selectedObjectId.empty()) return;
-    
+
+    if (m_shutdownSubId != -1) {
+        auto* obj = registry->Find<GameObject>(selectedObjectId);
+        if (obj) obj->Unsubscribe(m_shutdownSubId);
+        m_shutdownSubId = -1;
+    }
+
     selectedObjectId.clear();
     Notify(SELECTION_CHANGED_EVENT, selectedObjectId);
 }

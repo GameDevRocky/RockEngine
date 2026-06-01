@@ -157,4 +157,21 @@ void BindSpriteRenderer(pybind11::module_& m) {
         }
     });
 
+    sprite_renderer_module.def("set_visible", [](const std::string& id, bool val) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* renderer = go->GetComponent<SpriteRenderer>())
+                renderer->SetVisible(val);
+        }
+    });
+
+    sprite_renderer_module.def("get_visible", [](const std::string& id) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* renderer = go->GetComponent<SpriteRenderer>())
+                return renderer->GetVisible();
+        }
+        return true;
+    });
+
 }

@@ -221,7 +221,6 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
 
 std::vector<Transform*> Transform::GetChildren() {
     std::vector<Transform*> result;
-    result.reserve(children_ids.size());
 
     if (!registry) {
         Console::Alert("Transform::GetChildren called but registry is null (not initialized?)");

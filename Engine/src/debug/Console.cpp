@@ -12,9 +12,11 @@ void Console::CreateMessage(std::string text, std::string type, const std::sourc
     
     std::string full_path = loc.file_name();
     std::filesystem::path path(full_path);
-    std::string path_str = path.generic_string();    
-    size_t pos = path_str.find("src/");
-    std::string file_name = (pos == std::string::npos) ? path_str : path_str.substr(pos);
+    std::string path_str = path.generic_string();
+    std::string root = std::string(PROJECT_ROOT) + "/";
+    std::string file_name = (path_str.find(root) == 0)
+        ? path_str.substr(root.length())
+        : path_str;
 
     int line = loc.line();
     std::string function = loc.function_name();

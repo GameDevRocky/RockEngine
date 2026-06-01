@@ -79,10 +79,14 @@ class GameObject : public RuntimeObject {
     
     Transform* GetTransform();
     std::string GetTypeName() override {return "GameObject";}
+    void Accept(IVisitor* v) override;
     void SetName(const std::string& name);
     std::string GetName() {return name;}
     void SetActive(bool val);
     bool GetActive(){return active;}
+
+    void SetTag(const std::string& tag);
+    const std::string& GetTag() const { return tag; }
 
     void SetScene(Scene* scene);
     Scene* GetScene();
@@ -109,8 +113,8 @@ class GameObject : public RuntimeObject {
 
     private:
     bool active = true;
+    std::string tag = "Untagged";
     std::map<std::string, std::string> component_ids;
     std::string transform_id;
-    std::string scene_id;
-    
+    std::string scene_id;    
 };

@@ -31,6 +31,9 @@ public:
     Material* GetMaterialByName(const std::string& name);
     Sprite* GetSpriteByName(const std::string& name);
 
+    const std::unordered_map<std::string, Material*>& GetAllMaterials() const { return materials; }
+    const std::unordered_map<std::string, Sprite*>& GetAllSprites() const { return sprites; }
+
     void AddShader(Shader* shader);
     void AddTexture(Texture2D* texture);
     void AddMaterial(Material* material);

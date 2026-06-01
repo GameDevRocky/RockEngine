@@ -53,17 +53,22 @@ void OpenInVSCode(const std::string& fullPath)
     }
 
     QString qPath = QString::fromStdString(pathOnly);
+    QString codeCmd = "C:/Users/rockl/AppData/Local/Programs/Microsoft VS Code/bin/code.cmd";
 
-    QStringList args;
-    if (lineNumber > 0) {
-        args << "--goto" << QString("%1:%2").arg(qPath).arg(lineNumber);
-    } else {
-        args << qPath;
-    }
+    QString gotoArg = lineNumber > 0
+        ? QString("%1:%2").arg(qPath).arg(lineNumber)
+        : qPath;
 
-    // Full path to VS Code exe (adjust if installed somewhere else)
-    QString codeExe = "C:/Users/rockl/AppData/Local/Programs/Microsoft VS Code/Code.exe";
-    QProcess::startDetached(codeExe, args);
+    // Use setNativeArguments to bypass Qt's quoting so cmd.exe receives
+    // the correct /S /C ""path with spaces\code.cmd" -g "file:line"" form.
+    QString nativeArgs = QString("/S /C \"\"%1\" -g \"%2\"\"")
+        .arg(codeCmd)
+        .arg(gotoArg);
+
+    QProcess proc;
+    proc.setProgram("cmd.exe");
+    proc.setNativeArguments(nativeArgs);
+    proc.startDetached();
 }
 
 

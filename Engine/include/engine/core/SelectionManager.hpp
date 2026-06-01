@@ -29,4 +29,5 @@ public:
 private:
     Registry* registry = nullptr;
     std::string selectedObjectId;
+    int m_shutdownSubId = -1;
 };

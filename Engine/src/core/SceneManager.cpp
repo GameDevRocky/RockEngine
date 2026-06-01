@@ -80,6 +80,8 @@ void SceneManager::Update() {
         if (!scene) continue;
         scene->LateUpdate();
     }
+
+    registry->FlushPendingShutdowns();
 }
 
 

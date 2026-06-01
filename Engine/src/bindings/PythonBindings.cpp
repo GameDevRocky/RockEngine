@@ -10,6 +10,7 @@ Proxy<PhysicsSystem> physicsSystem;
 Proxy<Registry> registry;
 Proxy<InputManager> inputManager;
 Proxy<TimeManager> timeManager;
+Proxy<TagManager> tagManager;
 
 namespace py = pybind11;
 

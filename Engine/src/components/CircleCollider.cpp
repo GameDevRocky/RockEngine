@@ -96,6 +96,8 @@ void CircleCollider::CreateShape(){
     definition.density = density;
     definition.filter = filter;
     definition.isSensor = isSensor;
+    definition.enableContactEvents = true;
+    definition.enableSensorEvents = true;
 
     glm::vec2 worldScale = transform->GetWorldScale();
     float averageScale = std::max(std::abs(worldScale.x), std::abs(worldScale.y));  // Use absolute scale for physics

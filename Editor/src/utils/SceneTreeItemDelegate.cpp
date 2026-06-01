@@ -7,8 +7,15 @@ SceneTreeItemDelegate::SceneTreeItemDelegate(QObject* parent)
 
 QSize SceneTreeItemDelegate::sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const {
     QSize sz = QStyledItemDelegate::sizeHint(option, index);
-    sz.setHeight(24); 
+    sz.setHeight(24);
     return sz;
+}
+
+void SceneTreeItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
+    QStyleOptionViewItem opt = option;
+    initStyleOption(&opt, index);
+    opt.rect.setLeft(option.rect.left() + LEFT_MARGIN);
+    QStyledItemDelegate::paint(painter, opt, index);
 }
 
 void SceneTreeItemDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const {

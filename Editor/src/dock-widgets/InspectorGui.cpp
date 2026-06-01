@@ -78,7 +78,6 @@ void InspectorGui::SubscribeToSelector(){
 
 void InspectorGui::OnObjectSelected(const std::string& id)
 {
-    // Unsubscribe previous script-reload listeners
     for (auto& [compId, subId] : m_scriptReloadSubs) {
         auto* sc = Registry::FindInRuntime<ScriptComponent>(compId);
         if (sc) sc->Unsubscribe(subId);
@@ -99,29 +98,26 @@ void InspectorGui::OnObjectSelected(const std::string& id)
     contentLayout->setContentsMargins(0, 0, 0, 0);
     contentLayout->setAlignment(Qt::AlignTop);
 
-    InspectorVisitor* visitor = new InspectorVisitor();
+    InspectorVisitor visitor;
     ObjectHeader* objectHeader = new ObjectHeader();
-    obj->Accept(visitor);
+    obj->Accept(&visitor);
     objectHeader->Bind(obj->GetID());
-    auto* content = visitor->GetContent();
+    auto* content = visitor.GetContent();
     if (content){
         objectHeader->AddWidget(content);
     }
     contentLayout->addWidget(objectHeader);
-    delete visitor;
 
     for (auto* comp : obj->GetAllComponents()){
-        InspectorVisitor* visitor = new InspectorVisitor();
-        comp->Accept(visitor);
-        content = visitor->GetContent();
-        if (!visitor->HasContent()) continue;
+        InspectorVisitor compVisitor;
+        comp->Accept(&compVisitor);
+        if (!compVisitor.HasContent()) continue;
+        content = compVisitor.GetContent();
         ComponentHeader* compWidget = new ComponentHeader(comp->GetTypeName());
         compWidget->Bind(comp->GetID());
         compWidget->AddWidget(content);
         contentLayout->addWidget(compWidget);
-        delete visitor;
 
-        // Subscribe to hot-reload event so the inspector rebuilds when the script changes
         if (auto* sc = dynamic_cast<ScriptComponent*>(comp)) {
             std::string capturedId = id;
             int subId = sc->Subscribe([this, capturedId](std::any) {

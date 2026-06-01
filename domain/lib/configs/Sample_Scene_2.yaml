@@ -62,7 +62,7 @@ components:
     enabled: true
     type: "SpriteRenderer"
     gameobject: "o22"
-    material_id: "m2"
+    material_id: "m1"
     sprite_id: "sprite1"
     color: [1, 1, 1, 1]
     uvOffset: [0.0, 0.0]
@@ -106,7 +106,7 @@ components:
     enabled: true
     type: "SpriteRenderer"
     gameobject: "o23"
-    material_id: "m2"
+    material_id: "m1"
     sprite_id: "sprite1"
     color: [1, 1, 1, 1]
     uvOffset: [0.0, 0.0]
@@ -145,7 +145,8 @@ components:
 gameobjects:
   - id: "o21"
     type: "GameObject"
-    name: "Player_Beta"
+    name: "Player"
+    tag: "Player"
     isRootObject: true
     component_ids:
       Transform: "t21"
@@ -157,6 +158,7 @@ gameobjects:
   - id: "o22"
     type: "GameObject"
     name: "Floor_Long"
+    tag: ""
     isRootObject: true
     component_ids:
       Transform: "t22"
@@ -168,6 +170,7 @@ gameobjects:
   - id: "o23"
     type: "GameObject"
     name: "Crate_Scripted"
+    tag: ""
     isRootObject: true
     component_ids:
       Transform: "t23"
