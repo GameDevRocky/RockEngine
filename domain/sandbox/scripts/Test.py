@@ -20,6 +20,8 @@ class TestScript(ScriptableComponent):
 
     def awake(self):
         self.grounded = False
+        
+    def generate(self):
         for i in range(100):
             new_obj = self.instantiate("Ball")
             sr = new_obj.add_component(SpriteRenderer)
@@ -32,12 +34,14 @@ class TestScript(ScriptableComponent):
             cc.density = 10
             new_obj.active = False
             self.inactive_pool.add(new_obj)
+            yield WaitForSeconds(0.5)
 
     def start(self):
         self.rb = self.get_component(Rigidbody)
         self.rb.enabled = False
         self.sprite_renderer = self.get_component(SpriteRenderer)
         self.gameobject.tag = "Enemy"
+        self.start_coroutine(self.generate())
 
     def fixed_update(self):
         self.sprite_renderer.color = (1,1,1,1)

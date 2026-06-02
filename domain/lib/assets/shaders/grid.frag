@@ -3,18 +3,17 @@
 in vec2 WorldPos;
 out vec4 FragColor;
 
-uniform float uZoom;      
+uniform float uPixelsPerWorldUnit;  // Screen pixels per world unit at current zoom
 uniform float uTime;      
 const int MAX_LEVELS = 13; 
 
-const float BASE_SPACING = 32.0f;  // 1 world unit = 32 pixels (PixelsPerUnit)
+const float BASE_SPACING = 64.0f;  // 1 world unit = 32 pixels (PixelsPerUnit)
 const int MAJOR_SKIP = 2;        
-const vec3 uMinorColor = vec3(1.0f);
-const vec3 uMajorColor = vec3(1.0f);
-const vec3 uBackground = vec3(1.01f); 
+const vec3 uMinorColor = vec3(0.25f);
+const vec3 uMajorColor = vec3(0.5f);
 
-const float FADE_IN_PIXELS  = 2.0;   
-const float HIDE_PIXELS     = 30.0; 
+const float FADE_IN_PIXELS  = 1.5;   
+const float HIDE_PIXELS     = 15.0; 
 const float FADE_OUT_PIXELS = 10.0; 
 
 
@@ -39,7 +38,7 @@ void main()
     for (int i = 0; i < MAX_LEVELS; i++)
     {
         float spacing = BASE_SPACING * pow(2.0, float(i));
-        float pixelsPerCell = spacing * uZoom * 0.01;
+        float pixelsPerCell = spacing * uPixelsPerWorldUnit;
 
         if (pixelsPerCell > HIDE_PIXELS) break;
 

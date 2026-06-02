@@ -178,19 +178,18 @@ void HierarchyGui::RefreshHierarchy() {
 
 void HierarchyGui::dragEnterEvent(QDragEnterEvent* event) {
     if (event->mimeData()->hasUrls()) {
-        bool hasYamlFile = false;
+        bool hassceneFile = false;
         for (const QUrl& url : event->mimeData()->urls()) {
             if (url.isLocalFile()) {
                 QString filePath = url.toLocalFile();
-                if (filePath.endsWith(".yaml", Qt::CaseInsensitive) || 
-                    filePath.endsWith(".yml", Qt::CaseInsensitive)) {
-                    hasYamlFile = true;
+                if (filePath.endsWith(".scene", Qt::CaseInsensitive)){
+                    hassceneFile = true;
                     break;
                 }
             }
         }
         
-        if (hasYamlFile) {
+        if (hassceneFile) {
             event->acceptProposedAction();
             return;
         }
@@ -200,19 +199,19 @@ void HierarchyGui::dragEnterEvent(QDragEnterEvent* event) {
 
 void HierarchyGui::dragMoveEvent(QDragMoveEvent* event) {
     if (event->mimeData()->hasUrls()) {
-        bool hasYamlFile = false;
+        bool hassceneFile = false;
         for (const QUrl& url : event->mimeData()->urls()) {
             if (url.isLocalFile()) {
                 QString filePath = url.toLocalFile();
-                if (filePath.endsWith(".yaml", Qt::CaseInsensitive) || 
+                if (filePath.endsWith(".scene", Qt::CaseInsensitive) || 
                     filePath.endsWith(".yml", Qt::CaseInsensitive)) {
-                    hasYamlFile = true;
+                    hassceneFile = true;
                     break;
                 }
             }
         }
         
-        if (hasYamlFile) {
+        if (hassceneFile) {
             event->acceptProposedAction();
             return;
         }
@@ -234,7 +233,7 @@ void HierarchyGui::dropEvent(QDropEvent* event) {
             
         QString filePath = url.toLocalFile();
         
-        if (!filePath.endsWith(".yaml", Qt::CaseInsensitive) && 
+        if (!filePath.endsWith(".scene", Qt::CaseInsensitive) && 
             !filePath.endsWith(".yml", Qt::CaseInsensitive))
             continue;
         

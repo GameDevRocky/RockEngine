@@ -20,7 +20,7 @@
 #include "engine/core/TimeManager.hpp"
 #include "utils/IconMaps.h" 
 
-#define RESOURCES_CONFIG_PATH PROJECT_ROOT "/Domain/lib/configs/resources_config.yaml"
+#define RESOURCES_CONFIG_PATH PROJECT_ROOT "/Domain/lib/configs/resources_config.config"
 
 namespace {
     void DrawFPS(){

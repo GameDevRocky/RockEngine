@@ -4,7 +4,7 @@
 #include "yaml-cpp/yaml.h"
 #include <algorithm>
 
-static constexpr const char* CONFIG_PATH = "Domain/lib/configs/TagConfig.yaml";
+static constexpr const char* CONFIG_PATH = "Domain/lib/configs/TagConfig.config";
 
 void TagManager::Init()
 {

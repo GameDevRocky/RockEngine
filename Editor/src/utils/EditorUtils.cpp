@@ -16,6 +16,13 @@ QIcon CustomIconProvider::icon(const QFileInfo &info) const {
     if (info.isDir()) {
         return QIcon("Domain/lib/assets/icons/folder_icon.png");
     } 
+
+    else if (info.suffix() == "scene"){
+        return QIcon("Domain/lib/assets/icons/scene_icon.png");
+    }
+    else if (info.suffix() == "config"){
+        return QIcon("Domain/lib/assets/icons/config_icon.png");
+    }
     else if (name.startsWith("Cmake",  Qt::CaseInsensitive)){
         return QIcon("Domain/lib/assets/icons/cmake_icon.png");
     }   

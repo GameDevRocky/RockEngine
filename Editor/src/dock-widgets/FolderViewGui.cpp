@@ -13,7 +13,6 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
-    // Create navigation bar (fixed height)
     QWidget* navBar = new QWidget(this);
     navBar->setFixedHeight(36);
     navBar->setStyleSheet("background-color: #2d2d2d; border-bottom: 1px solid #454545;");
@@ -21,7 +20,6 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     navLayout->setContentsMargins(1,1,1,1);
     navLayout->setSpacing(4);
 
-    // Back button with arrow
     backButton = new QPushButton("◀", this);
     backButton->setFixedSize(28, 28);
     backButton->setFlat(true);
@@ -40,7 +38,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     model = new QFileSystemModel(this);
     model->setRootPath(projectDirectory);
     model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
-    //model->setIconProvider(new EditorUtils::CustomIconProvider());
+    model->setIconProvider(new EditorUtils::CustomIconProvider());
     gridView = new QListView(this);
     gridView->setModel(model);
     gridView->setViewMode(QListView::IconMode);

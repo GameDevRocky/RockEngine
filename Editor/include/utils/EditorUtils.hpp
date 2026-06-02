@@ -12,27 +12,19 @@
 
 namespace EditorUtils {
 
-// Custom icon provider for file system items
 class CustomIconProvider : public QFileIconProvider {
 public:
     QIcon icon(const QFileInfo &info) const override;
 };
 
-// Open a file in VSCode
 void OpenInVSCode(const std::string& fullPath);
 
-// -----------------------------
-// ClickableLabel Declaration
-// -----------------------------
 class ClickableLabel : public QLabel {
     Q_OBJECT
 
 public:
     explicit ClickableLabel(QWidget* parent = nullptr) : QLabel(parent) {
-        // Cursor for hover
         setCursor(Qt::PointingHandCursor);
-
-        // Enable mouse tracking so hover events work
         setMouseTracking(true);
     }
     void enterEvent(QEnterEvent* event) override {

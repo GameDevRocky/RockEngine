@@ -437,7 +437,9 @@ private:
             SetValue(id);
             if (onChanged) onChanged(id);
         };
-        picker->move(m_container->mapToGlobal(m_container->rect().bottomLeft()));
+        auto pos = m_container->rect().topLeft();
+        pos.setX(pos.x() - picker->width());
+        picker->move(m_container->mapToGlobal(pos));
         picker->show();
     }
 

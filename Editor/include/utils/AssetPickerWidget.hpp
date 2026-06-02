@@ -9,8 +9,6 @@
 #include <QListWidget>
 #include <QKeyEvent>
 
-// Qt::Popup floating picker — dismissed on outside-click (matches color picker pattern).
-// Items are (displayName, id) pairs. On selection, onSelected(id) is called.
 class AssetPickerWidget : public QWidget {
     Q_OBJECT
 public:
@@ -20,7 +18,7 @@ public:
         : QWidget(parent, Qt::Popup), m_allItems(std::move(items))
     {
         setAttribute(Qt::WA_DeleteOnClose);
-        setMinimumWidth(260);
+        setMinimumWidth(320);
 
         auto* layout = new QVBoxLayout(this);
         layout->setContentsMargins(4, 4, 4, 4);

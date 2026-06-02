@@ -6,12 +6,31 @@
       "name": "Qt-Debug",
       "inherits": "Qt-Default",
       "binaryDir": "${sourceDir}/out/build/debug",
+      "generator": "Visual Studio 18 2026",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_CXX_FLAGS": "-DQT_QML_DEBUG"
       },
       "environment": {
         "QML_DEBUG_ARGS": "-qmljsdebugger=file:{68a8bd52-43e3-4477-9c4e-3cb5af7c76e7},block"
+      }
+    },
+    {
+      "hidden": false,
+      "name": "Qt-Debug-VS",
+      "binaryDir": "${sourceDir}/out/build/debug",
+      "generator": "Visual Studio 18 2026",
+      "architecture": {
+        "strategy": "external",
+        "value": "x64"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_PREFIX_PATH": "C:/Qt/6.11.0/msvc2022_64",
+        "CMAKE_CXX_FLAGS": "-DQT_QML_DEBUG"
+      },
+      "environment": {
+        "QTDIR": "C:/Qt/6.11.0/msvc2022_64"
       }
     },
     {

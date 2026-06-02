@@ -4,7 +4,7 @@
 #include "yaml-cpp/yaml.h"
 #include <algorithm>
 
-static constexpr const char* CONFIG_PATH = "Domain/lib/configs/SortingLayerConfig.yaml";
+static constexpr const char* CONFIG_PATH = "Domain/lib/configs/SortingLayerConfig.config";
 
 void LayerManager::Init()
 {

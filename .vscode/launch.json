@@ -24,6 +24,7 @@
                 }
             ],
             "console": "integratedTerminal",
+            "enableEditAndContinue": true,
             "visualizerFile": "${workspaceFolder}/.vscode/qt6.natvis",
             "showDisplayString": true
         }
