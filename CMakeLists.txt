@@ -58,7 +58,7 @@ if(MSVC)
     add_custom_command(TARGET RockEngineLauncher POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E env PATH="${_qt_bin_dir}" 
                 "${WINDEPLOY_PATH}"  
-                --debug 
+                --debug  
                 --no-compiler-runtime 
                 --no-translations
                 "$<TARGET_FILE:RockEngineLauncher>"

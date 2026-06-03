@@ -451,7 +451,7 @@ void SceneViewGui::DrawToolBar() {
                              (gizmos->GetEditMode() == GizmosManager::EditMode::Transform);
             
             if (is_active) {
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.40f, 0.58f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.26f, 0.58f, 0.26, 1.0f));
             } else {
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             }

@@ -5,8 +5,7 @@
 
 
 void Material::Deserialize(const YAML::Node& node) {
-    Serializable::Deserialize(node);
-    if (node["name"]) name = node["name"].as<std::string>();
+    Resource::Deserialize(node);
     if (node["shader_id"]) shader_id = node["shader_id"].as<std::string>();
 
     const YAML::Node& uniforms = node["uniforms"];
@@ -80,11 +79,6 @@ void Material::Validate() {
     prune(texUniforms,   GL_SAMPLER_2D);
 }
 
-
-void Material::SetName(std::string& name){
-    this->name = name; 
-    Notify(NAME_CHANGED_EVENT);
-}
 void Material::SetShader(std::string& id){
     Shader* shader = SharedResources::Get().GetShader(id);
     if (shader){

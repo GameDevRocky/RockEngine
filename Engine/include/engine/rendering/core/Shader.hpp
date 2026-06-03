@@ -18,7 +18,6 @@ public:
     void Unbind() const;
 
     std::string GetTypeName() {return "Shader";};
-    std::string GetName() {return name;};
 
     void SetInt(const std::string& name, int value) const;
     void SetFloat(const std::string& name, float value) const;

@@ -29,7 +29,6 @@ public:
     void ApplySettings() const;
 
     std::string GetTypeName() {return "Texture2D";};
-    std::string GetName() {return name;};
 
     int GetWidth() const { return width; }
     int GetHeight() const { return height; }
@@ -47,7 +46,6 @@ private:
     int height = 0;
     int channels = 0;
     std::string path;
-    std::string name;
     TextureFilter filter = TextureFilter::Linear;
     TextureWrap wrap = TextureWrap::Clamp;
 };

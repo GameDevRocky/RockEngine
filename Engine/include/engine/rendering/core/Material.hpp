@@ -13,7 +13,6 @@ using UniformValue = std::variant<float, glm::vec2, glm::vec3, glm::vec4, std::s
 class Material : public Resource
 {
 public:
-    static inline const Event NAME_CHANGED_EVENT = Material::CreateEvent();
     static inline const Event SHADER_CHANGED_EVENT = Material::CreateEvent();
     static inline const Event UNIFORM_CHANGED_EVENT = Material::CreateEvent();
 
@@ -24,9 +23,6 @@ public:
     void Awake() override;
 
     std::string GetTypeName() override {return "Material";};
-    
-    void SetName(std::string& n);
-    std::string GetName() {return name;};
 
 
     void SetShader(std::string& id);

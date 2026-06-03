@@ -15,7 +15,7 @@ FileExplorerGui::FileExplorerGui(QWidget *parent)
     model = new QFileSystemModel(this);
     model->setRootPath(""); // will be set later
     model->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-    //model->setIconProvider(new EditorUtils::CustomIconProvider());
+    model->setIconProvider(new EditorUtils::CustomIconProvider());
     
     
     tree = new QTreeView(this);

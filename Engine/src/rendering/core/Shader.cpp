@@ -14,11 +14,9 @@ Shader::~Shader()
 
 
 void Shader::Deserialize(const YAML::Node& node) {
-    Serializable::Deserialize(node);
-
+    Resource::Deserialize(node);
     vert_path = GetAssetPath(node["vert_path"].as<std::string>());
     frag_path = GetAssetPath(node["frag_path"].as<std::string>());
-    name = node["name"].as<std::string>();
     vert_src = EngineUtils::ReadShader(vert_path);
     frag_src = EngineUtils::ReadShader(frag_path);
     GLuint vertex = CompileShader(GL_VERTEX_SHADER, vert_src);

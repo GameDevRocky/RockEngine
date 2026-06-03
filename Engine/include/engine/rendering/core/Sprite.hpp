@@ -24,7 +24,6 @@ public:
     void Awake() override; 
 
     std::string GetTypeName() override {return "Sprite";};
-    std::string GetName() {return name;}
 
     glm::vec2 GetUVMin() {return uvMin;}
     glm::vec2 GetUVMax() {return uvMax;}

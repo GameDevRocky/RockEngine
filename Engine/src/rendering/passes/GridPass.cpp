@@ -35,8 +35,6 @@ void GridPass::Execute(RenderCamera* camera, Scene* scene){
         shader->SetMat4("uProj", camera->GetProjectionMatrix());
         TimeManager* timeManager = Engine::Get()->GetActiveContainer()->FindSystem<TimeManager>();
         shader->SetFloat("uTime", timeManager->ElapsedTime());
-        
-        // Calculate pixels per world unit for accurate grid scaling
         float zoom = camera->GetZoom();
         float orthoSize = camera->GetOrthoSize();
         float pixelsPerWorldUnit = (viewportHeight * zoom / (2.0f * orthoSize)) * 0.01f;

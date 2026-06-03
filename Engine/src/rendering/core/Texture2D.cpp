@@ -57,8 +57,7 @@ void Texture2D::Awake(){
 }
 
 void Texture2D::Deserialize(const YAML::Node &node){
-    Serializable::Deserialize(node);
-    name = node["name"].as<std::string>();
+    Resource::Deserialize(node);
     path = GetAssetPath(node["path"].as<std::string>());
     filter = node["filtering"].as<std::string>() == "linear" ? TextureFilter::Linear : TextureFilter::Nearest;
     wrap = node["wrap"].as<std::string>() == "clamp" ? TextureWrap::Clamp : TextureWrap::Repeat;

@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QString>
 #include <QStack>
+#include <QHBoxLayout>
 
 class FolderViewGui : public QWidget {
     Q_OBJECT
@@ -25,11 +26,14 @@ private:
     explicit FolderViewGui(QWidget* parent = nullptr);
     ~FolderViewGui() override = default;
     void GoBack();
-    void UpdateBackButtonState();
+    void RefreshBreadcrumbs();
+    void NavigateToPath(const QString& path, bool recordHistory = true);
+    QString RelativePathForBreadcrumb(const QString& path) const;
 
     QListView* gridView = nullptr;
     QFileSystemModel* model = nullptr;
-    QPushButton* backButton = nullptr;
+    QWidget* navBar = nullptr;
+    QHBoxLayout* breadcrumbLayout = nullptr;
     QString currentPath;
     QString projectDirectory;
     QStack<QString> directoryHistory;

@@ -4,6 +4,7 @@
 #include <QLabel>
 #include <QFileInfo>
 #include <QWidget>
+#include <QDir>
 #include "utils/EditorUtils.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "iostream"
@@ -13,23 +14,18 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
 
-    QWidget* navBar = new QWidget(this);
+    navBar = new QWidget(this);
     navBar->setFixedHeight(36);
     navBar->setStyleSheet("background-color: #2d2d2d; border-bottom: 1px solid #454545;");
     QHBoxLayout* navLayout = new QHBoxLayout(navBar);
-    navLayout->setContentsMargins(1,1,1,1);
+    navLayout->setContentsMargins(8, 1, 8, 1);
     navLayout->setSpacing(4);
 
-    backButton = new QPushButton("◀", this);
-    backButton->setFixedSize(28, 28);
-    backButton->setFlat(true);
-    backButton->setToolTip("Go to parent directory");
-    backButton->setEnabled(false);
+    breadcrumbLayout = new QHBoxLayout();
+    breadcrumbLayout->setContentsMargins(0, 0, 0, 0);
+    breadcrumbLayout->setSpacing(2);
 
-    connect(backButton, &QPushButton::clicked, this, &FolderViewGui::GoBack);
-
-    navLayout->addWidget(backButton);
-    navLayout->addStretch();
+    navLayout->addLayout(breadcrumbLayout, 1);
     navBar->setLayout(navLayout);
 
     mainLayout->addWidget(navBar);
@@ -74,17 +70,13 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
 void FolderViewGui::Init() {
     setMinimumWidth(400);
     std::cout << "FolderViewGui Initialized" << std::endl;
-    this->SetProjectDirectory(EngineUtils::GetAssetPath("Domain"));
+    this->SetProjectDirectory(EngineUtils::GetAssetPath("Domain/sandbox"));
 }
 
 void FolderViewGui::SetProjectDirectory(const std::string& projectDir) {
     projectDirectory = QString::fromStdString(projectDir);
     directoryHistory.clear();
-    directoryHistory.push(projectDirectory);
-    currentPath = projectDirectory;
-    QModelIndex rootIndex = model->index(projectDirectory);
-    gridView->setRootIndex(rootIndex);
-    UpdateBackButtonState();
+    NavigateToPath(projectDirectory, false);
 }
 
 void FolderViewGui::Navigate(const std::string& filepath) {
@@ -94,16 +86,8 @@ void FolderViewGui::Navigate(const std::string& filepath) {
     QFileInfo fileInfo(path);
     if (!fileInfo.isDir())
         path = fileInfo.dir().absolutePath();
-    
-    // Add to history if different from current
-    if (path != currentPath) {
-        directoryHistory.push(currentPath);
-        currentPath = path;
-    }
-    
-    QModelIndex rootIndex = model->index(path);
-    gridView->setRootIndex(rootIndex);
-    UpdateBackButtonState();
+
+    NavigateToPath(path, true);
 }
 
 void FolderViewGui::GoBack() {
@@ -111,18 +95,74 @@ void FolderViewGui::GoBack() {
         return;
 
     QString previousPath = directoryHistory.pop();
-    currentPath = previousPath;
-    
-    QModelIndex rootIndex = model->index(previousPath);
-    gridView->setRootIndex(rootIndex);
-    UpdateBackButtonState();
+    NavigateToPath(previousPath, false);
 }
 
-void FolderViewGui::UpdateBackButtonState() {
-    // Disable back button when at project directory
-    if (!projectDirectory.isEmpty()) {
-        backButton->setEnabled(currentPath != projectDirectory && !directoryHistory.isEmpty());
-    } else {
-        backButton->setEnabled(!directoryHistory.isEmpty());
+void FolderViewGui::NavigateToPath(const QString& path, bool recordHistory) {
+    if (path.isEmpty()) return;
+
+    QString normalizedPath = QDir(path).absolutePath();
+    if (recordHistory && normalizedPath != currentPath && !currentPath.isEmpty()) {
+        directoryHistory.push(currentPath);
     }
+
+    currentPath = normalizedPath;
+    QModelIndex rootIndex = model->index(currentPath);
+    gridView->setRootIndex(rootIndex);
+    RefreshBreadcrumbs();
+}
+
+QString FolderViewGui::RelativePathForBreadcrumb(const QString& path) const {
+    QDir projectDir(projectDirectory);
+    QString relative = projectDir.relativeFilePath(path);
+    if (relative == ".") return QString();
+    return relative;
+}
+
+void FolderViewGui::RefreshBreadcrumbs() {
+    if (!breadcrumbLayout) return;
+
+    while (QLayoutItem* item = breadcrumbLayout->takeAt(0)) {
+        if (item->widget()) {
+            delete item->widget();
+        }
+        delete item;
+    }
+
+    QPushButton* rootButton = new QPushButton(QFileInfo(projectDirectory).fileName(), this);
+    rootButton->setFlat(true);
+    rootButton->setCursor(Qt::PointingHandCursor);
+    rootButton->setStyleSheet("QPushButton { color: #e0e0e0; background: transparent; border: none; padding: 4px 6px; } QPushButton:hover { color: #ffffff; }");
+    connect(rootButton, &QPushButton::clicked, this, [this]() {
+        NavigateToPath(projectDirectory, true);
+    });
+    breadcrumbLayout->addWidget(rootButton);
+
+    QString relativePath = RelativePathForBreadcrumb(currentPath);
+    if (!relativePath.isEmpty()) {
+        const QStringList parts = relativePath.split('/', Qt::SkipEmptyParts);
+        QString accumulated = projectDirectory;
+
+        for (const QString& part : parts) {
+            QLabel* separator = new QLabel("/", this);
+            separator->setStyleSheet("color: #8a8a8a;");
+            breadcrumbLayout->addWidget(separator);
+
+            accumulated = QDir(accumulated).filePath(part);
+
+            QPushButton* crumbButton = new QPushButton(part, this);
+            crumbButton->setFlat(true);
+            crumbButton->setCursor(Qt::PointingHandCursor);
+            crumbButton->setStyleSheet("QPushButton { color: #c9c9c9; background: transparent; border: none; padding: 4px 6px; } QPushButton:hover { color: #ffffff; }");
+
+            const QString targetPath = QDir(accumulated).absolutePath();
+            connect(crumbButton, &QPushButton::clicked, this, [this, targetPath]() {
+                NavigateToPath(targetPath, true);
+            });
+
+            breadcrumbLayout->addWidget(crumbButton);
+        }
+    }
+
+    breadcrumbLayout->addStretch();
 }
