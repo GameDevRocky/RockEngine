@@ -1,5 +1,5 @@
 #include "engine/components/SpriteRenderer.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/debug/Console.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/components/Transform.hpp"
@@ -29,7 +29,7 @@ void SpriteRenderer::Deserialize(const YAML::Node& node)
 }
 
 Material* SpriteRenderer::GetMaterial(){
-    Material* mat = SharedResources::Get().GetMaterial(material_id);
+    Material* mat = AssetManager::Get().GetMaterial(material_id);
     if (!mat){
         if (!material_id.empty())
             Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s material");
@@ -39,7 +39,7 @@ Material* SpriteRenderer::GetMaterial(){
 }
 
 void SpriteRenderer::SetMaterial(std::string& id){
-    Material* mat = SharedResources::Get().GetMaterial(id);
+    Material* mat = AssetManager::Get().GetMaterial(id);
     if (!mat){
         Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s Material");
         return;
@@ -51,7 +51,7 @@ void SpriteRenderer::SetMaterial(std::string& id){
 
 
 Sprite* SpriteRenderer::GetSprite(){
-    Sprite* sprite = SharedResources::Get().GetSprite(sprite_id);
+    Sprite* sprite = AssetManager::Get().GetSprite(sprite_id);
     if (!sprite){
         if (!sprite_id.empty())
             Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s Sprite");
@@ -61,7 +61,7 @@ Sprite* SpriteRenderer::GetSprite(){
 }
 
 void SpriteRenderer::SetSprite(std::string& id){
-    Sprite* sprite = SharedResources::Get().GetSprite(id);
+    Sprite* sprite = AssetManager::Get().GetSprite(id);
     if (!sprite){
         Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s Sprite");
         return;
@@ -160,7 +160,7 @@ void SpriteRenderer::OverrideUniforms()
             else if constexpr (std::is_same_v<T, glm::vec4>)
                 shader->SetVec4(uName, v);
             else if constexpr (std::is_same_v<T, std::string>) {
-                Texture2D* tex = SharedResources::Get().GetTexture(v);
+                Texture2D* tex = AssetManager::Get().GetTexture(v);
                 if (tex) {
                     tex->Bind(textureSlot);
                     shader->SetTexture(uName, textureSlot++);

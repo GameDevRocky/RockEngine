@@ -1,0 +1,6 @@
+type: Texture2D
+id: 0eac7668a7474c8d6f9bacb0f85c85c0
+name: cpp_icon
+path: Domain/lib/assets/icons/cpp_icon.png
+filtering: linear
+wrap: repeat

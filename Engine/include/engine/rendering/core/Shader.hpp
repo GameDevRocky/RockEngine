@@ -19,6 +19,8 @@ public:
 
     std::string GetTypeName() {return "Shader";};
 
+    void Accept(IVisitor* v) override;
+
     void SetInt(const std::string& name, int value) const;
     void SetFloat(const std::string& name, float value) const;
     void SetVec2(const std::string& name, const glm::vec2& value) const;
@@ -30,6 +32,11 @@ public:
 
     const std::unordered_map<std::string, UniformInfo>& GetActiveUniforms() const { return active_uniforms; }
 
+    const std::unordered_map<std::string, float>&     GetFloatDefaults() const { return m_floatDefaults; }
+    const std::unordered_map<std::string, glm::vec2>& GetVec2Defaults()  const { return m_vec2Defaults; }
+    const std::unordered_map<std::string, glm::vec3>& GetVec3Defaults()  const { return m_vec3Defaults; }
+    const std::unordered_map<std::string, glm::vec4>& GetVec4Defaults()  const { return m_vec4Defaults; }
+
     GLuint GetProgramID() const { return program_id; }
 
     Shader() = default;
@@ -37,8 +44,7 @@ public:
 
 private:
     std::string name;
-    std::string vert_path; 
-    std::string frag_path; 
+    std::string source_path;
 
     std::string vert_src; 
     std::string frag_src; 
@@ -47,6 +53,10 @@ private:
     GLuint CompileShader(GLenum type, const std::string& source);
     GLuint LinkProgram(GLuint vertexShader, GLuint fragmentShader);
     std::unordered_map<std::string, UniformInfo> active_uniforms;
+    std::unordered_map<std::string, float>       m_floatDefaults;
+    std::unordered_map<std::string, glm::vec2>   m_vec2Defaults;
+    std::unordered_map<std::string, glm::vec3>   m_vec3Defaults;
+    std::unordered_map<std::string, glm::vec4>   m_vec4Defaults;
 
 };
 

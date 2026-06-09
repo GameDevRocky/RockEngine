@@ -36,8 +36,13 @@ inline PropertyWidget<glm::vec4>* PropertyFactory::Create<glm::vec4>(const Prope
 }
 template<>
 inline PropertyWidget<std::string>* PropertyFactory::Create<std::string>(const Properties::PropDesc& desc) {
-    if (desc.refType == Properties::Tags::OBJECT_REF)
+    if (desc.refType == Properties::Tags::OBJECT_REF) {
+        if (desc.tag == Properties::Tags::TEXTURE ||
+            desc.tag == Properties::Tags::SPRITE   ||
+            desc.tag == Properties::Tags::MATERIAL)
+            return new AssetPreviewPropertyWidget(desc);
         return new ObjectRefPropertyWidget(desc);
+    }
     return new StringPropertyWidget(desc);
 }
 

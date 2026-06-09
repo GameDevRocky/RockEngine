@@ -22,6 +22,9 @@ namespace Properties {
         READONLY,
         MATERIAL,
         SPRITE,
+        TEXTURE,
+        SHADER,
+        STRING,
         OBJECT_REF,
         DROPDOWN
     };

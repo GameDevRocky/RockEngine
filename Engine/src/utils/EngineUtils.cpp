@@ -30,4 +30,32 @@ namespace EngineUtils {
         ss << file.rdbuf();
         return ss.str();
     }
+
+    ShaderSource ParseShaderSource(const std::string& path) {
+        std::ifstream file(path);
+        if (!file.is_open()) {
+            std::cerr << "Failed to open shader source: " << path << std::endl;
+            return {};
+        }
+
+        enum class Section { None, Vertex, Fragment };
+        Section current = Section::None;
+        std::stringstream vertSS, fragSS;
+
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line.find("#pragma vertex") != std::string::npos) {
+                current = Section::Vertex;
+                continue;
+            }
+            if (line.find("#pragma fragment") != std::string::npos) {
+                current = Section::Fragment;
+                continue;
+            }
+            if      (current == Section::Vertex)   vertSS << line << '\n';
+            else if (current == Section::Fragment)  fragSS << line << '\n';
+        }
+
+        return { vertSS.str(), fragSS.str() };
+    }
 } 

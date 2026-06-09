@@ -18,7 +18,7 @@ void GridPass::Init(){
         glad_glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
         glad_glBindVertexArray(0);
 
-        shader = SharedResources::Get().GetShaderByName("grid");
+        shader = AssetManager::Get().GetShaderByName("grid");
         if (!shader) Console::Alert("Grid shader not Loaded");
 }
 

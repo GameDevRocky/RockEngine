@@ -5,7 +5,7 @@
 
 struct DebugDrawCommand
 {
-    enum class Type { Point, Line, Box, Circle };
+    enum class Type { Point, Line, Box, Circle, Polygon };
 
     Type      type;
     glm::vec2 a;        
@@ -13,6 +13,11 @@ struct DebugDrawCommand
     float     rotation; // box rotation in degrees (unused for others)
     float     radius;   // circle radius / point radius
     glm::vec4 color;
+
+    // Polygon-specific
+    std::vector<glm::vec2> points;
+    bool closed = false;
+    bool filled = false;
 };
 
 class DebugDrawManager : public System
@@ -44,6 +49,8 @@ public:
     void DrawBox(const glm::vec2& center,    const glm::vec2& size, float rotation = 0.0f,
                  const glm::vec4& color = glm::vec4(1, 1, 0, 1));
     void DrawCircle(const glm::vec2& center, float radius,
+                    const glm::vec4& color = glm::vec4(1, 1, 0, 1));
+    void DrawPoints(const std::vector<glm::vec2>& points, bool closed = false, bool filled = false,
                     const glm::vec4& color = glm::vec4(1, 1, 0, 1));
 
     const std::vector<DebugDrawCommand>& GetCommands() const { return commands; }

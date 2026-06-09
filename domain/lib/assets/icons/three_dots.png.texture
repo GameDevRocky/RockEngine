@@ -1,0 +1,6 @@
+type: Texture2D
+id: 5a899048c841e9d9df7ce0607279c4bc
+name: three_dots
+path: Domain/lib/assets/icons/three_dots.png
+filtering: linear
+wrap: repeat

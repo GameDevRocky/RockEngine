@@ -17,9 +17,12 @@
 #include <glm/glm.hpp>
 #include "engine/utils/Properties.hpp"
 #include "utils/AssetPickerWidget.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "utils/AssetThumbnails.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/components/ScriptComponent.hpp"
+#include "utils/EditorUtils.hpp"
+#include <QFileInfo>
 
 
 class PropertyWidgetBase {
@@ -92,6 +95,7 @@ public:
             s->setRange(desc.min, desc.max);
             s->setSingleStep(desc.step);
             s->setObjectName(name);
+            s->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
             layout->addWidget(s);
             return s;
         };
@@ -152,6 +156,7 @@ public:
             s->setRange(desc.min, desc.max);
             s->setSingleStep(desc.step);
             s->setObjectName(name);
+            s->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
             layout->addWidget(s);
             return s;
         };
@@ -209,6 +214,7 @@ public:
             s->setRange(desc.min, desc.max);
             s->setSingleStep(desc.step);
             s->setObjectName(name);
+            s->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
             layout->addWidget(s);
             return s;
         };
@@ -349,8 +355,10 @@ private:
 
 class StringPropertyWidget : public PropertyWidget<std::string> {
 public:
-    explicit StringPropertyWidget(const Properties::PropDesc&) {
+    explicit StringPropertyWidget(const Properties::PropDesc& desc) {
         edit = new QLineEdit();
+        if (desc.tag == Properties::Tags::READONLY)
+            edit->setReadOnly(true);
 
         QObject::connect(edit, &QLineEdit::textChanged, [this](const QString& text) {
             if (onChanged) onChanged(text.toStdString());
@@ -418,21 +426,62 @@ public:
     QWidget* GetWidget() override { return m_container; }
     bool IsValid() override { return !m_edit.isNull(); }
 
-    void SetValue(const std::string& val) override {
+    // Stores the ID internally; displays the resolved name in the text field.
+    void SetValue(const std::string& id) override {
         if (m_edit.isNull()) return;
+        m_currentId = id;
         m_edit->blockSignals(true);
-        m_edit->setText(QString::fromStdString(val));
+        m_edit->setText(QString::fromStdString(nameForId(id)));
         m_edit->blockSignals(false);
     }
 
-    std::string GetValue() override {
-        return m_edit.isNull() ? "" : m_edit->text().toStdString();
-    }
+    // Always returns the ID, not the display name.
+    std::string GetValue() override { return m_currentId; }
 
 private:
     void openPicker() {
         auto items = buildItems();
-        auto* picker = new AssetPickerWidget(std::move(items), m_container);
+
+        std::function<QPixmap(const std::string&)> thumbGen;
+        if (m_desc.tag == Properties::Tags::MATERIAL)
+            thumbGen = [](const std::string& id) { return AssetThumbnails::forMaterial(id); };
+        else if (m_desc.tag == Properties::Tags::SPRITE)
+            thumbGen = [](const std::string& id) { return AssetThumbnails::forSprite(id); };
+        else if (m_desc.tag == Properties::Tags::TEXTURE)
+            thumbGen = [](const std::string& id) { return AssetThumbnails::forTexture(id); };
+
+        // Fallback: use CustomIconProvider on the asset's file path.
+        // Gives shader cells the shader icon, .material/.sprite files the OS icon, etc.
+        auto iconFromFilePath = [](const std::string& fp) -> QIcon {
+            if (fp.empty()) return {};
+            EditorUtils::CustomIconProvider prov;
+            return prov.icon(QFileInfo(QString::fromStdString(fp)));
+        };
+
+        std::function<QIcon(const std::string&)> fallbackIconGen;
+        if (m_desc.tag == Properties::Tags::MATERIAL)
+            fallbackIconGen = [iconFromFilePath](const std::string& id) {
+                auto* a = AssetManager::Get().GetMaterial(id);
+                return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
+            };
+        else if (m_desc.tag == Properties::Tags::SPRITE)
+            fallbackIconGen = [iconFromFilePath](const std::string& id) {
+                auto* a = AssetManager::Get().GetSprite(id);
+                return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
+            };
+        else if (m_desc.tag == Properties::Tags::TEXTURE)
+            fallbackIconGen = [iconFromFilePath](const std::string& id) {
+                auto* a = AssetManager::Get().GetTexture(id);
+                return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
+            };
+        else if (m_desc.tag == Properties::Tags::SHADER)
+            fallbackIconGen = [iconFromFilePath](const std::string& id) {
+                auto* a = AssetManager::Get().GetShader(id);
+                return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
+            };
+        // Game objects have no file path — they keep the grey placeholder.
+
+        auto* picker = new AssetPickerWidget(std::move(items), std::move(thumbGen), std::move(fallbackIconGen), m_container);
         picker->onSelected = [this](const std::string& id) {
             SetValue(id);
             if (onChanged) onChanged(id);
@@ -443,15 +492,47 @@ private:
         picker->show();
     }
 
+    // Resolves a human-readable name for an ID based on the widget's tag type.
+    // Falls back to the raw ID if the asset/object isn't found.
+    std::string nameForId(const std::string& id) const {
+        if (id.empty()) return "";
+        auto& am = AssetManager::Get();
+        if (m_desc.tag == Properties::Tags::MATERIAL) {
+            auto* a = am.GetMaterial(id); return a ? a->GetName() : id;
+        } else if (m_desc.tag == Properties::Tags::SPRITE) {
+            auto* a = am.GetSprite(id);   return a ? a->GetName() : id;
+        } else if (m_desc.tag == Properties::Tags::TEXTURE) {
+            auto* a = am.GetTexture(id);  return a ? a->GetName() : id;
+        } else if (m_desc.tag == Properties::Tags::SHADER) {
+            auto* a = am.GetShader(id);   return a ? a->GetName() : id;
+        } else {
+            auto* container = Engine::Get()->GetActiveContainer();
+            if (!container) return id;
+            auto* sm = container->FindSystem<SceneManager>();
+            if (!sm) return id;
+            for (auto* scene : sm->GetScenes())
+                for (auto* go : scene->GetAllGameObjects())
+                    if (go->GetID() == id) return go->GetName();
+            return id;
+        }
+    }
+
     std::vector<std::pair<std::string, std::string>> buildItems() {
         std::vector<std::pair<std::string, std::string>> items;
+        auto& am = AssetManager::Get();
 
         if (m_desc.tag == Properties::Tags::MATERIAL) {
-            for (const auto& [id, mat] : SharedResources::Get().GetAllMaterials())
+            for (const auto& [id, mat] : am.GetAllMaterials())
                 items.push_back({mat->GetName(), id});
         } else if (m_desc.tag == Properties::Tags::SPRITE) {
-            for (const auto& [id, spr] : SharedResources::Get().GetAllSprites())
+            for (const auto& [id, spr] : am.GetAllSprites())
                 items.push_back({spr->GetName(), id});
+        } else if (m_desc.tag == Properties::Tags::TEXTURE) {
+            for (const auto& [id, tex] : am.GetAllTextures())
+                items.push_back({tex->GetName(), id});
+        } else if (m_desc.tag == Properties::Tags::SHADER) {
+            for (const auto& [id, sh] : am.GetAllShaders())
+                items.push_back({sh->GetName(), id});
         } else {
             // Generic OBJECT_REF — enumerate all GameObjects, optionally filtered by script class
             auto* container = Engine::Get()->GetActiveContainer();
@@ -476,9 +557,165 @@ private:
     }
 
     Properties::PropDesc m_desc;
+    std::string m_currentId;
     QWidget* m_container = nullptr;
     QPointer<ClickableLineEdit> m_edit;
     QPointer<QPushButton> m_btn;
+};
+
+// Container that keeps a name-overlay label pinned to its full bottom edge on resize.
+class ThumbContainer : public QWidget {
+public:
+    QLabel* overlay = nullptr;
+    static constexpr int overlayH = 20;
+    explicit ThumbContainer(QWidget* parent = nullptr) : QWidget(parent) {}
+protected:
+    void resizeEvent(QResizeEvent* e) override {
+        QWidget::resizeEvent(e);
+        if (overlay)
+            overlay->setGeometry(0, height() - overlayH, width(), overlayH);
+    }
+};
+
+class AssetPreviewPropertyWidget : public PropertyWidget<std::string> {
+public:
+    static constexpr int kThumbH = 96;
+
+    explicit AssetPreviewPropertyWidget(const Properties::PropDesc& desc) : m_desc(desc) {
+        auto* tc = new ThumbContainer();
+        tc->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        m_container = tc;
+
+        auto* layout = new QHBoxLayout(m_container);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(0);
+
+        m_thumb = new EditorUtils::ClickableLabel();
+        m_thumb->setFixedHeight(kThumbH);
+        m_thumb->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        m_thumb->setAlignment(Qt::AlignCenter);
+        m_thumb->setStyleSheet("background-color: #1a1a1a; border: 1px solid #3a3a3a;");
+        layout->addWidget(m_thumb);
+
+        m_nameLabel = new QLabel(m_container);
+        m_nameLabel->setAlignment(Qt::AlignCenter);
+        m_nameLabel->setStyleSheet(
+            "background-color: rgba(0,0,0,160); color: white; font-size: 16px; padding: 0 2px;");
+        m_nameLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+        m_nameLabel->raise();
+        tc->overlay = m_nameLabel;
+
+        QObject::connect(m_thumb, &EditorUtils::ClickableLabel::clicked, [this]() { openPicker(); });
+    }
+
+    QWidget* GetWidget() override { return m_container; }
+    bool IsValid() override { return !m_thumb.isNull(); }
+
+    void SetValue(const std::string& id) override {
+        if (m_thumb.isNull()) return;
+        m_currentId = id;
+        if (!m_nameLabel.isNull()) {
+            std::string name = id;
+            if (!id.empty()) {
+                auto& am = AssetManager::Get();
+                if (m_desc.tag == Properties::Tags::TEXTURE) {
+                    if (auto* a = am.GetTexture(id))  name = a->GetName();
+                } else if (m_desc.tag == Properties::Tags::SPRITE) {
+                    if (auto* a = am.GetSprite(id))   name = a->GetName();
+                } else if (m_desc.tag == Properties::Tags::MATERIAL) {
+                    if (auto* a = am.GetMaterial(id)) name = a->GetName();
+                }
+            }
+            QFontMetrics fm(m_nameLabel->font());
+            m_nameLabel->setText(
+                fm.elidedText(QString::fromStdString(name), Qt::ElideRight, m_container->width() - 6));
+        }
+        refreshThumb();
+    }
+
+    std::string GetValue() override { return m_currentId; }
+
+private:
+    void refreshThumb() {
+        if (m_thumb.isNull()) return;
+        QPixmap px;
+        if (!m_currentId.empty()) {
+            if (m_desc.tag == Properties::Tags::TEXTURE)
+                px = AssetThumbnails::forTexture(m_currentId);
+            else if (m_desc.tag == Properties::Tags::SPRITE)
+                px = AssetThumbnails::forSprite(m_currentId);
+            else if (m_desc.tag == Properties::Tags::MATERIAL)
+                px = AssetThumbnails::forMaterial(m_currentId);
+        }
+        if (!px.isNull())
+            m_thumb->setPixmap(px.scaled(m_thumb->width(), kThumbH, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        else
+            m_thumb->clear();
+    }
+
+    void openPicker() {
+        auto items = buildItems();
+
+        std::function<QPixmap(const std::string&)> thumbGen;
+        if (m_desc.tag == Properties::Tags::MATERIAL)
+            thumbGen = [](const std::string& id) { return AssetThumbnails::forMaterial(id); };
+        else if (m_desc.tag == Properties::Tags::SPRITE)
+            thumbGen = [](const std::string& id) { return AssetThumbnails::forSprite(id); };
+        else if (m_desc.tag == Properties::Tags::TEXTURE)
+            thumbGen = [](const std::string& id) { return AssetThumbnails::forTexture(id); };
+
+        auto iconFromFilePath = [](const std::string& fp) -> QIcon {
+            if (fp.empty()) return {};
+            EditorUtils::CustomIconProvider prov;
+            return prov.icon(QFileInfo(QString::fromStdString(fp)));
+        };
+        std::function<QIcon(const std::string&)> fallbackIconGen =
+            [this, iconFromFilePath](const std::string& id) -> QIcon {
+                std::string fp;
+                auto& am = AssetManager::Get();
+                if (m_desc.tag == Properties::Tags::TEXTURE) {
+                    auto* a = am.GetTexture(id); if (a) fp = a->GetFilePath();
+                } else if (m_desc.tag == Properties::Tags::SPRITE) {
+                    auto* a = am.GetSprite(id);  if (a) fp = a->GetFilePath();
+                } else if (m_desc.tag == Properties::Tags::MATERIAL) {
+                    auto* a = am.GetMaterial(id); if (a) fp = a->GetFilePath();
+                }
+                return iconFromFilePath(fp);
+            };
+
+        auto* picker = new AssetPickerWidget(std::move(items), std::move(thumbGen), std::move(fallbackIconGen), m_container);
+        picker->onSelected = [this](const std::string& id) {
+            SetValue(id);
+            if (onChanged) onChanged(id);
+        };
+        auto pos = m_container->rect().topLeft();
+        pos.setX(pos.x() - picker->width());
+        picker->move(m_container->mapToGlobal(pos));
+        picker->show();
+    }
+
+    std::vector<std::pair<std::string, std::string>> buildItems() {
+        std::vector<std::pair<std::string, std::string>> items;
+        auto& am = AssetManager::Get();
+        if (m_desc.tag == Properties::Tags::MATERIAL)
+            for (const auto& [id, mat] : am.GetAllMaterials())
+                items.push_back({mat->GetName(), id});
+        else if (m_desc.tag == Properties::Tags::SPRITE)
+            for (const auto& [id, spr] : am.GetAllSprites())
+                items.push_back({spr->GetName(), id});
+        else if (m_desc.tag == Properties::Tags::TEXTURE)
+            for (const auto& [id, tex] : am.GetAllTextures())
+                items.push_back({tex->GetName(), id});
+        std::sort(items.begin(), items.end(),
+            [](const auto& a, const auto& b) { return a.first < b.first; });
+        return items;
+    }
+
+    Properties::PropDesc m_desc;
+    std::string m_currentId;
+    QWidget* m_container = nullptr;
+    QPointer<EditorUtils::ClickableLabel> m_thumb;
+    QPointer<QLabel> m_nameLabel;
 };
 
 class DropdownPropertyWidget : public PropertyWidget<int> {

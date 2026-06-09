@@ -40,4 +40,16 @@ void BindDebugDraw(py::module_& m)
                            color[2].cast<float>(), color[3].cast<float>() };
         DebugDrawManager::Get()->DrawCircle(c2, radius, col);
     });
+
+    debug_module.def("draw_points", [](py::list pts, bool closed, bool filled, py::tuple color)
+    {
+        std::vector<glm::vec2> points;
+        points.reserve(py::len(pts));
+        for (auto& item : pts)
+            points.push_back({ item.attr("x").cast<float>(), item.attr("y").cast<float>() });
+        glm::vec4 col = { color[0].cast<float>(), color[1].cast<float>(),
+                           color[2].cast<float>(), color[3].cast<float>() };
+        DebugDrawManager::Get()->DrawPoints(points, closed, filled, col);
+    }, py::arg("points"), py::arg("closed") = false, py::arg("filled") = false,
+       py::arg("color") = py::make_tuple(1.0f, 1.0f, 0.0f, 1.0f));
 }

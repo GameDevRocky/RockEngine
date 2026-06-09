@@ -1,4 +1,5 @@
 #include "utils/InspectorVisitor.hpp"
+#include <algorithm>
 #include "engine/core/GameObject.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
@@ -9,7 +10,14 @@
 #include "engine/components/ScriptComponent.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
+#include "engine/rendering/core/Sprite.hpp"
+#include "engine/rendering/core/Material.hpp"
+#include "engine/rendering/core/Texture2D.hpp"
+#include "engine/rendering/core/Shader.hpp"
 #include "Engine.hpp"
+#include <QLabel>
+#include <QPixmap>
+#include <QSizePolicy>
 
 using namespace Properties;
 
@@ -434,4 +442,136 @@ void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
     layout->addWidget(label, gridRow, 0, Qt::AlignLeft);
     layout->addWidget(widget, gridRow, 1);
     gridRow++;
+}
+
+void InspectorVisitor::AddFullRow(QWidget* widget) {
+    layout->addWidget(widget, gridRow, 0, 1, 2);
+    gridRow++;
+}
+
+void InspectorVisitor::Visit(Sprite* sprite) {
+    auto uvMin_get = [=]() { return sprite->GetUVMin(); };
+    auto uvMin_set = [=](glm::vec2 v) { sprite->SetUVMin(v); };
+    auto uvMax_get = [=]() { return sprite->GetUVMax(); };
+    auto uvMax_set = [=](glm::vec2 v) { sprite->SetUVMax(v); };
+    auto pivot_get = [=]() { return sprite->GetPivot(); };
+    auto pivot_set = [=](glm::vec2 v) { sprite->SetPivot(v); };
+    auto tex_get   = [=]() -> std::string {
+        auto* t = sprite->GetTexture();
+        return t ? t->GetID() : "";
+    };
+    auto tex_set   = [=](std::string id) { sprite->SetTexture(id); };
+
+    BindProperty<glm::vec2>(sprite, "UV Min: ",   uvMin_get,  uvMin_set,  sprite->UV_MIN_CHANGED_EVENT,  PropDesc().Tag(Tags::VECTOR2).Step(0.01).Range(0, 1));
+    BindProperty<glm::vec2>(sprite, "UV Max: ",   uvMax_get,  uvMax_set,  sprite->UV_MAX_CHANGED_EVENT,  PropDesc().Tag(Tags::VECTOR2).Step(0.01).Range(0, 1));
+    BindProperty<glm::vec2>(sprite, "Pivot: ",    pivot_get,  pivot_set,  sprite->PIVOT_CHANGED_EVENT,   PropDesc().Tag(Tags::VECTOR2).Step(0.01).Range(0, 1));
+    BindProperty<std::string>(sprite, "Texture: ", tex_get,   tex_set,    sprite->UV_MAX_CHANGED_EVENT,  PropDesc().Tag(Tags::TEXTURE).RefType(Tags::OBJECT_REF));
+}
+
+void InspectorVisitor::Visit(Material* mat) {
+    auto shader_get = [=]() -> std::string {
+        auto* s = mat->GetShader();
+        return s ? s->GetID() : "";
+    };
+    auto shader_set = [=](std::string id) { mat->SetShader(id); };
+    BindProperty<std::string>(mat, "Shader: ", shader_get, shader_set, mat->SHADER_CHANGED_EVENT, PropDesc().Tag(Tags::SHADER).RefType(Tags::OBJECT_REF));
+
+    Shader* shader = mat->GetShader();
+    if (!shader) return;
+
+    auto isColorName = [](const std::string& n) {
+        std::string low = n;
+        std::transform(low.begin(), low.end(), low.begin(), ::tolower);
+        return low.find("color") != std::string::npos || low.find("colour") != std::string::npos;
+    };
+
+    // Drive widgets from the shader's active uniforms so they always reflect the
+    // current shader — even for uniforms the material hasn't stored a value for yet.
+    // mat4 (uModel/uView/uProj) are skipped by the default branch.
+    // Getters fall back to zero if the uniform isn't in the material's map yet;
+    // the first edit stores it there via the normal setter path.
+    for (const auto& [uname, info] : shader->GetActiveUniforms()) {
+        switch (info.type) {
+            case GL_FLOAT: {
+                auto get = [mat, name = uname]() { return mat->GetFloat(name); };
+                auto set = [mat, name = uname](float v) { mat->SetFloat(name, v); };
+                BindProperty<float>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT));
+                break;
+            }
+            case GL_FLOAT_VEC2: {
+                auto get = [mat, name = uname]() { return mat->GetVec2(name); };
+                auto set = [mat, name = uname](glm::vec2 v) { mat->SetVec2(name, v); };
+                BindProperty<glm::vec2>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2));
+                break;
+            }
+            case GL_FLOAT_VEC3: {
+                auto get = [mat, name = uname]() { return mat->GetVec3(name); };
+                auto set = [mat, name = uname](glm::vec3 v) { mat->SetVec3(name, v); };
+                BindProperty<glm::vec3>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR3));
+                break;
+            }
+            case GL_FLOAT_VEC4: {
+                Tags widgetTag = isColorName(uname) ? Tags::COLOR : Tags::VECTOR4;
+                auto get = [mat, name = uname]() { return mat->GetVec4(name); };
+                auto set = [mat, name = uname](glm::vec4 v) { mat->SetVec4(name, v); };
+                BindProperty<glm::vec4>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(widgetTag));
+                break;
+            }
+            case GL_SAMPLER_2D: {
+                auto get = [mat, name = uname]() { return mat->GetTexUniform(name); };
+                auto set = [mat, name = uname](std::string id) { mat->SetTexture(name, id); };
+                BindProperty<std::string>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(Tags::TEXTURE).RefType(Tags::OBJECT_REF));
+                break;
+            }
+            default:
+                break;
+        }
+    }
+}
+
+void InspectorVisitor::Visit(Texture2D* tex) {
+    // Image preview — spans both columns, same load path as AssetPreviewDelegate.
+    auto* preview = new QLabel();
+    preview->setAlignment(Qt::AlignCenter);
+    preview->setFixedHeight(180);
+    preview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    preview->setStyleSheet("background-color: #1a1a1a; border: 1px solid #3a3a3a;");
+
+    const std::string& imgPath = tex->GetPath();
+    if (!imgPath.empty()) {
+        QPixmap px(QString::fromStdString(imgPath));
+        if (!px.isNull())
+            preview->setPixmap(px.scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    }
+    AddFullRow(preview);
+
+    auto path_get = [=]() { return tex->GetPath(); };
+    auto w_get    = [=]() { return static_cast<float>(tex->GetWidth()); };
+    auto h_get    = [=]() { return static_cast<float>(tex->GetHeight()); };
+
+    BindProperty<std::string>(tex, "Path: ",   path_get, [](std::string){}, Observable::CreateEvent(), PropDesc().Tag(Tags::READONLY));
+    BindProperty<float>(tex,       "Width: ",  w_get,    [](float){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT));
+    BindProperty<float>(tex,       "Height: ", h_get,    [](float){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT));
+
+    auto filter_get = [=]() { return static_cast<int>(tex->GetFilter()); };
+    auto filter_set = [=](int v) { tex->SetFilter(static_cast<TextureFilter>(v)); };
+    BindProperty<int>(tex, "Filtering: ", filter_get, filter_set, tex->FILTER_CHANGED_EVENT,
+        PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Nearest", static_cast<int>(TextureFilter::Nearest)},
+            {"Linear",  static_cast<int>(TextureFilter::Linear)}
+        }));
+
+    auto wrap_get = [=]() { return static_cast<int>(tex->GetWrap()); };
+    auto wrap_set = [=](int v) { tex->SetWrap(static_cast<TextureWrap>(v)); };
+    BindProperty<int>(tex, "Wrap: ", wrap_get, wrap_set, tex->WRAP_CHANGED_EVENT,
+        PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Repeat", static_cast<int>(TextureWrap::Repeat)},
+            {"Clamp",  static_cast<int>(TextureWrap::Clamp)}
+        }));
+}
+
+void InspectorVisitor::Visit(Shader* shader) {
+    auto id_get = [=]() { return shader->GetID(); };
+
+    BindProperty<std::string>(shader, "ID: ", id_get, [](std::string){}, Observable::CreateEvent(), PropDesc().Tag(Tags::READONLY));
 }

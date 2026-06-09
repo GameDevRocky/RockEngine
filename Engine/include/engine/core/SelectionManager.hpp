@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/core/System.hpp"
+#include "engine/serialization/Serializable.hpp"
 #include <string>
 
 class GameObject;
@@ -19,9 +20,8 @@ public:
 
     void Select(const std::string& objectId);
     void Deselect();
-    
-    GameObject* GetGameObject();
 
+    Serializable* GetSerializable() const;
 
     const std::string& GetSelectedId() const { return selectedObjectId; }
     bool HasSelection() const { return !selectedObjectId.empty(); }

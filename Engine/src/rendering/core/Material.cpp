@@ -1,5 +1,5 @@
 #include "engine/rendering/core/Material.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/serialization/Serializable.hpp"
 #include "engine/debug/Console.hpp"
 
@@ -59,28 +59,64 @@ void Material::Validate() {
 
     auto& shaderUniforms = shader->GetActiveUniforms();
 
-    auto prune = [&](auto& map, GLenum expectedType1, GLenum expectedType2 = 0) {
+    auto prune = [&](auto& map) {
         for (auto it = map.begin(); it != map.end(); ) {
-            auto search = shaderUniforms.find(it->first);
-            if (search == shaderUniforms.end()) {
+            if (shaderUniforms.find(it->first) == shaderUniforms.end()) {
                 Console::Alert("Material: Pruning unused uniform [" + it->first + "]");
                 it = map.erase(it);
             } else {
- 
                 ++it;
             }
         }
     };
 
-    prune(floatUniforms, GL_FLOAT);
-    prune(vec2Uniforms, GL_FLOAT_VEC2);
-    prune(vec3Uniforms, GL_FLOAT_VEC3);
-    prune(vec4Uniforms, GL_FLOAT_VEC4);
-    prune(texUniforms,   GL_SAMPLER_2D);
+    prune(floatUniforms);
+    prune(vec2Uniforms);
+    prune(vec3Uniforms);
+    prune(vec4Uniforms);
+    prune(texUniforms);
+
+    // Seed uniforms the shader declares that the material doesn't have yet,
+    // using the GLSL initializer values captured at link time as defaults.
+    // emplace is a no-op if the key already exists, so user values survive.
+    const auto& floatDefs = shader->GetFloatDefaults();
+    const auto& vec2Defs  = shader->GetVec2Defaults();
+    const auto& vec3Defs  = shader->GetVec3Defaults();
+    const auto& vec4Defs  = shader->GetVec4Defaults();
+
+    for (const auto& [uname, info] : shaderUniforms) {
+        switch (info.type) {
+            case GL_FLOAT: {
+                auto it = floatDefs.find(uname);
+                floatUniforms.emplace(uname, it != floatDefs.end() ? it->second : 0.f);
+                break;
+            }
+            case GL_FLOAT_VEC2: {
+                auto it = vec2Defs.find(uname);
+                vec2Uniforms.emplace(uname, it != vec2Defs.end() ? it->second : glm::vec2(0.f));
+                break;
+            }
+            case GL_FLOAT_VEC3: {
+                auto it = vec3Defs.find(uname);
+                vec3Uniforms.emplace(uname, it != vec3Defs.end() ? it->second : glm::vec3(0.f));
+                break;
+            }
+            case GL_FLOAT_VEC4: {
+                auto it = vec4Defs.find(uname);
+                vec4Uniforms.emplace(uname, it != vec4Defs.end() ? it->second : glm::vec4(0.f));
+                break;
+            }
+            case GL_SAMPLER_2D:
+                texUniforms.emplace(uname, std::string{});
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 void Material::SetShader(std::string& id){
-    Shader* shader = SharedResources::Get().GetShader(id);
+    Shader* shader = AssetManager::Get().GetShader(id);
     if (shader){
         shader_id = shader->GetID();
         Validate();
@@ -91,7 +127,7 @@ void Material::SetShader(std::string& id){
 }
 
 Shader* Material::GetShader(){
-    Shader* shader = SharedResources::Get().GetShader(shader_id);
+    Shader* shader = AssetManager::Get().GetShader(shader_id);
     if (shader) return shader;
     return nullptr;
 }
@@ -114,7 +150,7 @@ void Material::ApplyUniforms(){
         int textureSlot = 0;
         for (auto& kv : texUniforms)
         {
-            Texture2D* tex = SharedResources::Get().GetTexture(kv.second);
+            Texture2D* tex = AssetManager::Get().GetTexture(kv.second);
             if (tex) {
                 tex->Bind(textureSlot); 
                 shader->SetTexture(kv.first, textureSlot);
@@ -123,3 +159,51 @@ void Material::ApplyUniforms(){
         }
     
 }
+
+float Material::GetFloat(const std::string& name) const {
+    auto it = floatUniforms.find(name);
+    return it != floatUniforms.end() ? it->second : 0.f;
+}
+glm::vec2 Material::GetVec2(const std::string& name) const {
+    auto it = vec2Uniforms.find(name);
+    return it != vec2Uniforms.end() ? it->second : glm::vec2(0.f);
+}
+glm::vec3 Material::GetVec3(const std::string& name) const {
+    auto it = vec3Uniforms.find(name);
+    return it != vec3Uniforms.end() ? it->second : glm::vec3(0.f);
+}
+glm::vec4 Material::GetVec4(const std::string& name) const {
+    auto it = vec4Uniforms.find(name);
+    return it != vec4Uniforms.end() ? it->second : glm::vec4(0.f);
+}
+std::string Material::GetTexUniform(const std::string& name) const {
+    auto it = texUniforms.find(name);
+    return it != texUniforms.end() ? it->second : "";
+}
+
+void Material::SetFloat(const std::string& name, float value) {
+    floatUniforms[name] = value;
+    Notify(UNIFORM_CHANGED_EVENT);
+}
+
+void Material::SetVec2(const std::string& name, const glm::vec2& value) {
+    vec2Uniforms[name] = value;
+    Notify(UNIFORM_CHANGED_EVENT);
+}
+
+void Material::SetVec3(const std::string& name, const glm::vec3& value) {
+    vec3Uniforms[name] = value;
+    Notify(UNIFORM_CHANGED_EVENT);
+}
+
+void Material::SetVec4(const std::string& name, const glm::vec4& value) {
+    vec4Uniforms[name] = value;
+    Notify(UNIFORM_CHANGED_EVENT);
+}
+
+void Material::SetTexture(const std::string& name, const std::string& tex_id) {
+    texUniforms[name] = tex_id;
+    Notify(UNIFORM_CHANGED_EVENT);
+}
+
+void Material::Accept(IVisitor* v) { v->Visit(this); }

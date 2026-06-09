@@ -2,7 +2,7 @@
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/components/SpriteRenderer.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Texture2D.hpp"

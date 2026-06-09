@@ -4,7 +4,7 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/Container.hpp"
@@ -89,9 +89,21 @@ void DebugPass::Init()
     };
     lineVao = CreateVAO(lineVbo, lineVerts, sizeof(lineVerts));
 
+    // Dynamic polygon VAO – vertices re-uploaded each draw call
+    glad_glGenVertexArrays(1, &polyVao);
+    glad_glGenBuffers(1, &polyVbo);
+    glad_glBindVertexArray(polyVao);
+    glad_glBindBuffer(GL_ARRAY_BUFFER, polyVbo);
+    glad_glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_DYNAMIC_DRAW);
+    glad_glEnableVertexAttribArray(0);
+    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glad_glEnableVertexAttribArray(1);
+    glad_glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glad_glBindVertexArray(0);
+
     glad_glGenBuffers(1, &ssbo);
 
-    debugShader = SharedResources::Get().GetShaderByName("debug");
+    debugShader = AssetManager::Get().GetShaderByName("debug");
 }
 
 void DebugPass::DrawInstanced(unsigned int vao, int vertexCount, GLenum mode,
@@ -252,6 +264,18 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
                 scriptCircleInstances.push_back(inst);
                 break;
             }
+            case DebugDrawCommand::Type::Polygon:
+            {
+                GLenum outlineMode = cmd.closed ? GL_LINE_LOOP : GL_LINE_STRIP;
+                DrawPolygonDirect(cmd.points, outlineMode, cmd.color);
+                if (cmd.filled && cmd.points.size() >= 3)
+                {
+                    glm::vec4 fillColor = cmd.color;
+                    fillColor.a *= 0.5f;
+                    DrawPolygonDirect(cmd.points, GL_TRIANGLE_FAN, fillColor);
+                }
+                break;
+            }
             }
         }
 
@@ -262,6 +286,43 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
         debug->Clear();
     }
 
+    glad_glBindVertexArray(0);
+}
+
+void DebugPass::DrawPolygonDirect(const std::vector<glm::vec2>& pts, GLenum mode, const glm::vec4& color)
+{
+    if (pts.empty()) return;
+
+    std::vector<float> verts;
+    verts.reserve(pts.size() * 4);
+    for (const auto& p : pts)
+    {
+        verts.push_back(p.x);
+        verts.push_back(p.y);
+        verts.push_back(0.0f);
+        verts.push_back(0.0f);
+    }
+
+    glad_glBindVertexArray(polyVao);
+    glad_glBindBuffer(GL_ARRAY_BUFFER, polyVbo);
+    glad_glBufferData(GL_ARRAY_BUFFER, verts.size() * sizeof(float), verts.data(), GL_DYNAMIC_DRAW);
+    glad_glBindVertexArray(0);
+
+    // Single identity instance so vertices pass through the shader unchanged
+    DebugInstanceData inst{};
+    inst.model    = glm::mat4(1.0f);
+    inst.size     = glm::vec2(1.0f, 1.0f);
+    inst.semiSize = glm::vec2(0.0f);
+    inst.offset   = glm::vec2(0.0f);
+    inst.pivot    = glm::vec2(0.0f);
+    inst.color    = color;
+
+    glad_glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo);
+    glad_glBufferData(GL_SHADER_STORAGE_BUFFER, sizeof(DebugInstanceData), &inst, GL_DYNAMIC_DRAW);
+    glad_glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, ssbo);
+
+    glad_glBindVertexArray(polyVao);
+    glad_glDrawArraysInstanced(mode, 0, static_cast<GLsizei>(pts.size()), 1);
     glad_glBindVertexArray(0);
 }
 
@@ -281,6 +342,8 @@ void DebugPass::Shutdown()
     if (capsuleVao) glad_glDeleteVertexArrays(1, &capsuleVao);
     if (lineVbo)    glad_glDeleteBuffers(1, &lineVbo);
     if (lineVao)    glad_glDeleteVertexArrays(1, &lineVao);
+    if (polyVbo)    glad_glDeleteBuffers(1, &polyVbo);
+    if (polyVao)    glad_glDeleteVertexArrays(1, &polyVao);
     if (ssbo)       glad_glDeleteBuffers(1, &ssbo);
     if (debugShader) delete debugShader;
 }

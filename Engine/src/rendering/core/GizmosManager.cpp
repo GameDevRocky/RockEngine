@@ -44,7 +44,8 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
 void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
     Container* container = Engine::Get()->GetActiveContainer();
     SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
-    GameObject* selectedObj = selectionManager->GetGameObject();
+    GameObject* selectedObj = dynamic_cast<GameObject*>(selectionManager->GetSerializable());
+    if (!selectedObj) return;
     Transform* transform = selectedObj->GetComponent<Transform>();
 
     glm::mat4 objectMatrix = transform->GetWorldMatrix();
@@ -97,7 +98,8 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
 void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
     Container* container = Engine::Get()->GetActiveContainer();
     SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
-    GameObject* selectedObj = selectionManager->GetGameObject();
+    GameObject* selectedObj = dynamic_cast<GameObject*>(selectionManager->GetSerializable());
+    if (!selectedObj) return;
     Transform* transform = selectedObj->GetComponent<Transform>();
 
     BoxCollider* boxCollider = selectedObj->GetComponent<BoxCollider>();

@@ -1,3 +1,4 @@
+#pragma vertex
 #version 450 core
 layout (location = 0) in vec2 aPos; // [-0.5, 0.5] quad
 layout (location = 1) in vec2 aUV;  // [0,1] quad UVs
@@ -25,4 +26,24 @@ void main() {
 
     // Transform to world space
     gl_Position = uProj * uView * uModel * vec4(scaledPos, 0.0, 1.0);
+}
+
+#pragma fragment
+#version 450 core
+out vec4 FragColor;
+
+in vec2 vTexCoord;
+
+uniform sampler2D uTexture;  // bound per sprite
+uniform vec4 uColor = vec4(1.0); // per-sprite color multiplier
+uniform float uTime;
+
+void main()
+{
+    vec4 texColor = texture(uTexture, vTexCoord);
+
+    if (texColor.a < 0.01)
+        discard;
+
+    FragColor = texColor * uColor;
 }

@@ -6,7 +6,7 @@
 #include "engine/core/Scene.hpp"
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/core/TimeManager.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/debug/Console.hpp"
 #include <memory>
 #include "Engine.hpp"

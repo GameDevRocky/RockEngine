@@ -38,6 +38,13 @@ namespace EngineUtils {
     std::string GenerateUUID();
     std::string ReadShader(const std::string& path);
 
+    struct ShaderSource {
+        std::string vertex;
+        std::string fragment;
+    };
+    // Parse a combined .glsl file split by #pragma vertex / #pragma fragment markers.
+    ShaderSource ParseShaderSource(const std::string& path);
+
     // 2. ONLY ONE VERSION OF THIS FUNCTION
     template<typename T>
     constexpr std::string_view TypeName() {

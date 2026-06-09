@@ -1,0 +1,6 @@
+type: Texture2D
+id: a52f48a9ddc195c3390a94c4b6256887
+name: search_icon
+path: Domain/lib/assets/icons/search_icon.png
+filtering: linear
+wrap: repeat

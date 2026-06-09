@@ -9,7 +9,8 @@
 #include "engine/rendering/passes/GridPass.hpp"
 #include "engine/rendering/passes/DebugPass.hpp"
 #include "engine/rendering/passes/PickingPass.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
+#include "engine/rendering/core/AssetMetaService.hpp"
 #include "engine/rendering/core/GizmosManager.hpp"
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
@@ -19,8 +20,6 @@
 #include "imgui_impl_opengl3.h"
 #include "engine/core/TimeManager.hpp"
 #include "utils/IconMaps.h" 
-
-#define RESOURCES_CONFIG_PATH PROJECT_ROOT "/Domain/lib/configs/resources_config.config"
 
 namespace {
     void DrawFPS(){
@@ -56,7 +55,6 @@ SceneViewGui::SceneViewGui(QWidget* parent)
 {
     setFocusPolicy(Qt::StrongFocus);
 setMouseTracking(true);
-
 }
 
 
@@ -107,9 +105,14 @@ void SceneViewGui::initializeGL() {
     imGuiInstance->AddDrawCall([this](){DrawFPS();});
     imGuiInstance->AddDrawCall([this](){DrawToolBar();});
     
-    SharedResources::Get().Deserialize(YAML::LoadFile(RESOURCES_CONFIG_PATH));
-    SharedResources::Get().Init();
-    SharedResources::Get().Awake();
+    AssetManager::Get().Init();
+    AssetManager::Get().Awake();
+
+    // Scan Domain/ for missing meta files, then load all assets from meta files.
+    const std::string domainDir = EngineUtils::GetAssetPath("Domain");
+    AssetMetaService::ScanAndGenerate(domainDir);
+    AssetManager::Get().LoadFromDirectory(domainDir);
+
     initializeRenderPipeline();
 
     float quadVertices[] = {
@@ -218,7 +221,7 @@ void SceneViewGui::keyPressEvent(QKeyEvent* event) {
     if (event->key() == Qt::Key_Delete) {
         auto* selMgr = container->FindSystem<SelectionManager>();
         if (selMgr) {
-            GameObject* go = selMgr->GetGameObject();
+            GameObject* go = dynamic_cast<GameObject*>(selMgr->GetSerializable());
             if (go) {
                 go->Shutdown();
                 return;
@@ -472,7 +475,7 @@ void SceneViewGui::DrawToolBar() {
 
     
         auto* selectionManager = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
-        GameObject* obj = selectionManager ? selectionManager->GetGameObject() : nullptr;
+        GameObject* obj = selectionManager ? dynamic_cast<GameObject*>(selectionManager->GetSerializable()) : nullptr;
         bool hasCollider = obj && (
             obj->GetComponent<BoxCollider>() ||
             obj->GetComponent<CircleCollider>() ||

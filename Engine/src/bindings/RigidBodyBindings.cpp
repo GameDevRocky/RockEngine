@@ -78,6 +78,42 @@ void BindRigidBody(pybind11::module_& m) {
         return rb->GetUseGravity();
     });
 
+    rigidbody_module.def("set_body_type", [](const std::string& id, const std::string& type) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) return;
+        auto* rb = go->GetComponent<RigidBody>();
+        if (!rb) return;
+        if      (type == "Dynamic")   rb->SetBodyType(b2_dynamicBody);
+        else if (type == "Kinematic") rb->SetBodyType(b2_kinematicBody);
+        else if (type == "Static")    rb->SetBodyType(b2_staticBody);
+    });
 
+    rigidbody_module.def("get_body_type", [](const std::string& id) -> std::string {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) return "Dynamic";
+        auto* rb = go->GetComponent<RigidBody>();
+        if (!rb) return "Dynamic";
+        switch (rb->GetBodyType()) {
+            case b2_kinematicBody: return "Kinematic";
+            case b2_staticBody:    return "Static";
+            default:               return "Dynamic";
+        }
+    });
+
+    rigidbody_module.def("set_lock_rotation", [](const std::string& id, bool val) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) return;
+        auto* rb = go->GetComponent<RigidBody>();
+        if (!rb) return;
+        rb->SetLockRotation(val);
+    });
+
+    rigidbody_module.def("get_lock_rotation", [](const std::string& id) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) return false;
+        auto* rb = go->GetComponent<RigidBody>();
+        if (!rb) return false;
+        return rb->GetLockRotation();
+    });
 
 }

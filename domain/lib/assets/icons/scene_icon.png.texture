@@ -1,0 +1,6 @@
+type: Texture2D
+id: d120a16829c7c698dd48ab63f927821e
+name: scene_icon
+path: Domain/lib/assets/icons/scene_icon.png
+filtering: linear
+wrap: repeat

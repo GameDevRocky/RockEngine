@@ -12,9 +12,10 @@ class Sprite : public Resource {
 
 public:
 
-    static inline const Event UV_MIN_CHANGED_EVENT = Sprite::CreateEvent();
-    static inline const Event UV_MAX_CHANGED_EVENT = Sprite::CreateEvent();
-    static inline const Event PIVOT_CHANGED_EVENT = Sprite::CreateEvent();
+    static inline const Event UV_MIN_CHANGED_EVENT     = Sprite::CreateEvent();
+    static inline const Event UV_MAX_CHANGED_EVENT     = Sprite::CreateEvent();
+    static inline const Event PIVOT_CHANGED_EVENT      = Sprite::CreateEvent();
+    static inline const Event TEXTURE_CHANGED_EVENT    = Sprite::CreateEvent();
 
 
     Sprite() = default;
@@ -36,6 +37,8 @@ public:
     
     Texture2D* GetTexture();
     void SetTexture(std::string& id);
+
+    void Accept(IVisitor* v) override;
 
 private:
     std::string texture_id;

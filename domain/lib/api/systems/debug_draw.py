@@ -21,3 +21,10 @@ class Debug:
     def draw_circle(center : Vector2, radius : float, color : Vector4 = (1, 1, 0, 1) ):
         """Draw a circle outline at center with given radius (world space)."""
         debug_draw_module.draw_circle(Vector2(center), float(radius), tuple(color))
+
+    @staticmethod
+    def draw_points(points : list, closed : bool = False, filled : bool = False, color : Vector4 = (1, 1, 0, 1)):
+        """Draw a polygon from a list of Vector2 points (world space).
+        closed=True connects the last point back to the first.
+        filled=True fills the interior of the polygon."""
+        debug_draw_module.draw_points([Vector2(p) for p in points], closed, filled, tuple(color))

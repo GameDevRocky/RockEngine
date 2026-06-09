@@ -4,7 +4,7 @@
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/rendering/core/Material.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/debug/Console.hpp"
 #include "engine/core/LayerManager.hpp"
 #include <glm/glm.hpp>

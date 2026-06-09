@@ -74,3 +74,17 @@ void Texture2D::Unbind() const
 {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
+
+void Texture2D::SetFilter(TextureFilter f) {
+    filter = f;
+    if (texture_id) ApplySettings();
+    Notify(FILTER_CHANGED_EVENT);
+}
+
+void Texture2D::SetWrap(TextureWrap w) {
+    wrap = w;
+    if (texture_id) ApplySettings();
+    Notify(WRAP_CHANGED_EVENT);
+}
+
+void Texture2D::Accept(IVisitor* v) { v->Visit(this); }

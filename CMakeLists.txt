@@ -46,7 +46,7 @@ target_link_libraries(RockEngineLauncher
         RockEngineCore
         RockEngineEditor
 )     
- 
+  
 qt_finalize_executable(RockEngineLauncher)
 if(MSVC) 
     # 1. Dynamically find where Qt's binaries are located
@@ -60,8 +60,8 @@ if(MSVC)
                 "${WINDEPLOY_PATH}"  
                 --debug  
                 --no-compiler-runtime 
-                --no-translations
+                --no-translations 
                 "$<TARGET_FILE:RockEngineLauncher>"
         COMMENT "Deploying Qt dependencies from ${_qt_bin_dir}..."
-    )
-endif()
+    ) 
+endif()   

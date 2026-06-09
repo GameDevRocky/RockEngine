@@ -1,0 +1,6 @@
+type: Texture2D
+id: 8114001207191e2686d0424d92ccc8e7
+name: yaml_icon
+path: Domain/lib/assets/icons/yaml_icon.png
+filtering: linear
+wrap: repeat

@@ -2,7 +2,7 @@
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/core/GameObject.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/Material.hpp"
 #include "engine/core/Scene.hpp"
 #include "engine/core/SceneManager.hpp"
@@ -114,7 +114,7 @@ void PickingPass::Init()
     glad_glDeleteShader(vs);
     glad_glDeleteShader(fs);
 
-    shader = SharedResources::Get().GetShaderByName("picking");
+    shader = AssetManager::Get().GetShaderByName("picking");
 }
 
 void PickingPass::Resize(int width, int height)

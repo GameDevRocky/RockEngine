@@ -6,7 +6,6 @@
 #include "engine/rendering/passes/ClearPass.hpp"
 #include "engine/rendering/passes/ScenePass.hpp"
 #include "engine/rendering/passes/GridPass.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
 #include "Engine.hpp"
 
 GameViewGui::GameViewGui(QWidget* parent)
@@ -49,7 +48,6 @@ void GameViewGui::initializeGL() {
         return;
     }
 
-    SharedResources::Get().Init();
     initializeRenderPipeline();
 
     float quadVertices[] = {

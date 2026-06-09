@@ -1,0 +1,7 @@
+type: Sprite
+name: test
+id: h3or3rbjjk3rk
+texture_id: t2
+uvMin: [0.0, 0.0]
+uvMax: [1.0, 1.0]
+pivot: [0, 0]

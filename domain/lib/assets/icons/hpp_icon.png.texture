@@ -1,0 +1,6 @@
+type: Texture2D
+id: 195d138be58bb2aa9b9f1b14f35f5f1c
+name: hpp_icon
+path: Domain/lib/assets/icons/hpp_icon.png
+filtering: linear
+wrap: repeat

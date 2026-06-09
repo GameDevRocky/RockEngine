@@ -1,5 +1,5 @@
 #include "engine/rendering/core/Sprite.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include <iostream>
 #include "engine/utils/EngineUtils.hpp"
@@ -15,17 +15,21 @@ void Sprite::Deserialize(const YAML::Node& node){
 }
 
 Texture2D* Sprite::GetTexture(){
-    Texture2D* tex = SharedResources::Get().GetTexture(texture_id);
+    Texture2D* tex = AssetManager::Get().GetTexture(texture_id);
     return tex;
 }
 
 void Sprite::SetTexture(std::string& id){
-    Texture2D* tex = SharedResources::Get().GetTexture(id);
-    if (tex) texture_id = tex->GetID();
-
+    Texture2D* tex = AssetManager::Get().GetTexture(id);
+    if (tex) {
+        texture_id = tex->GetID();
+        Notify(TEXTURE_CHANGED_EVENT);
+    }
 }
 
 void Sprite::Awake(){}
+
+void Sprite::Accept(IVisitor* v) { v->Visit(this); }
 
 glm::vec2 Sprite::GetPixelSize(){
     Texture2D* tex = GetTexture();

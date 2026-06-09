@@ -18,7 +18,9 @@ enum class TextureWrap {
 
 class Texture2D : public Resource {
 public:
-    
+    static inline const Event FILTER_CHANGED_EVENT = Texture2D::CreateEvent();
+    static inline const Event WRAP_CHANGED_EVENT   = Texture2D::CreateEvent();
+
     void Deserialize(const YAML::Node& node) override;
 
     void Awake() override;
@@ -30,10 +32,18 @@ public:
 
     std::string GetTypeName() {return "Texture2D";};
 
+    void Accept(IVisitor* v) override;
+
     int GetWidth() const { return width; }
     int GetHeight() const { return height; }
 
-    std::string GetPath() const {return path;}
+    std::string GetPath() const { return path; }
+
+    TextureFilter GetFilter() const { return filter; }
+    TextureWrap   GetWrap()   const { return wrap; }
+
+    void SetFilter(TextureFilter f);
+    void SetWrap(TextureWrap w);
 
     GLuint GetTextureID() const { return texture_id; }
 

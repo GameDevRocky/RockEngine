@@ -71,3 +71,15 @@ void DebugDrawManager::DrawCircle(const glm::vec2& center, float radius, const g
     cmd.color  = color;
     commands.push_back(cmd);
 }
+
+void DebugDrawManager::DrawPoints(const std::vector<glm::vec2>& points, bool closed, bool filled, const glm::vec4& color)
+{
+    if (points.size() < 2) return;
+    DebugDrawCommand cmd{};
+    cmd.type   = DebugDrawCommand::Type::Polygon;
+    cmd.points = points;
+    cmd.closed = closed;
+    cmd.filled = filled;
+    cmd.color  = color;
+    commands.push_back(cmd);
+}

@@ -34,7 +34,7 @@ QIcon CustomIconProvider::icon(const QFileInfo &info) const {
         return QIcon("Domain/lib/assets/icons/hpp_icon.png");
     } else if (info.suffix() == "h") {
         return QIcon("Domain/lib/assets/icons/hpp_icon.png");
-    } else if (info.suffix() == "vert" || info.suffix() == "frag") {
+    } else if (info.suffix() == "shader" || info.suffix() == "glsl") {
         return QIcon("Domain/lib/assets/icons/shader_icon.png");
     
     } else if (info.suffix() == "png" || info.suffix() == "jpg" || info.suffix() == "jpeg") {

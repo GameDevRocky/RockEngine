@@ -1,4 +1,4 @@
-#pragma once
+                                                        #pragma once
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/Resource.hpp"
@@ -28,12 +28,27 @@ public:
     void SetShader(std::string& id);
     Shader* GetShader();
     void Validate();
-    void SetFloat(const std::string& name, float value){floatUniforms[name] = value;}
-    void SetVec2(const std::string& name, const glm::vec2& value){vec2Uniforms[name] = value;}
-    void SetVec3(const std::string& name, const glm::vec3& value){vec3Uniforms[name] = value;}
-    void SetVec4(const std::string& name, const glm::vec4& value){vec4Uniforms[name] = value;}
-    void SetTexture(const std::string& name, const std::string& tex_id){texUniforms[name] = tex_id;}
-    void ApplyUniforms(); 
+    void SetFloat(const std::string& name, float value);
+    void SetVec2(const std::string& name, const glm::vec2& value);
+    void SetVec3(const std::string& name, const glm::vec3& value);
+    void SetVec4(const std::string& name, const glm::vec4& value);
+    void SetTexture(const std::string& name, const std::string& tex_id);
+
+    float       GetFloat(const std::string& name) const;
+    glm::vec2   GetVec2(const std::string& name) const;
+    glm::vec3   GetVec3(const std::string& name) const;
+    glm::vec4   GetVec4(const std::string& name) const;
+    std::string GetTexUniform(const std::string& name) const;
+
+    const std::unordered_map<std::string, float>&       GetFloatUniforms() const { return floatUniforms; }
+    const std::unordered_map<std::string, glm::vec2>&   GetVec2Uniforms()  const { return vec2Uniforms; }
+    const std::unordered_map<std::string, glm::vec3>&   GetVec3Uniforms()  const { return vec3Uniforms; }
+    const std::unordered_map<std::string, glm::vec4>&   GetVec4Uniforms()  const { return vec4Uniforms; }
+    const std::unordered_map<std::string, std::string>& GetTexUniforms()   const { return texUniforms; }
+
+    void ApplyUniforms();
+
+    void Accept(IVisitor* v) override;
 
 private:
 

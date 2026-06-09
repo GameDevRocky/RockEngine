@@ -1,5 +1,6 @@
 from Domain import *
 import random
+import math
 
 class TestScript(ScriptableComponent):
     speed: Reflect[int, Step(10)] = 200
@@ -7,7 +8,6 @@ class TestScript(ScriptableComponent):
     scale : Reflect[float, Step(5)] = 32
     testVar : float
     sprite : Sprite = Sprite("sprite3")
-    test : int = "bitchboy"
 
  
     def init(self):
@@ -20,6 +20,17 @@ class TestScript(ScriptableComponent):
 
     def awake(self):
         self.grounded = False
+        self.WATER_LEFT    = -300.0
+        self.WATER_RIGHT   =  300.0
+        self.WATER_LEVEL   = -100.0
+        self.WATER_BOTTOM  = -300.0
+        self.WATER_NODES   = 40
+        self.W_SPRING      = 0.02
+        self.W_RESTORE     = 0.025
+        self.W_DAMPING     = 0.98
+        self.W_MAX_VEL     = 5.0
+        self.water_vel   = [0.0] * self.WATER_NODES
+        self.water_nodes = []
         
     def generate(self):
         for i in range(100):
@@ -41,32 +52,32 @@ class TestScript(ScriptableComponent):
         self.rb.enabled = False
         self.sprite_renderer = self.get_component(SpriteRenderer)
         self.gameobject.tag = "Enemy"
-        self.start_coroutine(self.generate())
+        width = self.WATER_RIGHT - self.WATER_LEFT
+        for i in range(self.WATER_NODES):
+            x = self.WATER_LEFT + width * i / (self.WATER_NODES - 1)
+            node = self.instantiate("WaterNode")
+            node.transform.position = Vector2(x, self.WATER_LEVEL)
+            node.tag = "WaterNode"
+            rb = node.add_component(Rigidbody)
+            rb.body_type = Rigidbody.KINEMATIC
+            rb.use_gravity = False
+            rb.lock_rotation = True
+            sr = node.add_component(SpriteRenderer)
+            sr.sprite = Sprite("sprite3")
+            sr.visible = False
+            cc = node.add_component(CircleCollider)
+            cc.is_sensor = True
+            self.water_nodes.append(node)
+
+    def on_trigger_enter(self, other: Collider):
+        if GameObject(other._gameobject_id).tag == "WaterNode":
+            for i, node in enumerate(self.water_nodes):
+                if node.id == other._gameobject_id:
+                    self.water_vel[i] = -self.W_MAX_VEL
+                    break
 
     def fixed_update(self):
-        self.sprite_renderer.color = (1,1,1,1)
-        self.sprite_renderer.set_uniform("uTime", Time.elapsed_time)
-        self.pos = self.transform.position
-
-        if Input.is_key_pressed(Keys.P):
-            self.gameobject.destroy()
-
-        if Input.is_key_down(Keys.A):
-            self.rb.apply_force((-self.speed, 0))
-            self.sprite_renderer.flipX = True
-        if Input.is_key_down(Keys.D):
-            self.rb.apply_force((self.speed, 0))
-            self.sprite_renderer.flipX = False
-        if Input.is_key_down(Keys.SPACE):
-            if self.inactive_pool:
-                obj = self.inactive_pool.pop()
-                obj.active = True
-                pos = (0, 0)
-                obj.transform.position = pos
-                mouse_pos = Input.get_mouse_pos()
-                shoot_dir = (mouse_pos - pos).normalize()
-                obj.get_component(Rigidbody).apply_impulse(shoot_dir * 2000)
-                self.active_pool.add(obj)
+        self.transform.position = Input.get_mouse_pos()
 
     def turn_off(self):
         for obj in list(self.active_pool):
@@ -83,7 +94,7 @@ class TestScript(ScriptableComponent):
                 recycled.add(obj)
         self.active_pool -= recycled
         self.inactive_pool |= recycled
-        Debug.draw_line(self.transform.position, self.transform.position + -self.transform.up * self.scale)
+        
         result = Physics.cast_ray(self.transform.position, -self.transform.up * self.scale)
         if result:
             self.grounded = True
@@ -91,3 +102,47 @@ class TestScript(ScriptableComponent):
             self.grounded = False
         if self.grounded and Input.is_key_down(Keys.W):
             self.rb.apply_impulse((0, self.jump_force))
+
+    def late_update(self):
+        triangle_radius = 60
+        triangle = [Vector2(triangle_radius * math.cos(math.radians(90 + i * 120)),
+                            triangle_radius * math.sin(math.radians(90 + i * 120)))
+                    for i in range(3)]
+        Debug.draw_points(triangle, closed=True, filled=True, color=(1.0, 0.4, 0.2, 0.6))
+
+        if not self.water_nodes:
+            return
+
+        # Splash on E
+        if Input.is_key_pressed(Keys.E):
+            idx = random.randint(0, self.WATER_NODES - 1)
+            self.water_vel[idx] = -self.W_MAX_VEL
+
+        # Read current displacements from node transforms
+        disp = [node.transform.position.y - self.WATER_LEVEL for node in self.water_nodes]
+
+        # Spring physics
+        for i in range(self.WATER_NODES):
+            self.water_vel[i] += -self.W_RESTORE * disp[i]
+            if i > 0:
+                diff  = disp[i] - disp[i - 1]
+                force = -self.W_SPRING * diff
+                self.water_vel[i]     += force
+                self.water_vel[i - 1] -= force
+            if i < self.WATER_NODES - 1:
+                diff  = disp[i] - disp[i + 1]
+                force = -self.W_SPRING * diff
+                self.water_vel[i]     += force
+                self.water_vel[i + 1] -= force
+            self.water_vel[i] = max(-self.W_MAX_VEL, min(self.W_MAX_VEL, self.water_vel[i])) * self.W_DAMPING
+            disp[i] += self.water_vel[i]
+            self.water_nodes[i].transform.position = Vector2(
+                self.water_nodes[i].transform.position.x,
+                self.WATER_LEVEL + disp[i]
+            )
+
+        points = [Vector2(self.WATER_LEFT, self.WATER_BOTTOM)]
+        for node in self.water_nodes:
+            points.append(node.transform.position)
+        points.append(Vector2(self.WATER_RIGHT, self.WATER_BOTTOM))
+        Debug.draw_points(points, closed=True, filled=True, color=(0.1, 0.3, 1.0, 1.0))

@@ -6,6 +6,12 @@
 #include <QString>
 #include <QStack>
 #include <QHBoxLayout>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QUrl>
+#include "utils/AssetFilterProxyModel.hpp"
 
 class FolderViewGui : public QWidget {
     Q_OBJECT
@@ -29,12 +35,16 @@ private:
     void RefreshBreadcrumbs();
     void NavigateToPath(const QString& path, bool recordHistory = true);
     QString RelativePathForBreadcrumb(const QString& path) const;
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dragMoveEvent(QDragMoveEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
 
-    QListView* gridView = nullptr;
-    QFileSystemModel* model = nullptr;
-    QWidget* navBar = nullptr;
-    QHBoxLayout* breadcrumbLayout = nullptr;
-    QString currentPath;
-    QString projectDirectory;
-    QStack<QString> directoryHistory;
+    QListView*              gridView          = nullptr;
+    QFileSystemModel*       model             = nullptr;
+    AssetFilterProxyModel*  proxy             = nullptr;
+    QWidget*                navBar            = nullptr;
+    QHBoxLayout*            breadcrumbLayout  = nullptr;
+    QString                 currentPath;
+    QString                 projectDirectory;
+    QStack<QString>         directoryHistory;
 };

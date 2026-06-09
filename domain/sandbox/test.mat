@@ -1,0 +1,10 @@
+type: Material
+name: coocoo
+id: 99
+shader_id: s1
+uniforms: {
+        textures: { uTexture: "t1"},
+        floats: { },
+        vec2: { uUVScale : [1.0, 1.0], uUVOffset: [0.0, 0.0] },
+        vec4: { uColor : [1.0, 1.0, 1.0, 1.0]}
+      }

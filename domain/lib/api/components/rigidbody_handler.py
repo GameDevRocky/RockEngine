@@ -6,6 +6,10 @@ from .component_handler import Component
 class Rigidbody(Component):
     _type_name = "RigidBody"
 
+    DYNAMIC   = "Dynamic"
+    KINEMATIC = "Kinematic"
+    STATIC    = "Static"
+
     def __init__(self, obj_id= None):
         super().__init__(obj_id)
 
@@ -42,3 +46,19 @@ class Rigidbody(Component):
     def use_gravity(self, val : bool):
         val = bool(val)
         rigidbody_module.set_use_gravity(self._gameobject_id, val)
+
+    @property
+    def body_type(self) -> str:
+        return rigidbody_module.get_body_type(self._gameobject_id)
+
+    @body_type.setter
+    def body_type(self, val : str):
+        rigidbody_module.set_body_type(self._gameobject_id, val)
+
+    @property
+    def lock_rotation(self) -> bool:
+        return rigidbody_module.get_lock_rotation(self._gameobject_id)
+
+    @lock_rotation.setter
+    def lock_rotation(self, val : bool):
+        rigidbody_module.set_lock_rotation(self._gameobject_id, bool(val))

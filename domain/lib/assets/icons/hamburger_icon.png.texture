@@ -1,0 +1,6 @@
+type: Texture2D
+id: ea66d0ed318efa475fd88fc63d6fe6fe
+name: hamburger_icon
+path: Domain/lib/assets/icons/hamburger_icon.png
+filtering: linear
+wrap: repeat

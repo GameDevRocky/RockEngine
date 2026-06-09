@@ -2,6 +2,7 @@
 #include "engine/core/Container.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/serialization/Registry.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 
 void SelectionManager::Init()
 {
@@ -30,11 +31,24 @@ SelectionManager* SelectionManager::Copy(Container* container)
     return copy;
 }
 
-GameObject* SelectionManager::GetGameObject(){
+Serializable* SelectionManager::GetSerializable() const {
     if (selectedObjectId.empty()) return nullptr;
-    auto* registry = container->FindSystem<Registry>();
-    auto* obj = registry->Find<GameObject>(selectedObjectId);  
-    return obj;
+
+    // Check runtime objects first (GameObjects, Components)
+    auto* reg = container->FindSystem<Registry>();
+    if (reg) {
+        auto* obj = reg->Find<Serializable>(selectedObjectId);
+        if (obj) return obj;
+    }
+
+    // Fall back to AssetManager
+    auto& am = AssetManager::Get();
+    if (auto* s = am.GetSprite(selectedObjectId))   return s;
+    if (auto* m = am.GetMaterial(selectedObjectId)) return m;
+    if (auto* t = am.GetTexture(selectedObjectId))  return t;
+    if (auto* sh = am.GetShader(selectedObjectId))  return sh;
+
+    return nullptr;
 }
 
 void SelectionManager::Select(const std::string& objectId)
@@ -49,19 +63,32 @@ void SelectionManager::Select(const std::string& objectId)
     }
 
     selectedObjectId = objectId;
-    auto* obj = registry->Find<GameObject>(selectedObjectId);  
-    if (!obj){
-        Deselect();
+
+    // Try to find as a GameObject first — subscribe to its shutdown so we
+    // auto-deselect when it's destroyed.
+    auto* obj = registry->Find<GameObject>(selectedObjectId);
+    if (obj) {
+        m_shutdownSubId = obj->Subscribe([](std::any data){
+            auto* sm = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+            sm->Deselect();
+            return false;
+        }, RuntimeObject::SHUTDOWN_EVENT);
+        Notify(SELECTION_CHANGED_EVENT, selectedObjectId);
         return;
     }
 
-    // Return false so the callback auto-removes itself on fire,
-    // avoiding a re-entrant Unsubscribe during SHUTDOWN_EVENT iteration.
-    m_shutdownSubId = obj->Subscribe([](std::any data){
-        auto* sm = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
-        sm->Deselect();
-        return false;
-    }, RuntimeObject::SHUTDOWN_EVENT);
+    // Fall back: check AssetManager. Assets don't have a shutdown event,
+    // so just verify the ID exists then notify.
+    auto& am = AssetManager::Get();
+    bool found = am.GetSprite(selectedObjectId)   != nullptr
+              || am.GetMaterial(selectedObjectId) != nullptr
+              || am.GetTexture(selectedObjectId)  != nullptr
+              || am.GetShader(selectedObjectId)   != nullptr;
+
+    if (!found) {
+        selectedObjectId.clear();
+        return;
+    }
 
     Notify(SELECTION_CHANGED_EVENT, selectedObjectId);
 }

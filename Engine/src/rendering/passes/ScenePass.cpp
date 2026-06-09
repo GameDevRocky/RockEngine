@@ -77,7 +77,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
         Material* mat = renderer->GetMaterial();
         if (!mat)
         {
-            mat = SharedResources::Get().GetMaterialByName("default");
+            mat = AssetManager::Get().GetMaterialByName("default");
             Console::Alert("Assigning Default Material to " + transform->GetGameObject()->GetName());
         }
         if (!mat || !mat->GetShader()) continue;

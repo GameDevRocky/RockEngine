@@ -1,0 +1,6 @@
+type: Texture2D
+id: 6bdef5ba31f476d21a1ad9c2f945d3e9
+name: stop_icon
+path: Domain/lib/assets/icons/stop_icon.png
+filtering: linear
+wrap: repeat

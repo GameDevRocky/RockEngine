@@ -1,3 +1,4 @@
+#pragma vertex
 #version 450 core
 layout (location = 0) in vec2 aPos;
 layout (location = 1) in vec2 aSemi;
@@ -29,4 +30,15 @@ void main() {
 
     gl_Position = uProj * uView * inst.model * vec4(scaledPos, 0.0, 1.0);
     vColor = inst.color;
+}
+
+#pragma fragment
+#version 450 core
+out vec4 FragColor;
+
+flat in vec4 vColor;
+
+void main()
+{
+    FragColor = vColor;
 }

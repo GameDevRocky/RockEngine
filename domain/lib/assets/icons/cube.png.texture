@@ -1,0 +1,6 @@
+type: Texture2D
+id: 8c2da8aaef9fef14958ccaaf907bb4b4
+name: cube
+path: Domain/lib/assets/icons/cube.png
+filtering: linear
+wrap: repeat

@@ -8,6 +8,10 @@
 #include "engine/core/Observable.hpp"
 
 class ScriptComponent;
+class Sprite;
+class Material;
+class Texture2D;
+class Shader;
 
 class InspectorVisitor : public IVisitor{
 
@@ -22,6 +26,10 @@ class InspectorVisitor : public IVisitor{
         void Visit(CapsuleCollider* capsuleCollider) override;
         void Visit(RigidBody* rigidBody) override;
         void Visit(ScriptComponent* scriptComponent) override;
+        void Visit(Sprite* sprite) override;
+        void Visit(Material* material) override;
+        void Visit(Texture2D* texture) override;
+        void Visit(Shader* shader) override;
 
 
         QWidget* GetContent(){ return content;}
@@ -37,6 +45,7 @@ class InspectorVisitor : public IVisitor{
 
     private:
         void AddRow(const std::string& text, QWidget* widget);
+        void AddFullRow(QWidget* widget);
 
         QGridLayout* layout = nullptr;
         int gridRow = 0;

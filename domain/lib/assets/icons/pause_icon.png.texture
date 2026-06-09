@@ -1,0 +1,6 @@
+type: Texture2D
+id: b7a749a62b390e0a8126dcc6fbddcc08
+name: pause_icon
+path: Domain/lib/assets/icons/pause_icon.png
+filtering: linear
+wrap: repeat

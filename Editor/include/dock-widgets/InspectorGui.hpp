@@ -42,4 +42,5 @@ private:
     QVBoxLayout* mainLayout = nullptr;
     Proxy<SelectionManager> selectionManager;
     std::vector<std::pair<std::string, int>> m_scriptReloadSubs;
+    std::vector<std::pair<class Material*, int>> m_materialShaderSubs;
 };

@@ -1,6 +1,7 @@
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/debug/Console.hpp"
+#include "engine/utils/IVisitor.hpp"
 #include <iostream>
 #include "engine/utils/EngineUtils.hpp"
 
@@ -12,20 +13,21 @@ Shader::~Shader()
     glad_glDeleteProgram(program_id);
 }
 
+void Shader::Accept(IVisitor* v) { v->Visit(this); }
+
 
 void Shader::Deserialize(const YAML::Node& node) {
     Resource::Deserialize(node);
-    vert_path = GetAssetPath(node["vert_path"].as<std::string>());
-    frag_path = GetAssetPath(node["frag_path"].as<std::string>());
-    vert_src = EngineUtils::ReadShader(vert_path);
-    frag_src = EngineUtils::ReadShader(frag_path);
+    source_path = GetAssetPath(node["source_path"].as<std::string>());
+    auto src = EngineUtils::ParseShaderSource(source_path);
+    vert_src = src.vertex;
+    frag_src = src.fragment;
     GLuint vertex = CompileShader(GL_VERTEX_SHADER, vert_src);
     GLuint fragment = CompileShader(GL_FRAGMENT_SHADER, frag_src);
     program_id = LinkProgram(vertex, fragment);
     glad_glDeleteShader(vertex);
     glad_glDeleteShader(fragment);
     ReflectUniforms();
-    
 }
 
 
@@ -97,7 +99,12 @@ void Shader::SetTexture(const std::string& name, const GLint tex) const
     glad_glUniform1i(glad_glGetUniformLocation(program_id, name.c_str()), tex);
 }
 void Shader::ReflectUniforms() {
-    active_uniforms.clear(); 
+    active_uniforms.clear();
+    m_floatDefaults.clear();
+    m_vec2Defaults.clear();
+    m_vec3Defaults.clear();
+    m_vec4Defaults.clear();
+
     GLint count;
     glad_glGetProgramiv(program_id, GL_ACTIVE_UNIFORMS, &count);
 
@@ -106,6 +113,38 @@ void Shader::ReflectUniforms() {
         GLenum type;
         GLint size;
         glad_glGetActiveUniform(program_id, i, sizeof(name), nullptr, &size, &type, name);
-        active_uniforms[name] = { type, glad_glGetUniformLocation(program_id, name) };
+        GLint loc = glad_glGetUniformLocation(program_id, name);
+        active_uniforms[name] = { type, loc };
+
+        // Read the initializer value from the freshly linked program — this is
+        // exactly what the GLSL "= value" default evaluates to.
+        switch (type) {
+            case GL_FLOAT: {
+                float v;
+                glad_glGetUniformfv(program_id, loc, &v);
+                m_floatDefaults[name] = v;
+                break;
+            }
+            case GL_FLOAT_VEC2: {
+                float v[2];
+                glad_glGetUniformfv(program_id, loc, v);
+                m_vec2Defaults[name] = glm::vec2(v[0], v[1]);
+                break;
+            }
+            case GL_FLOAT_VEC3: {
+                float v[3];
+                glad_glGetUniformfv(program_id, loc, v);
+                m_vec3Defaults[name] = glm::vec3(v[0], v[1], v[2]);
+                break;
+            }
+            case GL_FLOAT_VEC4: {
+                float v[4];
+                glad_glGetUniformfv(program_id, loc, v);
+                m_vec4Defaults[name] = glm::vec4(v[0], v[1], v[2], v[3]);
+                break;
+            }
+            default:
+                break;
+        }
     }
 }

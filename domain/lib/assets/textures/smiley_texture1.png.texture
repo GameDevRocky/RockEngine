@@ -1,0 +1,6 @@
+type: Texture2D
+id: 8c5a05b14974976dcf3d0709dfa78182
+name: smiley_texture1
+path: Domain/lib/assets/textures/smiley_texture1.png
+filtering: linear
+wrap: repeat

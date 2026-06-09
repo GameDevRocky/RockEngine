@@ -1,0 +1,6 @@
+type: Texture2D
+id: 7d141fddef7b07a70a8b2c61cf0cf4d6
+name: folder_icon
+path: Domain/lib/assets/icons/folder_icon.png
+filtering: linear
+wrap: repeat

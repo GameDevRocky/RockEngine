@@ -6,8 +6,13 @@
 #include <QWidget>
 #include <QDir>
 #include "utils/EditorUtils.hpp"
+#include "utils/AssetPreviewDelegate.hpp"
 #include "engine/utils/EngineUtils.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
+#include "engine/core/SelectionManager.hpp"
+#include "Engine.hpp"
 #include "iostream"
+#include <yaml-cpp/yaml.h>
 
 FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PROJECT_ROOT), projectDirectory(PROJECT_ROOT) {
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
@@ -35,9 +40,14 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     model->setRootPath(projectDirectory);
     model->setFilter(QDir::AllEntries | QDir::NoDotAndDotDot);
     model->setIconProvider(new EditorUtils::CustomIconProvider());
+
+    // Proxy model: filters compound-asset secondaries (.frag, .meta)
+    proxy = new AssetFilterProxyModel(model, this);
+    proxy->setSourceModel(model);
+
     gridView = new QListView(this);
-    gridView->setModel(model);
     gridView->setViewMode(QListView::IconMode);
+    gridView->setMovement(QListView::Static);
     gridView->setResizeMode(QListView::Adjust);
     gridView->setSpacing(8);
     gridView->setIconSize(QSize(64, 64));
@@ -45,24 +55,46 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     gridView->setUniformItemSizes(true);
     gridView->setGridSize(QSize(100, 110));  // Fixed cell size: 100px wide, 110px tall
     gridView->setTextElideMode(Qt::ElideRight);  // Add "..." to long filenames
-
+    this->setAcceptDrops(true);
     gridView->setDragEnabled(true);                    
-    gridView->setAcceptDrops(false);                  
+    gridView->setAcceptDrops(true);                  
     gridView->setDropIndicatorShown(false);            
-    gridView->setDragDropMode(QAbstractItemView::DragOnly); 
     gridView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     gridView->setSelectionMode(QAbstractItemView::SingleSelection);
+    gridView->setItemDelegate(new AssetPreviewDelegate(model, gridView, this));
+
+    gridView->setModel(proxy);
 
     mainLayout->addWidget(gridView);
     setLayout(mainLayout);
+    setAcceptDrops(true);
 
-    connect(gridView, &QListView::doubleClicked, this, [this](const QModelIndex& index) {
-        if (model->isDir(index)) {
-            QString folderPath = model->filePath(index);
-            Navigate(folderPath.toStdString());
+    connect(gridView, &QListView::clicked, this, [this](const QModelIndex& proxyIndex) {
+        QModelIndex sourceIndex = proxy->mapToSource(proxyIndex);
+        if (model->isDir(sourceIndex)) return;
+
+        const QString filePath = model->filePath(sourceIndex);
+        const QString ext = QFileInfo(filePath).suffix().toLower();
+
+        static const QSet<QString> assetExts = { "sprite", "mat", "material", "texture", "shader" };
+        if (assetExts.contains(ext)) {
+            try {
+                YAML::Node node = YAML::LoadFile(filePath.toStdString());
+                if (node["id"]) {
+                    std::string assetId = node["id"].as<std::string>();
+                    auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+                    if (selMgr) selMgr->Select(assetId);
+                }
+            } catch (...) {}
         }
-        else{
-            EditorUtils::OpenInVSCode(model->filePath(index).toStdString());
+    });
+
+    connect(gridView, &QListView::doubleClicked, this, [this](const QModelIndex& proxyIndex) {
+        QModelIndex sourceIndex = proxy->mapToSource(proxyIndex);
+        if (model->isDir(sourceIndex)) {
+            Navigate(model->filePath(sourceIndex).toStdString());
+        } else {
+            EditorUtils::OpenInVSCode(model->filePath(sourceIndex).toStdString());
         }
     });
 }
@@ -107,8 +139,8 @@ void FolderViewGui::NavigateToPath(const QString& path, bool recordHistory) {
     }
 
     currentPath = normalizedPath;
-    QModelIndex rootIndex = model->index(currentPath);
-    gridView->setRootIndex(rootIndex);
+    QModelIndex sourceRoot = model->index(currentPath);
+    gridView->setRootIndex(proxy->mapFromSource(sourceRoot));
     RefreshBreadcrumbs();
 }
 
@@ -165,4 +197,28 @@ void FolderViewGui::RefreshBreadcrumbs() {
     }
 
     breadcrumbLayout->addStretch();
+}
+
+void FolderViewGui::dragEnterEvent(QDragEnterEvent* event) {
+    for (const QUrl& url : event->mimeData()->urls()) {
+        if (url.toLocalFile().endsWith(".material", Qt::CaseInsensitive)) {
+            event->acceptProposedAction();
+            return;
+        }
+    }
+    event->ignore();
+}
+
+void FolderViewGui::dragMoveEvent(QDragMoveEvent* event) {
+    event->acceptProposedAction();
+}
+
+void FolderViewGui::dropEvent(QDropEvent* event) {
+    for (const QUrl& url : event->mimeData()->urls()) {
+        QString path = url.toLocalFile();
+        if (path.endsWith(".material", Qt::CaseInsensitive)) {
+            AssetManager::Get().LoadAssetFromFile(path.toStdString());
+            event->acceptProposedAction();
+        }
+    }
 }

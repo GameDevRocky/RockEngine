@@ -8,7 +8,7 @@
 #include "dock-widgets/FolderViewGui.hpp"
 #include "dock-widgets/RuntimeBar.hpp"
 #include "dock-widgets/MenuBar.hpp"
-#include "engine/rendering/core/SharedResources.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent){}
 MainWindow::~MainWindow(){SaveLayout();}
