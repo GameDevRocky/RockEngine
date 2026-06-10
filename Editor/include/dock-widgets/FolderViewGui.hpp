@@ -1,4 +1,6 @@
 #pragma once
+#include <vector>
+#include <string>
 #include <QWidget>
 #include <QListView>
 #include <QFileSystemModel>
@@ -27,6 +29,7 @@ public:
     void Init();
     void Navigate(const std::string& filepath);
     void SetProjectDirectory(const std::string& projectDir);
+    std::vector<std::string> GetSelectedFilePaths() const;
 
 private:
     explicit FolderViewGui(QWidget* parent = nullptr);

@@ -4,7 +4,6 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
-#include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Resource.hpp"
 
 #include <glm/glm.hpp>
@@ -113,15 +112,31 @@ void AssetPreviewDelegate::paint(QPainter* painter,
         // Strip double extension: "sprite.glsl.shader" → "sprite.glsl" → "sprite"
         QString stem = QFileInfo(filePath).completeBaseName(); // "sprite.glsl"
         opt.text = QFileInfo(stem).completeBaseName();          // "sprite"
+        const bool selected = opt.state & QStyle::State_Selected;
+        opt.state &= ~QStyle::State_Selected;
         QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, m_view);
+        if (selected) {
+            painter->save();
+            painter->setPen(QPen(QColor(160, 160, 160), 1));
+            painter->drawRect(option.rect.adjusted(0, 0, -1, -1));
+            painter->restore();
+        }
         return;
     }
 
     // ── Asset types that get a pixmap/GL thumbnail ────────────────────────────
-    const bool needsThumb = (ext == "texture" || ext == "mat" ||
-                             ext == "material" || ext == "sprite");
+    const bool needsThumb = (ext == "texture" || ext == "mat" || ext == "material");
     if (!needsThumb) {
-        QStyledItemDelegate::paint(painter, option, index);
+        const bool selected = option.state & QStyle::State_Selected;
+        QStyleOptionViewItem opt = option;
+        opt.state &= ~QStyle::State_Selected;
+        QStyledItemDelegate::paint(painter, opt, index);
+        if (selected) {
+            painter->save();
+            painter->setPen(QPen(QColor(160, 160, 160), 1));
+            painter->drawRect(option.rect.adjusted(0, 0, -1, -1));
+            painter->restore();
+        }
         return;
     }
 
@@ -132,8 +147,6 @@ void AssetPreviewDelegate::paint(QPainter* painter,
     } else if (ext == "texture") {
         QString src = textureSourcePath(filePath);
         if (!src.isEmpty()) px = QPixmap(src);
-    } else if (ext == "sprite") {
-        px = renderSpritePreview(filePath);
     }
 
     if (px.isNull()) {
@@ -153,9 +166,10 @@ void AssetPreviewDelegate::drawCell(QPainter* p,
                                      const QString& label) const {
     p->save();
 
-    // Selection highlight
+    // Gray border on selection (no fill)
     if (opt.state & QStyle::State_Selected) {
-        p->fillRect(opt.rect, opt.palette.highlight());
+        p->setPen(QPen(QColor(160, 160, 160), 1));
+        p->drawRect(opt.rect.adjusted(0, 0, -1, -1));
     }
 
     // Thumbnail centred in top portion of cell
@@ -172,18 +186,14 @@ void AssetPreviewDelegate::drawCell(QPainter* p,
         p->drawPixmap(dst, scaled);
     }
 
-    // Label below the icon
-    QRect textArea(opt.rect.left(),
+    // Label below the icon — single line, elided with "…" if too long
+    QRect textArea(opt.rect.left() + 2,
                    opt.rect.top() + kThumbSize + 12,
-                   opt.rect.width(),
+                   opt.rect.width() - 4,
                    opt.rect.height() - kThumbSize - 12);
-    QPen textPen = (opt.state & QStyle::State_Selected)
-                       ? QPen(opt.palette.highlightedText().color())
-                       : QPen(opt.palette.text().color());
-    p->setPen(textPen);
-    p->drawText(textArea,
-                Qt::AlignHCenter | Qt::AlignTop | Qt::TextWordWrap,
-                label);
+    p->setPen(QPen(opt.palette.text().color()));
+    const QString elided = p->fontMetrics().elidedText(label, Qt::ElideRight, textArea.width());
+    p->drawText(textArea, Qt::AlignHCenter | Qt::AlignTop, elided);
 
     p->restore();
 }
@@ -287,11 +297,6 @@ void AssetPreviewDelegate::subscribeToAsset(Resource* asset) {
     if (auto* mat = dynamic_cast<Material*>(asset)) {
         ids.push_back(mat->Subscribe(trigger, Material::SHADER_CHANGED_EVENT));
         ids.push_back(mat->Subscribe(trigger, Material::UNIFORM_CHANGED_EVENT));
-    } else if (auto* sprite = dynamic_cast<Sprite*>(asset)) {
-        ids.push_back(sprite->Subscribe(trigger, Sprite::UV_MIN_CHANGED_EVENT));
-        ids.push_back(sprite->Subscribe(trigger, Sprite::UV_MAX_CHANGED_EVENT));
-        ids.push_back(sprite->Subscribe(trigger, Sprite::PIVOT_CHANGED_EVENT));
-        ids.push_back(sprite->Subscribe(trigger, Sprite::TEXTURE_CHANGED_EVENT));
     }
 
     if (!ids.empty())
@@ -301,8 +306,6 @@ void AssetPreviewDelegate::subscribeToAsset(Resource* asset) {
 void AssetPreviewDelegate::refreshSubscriptions() {
     for (auto& [id, mat] : AssetManager::Get().GetAllMaterials())
         subscribeToAsset(mat);
-    for (auto& [id, sprite] : AssetManager::Get().GetAllSprites())
-        subscribeToAsset(sprite);
 }
 
 void AssetPreviewDelegate::repaintAsset(Resource* asset) {
@@ -314,84 +317,6 @@ void AssetPreviewDelegate::repaintAsset(Resource* asset) {
     QModelIndex proxyIdx = proxy ? proxy->mapFromSource(src) : src;
     if (proxyIdx.isValid())
         m_view->update(proxyIdx);
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-QPixmap AssetPreviewDelegate::renderSpritePreview(const QString& spritePath) const {
-    Sprite* sprite = nullptr;
-    try {
-        YAML::Node node = YAML::LoadFile(spritePath.toStdString());
-        if (node["id"])
-            sprite = AssetManager::Get().GetSprite(node["id"].as<std::string>());
-        if (!sprite && node["name"])
-            sprite = AssetManager::Get().GetSpriteByName(node["name"].as<std::string>());
-    } catch (const std::exception& e) {
-        std::cerr << "AssetPreviewDelegate: sprite parse failed: " << e.what() << std::endl;
-        return {};
-    }
-
-    if (!sprite) return {};
-
-    Texture2D* tex    = sprite->GetTexture();
-    Shader*    shader = AssetManager::Get().GetShader("s1");
-    if (!tex || !shader) return {};
-
-    const glm::vec2 uvMin  = sprite->GetUVMin();
-    const glm::vec2 uvMax  = sprite->GetUVMax();
-    const glm::vec2 pivot  = sprite->GetPivot();
-
-    // Compute pixel dimensions of the sprite region to preserve aspect ratio.
-    float aspect = 1.f;
-    if (tex->GetWidth() > 0 && tex->GetHeight() > 0) {
-        glm::vec2 uvScale = uvMax - uvMin;
-        float pw = uvScale.x * static_cast<float>(tex->GetWidth());
-        float ph = uvScale.y * static_cast<float>(tex->GetHeight());
-        if (ph > 0.f) aspect = pw / ph;
-    }
-    float sx = (aspect >= 1.f) ? 2.f : 2.f * aspect;
-    float sy = (aspect >= 1.f) ? 2.f / aspect : 2.f;
-
-    SceneViewGui* sv = SceneViewGui::Get();
-    if (!sv || !sv->context() || !sv->context()->isValid()) return {};
-    sv->makeCurrent();
-
-    ensureQuadGeometry();
-
-    GLuint fbo = 0, colorTex = 0;
-    GLint  prevFBO = 0, prevViewport[4] = {};
-    if (!beginFBO(kThumbSize, fbo, colorTex, prevFBO, prevViewport)) {
-        sv->doneCurrent();
-        return {};
-    }
-
-    shader->Bind();
-
-    const glm::mat4 model = glm::scale(glm::mat4(1.f), glm::vec3(sx, sy, 1.f));
-    const glm::mat4 ident = glm::mat4(1.f);
-
-    const auto& activeUniforms = shader->GetActiveUniforms();
-    auto has = [&](const char* name){ return activeUniforms.count(name) > 0; };
-
-    if (has("uModel"))     shader->SetMat4("uModel",     model);
-    if (has("uView"))      shader->SetMat4("uView",      ident);
-    if (has("uProj"))      shader->SetMat4("uProj",      ident);
-    if (has("uSize"))      shader->SetVec2("uSize",      glm::vec2(1.f, 1.f));
-    if (has("uPivot"))     shader->SetVec2("uPivot",     pivot);
-    if (has("uUVScale"))   shader->SetVec2("uUVScale",   uvMax - uvMin);
-    if (has("uUVOffset"))  shader->SetVec2("uUVOffset",  uvMin);
-    if (has("uColor"))     shader->SetVec4("uColor",     glm::vec4(1.f));
-
-    tex->Bind(0);
-    if (has("uTexture"))   shader->SetTexture("uTexture", 0);
-
-    glad_glBindVertexArray(m_quadVAO);
-    glad_glDrawArrays(GL_TRIANGLES, 0, 6);
-    glad_glBindVertexArray(0);
-    glad_glUseProgram(0);
-
-    QPixmap result = readFBO(kThumbSize, fbo, colorTex, prevFBO, prevViewport);
-    sv->doneCurrent();
-    return result;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────

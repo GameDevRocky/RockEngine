@@ -14,10 +14,13 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/Shader.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
+#include "engine/core/SelectionManager.hpp"
 #include "Engine.hpp"
 #include <QLabel>
 #include <QPixmap>
 #include <QSizePolicy>
+#include <QPushButton>
 
 using namespace Properties;
 
@@ -147,7 +150,7 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
     BindProperty<bool>(renderer, "Flip Y: ", flipY_get, flipY_set, renderer->FLIP_Y_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<bool>(renderer, "Visible: ", visible_get, visible_set, renderer->VISIBILITY_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<std::string>(renderer, "Material: ", material_get, material_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF));
-    BindProperty<std::string>(renderer, "Sprite: ", sprite_get, sprite_set, renderer->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF));
+    BindProperty<std::string>(renderer, "Sprite: ", sprite_get, sprite_set, renderer->SPRITE_CHANGED_EVENT, PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF));
     
     LayerManager* layerManager = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>();
     if (layerManager)
@@ -568,6 +571,33 @@ void InspectorVisitor::Visit(Texture2D* tex) {
             {"Repeat", static_cast<int>(TextureWrap::Repeat)},
             {"Clamp",  static_cast<int>(TextureWrap::Clamp)}
         }));
+
+    std::vector<Sprite*> mySprites;
+    for (const auto& [id, sprite] : AssetManager::Get().GetAllSprites()) {
+        if (sprite->GetTextureID() == tex->GetID())
+            mySprites.push_back(sprite);
+    }
+
+    if (!mySprites.empty()) {
+        auto* spritesLabel = new QLabel("Sprites");
+        auto font = spritesLabel->font();
+        font.setBold(true);
+        spritesLabel->setFont(font);
+        spritesLabel->setStyleSheet("margin-top: 8px; color: #cccccc;");
+        AddFullRow(spritesLabel);
+
+        for (Sprite* sprite : mySprites) {
+            auto* btn = new QPushButton(QString::fromStdString(sprite->GetName()));
+            btn->setFlat(true);
+            btn->setStyleSheet("text-align: left; padding: 2px 4px; color: #88aaff;");
+            std::string spriteId = sprite->GetID();
+            QObject::connect(btn, &QPushButton::clicked, [spriteId]() {
+                auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+                if (selMgr) selMgr->Select(spriteId);
+            });
+            AddFullRow(btn);
+        }
+    }
 }
 
 void InspectorVisitor::Visit(Shader* shader) {

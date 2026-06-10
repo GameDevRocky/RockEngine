@@ -28,6 +28,14 @@ class ScriptableComponent(Component):
             self._coroutines.append([gen, instruction])
         except StopIteration:
             pass
+        # If the subclass has no update/fixed_update/late_update, _tick_coroutines
+        # was never injected — patch in a minimal update so coroutines get ticked.
+        cls = type(self)
+        tick_methods = ('update', 'fixed_update', 'late_update')
+        if not any(m in cls.__dict__ for m in tick_methods):
+            def _coroutine_only_update(self):
+                self._tick_coroutines()
+            cls.update = _coroutine_only_update
 
     def stop_all_coroutines(self):
         """Cancel all running coroutines on this component."""

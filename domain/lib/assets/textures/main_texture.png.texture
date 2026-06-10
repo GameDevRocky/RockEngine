@@ -4,3 +4,9 @@ name: main_texture
 path: Domain/lib/assets/textures/main_texture.png
 filtering: linear
 wrap: repeat
+sprites:
+  - id: default
+    name: default
+    uvMin: [0.0, 0.0]
+    uvMax: [1.0, 1.0]
+    pivot: [0.0, 0.0]

@@ -60,7 +60,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     gridView->setAcceptDrops(true);                  
     gridView->setDropIndicatorShown(false);            
     gridView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    gridView->setSelectionMode(QAbstractItemView::SingleSelection);
+    gridView->setSelectionMode(QAbstractItemView::ExtendedSelection);
     gridView->setItemDelegate(new AssetPreviewDelegate(model, gridView, this));
 
     gridView->setModel(proxy);
@@ -76,7 +76,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
         const QString filePath = model->filePath(sourceIndex);
         const QString ext = QFileInfo(filePath).suffix().toLower();
 
-        static const QSet<QString> assetExts = { "sprite", "mat", "material", "texture", "shader" };
+        static const QSet<QString> assetExts = { "mat", "material", "texture", "shader" };
         if (assetExts.contains(ext)) {
             try {
                 YAML::Node node = YAML::LoadFile(filePath.toStdString());
@@ -197,6 +197,17 @@ void FolderViewGui::RefreshBreadcrumbs() {
     }
 
     breadcrumbLayout->addStretch();
+}
+
+std::vector<std::string> FolderViewGui::GetSelectedFilePaths() const {
+    std::vector<std::string> paths;
+    const auto indexes = gridView->selectionModel()->selectedIndexes();
+    for (const QModelIndex& proxyIndex : indexes) {
+        QModelIndex sourceIndex = proxy->mapToSource(proxyIndex);
+        if (!model->isDir(sourceIndex))
+            paths.push_back(model->filePath(sourceIndex).toStdString());
+    }
+    return paths;
 }
 
 void FolderViewGui::dragEnterEvent(QDragEnterEvent* event) {

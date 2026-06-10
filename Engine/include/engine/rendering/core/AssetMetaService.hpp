@@ -10,7 +10,6 @@
 //   foo.png / .jpg       foo.png.texture               Texture2D
 //   foo.vert (+ .frag)   foo.vert.shader               Shader
 //   foo.mat              (already a definition file)   Material
-//   foo.sprite           (already a definition file)   Sprite
 //
 // Meta files are YAML and contain all fields that AssetManager / the
 // individual Deserialize() methods expect, plus:
@@ -25,7 +24,7 @@ public:
     // Safe to call on every startup – it skips files that already exist.
     static void ScanAndGenerate(const std::string& rootDir);
 
-    // Returns true if ext is a meta extension (.texture / .shader / .material / .sprite)
+    // Returns true if ext is a meta extension (.texture / .shader / .material)
     static bool IsMetaExtension(const std::string& ext);
 
     // Returns the meta extension for a given source extension, or "" if unknown.

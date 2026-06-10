@@ -10,21 +10,18 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 add_compile_definitions(PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
 if(MSVC)
     add_compile_options(/Zc:__cplusplus)
-    add_compile_options(/EHsc) # <--- ADD THIS LINE TO FIX THE C4530 WARNING
+    add_compile_options(/EHsc)
      
-    # Enable Hot Reload (Edit and Continue)
     string(REPLACE "/Zi" "/ZI" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
     string(REPLACE "/Zi" "/ZI" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /INCREMENTAL")
     
-    # Ensure optimizations are off for Debug
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /RTC1")
 else()
     add_compile_options(-Wall -Wextra)
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-# Tell Visual Studio where the debugger should start
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
@@ -64,4 +61,4 @@ if(MSVC)
                 "$<TARGET_FILE:RockEngineLauncher>"
         COMMENT "Deploying Qt dependencies from ${_qt_bin_dir}..."
     ) 
-endif()   
+endif()

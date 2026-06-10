@@ -189,8 +189,6 @@ void AssetManager::LoadAsset(const YAML::Node& node, const std::string& type) {
         LoadTexture(node);
     } else if (type == "shader") {
         LoadShader(node);
-    } else if (type == "sprite") {
-        LoadSprite(node);
     }
 }
 
@@ -216,6 +214,19 @@ void AssetManager::LoadTexture(const YAML::Node& node, const std::string& filePa
     tex->Awake();
     AddTexture(tex);
     std::cout << "Loaded and Registered Texture: " + tex->GetName() << std::endl;
+
+    if (node["sprites"]) {
+        for (const auto& spriteNode : node["sprites"]) {
+            LoadSprite(spriteNode, filePath);
+            if (spriteNode["id"]) {
+                Sprite* s = GetSprite(spriteNode["id"].as<std::string>());
+                if (s) {
+                    std::string texId = tex->GetID();
+                    s->SetTexture(texId);
+                }
+            }
+        }
+    }
 }
 
 void AssetManager::LoadShader(const YAML::Node& node, const std::string& filePath) {
@@ -262,8 +273,6 @@ void AssetManager::LoadAssetFromFile(const std::string& filePath) {
         LoadTexture(node, filePath);
     } else if (type == "shader") {
         LoadShader(node, filePath);
-    } else if (type == "sprite") {
-        LoadSprite(node, filePath);
     }
 }
 
@@ -274,9 +283,9 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
         return;
     }
 
-    // Load in dependency order: textures + shaders first, then sprites, then materials.
-    // Collect paths by priority bucket.
-    std::vector<fs::path> textureMetas, shaderMetas, spriteMetas, materialMetas;
+    // Load in dependency order: textures (+ their embedded sprites) and shaders
+    // first, then materials.
+    std::vector<fs::path> textureMetas, shaderMetas, materialMetas;
 
     std::error_code ec;
     for (auto& entry : fs::recursive_directory_iterator(root, ec)) {
@@ -284,7 +293,6 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
         const std::string ext = entry.path().extension().string();
         if      (ext == ".texture")  textureMetas .push_back(entry.path());
         else if (ext == ".shader")   shaderMetas  .push_back(entry.path());
-        else if (ext == ".sprite")   spriteMetas  .push_back(entry.path());
         else if (ext == ".material" || ext == ".mat") materialMetas.push_back(entry.path());
     }
     if (ec)
@@ -292,6 +300,5 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
 
     for (auto& p : textureMetas)  LoadAssetFromFile(p.string());
     for (auto& p : shaderMetas)   LoadAssetFromFile(p.string());
-    for (auto& p : spriteMetas)   LoadAssetFromFile(p.string());
     for (auto& p : materialMetas) LoadAssetFromFile(p.string());
 }

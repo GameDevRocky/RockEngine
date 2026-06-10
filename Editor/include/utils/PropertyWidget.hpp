@@ -690,6 +690,7 @@ private:
         };
         auto pos = m_container->rect().topLeft();
         pos.setX(pos.x() - picker->width());
+        pos.setY(pos.y() - picker->height()/2);
         picker->move(m_container->mapToGlobal(pos));
         picker->show();
     }

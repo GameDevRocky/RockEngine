@@ -10,7 +10,7 @@ void Sprite::Deserialize(const YAML::Node& node){
     uvMin = {node["uvMin"][0].as<float>(), node["uvMin"][1].as<float>()};
     uvMax = {node["uvMax"][0].as<float>(), node["uvMax"][1].as<float>()};
     pivot = {node["pivot"][0].as<float>(), node["pivot"][1].as<float>()};
-    texture_id = node["texture_id"].as<std::string>();
+    if (node["texture_id"]) texture_id = node["texture_id"].as<std::string>();
     
 }
 

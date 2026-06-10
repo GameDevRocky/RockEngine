@@ -9,8 +9,7 @@ namespace fs = std::filesystem;
 
 // ──────────────────────────────────────────────────────────────────────────────
 bool AssetMetaService::IsMetaExtension(const std::string& ext) {
-    return ext == ".texture" || ext == ".shader" ||
-           ext == ".material" || ext == ".sprite";
+    return ext == ".texture" || ext == ".shader" || ext == ".material";
 }
 
 std::string AssetMetaService::MetaExtensionFor(const std::string& sourceExt) {
@@ -48,6 +47,7 @@ void AssetMetaService::ProcessTexture(const fs::path& sourcePath) {
     node["path"]      = relPath;
     node["filtering"] = "linear";
     node["wrap"]      = "repeat";
+    node["sprites"]   = YAML::Node(YAML::NodeType::Sequence);
 
     std::ofstream out(metaPath);
     if (!out.is_open()) {

@@ -29,7 +29,6 @@ private:
 
     // Blocking: must be called with a valid GL context active.
     QPixmap renderMaterialPreview(const QString& matPath) const;
-    QPixmap renderSpritePreview(const QString& spritePath) const;
 
     // Lazy-init the shared quad VAO/VBO used for all GL previews.
     // Must be called inside makeCurrent().

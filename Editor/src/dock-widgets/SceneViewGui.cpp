@@ -431,18 +431,18 @@ void SceneViewGui::DrawToolBar() {
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 2.0f)); 
     
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.12f, 0.12f, 0.12f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBg, ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
-    
+
     if (ImGui::Begin("###Toolbar", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
     {
-        ImGui::PopStyleVar(); 
+        ImGui::PopStyleVar();
 
         ImDrawList* drawList = ImGui::GetWindowDrawList();
         ImVec2 winPos = ImGui::GetWindowPos();
         float winWidth = ImGui::GetWindowSize().x;
         float centerX = winPos.x + (winWidth * 0.5f);
-        float lineY = winPos.y + 10.0f; 
-        
+        float lineY = winPos.y + 10.0f;
         ImU32 gripColor = ImGui::GetColorU32(ImGuiCol_TextDisabled, 0.5f);
         drawList->AddLine(ImVec2(centerX - 10, lineY), ImVec2(centerX + 10, lineY), gripColor, 1.5f);
         drawList->AddLine(ImVec2(centerX - 10, lineY + 4), ImVec2(centerX + 10, lineY + 4), gripColor, 1.5f);
@@ -508,5 +508,5 @@ void SceneViewGui::DrawToolBar() {
         ImGui::PopStyleVar(); 
     }
     
-    ImGui::PopStyleColor(2);
+    ImGui::PopStyleColor(3);
 }

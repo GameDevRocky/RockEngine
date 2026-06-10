@@ -57,8 +57,8 @@ public:
         buildAllItems();
 
         // Show ~3 rows by default; let the popup resize vertically.
-        setMinimumWidth(kCellWidth * 4 + 24);
-        setMinimumHeight(kCellHeight * 3 + m_search->sizeHint().height() + 16);
+        setMinimumWidth(kCellWidth * 10);
+        setMinimumHeight(kCellHeight * 5 + m_search->sizeHint().height() + 16);
 
         connect(m_search, &QLineEdit::textChanged, this, &AssetPickerWidget::filterItems);
         connect(m_list, &QListWidget::itemDoubleClicked,

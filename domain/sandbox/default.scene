@@ -88,15 +88,13 @@ components:
     module: "OpponentPaddle"
     class: "OpponentPaddle"
 
-
-
   - id: "t3"
     enabled: true
     type: "Transform"
     gameobject: "o3"
     localPosition: [0, 0]
     localRotation: 0
-    localScale: [1.5, 1.5]
+    localScale: [100, 100]
     parent_id: null
 
   - id: "s3"
@@ -104,9 +102,9 @@ components:
     type: "SpriteRenderer"
     gameobject: "o3"
     material_id: "m1"
-    sprite_id: "ball"
+    sprite_id: "idle_1"
     color: [1,1,1,1]
-    uvOffset: [1.0, 0.0]
+    uvOffset: [0.0, 0.0]
     uvScale: [1.0, 1.0]
     sortingOrder: 1
     flipX: false

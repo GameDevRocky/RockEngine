@@ -35,6 +35,7 @@ public:
     void SetUVMax(glm::vec2 max);
     void SetPivot(glm::vec2 pivot);
     
+    const std::string& GetTextureID() const { return texture_id; }
     Texture2D* GetTexture();
     void SetTexture(std::string& id);
 

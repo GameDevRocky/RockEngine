@@ -1,7 +1,0 @@
-type: Sprite
-name: ball
-id: ball
-texture_id: t3
-uvMin: [0.0, 0.0]
-uvMax: [1.0, 1.0]
-pivot: [0, 0]

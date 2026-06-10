@@ -8,6 +8,7 @@ class TestScript(ScriptableComponent):
     scale : Reflect[float, Step(5)] = 32
     testVar : float
     sprite : Sprite = Sprite("sprite3")
+    new_var : float = 0
 
  
     def init(self):
