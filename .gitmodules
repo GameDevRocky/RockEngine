@@ -1,18 +1,15 @@
-[submodule "external/glm"]
-	path = external/glm
-	url = https://github.com/g-truc/glm
-[submodule "external/yaml"]
-	path = external/yaml
+[submodule "External/glm"]
+	path = External/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "External/yaml"]
+	path = External/yaml
 	url = https://github.com/jbeder/yaml-cpp.git
-[submodule "external/box2d"]
-    path = external/box2d
-    url = https://github.com/erincatto/box2d.git
-[submodule "external/glad"]
-	path = external/glad
-	url = https://github.com/Dav1dde/glad.git
-[submodule "external/pybind11"]
-	path = external/pybind11
-	url = ../../pybind/pybind11
+[submodule "External/box2d"]
+	path = External/box2d
+	url = https://github.com/erincatto/box2d.git
+[submodule "External/pybind11"]
+	path = External/pybind11
+	url = https://github.com/pybind/pybind11.git
 	branch = stable
 [submodule "External/imgui"]
 	path = External/imgui

@@ -45,20 +45,58 @@ target_link_libraries(RockEngineLauncher
 )     
   
 qt_finalize_executable(RockEngineLauncher)
-if(MSVC) 
-    # 1. Dynamically find where Qt's binaries are located
-    get_target_property(_qt_executable Qt6::Core LOCATION)
-    get_filename_component(_qt_bin_dir "${_qt_executable}" DIRECTORY)
-    find_program(WINDEPLOY_PATH windeployqt HINTS "${_qt_bin_dir}") 
 
-    # 2. Run the deployment tool after the build finishes
+# Locate Qt's bin dir (where the deploy tools live) once, for any platform.
+get_target_property(_qt_executable Qt6::Core LOCATION)
+get_filename_component(_qt_bin_dir "${_qt_executable}" DIRECTORY)
+
+if(WIN32)
+    # Windows has no RPATH, so the Qt DLLs/plugins must sit next to the .exe.
+    # windeployqt handles this for both MSVC and MinGW.
+    find_program(WINDEPLOY_PATH windeployqt HINTS "${_qt_bin_dir}")
+    if(WINDEPLOY_PATH)
+        add_custom_command(TARGET RockEngineLauncher POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E env PATH="${_qt_bin_dir}"
+                    "${WINDEPLOY_PATH}"
+                    "$<$<CONFIG:Debug>:--debug>"
+                    --no-compiler-runtime
+                    --no-translations
+                    "$<TARGET_FILE:RockEngineLauncher>"
+            COMMENT "Deploying Qt dependencies from ${_qt_bin_dir}..."
+            VERBATIM
+        )
+    endif()
+endif()
+# macOS / Linux: for local dev the app finds Qt via RPATH or the library path the
+# setup/build scripts export. Self-contained app bundling (Qt + Python) is handled
+# by the distribution step below, not by this local-dev build.
+
+# --- Optional: bundle a standalone Python runtime + game content next to the launcher ---
+# Distribution build. When ON, copies the CPython standard library and the Domain/ content
+# beside the executable and pip-installs requirements.txt into the bundle. At runtime the
+# engine detects "<exeDir>/python" and points the embedded interpreter there (see
+# Engine::Init), so the packaged app runs on machines with no Python installed.
+#
+# OFF by default: it is a heavier, platform-specific copy step. Validate the produced bundle
+# on a clean machine (no system Python) before shipping; you may also need to copy the
+# interpreter shared library (e.g. python3xx.dll / libpython3.x.so) and platform "DLLs".
+option(ROCKENGINE_BUNDLE_PYTHON "Bundle a standalone Python runtime + Domain content next to the launcher" OFF)
+if(ROCKENGINE_BUNDLE_PYTHON)
+    # Ensure Python result vars are available in this (root) scope.
+    find_package(Python3 3.10 QUIET COMPONENTS Interpreter Development)
+    set(_bundle_dir "$<TARGET_FILE_DIR:RockEngineLauncher>")
+
     add_custom_command(TARGET RockEngineLauncher POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E env PATH="${_qt_bin_dir}" 
-                "${WINDEPLOY_PATH}"  
-                --debug  
-                --no-compiler-runtime 
-                --no-translations 
-                "$<TARGET_FILE:RockEngineLauncher>"
-        COMMENT "Deploying Qt dependencies from ${_qt_bin_dir}..."
-    ) 
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${Python3_STDLIB}" "${_bundle_dir}/python/Lib"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/Domain" "${_bundle_dir}/Domain"
+        COMMENT "Bundling Python standard library + Domain content..."
+        VERBATIM
+    )
+    add_custom_command(TARGET RockEngineLauncher POST_BUILD
+        COMMAND "${Python3_EXECUTABLE}" -m pip install --upgrade
+                --target "${_bundle_dir}/python/Lib/site-packages"
+                -r "${CMAKE_SOURCE_DIR}/requirements.txt"
+        COMMENT "Installing Python requirements into the bundle..."
+        VERBATIM
+    )
 endif()

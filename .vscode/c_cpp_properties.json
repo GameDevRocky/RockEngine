@@ -1,29 +1,14 @@
 {
+    "version": 4,
     "configurations": [
         {
-            "name": "Win32",
+            "name": "RockEngine (CMake Tools)",
             "includePath": [
-                "${workspaceFolder}/**",
-                "C:/Qt/6.10.0/msvc2022_64/include/**",
-                "C:/Users/rockl/AppData/Local/Programs/Python/Python314/include"
+                "${workspaceFolder}/**"
             ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE",
-                "QT_WIDGETS_LIB",
-                "QT_GUI_LIB",
-                "QT_CORE_LIB",
-                "WIN32",
-                "_WINDOWS"
-            ],
-            "windowsSdkVersion": "10.0.22621.0",
-            "compilerPath": "C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.40.33810/bin/Hostx64/x64/cl.exe",
             "cStandard": "c17",
             "cppStandard": "c++20",
-            "intelliSenseMode": "windows-msvc-x64",
             "configurationProvider": "ms-vscode.cmake-tools"
         }
-    ],
-    "version": 4
+    ]
 }

@@ -14,7 +14,7 @@ public:
         static FileExplorerGui* instance = nullptr;
         if (!instance) {
             instance = new FileExplorerGui();
-            instance->SetProjectDirectory("C:/Users/rockl/Coding Projects/RockEngine");
+            instance->SetProjectDirectory(QString::fromUtf8(PROJECT_ROOT));
         }
         return instance;
     }

@@ -8,8 +8,6 @@
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include <iostream>
-#include <filesystem>
-#include <windows.h>
 
 
 void RegisterComponentTypes() {

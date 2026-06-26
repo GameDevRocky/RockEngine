@@ -12,6 +12,7 @@
 #include "dock-widgets/GameViewGui.hpp"
 #include "dock-widgets/HierarchyGui.hpp"
 #include <QCoreApplication>
+#include "engine/utils/EngineUtils.hpp"
 
 Editor::Editor(){
     QCoreApplication::setOrganizationName("Rocklyn");
@@ -45,7 +46,7 @@ void Editor::Init() {
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     const QStringList styleCandidates = {
-        "Domain/lib/assets/styling/default.qss",
+        QString::fromStdString(EngineUtils::GetAssetPath("Domain/lib/assets/styling/default.qss")),
         QCoreApplication::applicationDirPath() + "/../../../Domain/lib/assets/styling/default.qss",
         QCoreApplication::applicationDirPath() + "/../../../../Domain/lib/assets/styling/default.qss"
     };

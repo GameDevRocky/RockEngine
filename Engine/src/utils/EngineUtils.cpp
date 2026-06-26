@@ -3,8 +3,57 @@
 #include <fstream>
 #include <sstream>
 #include <random>
+#include <filesystem>
+
+#if defined(_WIN32)
+    #include <windows.h>
+#elif defined(__APPLE__)
+    #include <mach-o/dyld.h>
+    #include <climits>
+#else
+    #include <unistd.h>
+    #include <climits>
+#endif
 
 namespace EngineUtils {
+
+    std::string ExecutableDir() {
+        namespace fs = std::filesystem;
+#if defined(_WIN32)
+        wchar_t buf[MAX_PATH];
+        DWORD n = GetModuleFileNameW(nullptr, buf, MAX_PATH);
+        if (n == 0) return ".";
+        fs::path p(std::wstring(buf, n));
+#elif defined(__APPLE__)
+        char buf[PATH_MAX];
+        uint32_t size = sizeof(buf);
+        if (_NSGetExecutablePath(buf, &size) != 0) return ".";
+        fs::path p(buf);
+#else
+        char buf[PATH_MAX];
+        ssize_t n = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+        if (n <= 0) return ".";
+        buf[n] = '\0';
+        fs::path p(buf);
+#endif
+        return p.parent_path().string();
+    }
+
+    std::string GetAssetPath(const std::string& relativePath) {
+        // Resolve the asset root once: prefer the folder next to the executable when it
+        // looks like a bundled build (Domain/ sits beside the binary); otherwise use the
+        // compiled-in source root for local development.
+        static const std::string root = [] {
+            namespace fs = std::filesystem;
+            std::error_code ec;
+            const std::string exeDir = ExecutableDir();
+            if (fs::exists(fs::path(exeDir) / "Domain", ec)) {
+                return exeDir;
+            }
+            return std::string(PROJECT_ROOT);
+        }();
+        return root + "/" + relativePath;
+    }
 
     std::string GenerateUUID() {
         static std::random_device rd;

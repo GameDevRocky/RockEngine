@@ -2,31 +2,41 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug RockEngine (MSVC)",
+            "name": "Debug RockEngine (Windows / MSVC)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
-            "environment": [
-                { 
-                    "name": "PATH", 
-                    "value": "C:\\Qt\\6.11.0\\msvc2022_64\\bin;C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314;${env:PATH}" 
-                },
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Debug RockEngine (macOS / lldb)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Debug RockEngine (Linux / gdb)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "setupCommands": [
                 {
-                    "name": "PYTHONHOME",
-                    "value": "C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314"
-                },
-                {
-                    "name": "PYTHONPATH",
-                    "value": "C:\\Users\\rockl\\AppData\\Local\\Programs\\Python\\Python314\\Lib;${workspaceFolder}"
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
                 }
-            ],
-            "console": "integratedTerminal",
-            "enableEditAndContinue": true,
-            "visualizerFile": "${workspaceFolder}/.vscode/qt6.natvis",
-            "showDisplayString": true
+            ]
         }
     ]
 }

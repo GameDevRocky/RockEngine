@@ -11,37 +11,38 @@ OpenGL 4.6 rendering, Box2D physics, YAML-based serialization, pybind11 scriptin
 | `Editor/`   | Qt6 editor UI (`RockEngineEditor` lib). Depends on Engine. | `Editor/CLAUDE.md` |
 | `Domain/`   | Game-side content: Python scripting API + assets + sandbox. Not compiled. | `Domain/CLAUDE.md` |
 | `src/`      | `main.cpp` — the launcher executable `RockEngineLauncher`. | — |
-| `External/` + `external/` | Git submodules: glm, yaml-cpp, box2d, glad, pybind11, imgui, imguizmo. | `.gitmodules` |
+| `External/` | Git submodules (glm, yaml-cpp, box2d, pybind11, imgui, imguizmo) + vendored glad/stb. | `.gitmodules` |
 | `tools/`    | Misc tooling. | — |
 
 Each major layer has its own `CLAUDE.md` (loaded when you work in that subtree) with the
 detail. This root file is cross-cutting only.
 
-> Casing matters in git: `Domain/` and `External/` (capital) vs `external/` (lowercase).
-> Windows is case-insensitive but git tracks both — match existing paths.
+> All top-level dirs are capitalized (`Engine/`, `Editor/`, `Domain/`, `External/`) and tracked
+> that way in git. glad and stb are **vendored** (plain files under `External/`), not submodules.
 
 ## Build & run
 
-Two build setups; pick the one matching the user's environment.
+Cross-platform (Windows / macOS / Linux). The one-command bootstrap is the normal path:
 
-**MinGW (build.sh — scripted: configure + build + run):**
-```bash
-./build.sh          # configure (if needed) + build + run
-./build.sh --all    # nuke build/qt-mingw-debug first, then full rebuild
+```sh
+./setup.ps1     # Windows (PowerShell)
+./setup.sh      # macOS / Linux
 ```
-Builds into `build/qt-mingw-debug/`, runs `bin/RockEngineLauncher.exe`. Qt 6.11.0 mingw_64 +
-bundled mingw1310 toolchain.
+It inits submodules, downloads Qt via `aqtinstall` into `./.qt` (pinned version in the script),
+writes a gitignored `CMakeUserPresets.json` pointing `CMAKE_PREFIX_PATH` at it, then configures
++ builds. Output goes to `build/local/bin/`. See `README.md` for prerequisites and IDE usage.
 
-**MSVC / Visual Studio (CMake presets):**
-```bash
-cmake --preset Qt-Debug-VS      # VS 2026 generator, msvc2022_64 Qt, out/build/debug
-cmake --build build --config Debug
-```
-The allowlisted incremental build command in this repo is `cmake --build build --config Debug`.
+**CMake presets** (machine-agnostic, in `CMakePresets.json`): `windows-msvc`, `macos`, `linux`
+(per-OS `condition`s, Ninja, no hardcoded paths — Qt comes from `CMAKE_PREFIX_PATH`). The
+generated `local` preset (in `CMakeUserPresets.json`) inherits the right one and pins the Qt
+path. Configure/build directly with `cmake --preset local && cmake --build --preset local`, or
+use `./build.sh`. Visual Studio (Open Folder) and VS Code (CMake Tools) read these presets.
 
-Requirements: CMake ≥ 3.20, C++20, Qt6 (Core Gui Widgets OpenGLWidgets), Python (embedded
-interpreter — see `requirements.txt`). `PROJECT_ROOT` is compiled in as a define; asset paths
-resolve relative to it.
+Requirements: CMake ≥ 3.23, C++20, Qt6 (Core Gui Widgets OpenGLWidgets), Python ≥ 3.10 with dev
+headers (embedded interpreter — see `requirements.txt`). `PROJECT_ROOT` is compiled in;
+`EngineUtils::GetAssetPath()` resolves assets against the executable dir for bundled builds, else
+`PROJECT_ROOT`. Setting `ROCKENGINE_BUNDLE_PYTHON=ON` bundles a standalone Python runtime +
+`Domain/` next to the launcher for distribution (see `CMakeLists.txt`).
 
 ## How the layers fit together
 

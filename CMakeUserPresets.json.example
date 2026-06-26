@@ -1,0 +1,24 @@
+{
+  "$comment": [
+    "Per-developer Qt location. Copy this file to 'CMakeUserPresets.json' and set",
+    "CMAKE_PREFIX_PATH to your Qt 6 install (the folder containing bin/, lib/cmake/, etc).",
+    "On macOS/Linux change 'inherits' to 'macos' or 'linux' and use that platform's Qt path.",
+    "NOTE: ./setup.ps1 / ./setup.sh generate this file for you automatically (pointing at the",
+    "Qt it downloads into ./.qt). You only need this file if you install Qt yourself.",
+    "CMakeUserPresets.json is gitignored - it is local to your machine."
+  ],
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "local",
+      "displayName": "RockEngine (local Qt)",
+      "inherits": "windows-msvc",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "C:/Qt/6.11.0/msvc2022_64"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "local", "configurePreset": "local" }
+  ]
+}

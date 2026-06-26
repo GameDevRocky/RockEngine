@@ -1,6 +1,7 @@
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/debug/Console.hpp"
+#include "engine/utils/EngineUtils.hpp"
 #include "yaml-cpp/yaml.h"
 #include <algorithm>
 
@@ -13,7 +14,7 @@ void LayerManager::Init()
     YAML::Node root;
     try
     {
-        root = YAML::LoadFile(CONFIG_PATH);
+        root = YAML::LoadFile(EngineUtils::GetAssetPath(CONFIG_PATH));
     }
     catch (const YAML::Exception& e)
     {

@@ -10,16 +10,47 @@
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/core/FileWatcherSystem.hpp"
+#include "engine/utils/EngineUtils.hpp"
+#include <filesystem>
+#include <cstdlib>
 #define SAMPLE_SCENE_PATH "Domain/lib/configs/Sample_Scene.yaml"
 
 namespace py = pybind11;
 
 void Engine::Init() {
+    // If a bundled Python runtime sits next to the executable (distribution build),
+    // point the embedded interpreter at it so the app runs without a system Python.
+    // In a dev build there is no such folder, so the build-time interpreter is used
+    // and this is a no-op (behavior unchanged).
+    {
+        const std::string bundledHome = EngineUtils::ExecutableDir() + "/python";
+        std::error_code ec;
+        if (std::filesystem::exists(bundledHome, ec)) {
+#if defined(_WIN32)
+            _putenv_s("PYTHONHOME", bundledHome.c_str());
+#else
+            setenv("PYTHONHOME", bundledHome.c_str(), 1);
+#endif
+        }
+    }
+
     static auto* guard = new py::scoped_interpreter();
+
+    // Make the engine's Python API importable without relying on a PYTHONPATH env var:
+    // add the asset root (so "import Domain.lib.api..." resolves) plus the script and
+    // lib folders. GetAssetPath resolves against the app root (bundled or PROJECT_ROOT).
+    {
+        py::module_ sys = py::module_::import("sys");
+        py::list path = sys.attr("path");
+        for (const char* rel : { "", "Domain/sandbox/scripts", "Domain/lib" }) {
+            path.attr("insert")(0, EngineUtils::GetAssetPath(rel));
+        }
+    }
+
     static auto* release = new py::gil_scoped_release();
-    
+
     engine::RegisterPythonBindings();
-    RegisterComponentTypes();    
+    RegisterComponentTypes();
 
     editorContainer = new Container();
     editorContainer->AddSystem(new Registry());
@@ -72,7 +103,7 @@ void Engine::ExitPlayMode(){
 
 void Engine::LoadDefaultScene(){
     SceneManager* sceneManager = activeContainer->FindSystem<SceneManager>();
-    sceneManager->LoadScene(SAMPLE_SCENE_PATH);
+    sceneManager->LoadScene(EngineUtils::GetAssetPath(SAMPLE_SCENE_PATH));
 }
 
 

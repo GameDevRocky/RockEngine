@@ -15,10 +15,13 @@
 #endif
 
 namespace EngineUtils {
-    inline std::string GetAssetPath(const std::string& relativePath) {
-        std::string root = PROJECT_ROOT;
-        return root + "/" + relativePath;
-    }
+    // Directory containing the running executable (resolved via OS APIs).
+    std::string ExecutableDir();
+
+    // Resolve a path relative to the asset root. In a bundled/distributed build the
+    // root is the folder next to the executable (where Domain/ is copied); in a local
+    // dev build it falls back to the compiled-in PROJECT_ROOT. Decided once, cached.
+    std::string GetAssetPath(const std::string& relativePath);
 
     namespace RenderUtils {
         constexpr float PixelsPerUnit = 32.0f;

@@ -2,23 +2,23 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "RockEngine: configure (qt-msvc-debug)",
+            "label": "RockEngine: configure",
             "type": "shell",
-            "command": "cmake --preset qt-msvc-debug",
+            "command": "cmake --preset local",
             "problemMatcher": [],
-            "detail": "Configure with the MSVC + Qt 6.11.0 CMake preset."
+            "detail": "Configure with the 'local' preset (run ./setup.ps1 or ./setup.sh first to generate it)."
         },
         {
-            "label": "RockEngine: build (qt-msvc-debug)",
+            "label": "RockEngine: build",
             "type": "shell",
-            "command": "cmake --build --preset qt-msvc-debug",
-            "dependsOn": ["RockEngine: configure (qt-msvc-debug)"],
+            "command": "cmake --build --preset local",
+            "dependsOn": ["RockEngine: configure"],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "problemMatcher": "$msCompile",
-            "detail": "Build with the MSVC + Qt 6.11.0 CMake build preset."
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "detail": "Build with the 'local' preset."
         }
     ]
 }

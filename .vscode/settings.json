@@ -89,11 +89,7 @@
     "files.exclude": {
         "**/__pycache__": true,
         "**/*.pyc": true,
-        "**/.vs": true  // Added to hide the VS-specific folder in VS Code
+        "**/.vs": true
     },
-    "cmake.useCMakePresets": "always",
-    "cmake.configurePreset": "windows-msvc-debug",
-    "cmake.buildPreset": "windows-msvc-debug",
-    "cmake.generator": "Ninja",
-    "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
+    "cmake.useCMakePresets": "always"
 }

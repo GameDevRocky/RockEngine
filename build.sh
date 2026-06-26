@@ -1,54 +1,52 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+# Thin cross-platform build wrapper for RockEngine.
+#
+# Run the bootstrap FIRST so Qt is present and CMakeUserPresets.json exists:
+#   Windows:        ./setup.ps1
+#   macOS / Linux:  ./setup.sh
+# Those generate the 'local' CMake preset this script drives.
+#
+# Usage:
+#   ./build.sh          configure + build + run
+#   ./build.sh --all    wipe the build dir first, then configure + build + run
+set -euo pipefail
 
-# --- Handle flags ---
 ALL=0
 for arg in "$@"; do
-    case $arg in
-        --all)
-            ALL=1
-            shift
-            ;;
-        *)
-            ;;
+    case "$arg" in
+        --all) ALL=1 ;;
+        *) ;;
     esac
 done
 
-# --- Qt CMake path ---
+PRESET="local"
+BUILD_DIR="build/${PRESET}"
 
-# --- Qt CMake path ---
-export CMAKE_PREFIX_PATH="C:/Qt/6.11.0/mingw_64/lib/cmake"
-export PATH="C:/Qt/Tools/mingw1310_64/bin:C:/Qt/6.11.0/mingw_64/bin:$PATH"
-
-BUILD_DIR="build/qt-mingw-debug"
-
-# --- Remove build folder if --all flag is set ---
-if [ $ALL -eq 1 ]; then
-    echo "Removing build directory..."
-    rm -rf "$BUILD_DIR"
+if [ "$ALL" -eq 1 ]; then
+    echo ">> Removing ${BUILD_DIR}"
+    rm -rf "${BUILD_DIR}"
 fi
 
-mkdir -p "$BUILD_DIR"
-
-if [ ! -f "$BUILD_DIR/CMakeCache.txt" ]; then
-    echo "Configuring CMake..."
-    MSYS2_ARG_CONV_EXCL="-D" cmake -S . -B "$BUILD_DIR" \
-        -G "MinGW Makefiles" \
-        -DCMAKE_BUILD_TYPE=Debug \
-        -DCMAKE_C_COMPILER="C:/Qt/Tools/mingw1310_64/bin/gcc.exe" \
-        -DCMAKE_CXX_COMPILER="C:/Qt/Tools/mingw1310_64/bin/g++.exe" \
-        -DCMAKE_MAKE_PROGRAM="C:/Qt/Tools/mingw1310_64/bin/mingw32-make.exe" \
-        -DCMAKE_PREFIX_PATH="C:/Qt/6.11.0/mingw_64/lib/cmake" \
-        -DCMAKE_SYSTEM_NAME=Windows \
-    -DCMAKE_C_FLAGS_DEBUG="-Og -g3 -fno-omit-frame-pointer" \
-    -DCMAKE_CXX_FLAGS_DEBUG="-Og -g3 -fno-omit-frame-pointer"
+if ! cmake --preset "${PRESET}" 2>/dev/null; then
+    echo "!! Could not configure preset '${PRESET}'." >&2
+    echo "!! Run ./setup.sh (macOS/Linux) or ./setup.ps1 (Windows) first," >&2
+    echo "!! or copy CMakeUserPresets.json.example and set your Qt path." >&2
+    exit 1
 fi
 
-# Determine number of cores (default 4)
-JOBS=$(nproc 2>/dev/null || echo 4)
+cmake --build --preset "${PRESET}"
 
-# Build
-cmake --build "$BUILD_DIR" -- -j$JOBS
+# Resolve the launcher (extension differs per OS).
+BIN="${BUILD_DIR}/bin/RockEngineLauncher"
+if [ -x "${BIN}.exe" ]; then
+    BIN="${BIN}.exe"
+fi
 
-# Run executable
-"$BUILD_DIR/bin/RockEngineLauncher.exe" hello world
+# macOS/Linux: help the app find the Qt libs at runtime when Qt isn't system-wide.
+if [ -n "${CMAKE_PREFIX_PATH:-}" ]; then
+    export LD_LIBRARY_PATH="${CMAKE_PREFIX_PATH}/lib:${LD_LIBRARY_PATH:-}"
+    export DYLD_LIBRARY_PATH="${CMAKE_PREFIX_PATH}/lib:${DYLD_LIBRARY_PATH:-}"
+fi
+
+echo ">> Running ${BIN}"
+"${BIN}"
