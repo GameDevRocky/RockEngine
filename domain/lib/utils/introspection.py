@@ -3,13 +3,53 @@ from .properties import Range, Step, Tooltip
 
 
 def _get_ref_classes():
-    """Lazily import Material and Sprite to avoid circular imports at module load time."""
+    """Lazily import Material, Sprite, and GameObject to avoid circular imports at module load time."""
     try:
         from Domain.lib.api.rendering.material_handler import Material
         from Domain.lib.api.rendering.sprite_handler import Sprite
-        return Material, Sprite
+        from Domain.lib.api.core.gameobject_handler import GameObject
+        return Material, Sprite, GameObject
     except ImportError:
-        return None, None
+        return None, None, None
+
+
+def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls):
+    """Map a single Python type to (type_name, ref_type_name).
+
+    Handles scalars (float/int/bool/str), Vector2/3/4, and class refs
+    (Material -> "material", Sprite -> "sprite", the base GameObject -> an
+    unfiltered "gameobject:" reference, any other class -> a class-filtered
+    "gameobject:<ClassName>" reference). Returns (None, "") if unmappable.
+    Used for both top-level fields and the element type of list[...] fields.
+    """
+    type_map = {float: "float", int: "int", bool: "bool", str: "str"}
+    type_name = type_map.get(base_type)
+    ref_type_name = ""
+
+    if type_name is None:
+        qual = getattr(base_type, '__qualname__', '') or ''
+        mod  = getattr(base_type, '__module__',  '') or ''
+        if 'Vector4' in qual or 'Vector4' in mod:
+            type_name = "vec4"
+        elif 'Vector3' in qual or 'Vector3' in mod:
+            type_name = "vec3"
+        elif 'Vector2' in qual or 'Vector2' in mod:
+            type_name = "vec2"
+
+    if type_name is None and isinstance(base_type, type):
+        type_name = "str"
+        if MaterialCls and base_type is MaterialCls:
+            ref_type_name = "material"
+        elif SpriteCls and base_type is SpriteCls:
+            ref_type_name = "sprite"
+        elif GameObjectCls and base_type is GameObjectCls:
+            # Base GameObject → reference to ANY object (no script-class filter).
+            ref_type_name = "gameobject:"
+        else:
+            # A specific user script subclass → filter the picker to that class.
+            ref_type_name = f"gameobject:{base_type.__name__}"
+
+    return type_name, ref_type_name
 
 
 def get_exposed_fields(cls):
@@ -36,7 +76,7 @@ def get_exposed_fields(cls):
     except Exception:
         return []
 
-    MaterialCls, SpriteCls = _get_ref_classes()
+    MaterialCls, SpriteCls, GameObjectCls = _get_ref_classes()
 
     fields = []
     for name, hint in hints.items():
@@ -57,6 +97,12 @@ def get_exposed_fields(cls):
             if typing.get_origin(hint) is typing.Annotated:
                 base_type_check = typing.get_args(hint)[0]
 
+            # list[...] fields with no class-level default → empty list
+            if typing.get_origin(base_type_check) is list:
+                default = []
+                has_default = True
+
+        if not has_default:
             from .re_math import Vector2, Vector3, Vector4
             fallbacks = {float: 0.0, int: 0, bool: False, str: ""}
             default = fallbacks.get(base_type_check)
@@ -86,39 +132,33 @@ def get_exposed_fields(cls):
             metadata = list(args[1:])
 
         # ---- Map type to engine type name ----
-        type_map = {float: "float", int: "int", bool: "bool", str: "str"}
-        type_name = type_map.get(base_type)
         field_ref_type_name = ""
+        element_type_name = ""
+        element_ref_type_name = ""
 
-        if type_name is None:
-            qual = getattr(base_type, '__qualname__', '') or ''
-            mod  = getattr(base_type, '__module__',  '') or ''
-            if 'Vector4' in qual or 'Vector4' in mod:
-                type_name = "vec4"
-            elif 'Vector3' in qual or 'Vector3' in mod:
-                type_name = "vec3"
-            elif 'Vector2' in qual or 'Vector2' in mod:
-                type_name = "vec2"
+        if typing.get_origin(base_type) is list:
+            # list[T] field — map the element type. Nested lists are unsupported.
+            list_args = typing.get_args(base_type)
+            if not list_args:
+                continue  # bare `list` annotation is ambiguous — skip
+            element_type_name, element_ref_type_name = _map_type(
+                list_args[0], MaterialCls, SpriteCls, GameObjectCls)
+            if element_type_name is None or element_type_name == "list":
+                continue  # unmappable or nested list element
+            type_name = "list"
+            if not isinstance(default, list):
+                default = []
+        else:
+            type_name, field_ref_type_name = _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls)
 
-        # ---- Ref types: Material, Sprite, or any other class = script/GO ref ----
-        if type_name is None and isinstance(base_type, type):
-            type_name = "str"
-            if MaterialCls and base_type is MaterialCls:
-                field_ref_type_name = "material"
-            elif SpriteCls and base_type is SpriteCls:
-                field_ref_type_name = "sprite"
-            else:
-                # Any user-defined class is treated as a GameObject reference
-                # filtered to GameObjects that have that script attached.
-                field_ref_type_name = f"gameobject:{base_type.__name__}"
-
-            # Normalize default: handler instance → its ID string; None/anything else → ""
-            if MaterialCls and isinstance(default, MaterialCls):
-                default = default.id
-            elif SpriteCls and isinstance(default, SpriteCls):
-                default = default.id
-            elif not isinstance(default, str):
-                default = ""
+            # Normalize ref-field default: handler instance → its ID string; else ""
+            if field_ref_type_name:
+                if MaterialCls and isinstance(default, MaterialCls):
+                    default = default.id
+                elif SpriteCls and isinstance(default, SpriteCls):
+                    default = default.id
+                elif not isinstance(default, str):
+                    default = ""
 
         if type_name is None:
             continue
@@ -139,14 +179,16 @@ def get_exposed_fields(cls):
                 field_tooltip = m.text
 
         fields.append({
-            "name":          name,
-            "type_name":     type_name,
-            "default":       default,
-            "min":           field_min,
-            "max":           field_max,
-            "step":          field_step,
-            "tooltip":       field_tooltip,
-            "ref_type_name": field_ref_type_name,
+            "name":                  name,
+            "type_name":             type_name,
+            "default":               default,
+            "min":                   field_min,
+            "max":                   field_max,
+            "step":                  field_step,
+            "tooltip":               field_tooltip,
+            "ref_type_name":         field_ref_type_name,
+            "element_type_name":     element_type_name,
+            "element_ref_type_name": element_ref_type_name,
         })
 
     return fields

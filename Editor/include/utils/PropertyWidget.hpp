@@ -22,6 +22,7 @@
 #include "engine/core/GameObject.hpp"
 #include "engine/components/ScriptComponent.hpp"
 #include "utils/EditorUtils.hpp"
+#include "dock-widgets/FolderViewGui.hpp"
 #include <QFileInfo>
 
 
@@ -563,17 +564,23 @@ private:
     QPointer<QPushButton> m_btn;
 };
 
-// Container that keeps a name-overlay label pinned to its full bottom edge on resize.
+// Container that keeps a name-overlay label (and collapse button) pinned to its
+// full bottom edge on resize.
 class ThumbContainer : public QWidget {
 public:
     QLabel* overlay = nullptr;
-    static constexpr int overlayH = 20;
+    QWidget* collapseBtn = nullptr;
+    static constexpr int overlayH = 24;
+    static constexpr int collapseBtnW = 22;
     explicit ThumbContainer(QWidget* parent = nullptr) : QWidget(parent) {}
 protected:
     void resizeEvent(QResizeEvent* e) override {
         QWidget::resizeEvent(e);
+        if (collapseBtn)
+            collapseBtn->setGeometry(0, height() - overlayH, collapseBtnW, overlayH);
         if (overlay)
-            overlay->setGeometry(0, height() - overlayH, width(), overlayH);
+            overlay->setGeometry(collapseBtnW, height() - overlayH,
+                                 width() - collapseBtnW, overlayH);
     }
 };
 
@@ -597,15 +604,41 @@ public:
         m_thumb->setStyleSheet("background-color: #1a1a1a; border: 1px solid #3a3a3a;");
         layout->addWidget(m_thumb);
 
-        m_nameLabel = new QLabel(m_container);
-        m_nameLabel->setAlignment(Qt::AlignCenter);
+        m_nameLabel = new EditorUtils::ClickableLabel(m_container);
+        m_nameLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        // Match the QLineEdit / QComboBox palette (grey, not near-black overlay);
+        // lighten the background on hover to flag that the name is clickable.
         m_nameLabel->setStyleSheet(
-            "background-color: rgba(0,0,0,160); color: white; font-size: 16px; padding: 0 2px;");
-        m_nameLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
+            "QLabel { background-color: rgb(30, 30, 30); color: rgb(220, 220, 220);"
+            " border: 1px solid rgb(51, 51, 51); border-left: none;"
+            " font-size: 16px; padding: 0 2px; }"
+            "QLabel:hover { background-color: rgb(52, 52, 52); color: white; }");
         m_nameLabel->raise();
         tc->overlay = m_nameLabel;
 
+        // Clicking the name (not the thumbnail) jumps the Folder view to the asset.
+        QObject::connect(m_nameLabel, &EditorUtils::ClickableLabel::clicked,
+                         [this]() { revealInFolderView(); });
+
+        // Collapse toggle sits at the left end of the name bar, right before the
+        // label; hides the thumbnail and shrinks the widget down to just the name bar.
+        m_collapseBtn = new QPushButton(QString(QChar(0x25B2)), m_container);  // ▲ up triangle
+        m_collapseBtn->setCursor(Qt::PointingHandCursor);
+        m_collapseBtn->setToolTip("Collapse");
+        m_collapseBtn->setFocusPolicy(Qt::NoFocus);
+        m_collapseBtn->setStyleSheet(
+            "QPushButton { background-color: rgb(30, 30, 30); color: rgb(220, 220, 220);"
+            " border: 1px solid rgb(51, 51, 51); border-right: none;"
+            " font-size: 11px; padding: 0; }"
+            "QPushButton:hover { background-color: rgb(52, 52, 52); }");
+        m_collapseBtn->raise();
+        tc->collapseBtn = m_collapseBtn;
+        QObject::connect(m_collapseBtn, &QPushButton::clicked, [this]() { setCollapsed(!m_collapsed); });
+
         QObject::connect(m_thumb, &EditorUtils::ClickableLabel::clicked, [this]() { openPicker(); });
+
+        // Start collapsed: show just the name bar until the user expands it.
+        setCollapsed(true);
     }
 
     QWidget* GetWidget() override { return m_container; }
@@ -627,8 +660,12 @@ public:
                 }
             }
             QFontMetrics fm(m_nameLabel->font());
+            // Left-aligned text: reserve room on the right for the collapse button
+            // (plus the label's 2px side padding) so it elides with "…" before
+            // running under the button.
             m_nameLabel->setText(
-                fm.elidedText(QString::fromStdString(name), Qt::ElideRight, m_container->width() - 6));
+                fm.elidedText(QString::fromStdString(name), Qt::ElideRight,
+                              m_container->width() - ThumbContainer::collapseBtnW - 6));
         }
         refreshThumb();
     }
@@ -636,6 +673,36 @@ public:
     std::string GetValue() override { return m_currentId; }
 
 private:
+    // Toggles between the full thumbnail and a collapsed name-only bar.
+    void setCollapsed(bool collapsed) {
+        if (m_collapsed == collapsed) return;
+        m_collapsed = collapsed;
+        if (!m_thumb.isNull())
+            m_thumb->setVisible(!collapsed);
+        if (m_container)
+            m_container->setFixedHeight(collapsed ? ThumbContainer::overlayH : kThumbH);
+        if (!m_collapseBtn.isNull()) {
+            m_collapseBtn->setText(QString(QChar(collapsed ? 0x25BC : 0x25B2)));  // ▼ / ▲
+            m_collapseBtn->setToolTip(collapsed ? "Expand" : "Collapse");
+        }
+    }
+
+    // Jumps the Folder view to the directory holding the current asset's source file.
+    void revealInFolderView() {
+        if (m_currentId.empty()) return;
+        std::string fp;
+        auto& am = AssetManager::Get();
+        if (m_desc.tag == Properties::Tags::TEXTURE) {
+            if (auto* a = am.GetTexture(m_currentId))  fp = a->GetFilePath();
+        } else if (m_desc.tag == Properties::Tags::SPRITE) {
+            if (auto* a = am.GetSprite(m_currentId))   fp = a->GetFilePath();
+        } else if (m_desc.tag == Properties::Tags::MATERIAL) {
+            if (auto* a = am.GetMaterial(m_currentId)) fp = a->GetFilePath();
+        }
+        if (!fp.empty())
+            FolderViewGui::Get()->Navigate(fp);
+    }
+
     void refreshThumb() {
         if (m_thumb.isNull()) return;
         QPixmap px;
@@ -716,7 +783,9 @@ private:
     std::string m_currentId;
     QWidget* m_container = nullptr;
     QPointer<EditorUtils::ClickableLabel> m_thumb;
-    QPointer<QLabel> m_nameLabel;
+    QPointer<EditorUtils::ClickableLabel> m_nameLabel;
+    QPointer<QPushButton> m_collapseBtn;
+    bool m_collapsed = false;
 };
 
 class DropdownPropertyWidget : public PropertyWidget<int> {

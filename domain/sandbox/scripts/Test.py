@@ -8,8 +8,8 @@ class TestScript(ScriptableComponent):
     scale : Reflect[float, Step(5)] = 32
     testVar : float
     sprite : Sprite = Sprite("sprite3")
-    new_var : float = 0
-
+    new_var : list[float] = 0
+    gameobject : Sprite 
  
     def init(self):
         self.inactive_pool : set[GameObject] = set()

@@ -3,6 +3,7 @@
 #include <vector>
 #include <limits>
 #include <any>
+#include <memory>
 
 namespace Properties {
 
@@ -26,7 +27,8 @@ namespace Properties {
         SHADER,
         STRING,
         OBJECT_REF,
-        DROPDOWN
+        DROPDOWN,
+        LIST
     };
 
     struct PropDesc {
@@ -37,8 +39,13 @@ namespace Properties {
         float step = 0.1f;
         std::string description = "";
         std::string refClassFilter = "";  // For OBJECT_REF: filters GameObjects to those with this script class
+        bool readOnly = false;            // For Tags::LIST: display-only (no add/remove, non-editable rows)
 
         std::vector<std::pair<std::string, std::any>> dropdownOptions;
+
+        // For Tags::LIST: describes how each element row is rendered. A list
+        // PropertyWidget creates one child widget per element via this descriptor.
+        std::shared_ptr<PropDesc> elementDesc;
 
         PropDesc& Range(float lo, float hi) { min = lo; max = hi; return *this; }
         PropDesc& Desc(const std::string& d)   { description = d; return *this; }
@@ -50,5 +57,10 @@ namespace Properties {
             dropdownOptions = std::move(vals);
             return *this;
         }
+        PropDesc& Element(const PropDesc& d) {
+            elementDesc = std::make_shared<PropDesc>(d);
+            return *this;
+        }
+        PropDesc& ReadOnly(bool v = true) { readOnly = v; return *this; }
     };
 }

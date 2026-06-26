@@ -15,6 +15,8 @@
 #include "Engine.hpp"
 #include "engine/core/SelectionManager.hpp"
 
+class Observable;
+
 using namespace EngineUtils;
 
 class InspectorGui : public QWidget {
@@ -43,4 +45,10 @@ private:
     Proxy<SelectionManager> selectionManager;
     std::vector<std::pair<std::string, int>> m_scriptReloadSubs;
     std::vector<std::pair<class Material*, int>> m_materialShaderSubs;
+    // Per-rebuild subscriptions from BindProperty and the header Bind() calls,
+    // torn down at the top of OnObjectSelected. Targets are alive at teardown:
+    // object deletion is deferred (Registry::FlushPendingShutdowns shuts down —
+    // firing the deselect that triggers teardown — then deletes), and assets live
+    // for the whole session.
+    std::vector<std::pair<Observable*, int>> m_inspectorSubs;
 };

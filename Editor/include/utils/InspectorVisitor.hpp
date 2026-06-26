@@ -4,6 +4,8 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <optional>
+#include <vector>
+#include <utility>
 #include "utils/ProperyFactory.hpp"
 #include "engine/core/Observable.hpp"
 
@@ -35,6 +37,14 @@ class InspectorVisitor : public IVisitor{
         QWidget* GetContent(){ return content;}
         bool HasContent(){return content;}
 
+        // Subscriptions this visitor registered on the inspected object(s) while
+        // building property widgets. The owner (InspectorGui) must Unsubscribe these
+        // when the inspector is rebuilt — otherwise they accumulate on long-lived
+        // objects/assets every time they're inspected.
+        const std::vector<std::pair<Observable*, int>>& GetSubscriptions() const {
+            return m_subscriptions;
+        }
+
     protected:
 
         template<typename T>
@@ -50,6 +60,7 @@ class InspectorVisitor : public IVisitor{
         QGridLayout* layout = nullptr;
         int gridRow = 0;
         QWidget* content = nullptr;
+        std::vector<std::pair<Observable*, int>> m_subscriptions;
 };
 
 template<typename T>
@@ -67,11 +78,12 @@ void InspectorVisitor::BindProperty(Observable* instance, const std::string& lab
         pw->SetValue(getter());
     }
 
-    instance->Subscribe([pw, getter]() {
+    int subId = instance->Subscribe([pw, getter]() {
         if (!pw->IsValid()) return false;
         pw->SetValue(getter());
         return true;
     }, event_id);
+    m_subscriptions.emplace_back(instance, subId);
 
     AddRow(label, pw->GetWidget());
 }

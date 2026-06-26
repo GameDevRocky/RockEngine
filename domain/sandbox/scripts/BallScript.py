@@ -1,13 +1,28 @@
 from Domain import *
-
+from Test import TestScript
 class BallScript(ScriptableComponent):
-    new_var : float = 0.25
+    new_var : float = 0.5
+    sprites : list[Sprite]
+    obj : list[GameObject]
+
     def awake(self):
         self.sr = self.get_component(SpriteRenderer)
-        self.sprites = [Sprite(f"idle_{i}") for i in range(11)]
+        self.sprites.extend([Sprite(f"idle_{i}") for i in range(11)])
+        self.rb = self.get_component(Rigidbody)
+        self.rb.lock_rotation = True
+        self.rb.use_gravity = True
+        self.collider = self.get_component(Collider)
+        self.collider.bounciness = 0
+        self.collider.friction = 0.7
 
     def start(self):
         self.start_coroutine(self.animate())
+
+    def update(self):
+        vel = Input.is_key_down(Keys.D) - Input.is_key_down(Keys.A)
+        vel = (vel * 25, Input.is_key_pressed(Keys.W ) * 250 )
+        self.rb.apply_impulse(vel)
+        pass
 
     def animate(self):
         frame = 0

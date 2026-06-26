@@ -10,6 +10,7 @@
 #include "engine/core/Container.hpp"
 #include <vector>
 #include <cmath>
+#include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace EngineUtils::RenderUtils;
@@ -157,11 +158,24 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
         if (CircleCollider* collider = obj->GetComponent<CircleCollider>())
         {
             float radius = collider->GetRadius();
+            glm::vec2 worldScale = transform->GetWorldScale();
+            // Physics scales a circle's radius uniformly by the largest axis
+            // (CircleCollider::CreateShape). A scale-free model (world position +
+            // rotation only) plus a uniform scale baked into the size keeps the
+            // circle circular instead of skewed by non-uniform object scale.
+            float uniformScale = std::max(std::abs(worldScale.x), std::abs(worldScale.y));
+
+            glm::mat4 model = glm::translate(glm::mat4(1.0f),
+                                             glm::vec3(transform->GetWorldPosition(), 0.0f));
+            model = glm::rotate(model, glm::radians(transform->GetWorldRotation()),
+                                glm::vec3(0.0f, 0.0f, 1.0f));
+
             DebugInstanceData inst{};
-            inst.model = transform->GetWorldMatrix();
-            inst.size = glm::vec2(radius, radius);
+            inst.model = model;
+            inst.size = glm::vec2(radius * uniformScale);
             inst.semiSize = glm::vec2(0.0f);
-            inst.offset = collider->GetCenter();
+            // Center offset is a position, so it scales with both axes to stay put.
+            inst.offset = collider->GetCenter() * worldScale;
             inst.pivot = glm::vec2(0.0f);
             inst.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
             circleInstances.push_back(inst);
@@ -171,14 +185,22 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
         {
             float radius = collider->GetRadius();
             float height = collider->GetHeight();
-            glm::vec2 worldScale = glm::abs(transform->GetWorldScale());
+            glm::vec2 worldScale = transform->GetWorldScale();
+            // Scale uniformly by the largest axis so the capsule isn't skewed by
+            // non-uniform object scale. With a scale-free model (world position +
+            // rotation) the round caps stay circular without the old sx/sy fudge.
+            float uniformScale = std::max(std::abs(worldScale.x), std::abs(worldScale.y));
+
+            glm::mat4 model = glm::translate(glm::mat4(1.0f),
+                                             glm::vec3(transform->GetWorldPosition(), 0.0f));
+            model = glm::rotate(model, glm::radians(transform->GetWorldRotation()),
+                                glm::vec3(0.0f, 0.0f, 1.0f));
 
             DebugInstanceData inst{};
-            inst.model = transform->GetWorldMatrix();
-            inst.size = glm::vec2(0.0f, height);
-            inst.semiSize = glm::vec2(radius / 2.0f,
-                                      radius / 2.0f * worldScale.x / worldScale.y);
-            inst.offset = collider->GetCenter();
+            inst.model = model;
+            inst.size = glm::vec2(0.0f, height * uniformScale);
+            inst.semiSize = glm::vec2(radius / 2.0f * uniformScale);
+            inst.offset = collider->GetCenter() * worldScale;
             inst.pivot = glm::vec2(0.0f);
             inst.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
             capsuleInstances.push_back(inst);

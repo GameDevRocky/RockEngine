@@ -431,6 +431,75 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             BindProperty<glm::vec4>(sc, label, getter, setter, field.changeEvent,
                 PropDesc().Tag(Tags::VECTOR4).Step(field.step), initial);
         }
+        else if (field.typeName == "list") {
+            if (field.elementTypeName == "bool") {
+                auto getter = [sc, name = field.name]() -> std::vector<bool> {
+                    auto val = sc->GetFieldValue(name);
+                    return std::holds_alternative<std::vector<bool>>(val)
+                        ? std::get<std::vector<bool>>(val) : std::vector<bool>{};
+                };
+                auto setter = [sc, name = field.name](std::vector<bool> v) {
+                    sc->SetFieldValue(name, v);
+                };
+                BindProperty<std::vector<bool>>(sc, label, getter, setter, field.changeEvent,
+                    PropDesc().Tag(Tags::LIST).Element(PropDesc().Tag(Tags::TOGGLE)));
+            }
+            else if (field.elementTypeName == "float") {
+                auto getter = [sc, name = field.name]() -> std::vector<float> {
+                    auto val = sc->GetFieldValue(name);
+                    return std::holds_alternative<std::vector<float>>(val)
+                        ? std::get<std::vector<float>>(val) : std::vector<float>{};
+                };
+                auto setter = [sc, name = field.name](std::vector<float> v) {
+                    sc->SetFieldValue(name, v);
+                };
+                BindProperty<std::vector<float>>(sc, label, getter, setter, field.changeEvent,
+                    PropDesc().Tag(Tags::LIST).Element(PropDesc().Tag(Tags::FLOAT).Step(field.step)));
+            }
+            else if (field.elementTypeName == "int") {
+                // Int lists are edited with float rows (like scalar ints), converting
+                // at the boundary; the variant/Python side stays std::vector<int>.
+                auto getter = [sc, name = field.name]() -> std::vector<float> {
+                    auto val = sc->GetFieldValue(name);
+                    std::vector<float> out;
+                    if (std::holds_alternative<std::vector<int>>(val))
+                        for (int x : std::get<std::vector<int>>(val)) out.push_back(static_cast<float>(x));
+                    return out;
+                };
+                auto setter = [sc, name = field.name](std::vector<float> v) {
+                    std::vector<int> out;
+                    out.reserve(v.size());
+                    for (float x : v) out.push_back(static_cast<int>(x));
+                    sc->SetFieldValue(name, out);
+                };
+                BindProperty<std::vector<float>>(sc, label, getter, setter, field.changeEvent,
+                    PropDesc().Tag(Tags::LIST).Element(PropDesc().Tag(Tags::FLOAT).Step(1)));
+            }
+            else if (field.elementTypeName == "str") {
+                auto getter = [sc, name = field.name]() -> std::vector<std::string> {
+                    auto val = sc->GetFieldValue(name);
+                    return std::holds_alternative<std::vector<std::string>>(val)
+                        ? std::get<std::vector<std::string>>(val) : std::vector<std::string>{};
+                };
+                auto setter = [sc, name = field.name](std::vector<std::string> v) {
+                    sc->SetFieldValue(name, v);
+                };
+
+                // Element descriptor mirrors the scalar str path (plain / asset ref / GO ref).
+                PropDesc elemDesc;
+                if (field.elementRefTypeName == "material") {
+                    elemDesc = PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF);
+                } else if (field.elementRefTypeName == "sprite") {
+                    elemDesc = PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF);
+                } else if (field.elementRefTypeName.rfind("gameobject:", 0) == 0) {
+                    std::string cls = field.elementRefTypeName.substr(std::string("gameobject:").size());
+                    elemDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).RefClass(cls);
+                }
+
+                BindProperty<std::vector<std::string>>(sc, label, getter, setter, field.changeEvent,
+                    PropDesc().Tag(Tags::LIST).Element(elemDesc));
+            }
+        }
     }
 }
 
@@ -579,24 +648,18 @@ void InspectorVisitor::Visit(Texture2D* tex) {
     }
 
     if (!mySprites.empty()) {
-        auto* spritesLabel = new QLabel("Sprites");
-        auto font = spritesLabel->font();
-        font.setBold(true);
-        spritesLabel->setFont(font);
-        spritesLabel->setStyleSheet("margin-top: 8px; color: #cccccc;");
-        AddFullRow(spritesLabel);
+        // Read-only sprite-preview list. Rows show each sprite's thumbnail; clicking
+        // a row selects that sprite (reverse lookup — not an editable property).
+        std::vector<std::string> spriteIds;
+        spriteIds.reserve(mySprites.size());
+        for (Sprite* sprite : mySprites)
+            spriteIds.push_back(sprite->GetID());
 
-        for (Sprite* sprite : mySprites) {
-            auto* btn = new QPushButton(QString::fromStdString(sprite->GetName()));
-            btn->setFlat(true);
-            btn->setStyleSheet("text-align: left; padding: 2px 4px; color: #88aaff;");
-            std::string spriteId = sprite->GetID();
-            QObject::connect(btn, &QPushButton::clicked, [spriteId]() {
-                auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
-                if (selMgr) selMgr->Select(spriteId);
-            });
-            AddFullRow(btn);
-        }
+        auto* spriteList = new ListPropertyWidget<std::string>(
+            PropDesc().Tag(Tags::LIST).ReadOnly()
+                .Element(PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF)));
+        spriteList->SetValue(spriteIds);
+        AddRow("Sprites: ", spriteList->GetWidget());
     }
 }
 

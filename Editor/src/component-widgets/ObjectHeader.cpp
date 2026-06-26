@@ -60,16 +60,16 @@ void ObjectHeader::Bind(const std::string id) {
         }
     }); 
 
-    obj->Subscribe([safeThis](std::any data){
+    int nameSub = obj->Subscribe([safeThis](std::any data){
         if (!safeThis) return false;
         auto* currentObj = Registry::FindInRuntime<GameObject>(safeThis->gameobject_id);
-        if (!currentObj) return false; 
+        if (!currentObj) return false;
         std::string name = std::any_cast<std::string>(data);
         safeThis->label->setText(QString::fromStdString(name));
         return true;
     }, GameObject::NAME_CHANGED_EVENT);
 
-    obj->Subscribe([safeThis](std::any data){
+    int activeSub = obj->Subscribe([safeThis](std::any data){
         if (!safeThis) return false;
         auto* currentObj = Registry::FindInRuntime<GameObject>(safeThis->gameobject_id);
         if (!currentObj) return false;
@@ -77,4 +77,7 @@ void ObjectHeader::Bind(const std::string id) {
         safeThis->activeButton->setChecked(val);
         return true;
     }, GameObject::ACTIVE_CHANGED_EVENT);
+
+    m_subs.emplace_back(obj, nameSub);
+    m_subs.emplace_back(obj, activeSub);
 }

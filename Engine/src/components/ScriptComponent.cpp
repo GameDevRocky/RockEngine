@@ -14,6 +14,58 @@ struct ScriptInstanceData {
     py::object scriptInstance;
 };
 
+namespace {
+    // Wrap a single list element ID into its Python handler object. Plain string
+    // elements pass through as py::str; sprite/material refs become Sprite(id)/
+    // Material(id) (empty id → None). Mirrors the scalar str-ref path.
+    py::object MakeListElement(const std::string& s, const std::string& elementRefType) {
+        if (elementRefType == "sprite") {
+            if (s.empty()) return py::none();
+            py::module_ m = py::module_::import("Domain.lib.api.rendering.sprite_handler");
+            return m.attr("Sprite")(s);
+        }
+        if (elementRefType == "material") {
+            if (s.empty()) return py::none();
+            py::module_ m = py::module_::import("Domain.lib.api.rendering.material_handler");
+            return m.attr("Material")(s);
+        }
+        return py::str(s);
+    }
+
+    // Pull a string ID out of a list element: handler objects expose `.id`,
+    // plain strings cast directly, None → "".
+    std::string ListElementToString(const py::handle& el) {
+        if (el.is_none()) return std::string();
+        if (py::hasattr(el, "id")) return el.attr("id").cast<std::string>();
+        return el.cast<std::string>();
+    }
+
+    // Read a Python list attribute into the matching ScriptFieldValue vector
+    // alternative, dispatching on the field's element type.
+    ScriptFieldValue ReadListField(const py::object& val, const ScriptFieldInfo& f) {
+        const bool isList = py::isinstance<py::list>(val);
+        if (f.elementTypeName == "float") {
+            std::vector<float> out;
+            if (isList) for (auto el : val) out.push_back(el.cast<float>());
+            return out;
+        }
+        if (f.elementTypeName == "int") {
+            std::vector<int> out;
+            if (isList) for (auto el : val) out.push_back(el.cast<int>());
+            return out;
+        }
+        if (f.elementTypeName == "bool") {
+            std::vector<bool> out;
+            if (isList) for (auto el : val) out.push_back(el.cast<bool>());
+            return out;
+        }
+        // "str" and asset-ref element lists both marshal as vector<string> of IDs
+        std::vector<std::string> out;
+        if (isList) for (auto el : val) out.push_back(ListElementToString(el));
+        return out;
+    }
+}
+
 ScriptComponent::ScriptComponent()
     : m_pyData(std::make_unique<ScriptInstanceData>()) {}
 
@@ -83,6 +135,22 @@ YAML::Node ScriptComponent::Serialize()
                     fieldsNode[field.name].push_back(py::getattr(val, "y").cast<float>());
                     fieldsNode[field.name].push_back(py::getattr(val, "z").cast<float>());
                     fieldsNode[field.name].push_back(py::getattr(val, "w").cast<float>());
+                } else if (field.typeName == "list") {
+                    // Variable-length sequence of the element type.
+                    YAML::Node seq(YAML::NodeType::Sequence);
+                    if (py::isinstance<py::list>(val)) {
+                        for (auto el : val) {
+                            if (field.elementTypeName == "float")
+                                seq.push_back(el.cast<float>());
+                            else if (field.elementTypeName == "int")
+                                seq.push_back(el.cast<int>());
+                            else if (field.elementTypeName == "bool")
+                                seq.push_back(el.cast<bool>());
+                            else
+                                seq.push_back(ListElementToString(el));
+                        }
+                    }
+                    fieldsNode[field.name] = seq;
                 }
             }
             catch (const std::exception& e) {
@@ -331,6 +399,11 @@ void ScriptComponent::IntrospectFields()
             if (d.contains("ref_type_name") && !d["ref_type_name"].cast<std::string>().empty())
                 info.refTypeName = d["ref_type_name"].cast<std::string>();
 
+            if (d.contains("element_type_name"))
+                info.elementTypeName = d["element_type_name"].cast<std::string>();
+            if (d.contains("element_ref_type_name"))
+                info.elementRefTypeName = d["element_ref_type_name"].cast<std::string>();
+
             // If the instance doesn't have this attribute yet, apply the default
             if (!py::hasattr(scriptInstance, info.name.c_str())) {
                 py::object defaultVal = d["default"];
@@ -375,6 +448,15 @@ void ScriptComponent::IntrospectFields()
                     // path; if the runtime type no longer matches, clear it.
                     info.refTypeName.clear();
                 }
+            }
+
+            // Give each instance its own copy of a list field so multiple
+            // GameObjects sharing the same script class don't alias the
+            // class-level mutable default list.
+            if (info.typeName == "list" && py::hasattr(scriptInstance, info.name.c_str())) {
+                py::object cur = py::getattr(scriptInstance, info.name.c_str());
+                if (py::isinstance<py::list>(cur))
+                    py::setattr(scriptInstance, info.name.c_str(), py::list(cur));
             }
 
             info.changeEvent = Observable::CreateEvent();
@@ -447,10 +529,25 @@ void ScriptComponent::ApplyPendingFields()
                     py::object vec4Cls = re_math.attr("Vector4");
                     py::setattr(scriptInstance, field.name.c_str(), vec4Cls(seq[0], seq[1], seq[2], seq[3]));
                 }
+            } else if (field.typeName == "list") {
+                py::list lst;
+                if (val.IsSequence()) {
+                    for (const auto& elNode : val) {
+                        if (field.elementTypeName == "float")
+                            lst.append(py::float_(elNode.as<float>()));
+                        else if (field.elementTypeName == "int")
+                            lst.append(py::int_(elNode.as<int>()));
+                        else if (field.elementTypeName == "bool")
+                            lst.append(py::bool_(elNode.as<bool>()));
+                        else
+                            lst.append(MakeListElement(elNode.as<std::string>(), field.elementRefTypeName));
+                    }
+                }
+                py::setattr(scriptInstance, field.name.c_str(), lst);
             }
         }
         catch (const std::exception& e) {
-            std::cerr << "[ScriptComponent] Error applying field '" << field.name 
+            std::cerr << "[ScriptComponent] Error applying field '" << field.name
                       << "': " << e.what() << std::endl;
         }
     }
@@ -501,10 +598,12 @@ ScriptFieldValue ScriptComponent::GetFieldValue(const std::string& name)
             float z = py::getattr(val, "z").cast<float>();
             float w = py::getattr(val, "w").cast<float>();
             return glm::vec4(x, y, z, w);
+        } else if (fieldInfo->typeName == "list") {
+            return ReadListField(val, *fieldInfo);
         }
     }
     catch (const py::error_already_set& e) {
-        std::cerr << "[ScriptComponent] Error getting field '" << name 
+        std::cerr << "[ScriptComponent] Error getting field '" << name
                   << "': " << e.what() << std::endl;
     }
     return 0.0f;
@@ -550,6 +649,8 @@ std::map<std::string, ScriptFieldValue> ScriptComponent::GetAllFieldValues()
                 float z = py::getattr(val, "z").cast<float>();
                 float w = py::getattr(val, "w").cast<float>();
                 result[field.name] = glm::vec4(x, y, z, w);
+            } else if (field.typeName == "list") {
+                result[field.name] = ReadListField(val, field);
             }
         }
         catch (const py::error_already_set& e) {
@@ -568,8 +669,9 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
 
     // Look up ref type so we can wrap Sprite/Material IDs properly
     std::string refTypeName;
+    std::string elementRefType;
     for (const auto& f : m_fields) {
-        if (f.name == name) { refTypeName = f.refTypeName; break; }
+        if (f.name == name) { refTypeName = f.refTypeName; elementRefType = f.elementRefTypeName; break; }
     }
 
     try {
@@ -611,6 +713,22 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
                 py::module re_math = py::module::import("Domain.lib.utils.re_math");
                 py::object vec4Cls = re_math.attr("Vector4");
                 py::setattr(scriptInstance, name.c_str(), vec4Cls(v.x, v.y, v.z, v.w));
+            } else if constexpr (std::is_same_v<T, std::vector<int>>) {
+                py::list lst;
+                for (int x : v) lst.append(py::int_(x));
+                py::setattr(scriptInstance, name.c_str(), lst);
+            } else if constexpr (std::is_same_v<T, std::vector<float>>) {
+                py::list lst;
+                for (float x : v) lst.append(py::float_(x));
+                py::setattr(scriptInstance, name.c_str(), lst);
+            } else if constexpr (std::is_same_v<T, std::vector<bool>>) {
+                py::list lst;
+                for (bool x : v) lst.append(py::bool_(x));
+                py::setattr(scriptInstance, name.c_str(), lst);
+            } else if constexpr (std::is_same_v<T, std::vector<std::string>>) {
+                py::list lst;
+                for (const auto& s : v) lst.append(MakeListElement(s, elementRefType));
+                py::setattr(scriptInstance, name.c_str(), lst);
             }
         }, value);
 

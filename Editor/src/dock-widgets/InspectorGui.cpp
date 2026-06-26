@@ -58,12 +58,26 @@ InspectorGui::InspectorGui(QWidget* parent) : QWidget(parent)
 
 void InspectorGui::Init(){ 
     auto* engine = Engine::Get();
+    // Entering play mode: the runtime container's SelectionManager is a fresh copy
+    // (Copy(Container*) doesn't carry subscribers), so wire up a subscription to it.
     engine->Subscribe([this](){
         SubscribeToSelector();
         return true;
     }, Engine::ENTER_PLAY_MODE_EVENT);
+    // Exiting play mode: the editor SelectionManager still holds the subscription made
+    // in Init (the editor container outlives play mode), so do NOT re-subscribe — that
+    // would stack a duplicate SELECTION_CHANGED handler on the editor manager every
+    // play cycle, making each editor selection trigger N inspector rebuilds. Just
+    // refresh the inspector for the editor's current selection.
     engine->Subscribe([this](){
-        SubscribeToSelector();
+        // ExitPlayMode() has already deleted the runtime container, so any inspector
+        // subscriptions from a play-mode selection point at freed runtime objects.
+        // Their ~Observable already dropped the subscriptions; the handles just
+        // dangle. Drop them WITHOUT unsubscribing — calling Unsubscribe on the freed
+        // objects is a use-after-free. (Editor-object subs are unsubscribed normally
+        // on enter, where the editor objects are still alive.)
+        m_inspectorSubs.clear();
+        OnObjectSelected(selectionManager->GetSelectedId());
         return true;
     }, Engine::EXIT_PLAY_MODE_EVENT);
     SubscribeToSelector();
@@ -92,7 +106,21 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         mat->Unsubscribe(subId);
     m_materialShaderSubs.clear();
 
+    // Tear down the per-rebuild property/header subscriptions from the previous
+    // selection. Without this they pile up on long-lived objects/assets, growing
+    // the cost of every notify and of SelectionManager's Unsubscribe scan.
+    for (auto& [obs, subId] : m_inspectorSubs)
+        obs->Unsubscribe(subId);
+    m_inspectorSubs.clear();
+
     if (contentWidget) {
+        // Detach the old content from the scroll area before scheduling its deletion.
+        // scrollArea->setWidget() below would otherwise delete the previous widget
+        // *synchronously*, which is a use-after-free when this rebuild was triggered
+        // from inside that widget's own event handler (e.g. clicking a read-only
+        // sprite row in the texture inspector). takeWidget() hands ownership back to
+        // us so deleteLater() can defer destruction until the event finishes.
+        scrollArea->takeWidget();
         contentWidget->deleteLater();
         contentWidget = nullptr;
     }
@@ -117,6 +145,8 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         ObjectHeader* objectHeader = new ObjectHeader();
         obj->Accept(&visitor);
         objectHeader->Bind(obj->GetID());
+        for (auto& s : visitor.GetSubscriptions())       m_inspectorSubs.push_back(s);
+        for (auto& s : objectHeader->GetSubscriptions())  m_inspectorSubs.push_back(s);
         auto* content = visitor.GetContent();
         if (content) objectHeader->AddWidget(content);
         contentLayout->addWidget(objectHeader);
@@ -128,6 +158,8 @@ void InspectorGui::OnObjectSelected(const std::string& id)
             content = compVisitor.GetContent();
             ComponentHeader* compWidget = new ComponentHeader(comp->GetTypeName());
             compWidget->Bind(comp->GetID());
+            for (auto& s : compVisitor.GetSubscriptions()) m_inspectorSubs.push_back(s);
+            for (auto& s : compWidget->GetSubscriptions())  m_inspectorSubs.push_back(s);
             compWidget->AddWidget(content);
             contentLayout->addWidget(compWidget);
 
@@ -144,6 +176,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         // ── Asset path: single section, no component loop ────────────────────
         InspectorVisitor visitor;
         selectable->Accept(&visitor);
+        for (auto& s : visitor.GetSubscriptions()) m_inspectorSubs.push_back(s);
         ComponentHeader* header = new ComponentHeader(selectable->GetTypeName());
         // Do NOT call header->Bind() — it looks up a Component in the Registry and
         // self-destructs if not found. Assets live in AssetManager, not the Registry.

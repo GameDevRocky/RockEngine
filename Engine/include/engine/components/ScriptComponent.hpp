@@ -15,13 +15,21 @@
 #undef CreateEvent
 #endif
 
-// Variant type for script field values — no pybind11 types exposed
-using ScriptFieldValue = std::variant<float, int, bool, std::string, glm::vec2, glm::vec3, glm::vec4>;
+// Variant type for script field values — no pybind11 types exposed.
+// Scalars plus homogeneous lists (list[T]); ref lists (sprite/material) marshal
+// as std::vector<std::string> of IDs, like the scalar str-ref path.
+using ScriptFieldValue = std::variant<
+    float, int, bool, std::string, glm::vec2, glm::vec3, glm::vec4,
+    std::vector<int>, std::vector<float>, std::vector<bool>, std::vector<std::string>>;
 
 struct ScriptFieldInfo {
     std::string name;
-    std::string typeName;      // "float", "int", "bool", "str", "vec2", "vec3", "vec4"
+    std::string typeName;      // "float", "int", "bool", "str", "vec2", "vec3", "vec4", "list"
     std::string refTypeName;   // For str fields: "material", "sprite", "gameobject:<ClassName>" (empty = plain string)
+    // For "list" fields only: the element type ("float"/"int"/"bool"/"str") and,
+    // when the element is an asset ref, its ref type ("material"/"sprite"/...).
+    std::string elementTypeName;
+    std::string elementRefTypeName;
     float min = -std::numeric_limits<float>::max();
     float max =  std::numeric_limits<float>::max();
     float step = 0.1f;

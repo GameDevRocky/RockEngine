@@ -45,7 +45,7 @@ void ComponentHeader::Bind(std::string id){
     label->setText(QString::fromStdString(comp->GetTypeName()));
     activeButton->setChecked(comp->GetEnabled());
 
-    comp->Subscribe([safeThis](std::any data){
+    int enabledSub = comp->Subscribe([safeThis](std::any data){
         if (!safeThis) return false;
         auto* comp = Registry::FindInRuntime<Component>(safeThis->component_id);
         if (!comp) return false;
@@ -53,6 +53,8 @@ void ComponentHeader::Bind(std::string id){
         safeThis->activeButton->setChecked(val);
         return true;
     }, Component::ENABLED_CHANGED_EVENT);
+
+    m_subs.emplace_back(comp, enabledSub);
 }
 
 void ComponentHeader::paintEvent(QPaintEvent *event) {
