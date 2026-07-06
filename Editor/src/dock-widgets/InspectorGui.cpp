@@ -189,7 +189,12 @@ void InspectorGui::OnObjectSelected(const std::string& id)
             if (auto* sc = dynamic_cast<ScriptComponent*>(comp)) {
                 std::string capturedId = id;
                 int subId = sc->Subscribe([this, capturedId](std::any) {
-                    OnObjectSelected(capturedId);
+                    // Queue the rebuild: SCRIPT_RELOADED_EVENT can fire from within a
+                    // widget callback (the script-selector's SetScript), so defer to
+                    // avoid deleting inspector widgets mid-callback.
+                    QMetaObject::invokeMethod(this, [this, capturedId]() {
+                        OnObjectSelected(capturedId);
+                    }, Qt::QueuedConnection);
                     return true;
                 }, ScriptComponent::SCRIPT_RELOADED_EVENT);
                 m_scriptReloadSubs.emplace_back(sc->GetID(), subId);

@@ -22,6 +22,13 @@ using ScriptFieldValue = std::variant<
     float, int, bool, std::string, glm::vec2, glm::vec3, glm::vec4,
     std::vector<int>, std::vector<float>, std::vector<bool>, std::vector<std::string>>;
 
+// A user script class available to attach to a ScriptComponent, identified by
+// its Python module (file stem) and class name. Pybind-free, editor-facing.
+struct ScriptClassInfo {
+    std::string moduleName;
+    std::string className;
+};
+
 struct ScriptFieldInfo {
     std::string name;
     std::string typeName;      // "float", "int", "bool", "str", "vec2", "vec3", "vec4", "list"
@@ -65,7 +72,17 @@ public:
     ScriptComponent* Copy() override;
 
     std::string GetTypeName() const override { return "ScriptComponent"; }
+    std::string GetScriptModuleName() const { return moduleName; }
     std::string GetScriptClassName() const { return className; }
+
+    // Enumerate every ScriptableComponent subclass under the sandbox scripts
+    // folder (for the inspector's script picker). No instance required.
+    static std::vector<ScriptClassInfo> GetAvailableScripts();
+
+    // Reassign which Python script this component runs, live: tears down the old
+    // instance, re-instantiates + re-introspects the new class, and fires
+    // SCRIPT_RELOADED_EVENT so the inspector rebuilds.
+    void SetScript(const std::string& module, const std::string& cls);
 
     // Exposed field introspection API (no pybind11 types in interface)
     const std::vector<ScriptFieldInfo>& GetFields() const { return m_fields; }
@@ -81,6 +98,7 @@ private:
     void InstantiateScript();
     void IntrospectFields();
     void ApplyPendingFields();
+    void SubscribeFileWatch();   // (re)subscribe hot-reload watch for m_scriptFilePath
     void CallMethod(const char* funcName);
     void CallMethodStr(const char* funcName, const char* arg);
 

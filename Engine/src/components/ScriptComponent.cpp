@@ -15,6 +15,32 @@ struct ScriptInstanceData {
 };
 
 namespace {
+    // Ensure the project root, sandbox scripts, and lib folders are on sys.path
+    // (idempotent). Returns the sandbox scripts dir. Caller must hold the GIL.
+    std::string EnsureScriptPathsOnSysPath() {
+        py::module sys = py::module::import("sys");
+        py::list path = sys.attr("path");
+
+        std::string scriptsPath = GetAssetPath("Domain/sandbox/scripts");
+        std::vector<std::string> folders = {
+            GetAssetPath(""),          // project root — for `Domain.lib...` imports
+            scriptsPath,               // user scripts, imported by file stem
+            GetAssetPath("Domain/lib")
+        };
+
+        for (const auto& folder : folders) {
+            bool alreadyAdded = false;
+            for (auto item : path) {
+                if (py::str(item).cast<std::string>() == folder) {
+                    alreadyAdded = true;
+                    break;
+                }
+            }
+            if (!alreadyAdded) path.append(folder);
+        }
+        return scriptsPath;
+    }
+
     // Wrap a single list element ID into its Python handler object. Plain string
     // elements pass through as py::str; sprite/material refs become Sprite(id)/
     // Material(id) (empty id → None). Mirrors the scalar str-ref path.
@@ -188,19 +214,22 @@ void ScriptComponent::Init(){
     ApplyPendingFields();
     CallMethod("init");
 
-    // Subscribe to FileWatcherSystem for hot-reload
-    if (!m_scriptFilePath.empty()) {
-        auto* fws = container->FindSystem<FileWatcherSystem>();
-        if (fws) {
-            m_fileWatchSubId = fws->Subscribe([this](std::any data) {
-                if (std::any_cast<std::string>(data) == m_scriptFilePath)
-                    ApplyHotReload();
-                return true;
-            }, FileWatcherSystem::FILE_CHANGED_EVENT);
-        }
-    }
+    SubscribeFileWatch();
 
     state = State::Initialized;
+}
+
+// Subscribe to FileWatcherSystem for hot-reload of the current script file.
+void ScriptComponent::SubscribeFileWatch()
+{
+    if (m_scriptFilePath.empty()) return;
+    auto* fws = container ? container->FindSystem<FileWatcherSystem>() : nullptr;
+    if (!fws) return;
+    m_fileWatchSubId = fws->Subscribe([this](std::any data) {
+        if (std::any_cast<std::string>(data) == m_scriptFilePath)
+            ApplyHotReload();
+        return true;
+    }, FileWatcherSystem::FILE_CHANGED_EVENT);
 }
 void ScriptComponent::Awake(){ 
     if (state >= State::Awakened) return;
@@ -258,35 +287,9 @@ void ScriptComponent::InstantiateScript()
     py::gil_scoped_acquire gil;
 
     try {
+        EnsureScriptPathsOnSysPath();
+
         py::module sys = py::module::import("sys");
-        py::list path = sys.attr("path");
-
-        std::string scriptsPath = GetAssetPath("Domain/sandbox/scripts");
-        std::string libPath = GetAssetPath("Domain/lib");
-
-        std::string projectRoot = GetAssetPath("");
-
-        std::vector<std::string> folders = {
-            projectRoot,                            
-            scriptsPath,
-            libPath
-            
-        };
-
-        for (const auto& folder : folders) {
-            bool alreadyAdded = false;
-            for (auto item : path) {
-                if (py::str(item).cast<std::string>() == folder) {
-                    alreadyAdded = true;
-                    break;
-                }
-            }
-            if (!alreadyAdded) {
-                path.append(folder);
-            }
-        }
-
-
         py::dict sys_modules = sys.attr("modules");
         py::module module;
         if (sys_modules.contains(moduleName.c_str())) {
@@ -366,6 +369,65 @@ void ScriptComponent::ApplyHotReload()
     if (!reloadSucceeded) return;
 
     IntrospectFields();
+    Notify(SCRIPT_RELOADED_EVENT);
+}
+
+std::vector<ScriptClassInfo> ScriptComponent::GetAvailableScripts()
+{
+    std::vector<ScriptClassInfo> result;
+    if (!Py_IsInitialized()) return result;
+
+    py::gil_scoped_acquire gil;
+    try {
+        std::string scriptsPath = EnsureScriptPathsOnSysPath();
+        py::module disc = py::module::import("Domain.lib.utils.script_discovery");
+        py::list found = disc.attr("discover_scripts")(scriptsPath);
+        for (auto item : found) {
+            py::dict d = item.cast<py::dict>();
+            ScriptClassInfo info;
+            info.moduleName = d["module"].cast<std::string>();
+            info.className  = d["class"].cast<std::string>();
+            result.push_back(std::move(info));
+        }
+    }
+    catch (const py::error_already_set& e) {
+        std::cerr << "[ScriptComponent] Python error in GetAvailableScripts():\n"
+                  << e.what() << std::endl;
+    }
+    return result;
+}
+
+void ScriptComponent::SetScript(const std::string& module, const std::string& cls)
+{
+    if (module == moduleName && cls == className) return;
+
+    // Tear down the current instance's hot-reload watch.
+    if (m_fileWatchSubId != -1) {
+        auto* fws = container ? container->FindSystem<FileWatcherSystem>() : nullptr;
+        if (fws) fws->Unsubscribe(m_fileWatchSubId);
+        m_fileWatchSubId = -1;
+    }
+
+    // Drop the old Python instance and its introspected/pending state — the
+    // pending values belonged to the previous script and no longer apply.
+    if (Py_IsInitialized() && m_pyData) {
+        py::gil_scoped_acquire gil;
+        m_pyData->scriptInstance = py::object();
+    }
+    m_fields.clear();
+    m_pendingFieldValues.clear();
+    m_scriptFilePath.clear();
+
+    moduleName = module;
+    className  = cls;
+
+    // Same sequence as Init(): instantiate → introspect → apply → init → watch.
+    InstantiateScript();
+    IntrospectFields();
+    ApplyPendingFields();
+    CallMethod("init");
+    SubscribeFileWatch();
+
     Notify(SCRIPT_RELOADED_EVENT);
 }
 
