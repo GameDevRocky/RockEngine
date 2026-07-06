@@ -20,7 +20,7 @@ if(MSVC)
 else()
     add_compile_options(-Wall -Wextra)
 endif()
-
+ 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(CMAKE_AUTOMOC ON)

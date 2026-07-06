@@ -54,8 +54,11 @@ class GameObject : public RuntimeObject {
     ~GameObject() =default;
     
     void AddComponent(Component* comp);
-    
-    
+    // Detaches a component and queues it for deferred destruction (flushed next
+    // frame). Fires REMOVE_COMPONENT_EVENT so observers (e.g. the inspector) refresh.
+    void RemoveComponent(Component* comp);
+
+
     template<typename T>
     T* GetComponent() {
         std::string type = std::string(EngineUtils::TypeName<T>());

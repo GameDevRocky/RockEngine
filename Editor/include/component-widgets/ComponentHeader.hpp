@@ -23,6 +23,8 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *event);
+    // Right-click → "Delete Component" menu (disabled for the mandatory Transform).
+    void contextMenuEvent(QContextMenuEvent* event) override;
     std::string component_id = "";
     std::vector<std::pair<Observable*, int>> m_subs;
 

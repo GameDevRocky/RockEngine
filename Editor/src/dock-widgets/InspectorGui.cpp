@@ -13,6 +13,11 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/Shader.hpp"
+#include "engine/serialization/SerializableFactory.hpp"
+#include "engine/components/Component.hpp"
+#include "utils/ComponentPickerWidget.hpp"
+#include <QPushButton>
+#include <QSizePolicy>
 
 namespace {
     void clearLayout(QLayout* layout)
@@ -151,6 +156,24 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         if (content) objectHeader->AddWidget(content);
         contentLayout->addWidget(objectHeader);
 
+        // Rebuild whenever a component is added or removed on this object (Add
+        // Component button, or a component header's delete menu). Torn down with the
+        // rest of m_inspectorSubs on the next rebuild.
+        {
+            std::string capturedId = id;
+            int addSub = obj->Subscribe([this, capturedId](std::any) {
+                OnObjectSelected(capturedId);
+                return true;
+            }, GameObject::ADD_COMPONENT_EVENT);
+            m_inspectorSubs.emplace_back(obj, addSub);
+
+            int removeSub = obj->Subscribe([this, capturedId](std::any) {
+                OnObjectSelected(capturedId);
+                return true;
+            }, GameObject::REMOVE_COMPONENT_EVENT);
+            m_inspectorSubs.emplace_back(obj, removeSub);
+        }
+
         for (auto* comp : obj->GetAllComponents()) {
             InspectorVisitor compVisitor;
             comp->Accept(&compVisitor);
@@ -172,6 +195,39 @@ void InspectorGui::OnObjectSelected(const std::string& id)
                 m_scriptReloadSubs.emplace_back(sc->GetID(), subId);
             }
         }
+
+        QPushButton* addComponentButton = new QPushButton("Add Component");
+        addComponentButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        contentLayout->addWidget(addComponentButton);
+
+        // Popup a list of every registered component type the object doesn't already
+        // have; picking one creates it via the factory, attaches it, and rebuilds the
+        // inspector so the new section appears.
+        connect(addComponentButton, &QPushButton::clicked, this, [this, obj, addComponentButton]() {
+            std::vector<std::string> items;
+            for (const auto& name : SerializableFactory::GetRegisteredTypeNames())
+                if (!obj->HasComponentByName(name))
+                    items.push_back(name);
+
+            auto* picker = new ComponentPickerWidget(std::move(items), this);
+            picker->setFixedWidth(addComponentButton->width());
+            picker->onSelected = [this, obj](const std::string& typeName) {
+                // component_ids is keyed by type name, so a duplicate would silently
+                // orphan the previous component's registry entry — guard against it.
+                if (obj->HasComponentByName(typeName)) return;
+                auto* comp = dynamic_cast<Component*>(SerializableFactory::Create(typeName));
+                if (!comp) return;
+                obj->AddComponent(comp);  // fires ADD_COMPONENT_EVENT → inspector rebuilds
+            };
+            picker->move(addComponentButton->mapToGlobal(QPoint(0, addComponentButton->height())));
+            picker->show();
+        });
+
+        QWidget* spacer = new QWidget();
+        spacer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        spacer->setFixedHeight(256);
+        contentLayout->addWidget(spacer);
+        
     } else {
         // ── Asset path: single section, no component loop ────────────────────
         InspectorVisitor visitor;

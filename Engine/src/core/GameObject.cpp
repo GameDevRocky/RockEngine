@@ -28,6 +28,25 @@ void GameObject::AddComponent(Component* comp) {
     this->Notify(GameObject::ADD_COMPONENT_EVENT);
 }
 
+void GameObject::RemoveComponent(Component* comp) {
+    if (!comp) return;
+
+    // Drop the map entry first so GetAllComponents()/GetComponent() stop returning
+    // it immediately; the component object itself is torn down on the next flush.
+    const std::string compId = comp->GetID();
+    for (auto it = component_ids.begin(); it != component_ids.end(); ++it) {
+        if (it->second == compId) { component_ids.erase(it); break; }
+    }
+
+    // Deferred Shutdown()+delete via the registry — same path GameObject deletion
+    // uses, so component-specific cleanup (physics bodies, etc.) still runs safely.
+    Registry* registry = container->FindSystem<Registry>();
+    if (registry) registry->Destroy(comp);
+    comp->Shutdown();
+
+    this->Notify(GameObject::REMOVE_COMPONENT_EVENT, compId);
+}
+
 void GameObject::Deserialize(const YAML::Node& node) {
     Serializable::Deserialize(node);
     name = node["name"].as<std::string>();
