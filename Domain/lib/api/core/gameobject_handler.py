@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from rock_engine.core import gameobject_module
 from typing import Type, TypeVar, Optional
 

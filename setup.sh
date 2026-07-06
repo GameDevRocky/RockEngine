@@ -22,7 +22,7 @@ cd "$(dirname "$0")"
 REPO_ROOT="$(pwd)"
 
 # --- Pinned dependency versions (bump here to upgrade everyone consistently) ---
-QT_VERSION="6.11.0"
+QT_VERSION="6.8.3"
 
 QT_DIR_ARG=""
 NO_RUN=0

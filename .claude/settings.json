@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find \"C:/Qt\" -maxdepth 2 -type d 2>/dev/null)",
+      "Read(//c/Qt/**)",
+      "Bash(./.venv-setup/Scripts/python.exe -m aqt list-qt windows desktop)",
+      "Bash(python -c \"import sys; print\\(sys.executable\\)\")",
+      "Bash(python -m pip show watchdog)"
+    ]
+  }
+}

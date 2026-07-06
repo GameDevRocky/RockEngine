@@ -1,3 +1,6 @@
+from typing import Callable
+
+
 class WaitForSeconds:
     """Suspend the coroutine for `seconds` of scaled game time."""
     def __init__(self, seconds: float):
@@ -20,7 +23,7 @@ class WaitForFrames:
 
 class WaitUntil:
     """Suspend the coroutine until `condition()` returns truthy."""
-    def __init__(self, condition : function):
+    def __init__(self, condition: Callable[[], bool]):
         self._condition = condition
 
     def tick(self, dt: float) -> bool:

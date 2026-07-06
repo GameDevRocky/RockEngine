@@ -26,7 +26,7 @@ $ErrorActionPreference = "Stop"
 Set-Location -Path $PSScriptRoot
 
 # --- Pinned dependency versions (bump here to upgrade everyone consistently) ---
-$QT_VERSION   = "6.11.0"
+$QT_VERSION   = "6.8.3"
 $QT_ARCH      = "win64_msvc2022_64"   # aqt arch id
 $QT_DIR_NAME  = "msvc2022_64"         # folder aqt creates under .qt/<ver>/
 $PRESET       = "windows-msvc"        # base preset the 'local' user preset inherits

@@ -84,7 +84,7 @@ void SceneViewGui::initializeRenderPipeline(){
     renderPipeline->AddScenePass(scenePass);
     renderPipeline->AddScenePass(debugPass);
     renderPipeline->AddFinalizePass(pickingPass);
-    pickingPass->SetDebugDraw(false);    
+
     renderPipeline->Init();
     camera->Init();
 
