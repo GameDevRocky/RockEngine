@@ -102,25 +102,33 @@ void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& pr
     if (!selectedObj) return;
     Transform* transform = selectedObj->GetComponent<Transform>();
 
-    BoxCollider* boxCollider = selectedObj->GetComponent<BoxCollider>();
-    if (boxCollider) {
+    // End any active drag as soon as the mouse is released. Centralised here so the
+    // per-collider handlers below only start/process drags — with several colliders
+    // each running its own hit-test, scattered release logic would race.
+    ImGuiIO& io = ImGui::GetIO();
+    if (!io.MouseDown[0]) {
+        m_dragHandle = -1;
+        m_dragColliderId.clear();
+    }
+
+    // Draw a gizmo for every collider on the object (of every type), so multiple
+    // colliders are all visible and independently editable. Drag ownership is
+    // scoped by collider id inside each Draw*ColliderGizmo.
+    bool anyCollider = false;
+    for (BoxCollider* boxCollider : selectedObj->GetComponents<BoxCollider>()) {
+        anyCollider = true;
         DrawBoxColliderGizmo(view, proj, viewWidth, viewHeight, transform, boxCollider);
-        return;
     }
-
-    CircleCollider* circleCollider = selectedObj->GetComponent<CircleCollider>();
-    if (circleCollider) {
+    for (CircleCollider* circleCollider : selectedObj->GetComponents<CircleCollider>()) {
+        anyCollider = true;
         DrawCircleColliderGizmo(view, proj, viewWidth, viewHeight, transform, circleCollider);
-        return;
     }
-
-    CapsuleCollider* capsuleCollider = selectedObj->GetComponent<CapsuleCollider>();
-    if (capsuleCollider) {
+    for (CapsuleCollider* capsuleCollider : selectedObj->GetComponents<CapsuleCollider>()) {
+        anyCollider = true;
         DrawCapsuleColliderGizmo(view, proj, viewWidth, viewHeight, transform, capsuleCollider);
-        return;
     }
 
-    DrawTransformGizmo(view, proj, viewWidth, viewHeight);
+    if (!anyCollider) DrawTransformGizmo(view, proj, viewWidth, viewHeight);
 }
 
 ImVec2 GizmosManager::WorldToScreen(const glm::vec2& world, const glm::mat4& vp, float viewWidth, float viewHeight) {
@@ -203,25 +211,20 @@ void GizmosManager::DrawBoxColliderGizmo(const glm::mat4& view, const glm::mat4&
             break;
         }
     }
-    m_hoveredHandle = hoveredHandle;
+    if (hoveredHandle >= 0) m_hoveredHandle = hoveredHandle;
 
-    // Handle mouse press - start dragging
-    if (io.MouseClicked[0] && !ImGuizmo::IsUsing()) {
-        if (hoveredHandle >= 0) {
-            m_dragHandle = hoveredHandle;
-            m_dragStartMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
-            m_dragStartCenter = center;
-            m_dragStartSize = size;
-        }
+    // Handle mouse press - start dragging. Guard on m_dragHandle < 0 so only one
+    // collider claims the drag when several are drawn in the same frame.
+    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 && hoveredHandle >= 0) {
+        m_dragHandle = hoveredHandle;
+        m_dragColliderId = boxCollider->GetID();
+        m_dragStartMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
+        m_dragStartCenter = center;
+        m_dragStartSize = size;
     }
 
-    // Handle mouse release
-    if (!io.MouseDown[0]) {
-        m_dragHandle = -1;
-    }
-
-    // Process dragging
-    if (m_dragHandle >= 0 && io.MouseDown[0]) {
+    // Process dragging — only for the collider that owns the active drag.
+    if (m_dragHandle >= 0 && m_dragColliderId == boxCollider->GetID() && io.MouseDown[0]) {
         glm::vec2 currentMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
 
         // Convert mouse world position to local space of the transform
@@ -289,7 +292,8 @@ void GizmosManager::DrawBoxColliderGizmo(const glm::mat4& view, const glm::mat4&
 
     // Draw handles
     for (int i = 0; i < 8; i++) {
-        bool isHovered = (i == hoveredHandle) || (i == m_dragHandle);
+        bool isHovered = (i == hoveredHandle) ||
+                         (m_dragColliderId == boxCollider->GetID() && i == m_dragHandle);
         ImU32 color = isHovered ? handleHoverColor : handleColor;
         if (i < 4) {
             // Corner handles: filled squares
@@ -370,22 +374,19 @@ void GizmosManager::DrawCircleColliderGizmo(const glm::mat4& view, const glm::ma
             break;
         }
     }
-    m_hoveredHandle = hoveredHandle;
+    if (hoveredHandle >= 0) m_hoveredHandle = hoveredHandle;
 
-    // Start drag
-    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && hoveredHandle >= 0) {
+    // Start drag — guard so only one collider claims the drag per frame.
+    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 && hoveredHandle >= 0) {
         m_dragHandle = hoveredHandle;
+        m_dragColliderId = circleCollider->GetID();
         m_dragStartMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
         m_dragStartRadius = radius;
         m_dragStartCenter = center;
     }
 
-    if (!io.MouseDown[0]) {
-        m_dragHandle = -1;
-    }
-
-    // Process drag — compute distance from mouse to collider center in local space
-    if (m_dragHandle >= 0 && io.MouseDown[0]) {
+    // Process drag — only the owning collider. Distance from mouse to center in local space.
+    if (m_dragHandle >= 0 && m_dragColliderId == circleCollider->GetID() && io.MouseDown[0]) {
         glm::vec2 currentMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
         glm::mat4 invWorld = glm::inverse(worldMat);
         glm::vec4 localMouse4 = invWorld * glm::vec4(currentMouseWorld, 0.0f, 1.0f);
@@ -399,7 +400,8 @@ void GizmosManager::DrawCircleColliderGizmo(const glm::mat4& view, const glm::ma
 
     // Draw handles
     for (int i = 0; i < 4; i++) {
-        bool isHovered = (i == hoveredHandle) || (i == m_dragHandle);
+        bool isHovered = (i == hoveredHandle) ||
+                         (m_dragColliderId == circleCollider->GetID() && i == m_dragHandle);
         ImU32 color = isHovered ? handleHoverColor : handleColor;
         drawList->AddCircleFilled(handles[i], handleSz, color);
     }
@@ -530,23 +532,20 @@ void GizmosManager::DrawCapsuleColliderGizmo(const glm::mat4& view, const glm::m
             break;
         }
     }
-    m_hoveredHandle = hoveredHandle;
+    if (hoveredHandle >= 0) m_hoveredHandle = hoveredHandle;
 
-    // Start drag
-    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && hoveredHandle >= 0) {
+    // Start drag — guard so only one collider claims the drag per frame.
+    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 && hoveredHandle >= 0) {
         m_dragHandle = hoveredHandle;
+        m_dragColliderId = capsuleCollider->GetID();
         m_dragStartMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
         m_dragStartRadius = capsuleRadius;
         m_dragStartHeight = capsuleHeight;
         m_dragStartCenter = center;
     }
 
-    if (!io.MouseDown[0]) {
-        m_dragHandle = -1;
-    }
-
-    // Process drag
-    if (m_dragHandle >= 0 && io.MouseDown[0]) {
+    // Process drag — only the owning collider.
+    if (m_dragHandle >= 0 && m_dragColliderId == capsuleCollider->GetID() && io.MouseDown[0]) {
         glm::vec2 currentMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
         glm::mat4 invWorld = glm::inverse(worldMat);
         glm::vec4 localMouse4 = invWorld * glm::vec4(currentMouseWorld, 0.0f, 1.0f);
@@ -569,7 +568,8 @@ void GizmosManager::DrawCapsuleColliderGizmo(const glm::mat4& view, const glm::m
 
     // Draw handles
     for (int i = 0; i < 4; i++) {
-        bool isHovered = (i == hoveredHandle) || (i == m_dragHandle);
+        bool isHovered = (i == hoveredHandle) ||
+                         (m_dragColliderId == capsuleCollider->GetID() && i == m_dragHandle);
         ImU32 color = isHovered ? handleHoverColor : handleColor;
         if (i <= 1) {
             // Radius: square handles

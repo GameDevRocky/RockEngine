@@ -99,7 +99,8 @@ void PhysicsSystem::DestroyBody(b2BodyId bodyId){
     if (B2_IS_NON_NULL(bodyId) && B2_IS_NON_NULL(worldId)) b2DestroyBody(bodyId);
 }
 void PhysicsSystem::DestroyShape(b2ShapeId shapeId){
-    if (B2_IS_NON_NULL(shapeId) && B2_IS_NON_NULL(worldId)) b2DestroyShape(shapeId, true);
+    if (B2_IS_NON_NULL(shapeId) && B2_IS_NON_NULL(worldId) && b2Shape_IsValid(shapeId))
+        b2DestroyShape(shapeId, true);
 }
 
 void PhysicsSystem::Shutdown(){

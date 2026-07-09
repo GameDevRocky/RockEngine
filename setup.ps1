@@ -118,35 +118,54 @@ if ($QtDir -ne "") {
     }
 }
 
-# --- Generate CMakeUserPresets.json (gitignored) so CLI + VS + VS Code all find Qt ---
-$qtPrefixJson = ($qtPrefix -replace '\\','/')
-Write-Host ">> Writing CMakeUserPresets.json -> $qtPrefixJson" -ForegroundColor Cyan
-$userPresets = @"
-{
-  "version": 6,
-  "configurePresets": [
-    {
-      "name": "local",
-      "displayName": "RockEngine (local Qt)",
-      "inherits": "$PRESET",
-      "cacheVariables": {
-        "CMAKE_PREFIX_PATH": "$qtPrefixJson"
-      }
-    }
-  ],
-  "buildPresets": [
-    { "name": "local", "configurePreset": "local" }
-  ]
-}
-"@
-Set-Content -Path (Join-Path $PSScriptRoot "CMakeUserPresets.json") -Value $userPresets -Encoding utf8
-
-# --- Import the MSVC environment so Ninja can find cl.exe from this shell ---
+# --- Import the MSVC environment so Ninja can find cl.exe from this shell, and so
+#     we can capture what it adds (see below). ---
 Write-Host ">> Importing MSVC environment (vcvars64)..." -ForegroundColor Cyan
+$pathBeforeVcvars = $env:PATH
 $vcvars = Join-Path $vsPath "VC\Auxiliary\Build\vcvars64.bat"
 cmd /c "`"$vcvars`" >nul 2>&1 && set" | ForEach-Object {
     if ($_ -match '^(.*?)=(.*)$') { Set-Item -Path "env:$($matches[1])" -Value $matches[2] }
 }
+$vcvarsPathAdditions = (($env:PATH -split ';') | Where-Object {
+    $_ -and (($pathBeforeVcvars -split ';') -notcontains $_)
+}) -join ';'
+
+# --- Generate CMakeUserPresets.json (gitignored) so CLI + VS + VS Code all find Qt
+#     *and* the MSVC compiler environment. VS Code's CMake Tools extension doesn't
+#     apply vcvars itself for Ninja presets (the "vendor" hook for it is recognized
+#     by its JSON schema but has no implementation behind it as of this writing --
+#     see https://github.com/microsoft/vscode-cmake-tools/issues/1885), so it'll
+#     otherwise fail to find cl.exe/ninja when it invokes cmake directly. Baking the
+#     resolved INCLUDE/LIB/PATH in here works regardless of which tool (VS Code, CLI,
+#     Visual Studio) invokes cmake, because CMake itself applies preset "environment"
+#     values -- it isn't contingent on IDE-specific logic. Build presets inherit their
+#     configure preset's environment by default, so this alone covers both steps. ---
+$qtPrefixJson = ($qtPrefix -replace '\\','/')
+Write-Host ">> Writing CMakeUserPresets.json -> $qtPrefixJson" -ForegroundColor Cyan
+$userPresetsObj = [ordered]@{
+    version = 6
+    configurePresets = @(
+        [ordered]@{
+            name = "local"
+            displayName = "RockEngine (local Qt)"
+            inherits = $PRESET
+            cacheVariables = [ordered]@{
+                CMAKE_PREFIX_PATH = $qtPrefixJson
+            }
+            environment = [ordered]@{
+                INCLUDE = $env:INCLUDE
+                LIB     = $env:LIB
+                LIBPATH = $env:LIBPATH
+                PATH    = "$vcvarsPathAdditions;`$penv{PATH}"
+            }
+        }
+    )
+    buildPresets = @(
+        [ordered]@{ name = "local"; configurePreset = "local" }
+    )
+}
+$userPresetsObj | ConvertTo-Json -Depth 10 |
+    Set-Content -Path (Join-Path $PSScriptRoot "CMakeUserPresets.json") -Encoding utf8
 
 # --- Configure + build ---
 Write-Host ">> Configuring (preset: local)..." -ForegroundColor Cyan

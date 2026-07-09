@@ -91,5 +91,7 @@
         "**/*.pyc": true,
         "**/.vs": true
     },
-    "cmake.useCMakePresets": "always"
+    "cmake.useCMakePresets": "always",
+    "cmake.configurePreset": "local",
+    "cmake.buildPreset": "local"
 }

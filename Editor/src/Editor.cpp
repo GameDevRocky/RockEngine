@@ -76,7 +76,8 @@ void Editor::Init() {
 
 void Editor::Update(){
     SceneViewGui::Get()->update();
-    GameViewGui::Get()->update();    
+    GameViewGui::Get()->update();
+
 }
 
 void Editor::PostInit() {
@@ -89,7 +90,6 @@ void Editor::PostInit() {
         Engine::Get()->Update();
         Update();
     });
-
     timer->start(16);
     app->exec();
 

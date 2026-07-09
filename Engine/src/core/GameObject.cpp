@@ -13,10 +13,17 @@ void GameObject::Accept(IVisitor* v) {
 
 void GameObject::AddComponent(Component* comp) {
     if(!comp) return;
+    // Single-instance components (Transform, RigidBody) may only be attached once.
+    // comp is freshly created and not yet registered/attached, so deleting it here
+    // is safe and avoids leaking on a rejected duplicate.
+    if (Component::IsSingleton(comp->GetTypeName()) && HasComponentByName(comp->GetTypeName())) {
+        delete comp;
+        return;
+    }
     Registry* registry = container->FindSystem<Registry>();
     comp->Attach(this->container);
     registry->Register(comp);
-    component_ids[comp->GetTypeName()] = comp->GetID(); 
+    component_ids.push_back(comp->GetID());
     comp->SetGameObject(this);
     comp->Init();
     comp->PostInit();
@@ -31,12 +38,11 @@ void GameObject::AddComponent(Component* comp) {
 void GameObject::RemoveComponent(Component* comp) {
     if (!comp) return;
 
-    // Drop the map entry first so GetAllComponents()/GetComponent() stop returning
-    // it immediately; the component object itself is torn down on the next flush.
+    // Drop the id first so GetAllComponents()/GetComponent() stop returning it
+    // immediately; the component object itself is torn down on the next flush.
     const std::string compId = comp->GetID();
-    for (auto it = component_ids.begin(); it != component_ids.end(); ++it) {
-        if (it->second == compId) { component_ids.erase(it); break; }
-    }
+    auto it = std::find(component_ids.begin(), component_ids.end(), compId);
+    if (it != component_ids.end()) component_ids.erase(it);
 
     // Deferred Shutdown()+delete via the registry — same path GameObject deletion
     // uses, so component-specific cleanup (physics bodies, etc.) still runs safely.
@@ -54,13 +60,27 @@ void GameObject::Deserialize(const YAML::Node& node) {
         tag = node["tag"].as<std::string>("Untagged");
         if (tag.empty()) tag = "Untagged";
     };
-    if (node["component_ids"] && node["component_ids"].IsMap()) {
-        for (auto pair : node["component_ids"]) {
-            std::string typeName = pair.first.as<std::string>();
-            std::string componentId = pair.second.as<std::string>();
-            component_ids[typeName] = componentId;
+    if (node["component_ids"]) {
+        const YAML::Node& cids = node["component_ids"];
+        if (cids.IsSequence()) {
+            // Current format: an ordered list of component ids.
+            for (const auto& n : cids) component_ids.push_back(n.as<std::string>());
+        } else if (cids.IsMap()) {
+            // Legacy format: map keyed by type name → keep the ids in file order.
+            for (const auto& pair : cids) component_ids.push_back(pair.second.as<std::string>());
         }
     }
+}
+
+bool GameObject::HasComponentByName(const std::string& type_name) const {
+    if (!container) return false;
+    Registry* registry = container->FindSystem<Registry>();
+    if (!registry) return false;
+    for (const auto& id : component_ids) {
+        Component* comp = registry->Find<Component>(id);
+        if (comp && comp->GetTypeName() == type_name) return true;
+    }
+    return false;
 }
 
 void GameObject::SetScene(Scene* scene){
@@ -85,7 +105,7 @@ std::vector<Component*> GameObject::GetAllComponents(){
     std::vector<Component*> result;
     result.reserve(component_ids.size());
     Registry* registry = container->FindSystem<Registry>();
-    for (auto& [type, id] : component_ids ){
+    for (auto& id : component_ids ){
         auto* comp = registry->Find<Component>(id);
         if (!comp) continue;
         result.push_back(comp);
@@ -95,7 +115,7 @@ std::vector<Component*> GameObject::GetAllComponents(){
 
 void GameObject::Init(){
     registry = container->FindSystem<Registry>();
-    for (auto& [type, id] : component_ids){
+    for (auto& id : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->Init();
@@ -104,7 +124,7 @@ void GameObject::Init(){
 
 void GameObject::PostInit(){
     registry = container->FindSystem<Registry>();
-    for (auto& [type, id] : component_ids){
+    for (auto& id : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->PostInit();
@@ -113,7 +133,7 @@ void GameObject::PostInit(){
 
 void GameObject::Awake(){
 
-    for (auto& [type, id] : component_ids){
+    for (auto& id : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) {
             continue;
@@ -125,7 +145,7 @@ void GameObject::Awake(){
 
 void GameObject::Start(){
 
-    for (auto& [type, id] : component_ids){
+    for (auto& id : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) {
             continue;
@@ -137,7 +157,7 @@ void GameObject::Start(){
 
 void GameObject::Update() {
 
-    for (auto& [type, id] : component_ids){
+    for (auto& id : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         
@@ -147,7 +167,7 @@ void GameObject::Update() {
     }
 }
 void GameObject::FixedUpdate() {
-    for (auto& [type, id] : component_ids){
+    for (auto& id : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         if (!comp->GetEnabled()) continue;
@@ -156,7 +176,7 @@ void GameObject::FixedUpdate() {
 }
 
 void GameObject::LateUpdate() {
-    for (auto& [type, id] : component_ids) {
+    for (auto& id : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         if (!comp->GetEnabled()) continue;
@@ -165,7 +185,7 @@ void GameObject::LateUpdate() {
 }
 
 void GameObject::OnCollisionEnter(GameObject* other){
-    for (auto& [type, id] : component_ids){
+    for (auto& id : component_ids){
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         if (!comp->GetEnabled()) continue;
@@ -173,7 +193,7 @@ void GameObject::OnCollisionEnter(GameObject* other){
     }
 }
 void GameObject::OnCollisionExit(GameObject* other) {
-    for (auto& [type, id] : component_ids) {
+    for (auto& id : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         if (!comp->GetEnabled()) continue;
@@ -182,7 +202,7 @@ void GameObject::OnCollisionExit(GameObject* other) {
 }
 
 void GameObject::OnTriggerEnter(GameObject* other) {
-    for (auto& [type, id] : component_ids) {
+    for (auto& id : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         if (!comp->GetEnabled()) continue;
@@ -190,7 +210,7 @@ void GameObject::OnTriggerEnter(GameObject* other) {
     }
 }
 void GameObject::OnTriggerExit(GameObject* other) {
-    for (auto& [type, id] : component_ids) {
+    for (auto& id : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         if (!comp->GetEnabled()) continue;
@@ -204,7 +224,7 @@ void GameObject::SetActive(bool active){
         notify = true;
     }
     this->active = active;
-    for (auto& [type, id] : component_ids) {
+    for (auto& id : component_ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->SetEnabled(active);
@@ -245,7 +265,7 @@ void GameObject::Shutdown(){
     }
 
     auto ids = component_ids;
-    for (auto& [type, id] : ids) {
+    for (auto& id : ids) {
         Component* comp = registry->Find<Component>(id);
         if (!comp) continue;
         comp->Shutdown();

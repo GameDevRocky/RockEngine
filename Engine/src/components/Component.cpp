@@ -1,6 +1,14 @@
 #include "engine/components/Component.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "Engine.hpp"
+#include <unordered_set>
+
+bool Component::IsSingleton(const std::string& typeName) {
+    static const std::unordered_set<std::string> kSingletons = {
+        "Transform", "RigidBody"
+    };
+    return kSingletons.count(typeName) > 0;
+}
 
 void Component::Deserialize(const YAML::Node& node){
     Serializable::Deserialize(node);

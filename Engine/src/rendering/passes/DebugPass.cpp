@@ -143,8 +143,10 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
         Transform* transform = obj->GetComponent<Transform>();
         if (!transform) continue;
 
-        if (BoxCollider* collider = obj->GetComponent<BoxCollider>())
+        for (BoxCollider* collider : obj->GetComponents<BoxCollider>())
         {
+            if (!collider->GetEnabled()) continue;
+
             DebugInstanceData inst{};
             inst.model = transform->GetWorldMatrix();
             inst.size = collider->GetSize();
@@ -155,8 +157,10 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
             boxInstances.push_back(inst);
         }
 
-        if (CircleCollider* collider = obj->GetComponent<CircleCollider>())
+        for (CircleCollider* collider : obj->GetComponents<CircleCollider>())
         {
+            if (!collider->GetEnabled()) continue;
+
             float radius = collider->GetRadius();
             glm::vec2 worldScale = transform->GetWorldScale();
             // Physics scales a circle's radius uniformly by the largest axis
@@ -181,8 +185,10 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
             circleInstances.push_back(inst);
         }
 
-        if (CapsuleCollider* collider = obj->GetComponent<CapsuleCollider>())
+        for (CapsuleCollider* collider : obj->GetComponents<CapsuleCollider>())
         {
+            if (!collider->GetEnabled()) continue;
+
             float radius = collider->GetRadius();
             float height = collider->GetHeight();
             glm::vec2 worldScale = transform->GetWorldScale();
@@ -209,8 +215,6 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
     DrawInstanced(boxVao, 4, GL_LINE_LOOP, boxInstances);
     DrawInstanced(circleVao, circleVertexCount, GL_LINE_LOOP, circleInstances);
     DrawInstanced(capsuleVao, capsuleVertexCount, GL_LINE_LOOP, capsuleInstances);
-
-    // DebugDrawManager commands (from Python scripts)
     {
         auto* debug = DebugDrawManager::Get();
 

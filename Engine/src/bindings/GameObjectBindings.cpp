@@ -64,7 +64,8 @@ void BindGameObject(pybind11::module_& m) {
     gameobject_module.def("add_component", [](const std::string& go_id, const std::string& type_name) -> std::string {
         GameObject* go = registry->Find<GameObject>(go_id);
         if (!go) return {};
-        if (go->HasComponentByName(type_name)) return {};
+        // Only single-instance components are blocked from duplication.
+        if (Component::IsSingleton(type_name) && go->HasComponentByName(type_name)) return {};
         Serializable* raw = SerializableFactory::Create(type_name);
         Component* comp = dynamic_cast<Component*>(raw);
         if (!comp) {

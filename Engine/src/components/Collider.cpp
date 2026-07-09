@@ -26,8 +26,21 @@ void Collider::Init(){
     if (!rigidBody){
         rigidBody = this->RequireComponent<RigidBody>();
         rigidBody->SetBodyType(b2_kinematicBody);
-
     }
+
+    // Our Box2D shape lives on the RigidBody's body, so when the RigidBody is
+    // destroyed Box2D tears the body (and our shape) down with it — this Collider
+    // must go too. Tie our lifetime to the RigidBody's shutdown rather than relying
+    // on teardown order. One-shot: returns false to auto-unsubscribe.
+    const std::string colliderId = GetID();
+    rigidBody->Subscribe([colliderId](){
+        Collider* self = Registry::FindInRuntime<Collider>(colliderId);
+        if (!self) return false;
+        if (GameObject* go = self->GetGameObject())
+            go->RemoveComponent(self);
+        return false;
+    }, RuntimeObject::SHUTDOWN_EVENT);
+
     state = State::Initialized;
 }
 
@@ -61,9 +74,12 @@ void Collider::SetCenter(glm::vec2 center){
 }
 
 void Collider::SetDensity(float density){
-    if (this->density == density) return; 
+    if (this->density == density) return;
     this->density = density;
-    b2Shape_SetDensity(shapeId, this->density, true);
+    // While disabled the live shape is forced to 0 density (see OnDisabled) so it
+    // doesn't contribute mass; don't overwrite that. `density` is still updated above
+    // so OnEnabled restores the correct value.
+    if (GetEnabled()) b2Shape_SetDensity(shapeId, this->density, true);
     this->Notify(Collider::DENSITY_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }
@@ -93,11 +109,19 @@ void Collider::SetRollingResistance(float rollingResistance){
 }
 
 void Collider::OnEnabled(){
-
+    if (b2Shape_IsValid(shapeId)) {
+        b2Shape_SetFilter(shapeId, filter);
+        b2Shape_SetDensity(shapeId, density, true);
+    }
+    Component::OnEnabled();
 }
 
 void Collider::OnDisabled(){
-
+    if (b2Shape_IsValid(shapeId)) {
+        b2Shape_SetFilter(shapeId, b2Filter{});
+        b2Shape_SetDensity(shapeId, 0.0f, true);
+    }
+    Component::OnDisabled();
 }
 
 void Collider::OnTransformScaleUpdate(){

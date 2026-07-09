@@ -57,6 +57,10 @@ public:
     void SetEnabled(bool e);
     bool GetEnabled() {return enabled;}
     void Accept(IVisitor* v) override;
+
+    // Single-instance components: a GameObject may hold at most one. Everything
+    // else may be attached multiple times (e.g. several ScriptComponents).
+    static bool IsSingleton(const std::string& typeName);
  
     virtual std::string GetTypeName() const = 0;
     virtual ~Component() = default;

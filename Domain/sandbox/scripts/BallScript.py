@@ -4,6 +4,7 @@ class BallScript(ScriptableComponent):
     new_var : float = 0.5
     sprites : list[Sprite]
     obj : list[GameObject]
+    test:str
 
     def awake(self):
         self.sr = self.get_component(SpriteRenderer)
@@ -11,9 +12,7 @@ class BallScript(ScriptableComponent):
         self.rb = self.get_component(Rigidbody)
         self.rb.lock_rotation = True
         self.rb.use_gravity = True
-        self.collider = self.get_component(Collider)
-        self.collider.bounciness = 0
-        self.collider.friction = 0.7
+ 
 
     def start(self):
         self.start_coroutine(self.animate())

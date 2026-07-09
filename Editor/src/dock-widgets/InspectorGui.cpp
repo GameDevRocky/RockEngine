@@ -211,15 +211,17 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         connect(addComponentButton, &QPushButton::clicked, this, [this, obj, addComponentButton]() {
             std::vector<std::string> items;
             for (const auto& name : SerializableFactory::GetRegisteredTypeNames())
-                if (!obj->HasComponentByName(name))
+                // Only hide a type if it's single-instance and already present; every
+                // other type can be added multiple times (e.g. several scripts).
+                if (!(Component::IsSingleton(name) && obj->HasComponentByName(name)))
                     items.push_back(name);
 
             auto* picker = new ComponentPickerWidget(std::move(items), this);
             picker->setFixedWidth(addComponentButton->width());
             picker->onSelected = [this, obj](const std::string& typeName) {
-                // component_ids is keyed by type name, so a duplicate would silently
-                // orphan the previous component's registry entry — guard against it.
-                if (obj->HasComponentByName(typeName)) return;
+                // Guard only single-instance components against duplication; multiples
+                // of any other type are allowed.
+                if (Component::IsSingleton(typeName) && obj->HasComponentByName(typeName)) return;
                 auto* comp = dynamic_cast<Component*>(SerializableFactory::Create(typeName));
                 if (!comp) return;
                 obj->AddComponent(comp);  // fires ADD_COMPONENT_EVENT → inspector rebuilds

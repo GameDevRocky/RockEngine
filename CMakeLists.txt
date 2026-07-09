@@ -12,8 +12,8 @@ if(MSVC)
     add_compile_options(/Zc:__cplusplus)
     add_compile_options(/EHsc)
      
-    string(REPLACE "/Zi" "/ZI" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-    string(REPLACE "/Zi" "/ZI" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+    string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+    string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
     set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS_DEBUG} /INCREMENTAL")
     
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Od /RTC1")
@@ -70,7 +70,7 @@ endif()
 # macOS / Linux: for local dev the app finds Qt via RPATH or the library path the
 # setup/build scripts export. Self-contained app bundling (Qt + Python) is handled
 # by the distribution step below, not by this local-dev build.
-
+ 
 # --- Optional: bundle a standalone Python runtime + game content next to the launcher ---
 # Distribution build. When ON, copies the CPython standard library and the Domain/ content
 # beside the executable and pip-installs requirements.txt into the bundle. At runtime the

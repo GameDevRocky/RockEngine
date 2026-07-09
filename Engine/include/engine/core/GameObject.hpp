@@ -59,19 +59,30 @@ class GameObject : public RuntimeObject {
     void RemoveComponent(Component* comp);
 
 
+    // Returns the first attached component castable to T (insertion order), or
+    // nullptr. With multiple components of the same type this yields the oldest.
     template<typename T>
     T* GetComponent() {
-        std::string type = std::string(EngineUtils::TypeName<T>());
-        auto it = component_ids.find(type);
-        if (it == component_ids.end())
-        return nullptr;
-        
         Registry* registry = container->FindSystem<Registry>();
-        const std::string& comp_id = it->second;
-        T* comp = registry->Find<T>(comp_id);
-        return comp;
+        if (!registry) return nullptr;
+        for (const auto& comp_id : component_ids) {
+            if (T* comp = registry->Find<T>(comp_id)) return comp;
+        }
+        return nullptr;
     }
-    
+
+    // Returns every attached component castable to T, in insertion order.
+    template<typename T>
+    std::vector<T*> GetComponents() {
+        std::vector<T*> result;
+        Registry* registry = container->FindSystem<Registry>();
+        if (!registry) return result;
+        for (const auto& comp_id : component_ids) {
+            if (T* comp = registry->Find<T>(comp_id)) result.push_back(comp);
+        }
+        return result;
+    }
+
     template<typename T>
     T* GetComponentInParent();
 
@@ -110,14 +121,14 @@ class GameObject : public RuntimeObject {
         callback(this);
     }
 
-    bool HasComponentByName(const std::string& type_name) const {
-        return component_ids.count(type_name) > 0;
-    }
+    // True if any attached component reports this type name. Resolves each id via
+    // the registry (component_ids is no longer keyed by type).
+    bool HasComponentByName(const std::string& type_name) const;
 
     private:
     bool active = true;
     std::string tag = "Untagged";
-    std::map<std::string, std::string> component_ids;
+    std::vector<std::string> component_ids;   // component ids in insertion order
     std::string transform_id;
     std::string scene_id;    
 };

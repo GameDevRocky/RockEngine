@@ -2,6 +2,7 @@
 #include "engine/core/System.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <string>
 #include "imgui.h"
 #include "ImGuizmo.h"
 
@@ -59,6 +60,7 @@ private:
 
     // Collider drag state
     int m_dragHandle = -1;           // -1 = none
+    std::string m_dragColliderId;    // which collider owns the active drag ("" = none)
     int m_hoveredHandle = -1;        // tracks hovered handle for WantsCaptureMouse
     bool m_draggingCenter = false;
     glm::vec2 m_dragStartMouseWorld{0};
