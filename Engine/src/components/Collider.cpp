@@ -6,6 +6,19 @@
 #include "yaml-cpp/yaml.h" 
 #include <exception>
 
+YAML::Node Collider::Serialize(){
+    YAML::Node node = Component::Serialize();
+    node["center"][0] = center.x;
+    node["center"][1] = center.y;
+    node["center"].SetStyle(YAML::EmitterStyle::Flow);
+    node["isSensor"] = isSensor;
+    node["density"] = density;
+    node["friction"] = friction;
+    node["bounciness"] = bounciness;
+    node["rollingResistance"] = rollingResistance;
+    return node;
+}
+
 void Collider::Deserialize(const YAML::Node& node){
     Component::Deserialize(node);
     isSensor = node["isSensor"].as<bool>();

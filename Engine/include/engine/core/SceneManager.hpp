@@ -21,6 +21,7 @@ public:
     void Shutdown() override;
 
     void LoadScene(const std::string& file_path);
+    void SaveScene(const std::string& scene_id);
     void RemoveScene(const std::string& scene_id);
 
     std::vector<Scene*> GetScenes() const;

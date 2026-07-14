@@ -161,6 +161,10 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     connect(header(), &QHeaderView::customContextMenuRequested, this, [this](const QPoint& pos) {
         QMenu menu(this);
 
+        menu.addAction("Save Scene", this, [this](){
+            if (sceneManager) sceneManager->SaveScene(scene_id);
+        });
+
         menu.addAction("Remove Scene", this, [this](){
             sceneManager->RemoveScene(scene_id);
         });

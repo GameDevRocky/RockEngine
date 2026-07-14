@@ -258,15 +258,19 @@ Transform* Transform::GetParent() {
 
 
 YAML::Node Transform::Serialize() {
-    YAML::Node node;
-    node["type"] = GetTypeName();
+    YAML::Node node = Component::Serialize();
 
     node["localPosition"][0] = localPosition.x;
     node["localPosition"][1] = localPosition.y;
+    node["localPosition"].SetStyle(YAML::EmitterStyle::Flow);
     node["localRotation"] = localRotation;
     node["localScale"][0] = localScale.x;
     node["localScale"][1] = localScale.y;
-    node["parent_id"] = parent_id;
+    node["localScale"].SetStyle(YAML::EmitterStyle::Flow);
+    if (parent_id.empty())
+        node["parent_id"] = YAML::Node(YAML::NodeType::Null);
+    else
+        node["parent_id"] = parent_id;
 
     return node;
 }

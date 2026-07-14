@@ -17,6 +17,7 @@ public:
     static inline const Event CENTER_CHANGED_EVENT = Collider::CreateEvent();
 
     void Deserialize(const YAML::Node& node);
+    YAML::Node Serialize() override;
     virtual void Init() override;
     virtual void PostInit() override;
     

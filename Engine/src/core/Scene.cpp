@@ -101,10 +101,24 @@ void Scene::LateUpdate()
 
 YAML::Node Scene::Serialize()
 {
-    YAML::Node node = Serializable::Serialize();
+    YAML::Node node;
     node["name"] = name;
-    GetRootObjects();
-    node["root_objects"] = rootobject_ids;
+    node["id"] = GetID();
+
+    YAML::Node components(YAML::NodeType::Sequence);
+    YAML::Node gameobjects(YAML::NodeType::Sequence);
+    for (auto* obj : GetAllGameObjects())
+    {
+        if (!obj) continue;
+        gameobjects.push_back(obj->Serialize());
+        for (auto* comp : obj->GetAllComponents())
+        {
+            if (!comp) continue;
+            components.push_back(comp->Serialize());
+        }
+    }
+    node["components"] = components;
+    node["gameobjects"] = gameobjects;
     return node;
 }
 
@@ -278,6 +292,7 @@ Scene *Scene::Copy()
     Scene *copy = new Scene();
     copy->id = id;
     copy->name = name;
+    copy->path = path;
     copy->rootobject_ids = rootobject_ids;
     copy->gameobject_ids = gameobject_ids;
     copy->subscribers = subscribers;

@@ -53,6 +53,14 @@ void GameObject::RemoveComponent(Component* comp) {
     this->Notify(GameObject::REMOVE_COMPONENT_EVENT, compId);
 }
 
+YAML::Node GameObject::Serialize() {
+    YAML::Node node = Serializable::Serialize();
+    node["name"] = name;
+    node["tag"] = tag;
+    node["component_ids"] = component_ids;
+    return node;
+}
+
 void GameObject::Deserialize(const YAML::Node& node) {
     Serializable::Deserialize(node);
     name = node["name"].as<std::string>();

@@ -6,7 +6,8 @@
 #include "engine/core/PhysicsSystem.hpp"
 #include "Engine.hpp"
 #include "engine/utils/EngineUtils.hpp"
-#include <filesystem> // <--- ADD THIS LINE
+#include <filesystem>
+#include <fstream>
 #include "engine/debug/Console.hpp"
 
 using namespace EngineUtils;
@@ -112,6 +113,7 @@ void SceneManager::LoadScene(const std::string& file_path){
 
     std::cout << "Deserializing scene from path: " + file_path << std::endl;
     scene->Deserialize(root);
+    scene->SetPath(finalPath);
     registry->Register(scene);
     
     std::cout << "Initializing scene from path: " + file_path << std::endl;
@@ -129,6 +131,26 @@ void SceneManager::LoadScene(const std::string& file_path){
     Notify(LOADED_SCENE_EVENT, scene->GetID());
 }
 
+
+void SceneManager::SaveScene(const std::string& scene_id) {
+    Scene* scene = registry->Find<Scene>(scene_id);
+    if (!scene) return;
+
+    const std::string& path = scene->GetPath();
+    if (path.empty()) {
+        std::cout << "Scene has no path; cannot save: " + scene_id << std::endl;
+        return;
+    }
+
+    YAML::Node node = scene->Serialize();
+    std::ofstream fout(path);
+    if (!fout.is_open()) {
+        std::cout << "Failed to open scene file for saving: " + path << std::endl;
+        return;
+    }
+    fout << node;
+    std::cout << "Saved scene to: " + path << std::endl;
+}
 
 void SceneManager::RemoveScene(const std::string& scene_id) {
     auto* scene = registry->Find<Scene>(scene_id);

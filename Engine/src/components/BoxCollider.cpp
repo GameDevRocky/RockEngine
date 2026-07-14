@@ -10,7 +10,10 @@
 
 using namespace EngineUtils::RenderUtils;
 YAML::Node BoxCollider::Serialize(){
-    YAML::Node node = Component::Serialize();
+    YAML::Node node = Collider::Serialize();
+    node["size"][0] = size.x;
+    node["size"][1] = size.y;
+    node["size"].SetStyle(YAML::EmitterStyle::Flow);
     return node;
 }
 

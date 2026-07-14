@@ -8,8 +8,26 @@ using namespace EngineUtils::RenderUtils;
 
 YAML::Node SpriteRenderer::Serialize()
 {
-    YAML::Node node;
-    return node; 
+    YAML::Node node = Component::Serialize();
+    node["material_id"] = material_id;
+    node["sprite_id"] = sprite_id;
+    node["color"][0] = color.r;
+    node["color"][1] = color.g;
+    node["color"][2] = color.b;
+    node["color"][3] = color.a;
+    node["color"].SetStyle(YAML::EmitterStyle::Flow);
+    node["uvOffset"][0] = uvOffset.x;
+    node["uvOffset"][1] = uvOffset.y;
+    node["uvOffset"].SetStyle(YAML::EmitterStyle::Flow);
+    node["uvScale"][0] = uvScale.x;
+    node["uvScale"][1] = uvScale.y;
+    node["uvScale"].SetStyle(YAML::EmitterStyle::Flow);
+    node["sortingOrder"] = sortingOrder;
+    node["sortingLayer"] = sortingLayer;
+    node["flipX"] = flipX;
+    node["flipY"] = flipY;
+    node["visible"] = visible;
+    return node;
 }
 
 void SpriteRenderer::Deserialize(const YAML::Node& node)

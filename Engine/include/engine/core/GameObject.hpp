@@ -30,6 +30,7 @@ class GameObject : public RuntimeObject {
     static inline const Event TAG_CHANGED_EVENT = GameObject::CreateEvent();
     static inline const Event LAYER_CHANGED_EVENT = GameObject::CreateEvent();
 
+    YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
 
     void Init() override;

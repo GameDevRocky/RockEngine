@@ -10,6 +10,11 @@ using namespace EngineUtils::MathUtils;
 
 YAML::Node RigidBody::Serialize(){
     YAML::Node node = Component::Serialize();
+    std::string type = "Dynamic";
+    if (bodyType == b2_kinematicBody) type = "Kinematic";
+    else if (bodyType == b2_staticBody) type = "Static";
+    node["bodyType"] = type;
+    node["useGravity"] = useGravity;
     node["lockRotation"] = lockRotation;
     return node;
 }

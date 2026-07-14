@@ -23,7 +23,11 @@ public:
     virtual void Destroy() {}
     
     virtual YAML::Node Serialize(){
-        YAML::Node node = Serializable::Serialize();
+        YAML::Node node;
+        node["id"] = GetID();
+        node["enabled"] = enabled;
+        node["type"] = GetTypeName();
+        node["gameobject"] = gameobject_id;
         return node;
     }
     virtual void Deserialize(const YAML::Node& node) override;

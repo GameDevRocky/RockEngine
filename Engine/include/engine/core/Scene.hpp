@@ -44,6 +44,9 @@ public:
     
     const std::string& GetName() const { return name; }
     void SetName(const std::string& newName);
+
+    const std::string& GetPath() const { return path; }
+    void SetPath(const std::string& newPath) { path = newPath; }
     
     Scene* Copy() override;
     Scene* Copy(Container* container) override;
@@ -58,6 +61,7 @@ public:
 private:
     
     std::string name;
+    std::string path;
     std::vector<std::string> rootobject_ids;
     std::vector<std::string> gameobject_ids;
 
