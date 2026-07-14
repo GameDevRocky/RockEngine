@@ -278,13 +278,13 @@ void ScriptComponent::Shutdown() {
 
 void ScriptComponent::InstantiateScript()
 {
+    py::gil_scoped_acquire gil;
+
     if (moduleName.empty() || className.empty()) {
         std::cerr << "[ScriptComponent] Module or class empty\n";
         m_pyData->scriptInstance = py::none();
         return;
     }
-
-    py::gil_scoped_acquire gil;
 
     try {
         EnsureScriptPathsOnSysPath();

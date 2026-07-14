@@ -79,7 +79,7 @@ void Collider::SetDensity(float density){
     // While disabled the live shape is forced to 0 density (see OnDisabled) so it
     // doesn't contribute mass; don't overwrite that. `density` is still updated above
     // so OnEnabled restores the correct value.
-    if (GetEnabled()) b2Shape_SetDensity(shapeId, this->density, true);
+    if (GetEnabled() && b2Shape_IsValid(shapeId)) b2Shape_SetDensity(shapeId, this->density, true);
     this->Notify(Collider::DENSITY_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }
@@ -87,7 +87,7 @@ void Collider::SetDensity(float density){
 void Collider::SetBounciness(float bounciness){
     if (this->bounciness == bounciness) return; 
     this->bounciness = bounciness;
-    b2Shape_SetRestitution(shapeId, this->bounciness);
+    if (b2Shape_IsValid(shapeId)) b2Shape_SetRestitution(shapeId, this->bounciness);
     this->Notify(Collider::BOUNCINESS_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }
@@ -95,7 +95,7 @@ void Collider::SetBounciness(float bounciness){
 void Collider::SetFriction(float friction){
     if (this->friction == friction) return; 
     this->friction = friction;
-    b2Shape_SetFriction(shapeId, this->friction);
+    if (b2Shape_IsValid(shapeId)) b2Shape_SetFriction(shapeId, this->friction);
     this->Notify(Collider::FRICTION_CHANGED_EVENT);
     this->Notify(Collider::CHANGED_EVENT);
 }

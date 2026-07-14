@@ -1,5 +1,7 @@
 #include "dock-widgets/SceneViewGui.hpp"
 #include <QDebug>
+#include <QOpenGLContext>
+#include <QSurfaceFormat>
 #include "engine/debug/Console.hpp"
 #include "engine/core/InputManager.hpp"
 #include "engine/core/SelectionManager.hpp"
@@ -94,9 +96,16 @@ void SceneViewGui::initializeRenderPipeline(){
  
 void SceneViewGui::initializeGL() {
     initializeOpenGLFunctions();
-    this->installEventFilter(this); 
+    this->installEventFilter(this);
     if (!gladLoadGL()) {
-        std::cerr << "Failed to initialize GLAD" << std::endl;
+        QSurfaceFormat fmt = context()->format();
+        std::cerr << "Failed to initialize GLAD (SceneView). Context obtained: "
+                   << fmt.majorVersion() << "." << fmt.minorVersion()
+                   << (fmt.profile() == QSurfaceFormat::CoreProfile ? " core" : " non-core")
+                   << " | GL_VENDOR=" << reinterpret_cast<const char*>(glGetString(GL_VENDOR))
+                   << " | GL_RENDERER=" << reinterpret_cast<const char*>(glGetString(GL_RENDERER))
+                   << " | GL_VERSION=" << reinterpret_cast<const char*>(glGetString(GL_VERSION))
+                   << std::endl;
         return;
     }
     imGuiInstance = new ImGuiInstance();

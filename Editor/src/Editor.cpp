@@ -84,6 +84,13 @@ void Editor::PostInit() {
     std::cout << "Editor Starting ..." << std::endl;
     timer = new QTimer();
 
+
+
+
+
+
+
+
     MainWindow::Get()->PostInit();
 
     QObject::connect(timer, &QTimer::timeout, [this]() {
