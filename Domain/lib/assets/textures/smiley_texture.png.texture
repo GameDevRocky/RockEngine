@@ -4,3 +4,9 @@ name: smiley_texture
 path: Domain/lib/assets/textures/smiley_texture.png
 filtering: linear
 wrap: repeat
+sprites:
+  - id: d156b1e702dee2db6484aa4fc67b22e5
+    name: smiley_texture_0
+    uvMin: [0, 0]
+    uvMax: [1, 1]
+    pivot: [0, 0]

@@ -20,3 +20,6 @@ aqtinstall.log
 # --- Python ---
 **/__pycache__/
 *.pyc
+
+# --- Local sandbox (game content + third-party assets, kept out of the remote) ---
+Domain/sandbox/

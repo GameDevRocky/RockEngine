@@ -11,6 +11,7 @@ using namespace EngineUtils;
 
 Texture2D::~Texture2D()
 {
+    Notify(DESTROYED_EVENT, GetID());
     if (texture_id)
         glDeleteTextures(1, &texture_id);
 }
@@ -69,6 +70,10 @@ void Texture2D::Deserialize(const YAML::Node &node){
 void Texture2D::RegisterSprite(const std::string& spriteId){
     if (std::find(sprite_ids.begin(), sprite_ids.end(), spriteId) == sprite_ids.end())
         sprite_ids.push_back(spriteId);
+}
+
+void Texture2D::UnregisterSprite(const std::string& spriteId){
+    sprite_ids.erase(std::remove(sprite_ids.begin(), sprite_ids.end(), spriteId), sprite_ids.end());
 }
 
 YAML::Node Texture2D::Serialize(){

@@ -18,6 +18,7 @@
 #include "engine/core/SelectionManager.hpp"
 #include "Engine.hpp"
 #include "utils/ComponentPickerWidget.hpp"
+#include "dock-widgets/SpriteEditorModal.hpp"
 #include <QLabel>
 #include <QPixmap>
 #include <QSizePolicy>
@@ -659,6 +660,16 @@ void InspectorVisitor::Visit(Texture2D* tex) {
     }
     AddFullRow(preview);
 
+    // Open the interactive sprite editor for this texture (a centered, click-away modal).
+    auto* editSpritesBtn = new QPushButton("Edit Sprites");
+    QObject::connect(editSpritesBtn, &QPushButton::clicked, editSpritesBtn, [tex]() {
+        auto* modal = new SpriteEditorModal(tex);
+        modal->show();
+        modal->raise();
+        modal->activateWindow();
+    });
+    AddFullRow(editSpritesBtn);
+
     auto path_get = [=]() { return tex->GetPath(); };
     auto w_get    = [=]() { return static_cast<float>(tex->GetWidth()); };
     auto h_get    = [=]() { return static_cast<float>(tex->GetHeight()); };
@@ -682,27 +693,6 @@ void InspectorVisitor::Visit(Texture2D* tex) {
             {"Repeat", static_cast<int>(TextureWrap::Repeat)},
             {"Clamp",  static_cast<int>(TextureWrap::Clamp)}
         }));
-
-    std::vector<Sprite*> mySprites;
-    for (const auto& [id, sprite] : AssetManager::Get().GetAllSprites()) {
-        if (sprite->GetTextureID() == tex->GetID())
-            mySprites.push_back(sprite);
-    }
-
-    if (!mySprites.empty()) {
-        // Read-only sprite-preview list. Rows show each sprite's thumbnail; clicking
-        // a row selects that sprite (reverse lookup — not an editable property).
-        std::vector<std::string> spriteIds;
-        spriteIds.reserve(mySprites.size());
-        for (Sprite* sprite : mySprites)
-            spriteIds.push_back(sprite->GetID());
-
-        auto* spriteList = new ListPropertyWidget<std::string>(
-            PropDesc().Tag(Tags::LIST).ReadOnly()
-                .Element(PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF)));
-        spriteList->SetValue(spriteIds);
-        AddRow("Sprites: ", spriteList->GetWidget());
-    }
 }
 
 void InspectorVisitor::Visit(Shader* shader) {

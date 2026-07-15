@@ -13,7 +13,8 @@
 class AssetManager : public System
 {
 public:
-    static inline const Event ASSET_ADDED_EVENT = Observable::CreateEvent();
+    static inline const Event ASSET_ADDED_EVENT   = Observable::CreateEvent();
+    static inline const Event ASSET_REMOVED_EVENT = Observable::CreateEvent();
 
     static AssetManager& Get()
     {
@@ -43,6 +44,17 @@ public:
     void AddTexture(Texture2D* texture);
     void AddMaterial(Material* material);
     void AddSprite(Sprite* sprite);
+
+    // Create a new sprite carving a normalized-UV region out of an existing texture,
+    // register it with that texture, and persist it into the texture's meta file.
+    // Returns nullptr if the texture id is unknown.
+    Sprite* CreateSprite(const std::string& textureId, glm::vec2 uvMin, glm::vec2 uvMax,
+                         const std::string& name = "");
+
+    // Delete a sprite: drop it from its owning texture, rewrite the texture file, fire
+    // ASSET_REMOVED_EVENT (payload = id), and free it. SpriteRenderers that still
+    // reference the id simply resolve to nullptr afterwards.
+    void RemoveSprite(const std::string& id);
 
     void LoadAsset(const YAML::Node& node, const std::string& type);
     void LoadAssetFromFile(const std::string& filePath);

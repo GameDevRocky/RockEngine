@@ -21,12 +21,18 @@ class Texture2D : public Resource {
 public:
     static inline const Event FILTER_CHANGED_EVENT = Texture2D::CreateEvent();
     static inline const Event WRAP_CHANGED_EVENT   = Texture2D::CreateEvent();
+    // Fired from the destructor (payload = id) so UI bound to this texture (e.g. the
+    // sprite editor modal) can close itself when the texture is destroyed in memory.
+    static inline const Event DESTROYED_EVENT      = Texture2D::CreateEvent();
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
 
     // Records a sprite id in load order so re-saving keeps sprites stable/ordered.
     void RegisterSprite(const std::string& spriteId);
+
+    // Removes a sprite id from this texture's list (used when a sprite is deleted).
+    void UnregisterSprite(const std::string& spriteId);
 
     void Awake() override;
 

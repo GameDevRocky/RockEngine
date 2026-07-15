@@ -186,6 +186,51 @@ void AssetManager::AddMaterial(Material* material)
     Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(material));
 }
 
+Sprite* AssetManager::CreateSprite(const std::string& textureId, glm::vec2 uvMin,
+                                   glm::vec2 uvMax, const std::string& name)
+{
+    Texture2D* tex = GetTexture(textureId);
+    if (!tex) {
+        Console::Alert("CreateSprite: unknown texture id " + textureId);
+        return nullptr;
+    }
+
+    Sprite* sprite = new Sprite();
+    std::string id = GenerateUUID();
+    sprite->SetID(id);
+    sprite->SetName(name.empty() ? id : name);
+    sprite->SetUVMin(uvMin);
+    sprite->SetUVMax(uvMax);
+    sprite->SetPivot({0.0f, 0.0f});
+
+    std::string texId = tex->GetID();
+    sprite->SetTexture(texId);                 // populates texture_id
+    sprite->SetFilePath(tex->GetFilePath());
+
+    tex->RegisterSprite(id);
+    AddSprite(sprite);                          // subscribes auto-save + fires ASSET_ADDED_EVENT
+    SaveResource(tex);                          // persist the new sprite immediately
+    return sprite;
+}
+
+void AssetManager::RemoveSprite(const std::string& id)
+{
+    auto it = sprites.find(id);
+    if (it == sprites.end()) return;
+
+    Sprite* sprite = it->second;
+    Texture2D* tex = GetTexture(sprite->GetTextureID());
+
+    // Drop the sprite from the registry and its owning texture, then rewrite the
+    // texture file so its embedded sprites: sequence no longer contains it.
+    if (tex) tex->UnregisterSprite(id);
+    sprites.erase(it);
+    if (tex) SaveResource(tex);
+
+    Notify(ASSET_REMOVED_EVENT, id);
+    delete sprite;
+}
+
 void AssetManager::SubscribeAutoSave(Resource* r) {
     if (!r) return;
     r->Subscribe([this, r]() {
