@@ -16,6 +16,15 @@ Shader::~Shader()
 void Shader::Accept(IVisitor* v) { v->Visit(this); }
 
 
+YAML::Node Shader::Serialize() {
+    YAML::Node node;
+    node["type"] = GetTypeName();
+    node["id"] = GetID();
+    node["name"] = GetName();
+    node["source_path"] = ToAssetRelative(source_path);
+    return node;
+}
+
 void Shader::Deserialize(const YAML::Node& node) {
     Resource::Deserialize(node);
     source_path = GetAssetPath(node["source_path"].as<std::string>());

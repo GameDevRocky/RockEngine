@@ -4,6 +4,50 @@
 #include "engine/debug/Console.hpp"
 
 
+YAML::Node Material::Serialize() {
+    YAML::Node node;
+    node["type"] = GetTypeName();
+    node["name"] = GetName();
+    node["id"] = GetID();
+    node["shader_id"] = shader_id;
+
+    YAML::Node uniforms;
+    YAML::Node textures(YAML::NodeType::Map);
+    for (auto& kv : texUniforms) textures[kv.first] = kv.second;
+    uniforms["textures"] = textures;
+
+    YAML::Node floats(YAML::NodeType::Map);
+    for (auto& kv : floatUniforms) floats[kv.first] = kv.second;
+    uniforms["floats"] = floats;
+
+    YAML::Node vec2s(YAML::NodeType::Map);
+    for (auto& kv : vec2Uniforms) {
+        YAML::Node v; v.push_back(kv.second.x); v.push_back(kv.second.y);
+        v.SetStyle(YAML::EmitterStyle::Flow);
+        vec2s[kv.first] = v;
+    }
+    uniforms["vec2"] = vec2s;
+
+    YAML::Node vec3s(YAML::NodeType::Map);
+    for (auto& kv : vec3Uniforms) {
+        YAML::Node v; v.push_back(kv.second.x); v.push_back(kv.second.y); v.push_back(kv.second.z);
+        v.SetStyle(YAML::EmitterStyle::Flow);
+        vec3s[kv.first] = v;
+    }
+    uniforms["vec3"] = vec3s;
+
+    YAML::Node vec4s(YAML::NodeType::Map);
+    for (auto& kv : vec4Uniforms) {
+        YAML::Node v; v.push_back(kv.second.x); v.push_back(kv.second.y); v.push_back(kv.second.z); v.push_back(kv.second.w);
+        v.SetStyle(YAML::EmitterStyle::Flow);
+        vec4s[kv.first] = v;
+    }
+    uniforms["vec4"] = vec4s;
+
+    node["uniforms"] = uniforms;
+    return node;
+}
+
 void Material::Deserialize(const YAML::Node& node) {
     Resource::Deserialize(node);
     if (node["shader_id"]) shader_id = node["shader_id"].as<std::string>();

@@ -47,6 +47,13 @@ public:
     void LoadAsset(const YAML::Node& node, const std::string& type);
     void LoadAssetFromFile(const std::string& filePath);
 
+    // Serialize a resource back to its source meta file. A Sprite has no file of its
+    // own, so it re-saves the parent texture (which embeds all its sprites).
+    void SaveResource(Resource* r);
+    // Arm auto-save; called once after the initial LoadFromDirectory so bootstrap
+    // notifications don't rewrite every asset file on startup.
+    void EnableAutoSave() { m_autoSaveEnabled = true; }
+
     // Scan a directory recursively for meta files (.texture, .shader, .material,
     // .mat, .sprite) and load any assets not already registered.
     void LoadFromDirectory(const std::string& rootDir);
@@ -56,6 +63,11 @@ public:
     void LoadTexture (const YAML::Node& node, const std::string& filePath = {});
     void LoadShader  (const YAML::Node& node, const std::string& filePath = {});
     void LoadSprite  (const YAML::Node& node, const std::string& filePath = {});
+
+    // Persist the resource whenever it fires a change notification (once auto-save is armed).
+    void SubscribeAutoSave(Resource* r);
+    bool m_autoSaveEnabled = false;
+
     AssetManager() = default;
 
     std::unordered_map<std::string, Shader*> shaders;

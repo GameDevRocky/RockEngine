@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 
 namespace fs = std::filesystem;
@@ -146,6 +147,7 @@ void AssetManager::AddShader(Shader* shader)
         return;
     }
     shaders[shader->GetID()] = shader;
+    SubscribeAutoSave(shader);
     Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(shader));
 }
 void AssetManager::AddSprite(Sprite* sprite)
@@ -156,6 +158,7 @@ void AssetManager::AddSprite(Sprite* sprite)
         return;
     }
     sprites[sprite->GetID()] = sprite;
+    SubscribeAutoSave(sprite);
     Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(sprite));
 }
 
@@ -167,6 +170,7 @@ void AssetManager::AddTexture(Texture2D* texture)
         return;
     }
     textures[texture->GetID()] = texture;
+    SubscribeAutoSave(texture);
     Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(texture));
 }
 
@@ -178,7 +182,38 @@ void AssetManager::AddMaterial(Material* material)
         return;
     }
     materials[material->GetID()] = material;
+    SubscribeAutoSave(material);
     Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(material));
+}
+
+void AssetManager::SubscribeAutoSave(Resource* r) {
+    if (!r) return;
+    r->Subscribe([this, r]() {
+        if (m_autoSaveEnabled) SaveResource(r);
+        return true;
+    });
+}
+
+void AssetManager::SaveResource(Resource* r) {
+    if (!r) return;
+
+    // Sprites are embedded in their texture's file — persist the texture instead.
+    if (Sprite* sprite = dynamic_cast<Sprite*>(r)) {
+        if (Texture2D* tex = GetTexture(sprite->GetTextureID()))
+            SaveResource(tex);
+        return;
+    }
+
+    const std::string& path = r->GetFilePath();
+    if (path.empty()) return;
+
+    std::ofstream fout(path);
+    if (!fout.is_open()) {
+        Console::Alert("Failed to save asset to disk: " + path);
+        return;
+    }
+    fout << r->Serialize();
+    std::cout << "Saved asset to: " + path << std::endl;
 }
 
 
@@ -223,6 +258,7 @@ void AssetManager::LoadTexture(const YAML::Node& node, const std::string& filePa
                 if (s) {
                     std::string texId = tex->GetID();
                     s->SetTexture(texId);
+                    tex->RegisterSprite(s->GetID());
                 }
             }
         }
@@ -301,4 +337,7 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     for (auto& p : textureMetas)  LoadAssetFromFile(p.string());
     for (auto& p : shaderMetas)   LoadAssetFromFile(p.string());
     for (auto& p : materialMetas) LoadAssetFromFile(p.string());
+
+    // Everything is loaded; from here on, in-memory edits sync back to disk.
+    EnableAutoSave();
 }

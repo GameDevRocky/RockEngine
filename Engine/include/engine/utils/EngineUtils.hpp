@@ -23,6 +23,14 @@ namespace EngineUtils {
     // dev build it falls back to the compiled-in PROJECT_ROOT. Decided once, cached.
     std::string GetAssetPath(const std::string& relativePath);
 
+    // The resolved asset root (folder next to the executable for bundled builds,
+    // else the compiled-in PROJECT_ROOT). Decided once, cached.
+    std::string GetAssetRoot();
+
+    // Inverse of GetAssetPath: convert an absolute path back to a forward-slash
+    // path relative to the asset root. Returns absPath unchanged if outside the root.
+    std::string ToAssetRelative(const std::string& absPath);
+
     namespace RenderUtils {
         constexpr float PixelsPerUnit = 32.0f;
 

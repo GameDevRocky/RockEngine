@@ -1,7 +1,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include "engine/rendering/core/Texture2D.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
+#include "engine/rendering/core/Sprite.hpp"
 #include <iostream>
+#include <algorithm>
 #include "engine/utils/EngineUtils.hpp"
 
 using namespace EngineUtils;
@@ -61,6 +64,41 @@ void Texture2D::Deserialize(const YAML::Node &node){
     path = GetAssetPath(node["path"].as<std::string>());
     filter = node["filtering"].as<std::string>() == "linear" ? TextureFilter::Linear : TextureFilter::Nearest;
     wrap = node["wrap"].as<std::string>() == "clamp" ? TextureWrap::Clamp : TextureWrap::Repeat;
+}
+
+void Texture2D::RegisterSprite(const std::string& spriteId){
+    if (std::find(sprite_ids.begin(), sprite_ids.end(), spriteId) == sprite_ids.end())
+        sprite_ids.push_back(spriteId);
+}
+
+YAML::Node Texture2D::Serialize(){
+    YAML::Node node;
+    node["type"] = GetTypeName();
+    node["id"] = GetID();
+    node["name"] = GetName();
+    node["path"] = ToAssetRelative(path);
+    node["filtering"] = filter == TextureFilter::Linear ? "linear" : "nearest";
+    node["wrap"] = wrap == TextureWrap::Clamp ? "clamp" : "repeat";
+
+    // Sprites live inside their texture's meta file. Emit those recorded in load
+    // order first, then any others pointing at this texture (so none are dropped).
+    YAML::Node sprites(YAML::NodeType::Sequence);
+    std::vector<std::string> emitted;
+    auto emit = [&](Sprite* s){
+        if (!s) return;
+        sprites.push_back(s->Serialize());
+        emitted.push_back(s->GetID());
+    };
+    for (const auto& sid : sprite_ids)
+        emit(AssetManager::Get().GetSprite(sid));
+    for (const auto& kv : AssetManager::Get().GetAllSprites()) {
+        Sprite* s = kv.second;
+        if (!s || s->GetTextureID() != GetID()) continue;
+        if (std::find(emitted.begin(), emitted.end(), s->GetID()) != emitted.end()) continue;
+        emit(s);
+    }
+    if (sprites.size() > 0) node["sprites"] = sprites;
+    return node;
 }
 
 

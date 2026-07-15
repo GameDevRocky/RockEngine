@@ -20,9 +20,9 @@ public:
 
     Sprite() = default;
     
-    YAML::Node Serialize() override { return YAML::Node(); }
+    YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
-    void Awake() override; 
+    void Awake() override;
 
     std::string GetTypeName() override {return "Sprite";};
 

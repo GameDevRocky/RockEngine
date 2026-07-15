@@ -4,4 +4,3 @@ name: smiley_texture
 path: Domain/lib/assets/textures/smiley_texture.png
 filtering: linear
 wrap: repeat
-sprites: []

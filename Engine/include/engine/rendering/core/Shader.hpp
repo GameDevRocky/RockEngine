@@ -12,6 +12,7 @@ struct UniformInfo {
 
 class Shader : public Resource{
 public:
+    YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
 
     void Bind() const;

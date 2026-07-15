@@ -5,6 +5,19 @@
 #include "engine/utils/EngineUtils.hpp"
 
 using namespace EngineUtils;
+YAML::Node Sprite::Serialize(){
+    YAML::Node node;
+    node["id"] = GetID();
+    node["name"] = GetName();
+    node["uvMin"].push_back(uvMin.x); node["uvMin"].push_back(uvMin.y);
+    node["uvMin"].SetStyle(YAML::EmitterStyle::Flow);
+    node["uvMax"].push_back(uvMax.x); node["uvMax"].push_back(uvMax.y);
+    node["uvMax"].SetStyle(YAML::EmitterStyle::Flow);
+    node["pivot"].push_back(pivot.x); node["pivot"].push_back(pivot.y);
+    node["pivot"].SetStyle(YAML::EmitterStyle::Flow);
+    return node;
+}
+
 void Sprite::Deserialize(const YAML::Node& node){
     Resource::Deserialize(node);
     uvMin = {node["uvMin"][0].as<float>(), node["uvMin"][1].as<float>()};

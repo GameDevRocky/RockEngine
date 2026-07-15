@@ -39,7 +39,7 @@ namespace EngineUtils {
         return p.parent_path().string();
     }
 
-    std::string GetAssetPath(const std::string& relativePath) {
+    std::string GetAssetRoot() {
         // Resolve the asset root once: prefer the folder next to the executable when it
         // looks like a bundled build (Domain/ sits beside the binary); otherwise use the
         // compiled-in source root for local development.
@@ -52,7 +52,19 @@ namespace EngineUtils {
             }
             return std::string(PROJECT_ROOT);
         }();
-        return root + "/" + relativePath;
+        return root;
+    }
+
+    std::string GetAssetPath(const std::string& relativePath) {
+        return GetAssetRoot() + "/" + relativePath;
+    }
+
+    std::string ToAssetRelative(const std::string& absPath) {
+        namespace fs = std::filesystem;
+        std::error_code ec;
+        fs::path rel = fs::relative(fs::path(absPath), fs::path(GetAssetRoot()), ec);
+        if (ec || rel.empty()) return absPath;
+        return rel.generic_string();
     }
 
     std::string GenerateUUID() {

@@ -18,7 +18,7 @@ public:
 
     Material() = default;
 
-    YAML::Node Serialize() override { return YAML::Node(); }
+    YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
     void Awake() override;
 

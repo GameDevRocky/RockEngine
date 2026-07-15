@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include <glad/glad.h>
 #include "engine/serialization/Serializable.hpp"
 #include "engine/rendering/core/Resource.hpp"
@@ -21,7 +22,11 @@ public:
     static inline const Event FILTER_CHANGED_EVENT = Texture2D::CreateEvent();
     static inline const Event WRAP_CHANGED_EVENT   = Texture2D::CreateEvent();
 
+    YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
+
+    // Records a sprite id in load order so re-saving keeps sprites stable/ordered.
+    void RegisterSprite(const std::string& spriteId);
 
     void Awake() override;
 
@@ -56,6 +61,7 @@ private:
     int height = 0;
     int channels = 0;
     std::string path;
+    std::vector<std::string> sprite_ids;
     TextureFilter filter = TextureFilter::Linear;
     TextureWrap wrap = TextureWrap::Clamp;
 };
