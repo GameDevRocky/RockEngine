@@ -71,8 +71,6 @@ void SpriteRenderer::SetMaterial(std::string& id){
 Sprite* SpriteRenderer::GetSprite(){
     Sprite* sprite = AssetManager::Get().GetSprite(sprite_id);
     if (!sprite){
-        if (!sprite_id.empty())
-            Console::Alert("Unable to load " + GetGameObject()->GetName() + "'s Sprite");
         return nullptr;
     }
     return sprite;

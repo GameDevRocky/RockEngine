@@ -2,6 +2,8 @@
 #include <QHBoxLayout>
 #include <QPainter>
 #include <QStyleOption>
+#include <QPropertyAnimation>
+#include <QEasingCurve>
 
 CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidget(parent) 
 {
@@ -48,9 +50,29 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     contentWidget = new QWidget(this);
     contentLayout = new QVBoxLayout(contentWidget);
 
-    connect(toggleButton, &QToolButton::toggled, [this](bool checked) {
+    collapseAnim = new QPropertyAnimation(contentWidget, "maximumHeight", this);
+    collapseAnim->setDuration(180);
+    collapseAnim->setEasingCurve(QEasingCurve::InOutCubic);
+
+    connect(toggleButton, &QToolButton::toggled, this, [this](bool checked) {
         toggleButton->setArrowType(checked ? Qt::DownArrow : Qt::RightArrow);
-        contentWidget->setVisible(checked);
+        collapseAnim->stop();
+        if (checked) {
+            contentWidget->setVisible(true);   // must be visible while it grows
+            collapseAnim->setStartValue(0);
+            collapseAnim->setEndValue(contentWidget->sizeHint().height());
+        } else {
+            collapseAnim->setStartValue(contentWidget->height());
+            collapseAnim->setEndValue(0);
+        }
+        collapseAnim->start();
+    });
+
+    connect(collapseAnim, &QPropertyAnimation::finished, this, [this]() {
+        if (toggleButton->isChecked())
+            contentWidget->setMaximumHeight(QWIDGETSIZE_MAX);  // release cap so it grows with content
+        else
+            contentWidget->setVisible(false);                  // drop it from the layout when closed
     });
 
     connect(activeButton, &QCheckBox::toggled,[this](bool checked){
@@ -61,6 +83,10 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     headerLayout->addWidget(iconButton);
     headerLayout->addWidget(activeButton);
     headerLayout->addWidget(this->label);
+
+    // Pin the header to its natural height so it never stretches vertically.
+    header->setFixedHeight(header->sizeHint().height());
+
     mainLayout->addWidget(header);
     mainLayout->addWidget(contentWidget);
 }

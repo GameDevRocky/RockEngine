@@ -9,7 +9,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 
-
+class QPropertyAnimation;
 
 class CollapsableWidget : public QWidget {
     Q_OBJECT 
@@ -33,4 +33,5 @@ protected:
     QWidget* contentWidget;
     QVBoxLayout* mainLayout;
     QVBoxLayout* contentLayout;
+    QPropertyAnimation* collapseAnim = nullptr;
 };
