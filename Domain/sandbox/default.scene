@@ -1,134 +1,11 @@
 name: Default
 id: default2
 components:
-  - id: t1
-    enabled: true
-    type: Transform
-    gameobject: o1
-    localPosition: [-640, 290.24997]
-    localRotation: 0
-    localScale: [10, 40]
-    parent_id: ~
-  - id: s1
-    enabled: true
-    type: SpriteRenderer
-    gameobject: o1
-    material_id: m1
-    sprite_id: default
-    color: [1, 1, 1, 1]
-    uvOffset: [1, 0]
-    uvScale: [1, 1]
-    sortingOrder: 1
-    sortingLayer: Default
-    flipX: false
-    flipY: false
-    visible: true
-  - id: b1
-    enabled: true
-    type: BoxCollider
-    gameobject: o1
-    center: [0, 0]
-    isSensor: false
-    density: 1
-    friction: 0.2
-    bounciness: 0.15
-    rollingResistance: 0
-    size: [2.03125, 2.03125]
-  - id: sc1
-    enabled: true
-    type: ScriptComponent
-    gameobject: o1
-    module: PlayerPaddle
-    class: PlayerPaddle
-    fields:
-      objects:
-        []
-  - id: s1
-    enabled: true
-    type: SpriteRenderer
-    gameobject: o1
-    material_id: m1
-    sprite_id: default
-    color: [1, 1, 1, 1]
-    uvOffset: [1, 0]
-    uvScale: [1, 1]
-    sortingOrder: 1
-    sortingLayer: Default
-    flipX: false
-    flipY: false
-    visible: true
-  - id: 59d76659480e8dc751166948f69bbf43
-    enabled: true
-    type: RigidBody
-    gameobject: o1
-    bodyType: Kinematic
-    useGravity: true
-    lockRotation: false
-  - id: t2
-    enabled: true
-    type: Transform
-    gameobject: o2
-    localPosition: [640, 290.24997]
-    localRotation: 0
-    localScale: [10, 40]
-    parent_id: ~
-  - id: s2
-    enabled: true
-    type: SpriteRenderer
-    gameobject: o2
-    material_id: m1
-    sprite_id: default
-    color: [1, 1, 1, 1]
-    uvOffset: [1, 0]
-    uvScale: [1, 1]
-    sortingOrder: 1
-    sortingLayer: Default
-    flipX: false
-    flipY: false
-    visible: true
-  - id: b2
-    enabled: true
-    type: BoxCollider
-    gameobject: o2
-    center: [0, 0]
-    isSensor: false
-    density: 1
-    friction: 0.2
-    bounciness: 0.15
-    rollingResistance: 0
-    size: [2.03125, 2.03125]
-  - id: sc2
-    enabled: true
-    type: ScriptComponent
-    gameobject: o2
-    module: OpponentPaddle
-    class: OpponentPaddle
-  - id: s2
-    enabled: true
-    type: SpriteRenderer
-    gameobject: o2
-    material_id: m1
-    sprite_id: default
-    color: [1, 1, 1, 1]
-    uvOffset: [1, 0]
-    uvScale: [1, 1]
-    sortingOrder: 1
-    sortingLayer: Default
-    flipX: false
-    flipY: false
-    visible: true
-  - id: afac23c1e8e4759a7b93ee954e72f2f0
-    enabled: true
-    type: RigidBody
-    gameobject: o2
-    bodyType: Kinematic
-    useGravity: true
-    lockRotation: false
   - id: t3
     enabled: true
     type: Transform
     gameobject: o3
-    localPosition: [-608.61707, 167.94691]
+    localPosition: [198.29285, -243.93202]
     localRotation: 0
     localScale: [100, 100]
     parent_id: ~
@@ -241,6 +118,86 @@ components:
     bodyType: Kinematic
     useGravity: true
     lockRotation: false
+  - id: t1
+    enabled: true
+    type: Transform
+    gameobject: o1
+    localPosition: [-145.79419, 36.086487]
+    localRotation: 0
+    localScale: [35.62437, 40]
+    parent_id: ~
+  - id: s1
+    enabled: true
+    type: SpriteRenderer
+    gameobject: o1
+    material_id: m1
+    sprite_id: default
+    color: [1, 1, 1, 1]
+    uvOffset: [1, 0]
+    uvScale: [1, 1]
+    sortingOrder: 1
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: b1
+    enabled: true
+    type: BoxCollider
+    gameobject: o1
+    center: [0, 0]
+    isSensor: false
+    density: 1
+    friction: 0.2
+    bounciness: 0.15
+    rollingResistance: 0
+    size: [2.03125, 2.03125]
+  - id: sc1
+    enabled: true
+    type: ScriptComponent
+    gameobject: o1
+    module: PlayerPaddle
+    class: PlayerPaddle
+    fields:
+      objects:
+        []
+  - id: s1
+    enabled: true
+    type: SpriteRenderer
+    gameobject: o1
+    material_id: m1
+    sprite_id: default
+    color: [1, 1, 1, 1]
+    uvOffset: [1, 0]
+    uvScale: [1, 1]
+    sortingOrder: 1
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 59d76659480e8dc751166948f69bbf43
+    enabled: true
+    type: RigidBody
+    gameobject: o1
+    bodyType: Kinematic
+    useGravity: true
+    lockRotation: false
+  - id: 433524efd83df993b85a013a55dcff5f
+    enabled: true
+    type: Transform
+    gameobject: 5a43c4c6e3b7c0e8eef2389356cf94df
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: dd7614950342591a3b386847c235ed12
+    enabled: true
+    type: ScriptComponent
+    gameobject: 5a43c4c6e3b7c0e8eef2389356cf94df
+    module: Ball Generator
+    class: BallGenerator
+    fields:
+      power: 30
+      scale: 10
   - id: t5
     enabled: true
     type: Transform
@@ -361,37 +318,7 @@ components:
     bodyType: Kinematic
     useGravity: true
     lockRotation: false
-  - id: 433524efd83df993b85a013a55dcff5f
-    enabled: true
-    type: Transform
-    gameobject: 5a43c4c6e3b7c0e8eef2389356cf94df
-    localPosition: [0, 0]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
 gameobjects:
-  - id: o1
-    type: GameObject
-    name: Player Paddle
-    tag: Paddle
-    component_ids:
-      - t1
-      - s1
-      - b1
-      - sc1
-      - s1
-      - 59d76659480e8dc751166948f69bbf43
-  - id: o2
-    type: GameObject
-    name: Opponent Paddle
-    tag: Paddle
-    component_ids:
-      - t2
-      - s2
-      - b2
-      - sc2
-      - s2
-      - afac23c1e8e4759a7b93ee954e72f2f0
   - id: o3
     type: GameObject
     name: Ball
@@ -412,6 +339,24 @@ gameobjects:
       - s4
       - b4
       - 439fd6d496af0f22edd992e35616df39
+  - id: o1
+    type: GameObject
+    name: Player Paddle
+    tag: Paddle
+    component_ids:
+      - t1
+      - s1
+      - b1
+      - sc1
+      - s1
+      - 59d76659480e8dc751166948f69bbf43
+  - id: 5a43c4c6e3b7c0e8eef2389356cf94df
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    component_ids:
+      - 433524efd83df993b85a013a55dcff5f
+      - dd7614950342591a3b386847c235ed12
   - id: o5
     type: GameObject
     name: Bottom Wall
@@ -439,9 +384,3 @@ gameobjects:
       - s7
       - b7
       - 5bbe7f17a667728b7ae0db61c51e2c43
-  - id: 5a43c4c6e3b7c0e8eef2389356cf94df
-    type: GameObject
-    name: GameObject
-    tag: Untagged
-    component_ids:
-      - 433524efd83df993b85a013a55dcff5f

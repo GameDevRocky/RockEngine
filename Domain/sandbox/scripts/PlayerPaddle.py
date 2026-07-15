@@ -8,4 +8,4 @@ class PlayerPaddle(ScriptableComponent):
     def update(self):   
 
         pos = Input.get_mouse_pos()
-        self.transform.position = (self.transform.position.x, pos.y)
+        self.transform.position = (pos.x, pos.y)

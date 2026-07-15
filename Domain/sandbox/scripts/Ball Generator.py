@@ -4,7 +4,6 @@ import math
 
 class BallGenerator(ScriptableComponent):
     power : int = 30
-    gameobject : GameObject = None
     sprite : Sprite = None
     scale : float = 10
     
