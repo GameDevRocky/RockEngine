@@ -47,6 +47,12 @@ class SceneTree : public QTreeView{
         QModelIndex FindItemById(const std::string& id) const;
         void OnObjectSelected(const std::string& selectedId);
         void OnItemEntered(const QModelIndex& index);
+        // Resize the view to fit its visible rows (scrollbars are off; the outer
+        // scroll area handles overflow). Call after any content/expansion change.
+        void UpdateHeight();
+        // Move a single row to match the data-side sibling order (driven by
+        // Scene::ORDER_CHANGED_EVENT). Any reparent has already happened via ReparentItem.
+        void ReorderItem(const std::string& id);
 
         std::string scene_id;
         QStandardItemModel* model = nullptr;
@@ -55,6 +61,7 @@ class SceneTree : public QTreeView{
         int selectionSubscriptionId = -1;
         int sceneNameSubscriptionId = -1;
         int sceneAddedSubscriptionId = -1;
+        int sceneOrderSubscriptionId = -1;
 
         QToolButton* m_activeBtn = nullptr;
         std::string m_hoveredGoId;

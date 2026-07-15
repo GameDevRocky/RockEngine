@@ -7,6 +7,8 @@
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/debug/Console.hpp"
 #include <algorithm>
+#include <functional>
+#include <unordered_set>
 #include "Engine.hpp"
 
 void Scene::Init()
@@ -107,19 +109,69 @@ YAML::Node Scene::Serialize()
 
     YAML::Node components(YAML::NodeType::Sequence);
     YAML::Node gameobjects(YAML::NodeType::Sequence);
-    for (auto* obj : GetAllGameObjects())
-    {
-        if (!obj) continue;
+
+    // Emit hierarchically (roots in order, each object's children in order) so the
+    // sibling ordering is reproduced on load — the loader rebuilds root/child order
+    // from the sequence in which objects are deserialized.
+    std::unordered_set<std::string> visited;
+    std::function<void(GameObject*)> emit = [&](GameObject* obj) {
+        if (!obj || visited.count(obj->GetID())) return;
+        visited.insert(obj->GetID());
         gameobjects.push_back(obj->Serialize());
         for (auto* comp : obj->GetAllComponents())
-        {
-            if (!comp) continue;
-            components.push_back(comp->Serialize());
-        }
-    }
+            if (comp) components.push_back(comp->Serialize());
+        if (Transform* t = obj->GetTransform())
+            for (Transform* child : t->GetChildren())
+                if (child) emit(child->GetGameObject());
+    };
+    for (GameObject* root : GetRootObjects()) emit(root);
+    for (GameObject* obj : GetAllGameObjects()) emit(obj); // safety: any orphans
+
     node["components"] = components;
     node["gameobjects"] = gameobjects;
     return node;
+}
+
+void Scene::ReorderObject(const std::string& id, const std::string& parentId, int targetIndex)
+{
+    GameObject* obj = registry->Find<GameObject>(id);
+    if (!obj) return;
+    Transform* t = obj->GetTransform();
+    if (!t) return;
+
+    Transform* curParent = t->GetParent();
+    std::string curParentId = (curParent && curParent->GetGameObject())
+        ? curParent->GetGameObject()->GetID() : "";
+
+    // Reparent first if dropping under a different parent. SetParent updates
+    // parent_id, rootobject_ids and the parents' children_ids (appending at the end).
+    if (curParentId != parentId) {
+        Transform* newParent = nullptr;
+        if (!parentId.empty()) {
+            if (GameObject* pObj = registry->Find<GameObject>(parentId))
+                newParent = pObj->GetTransform();
+        }
+        t->SetParent(newParent, true);
+    }
+
+    // Place at the requested sibling index.
+    if (parentId.empty()) {
+        auto it = std::find(rootobject_ids.begin(), rootobject_ids.end(), id);
+        if (it != rootobject_ids.end()) {
+            int oldIndex = (int)std::distance(rootobject_ids.begin(), it);
+            rootobject_ids.erase(it);
+            if (oldIndex < targetIndex) targetIndex--;
+            targetIndex = std::max(0, std::min(targetIndex, (int)rootobject_ids.size()));
+            rootobject_ids.insert(rootobject_ids.begin() + targetIndex, id);
+        }
+    } else {
+        if (GameObject* pObj = registry->Find<GameObject>(parentId)) {
+            if (Transform* pt = pObj->GetTransform())
+                pt->MoveChild(id, targetIndex);
+        }
+    }
+
+    Notify(ORDER_CHANGED_EVENT, id);
 }
 
 void Scene::Deserialize(const YAML::Node &data)

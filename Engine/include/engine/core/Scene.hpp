@@ -16,6 +16,8 @@ public:
     static inline const Event HIERARCHY_CHANGED_EVENT = Scene::CreateEvent();
     static inline const Event NAME_CHANGED_EVENT = Scene::CreateEvent();
     static inline const Event GAMEOBJECT_ADDED_EVENT = Scene::CreateEvent();
+    // Fired after a sibling reorder (payload: the moved object's id).
+    static inline const Event ORDER_CHANGED_EVENT = Scene::CreateEvent();
     
 
 
@@ -38,6 +40,11 @@ public:
     void Sync(GameObject* obj);
     void SyncRootObjects(const std::string& child_id, const std::string& parent_id);
     void SyncAllObjects(const std::string& id);
+
+    // Move an object to targetIndex among the children of parentId (empty = scene
+    // roots), reparenting first if it currently sits under a different parent.
+    // targetIndex counts positions in the sibling list that still contains the object.
+    void ReorderObject(const std::string& id, const std::string& parentId, int targetIndex);
     
     std::vector<GameObject*> GetRootObjects();
     std::vector<GameObject*> GetAllGameObjects();

@@ -54,6 +54,9 @@ public:
     void Scale(const glm::vec2& delta);
     
     void SetParent(Transform* newParent, bool keepWorld = true);
+    // Reorder an existing child within this transform's children list. targetIndex
+    // counts positions in the list that still contains the child (see Scene::ReorderObject).
+    void MoveChild(const std::string& childId, int targetIndex);
     Transform* GetParent();
     std::vector<Transform*> GetChildren();
     void Accept(IVisitor* v) override;

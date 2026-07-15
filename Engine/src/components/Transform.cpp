@@ -219,6 +219,16 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
 }
 
 
+void Transform::MoveChild(const std::string& childId, int targetIndex) {
+    auto it = std::find(children_ids.begin(), children_ids.end(), childId);
+    if (it == children_ids.end()) return;
+    int oldIndex = (int)std::distance(children_ids.begin(), it);
+    children_ids.erase(it);
+    if (oldIndex < targetIndex) targetIndex--;
+    targetIndex = std::max(0, std::min(targetIndex, (int)children_ids.size()));
+    children_ids.insert(children_ids.begin() + targetIndex, childId);
+}
+
 std::vector<Transform*> Transform::GetChildren() {
     std::vector<Transform*> result;
 

@@ -24,6 +24,9 @@
 #include <QMenu>
 #include <QEvent>
 #include <stdexcept>
+#include <functional>
+#include <unordered_map>
+#include "engine/core/RuntimeObject.hpp"
 
 #include "engine/utils/EngineUtils.hpp"
 using namespace EngineUtils;
@@ -44,8 +47,10 @@ bool WouldCreateCycle(Transform* childTransform, Transform* newParentTransform) 
     return false;
 }
 
-GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* gameObject) {
-    if (!model || !gameObject) return nullptr;
+GameObjectItem* CreateGameObjectItem(SceneTree* tree, GameObject* gameObject) {
+    if (!tree || !gameObject) return nullptr;
+    QStandardItemModel* model = tree->GetModel();
+    if (!model) return nullptr;
 
     const std::string& id = gameObject->GetID();
     const std::string name = gameObject->GetName();
@@ -102,28 +107,35 @@ GameObjectItem* CreateGameObjectItem(QStandardItemModel* model, GameObject* game
         return true;
     }, GameObject::ACTIVE_CHANGED_EVENT);
 
+    QPointer<SceneTree> weakTree = tree;
+    gameObject->Subscribe([weakTree, id]() {
+        if (!weakTree) return false;
+        weakTree->RemoveItem(id);
+        return false;
+    }, RuntimeObject::SHUTDOWN_EVENT);
+
     return item;
 }
 
-void AddGameObjectNode(QStandardItemModel* model, QStandardItem* parentItem, GameObject* gameObject) {
-    if (!model || !parentItem || !gameObject) return;
+void AddGameObjectNode(SceneTree* tree, QStandardItem* parentItem, GameObject* gameObject) {
+    if (!tree || !parentItem || !gameObject) return;
 
-    auto* item = CreateGameObjectItem(model, gameObject);
+    auto* item = CreateGameObjectItem(tree, gameObject);
     if (!item) return;
-    
+
     parentItem->appendRow(item);
-    
+
     Transform* transform = gameObject->GetTransform();
 
     for (Transform* childTransform : transform->GetChildren()) {
         if (!childTransform) continue;
         GameObject* childObject = childTransform->GetGameObject();
-        AddGameObjectNode(model, item, childObject);
+        AddGameObjectNode(tree, item, childObject);
     }
 }
 
 void UnsubscribeFromContainer(Container* container, const std::string& scene_id,
-                               int selId, int nameId, int addedId) {
+                               int selId, int nameId, int addedId, int orderId) {
     if (!container) return;
 
     if (selId != -1) {
@@ -131,11 +143,12 @@ void UnsubscribeFromContainer(Container* container, const std::string& scene_id,
             selMgr->Unsubscribe(selId);
     }
 
-    if (!scene_id.empty() && (nameId != -1 || addedId != -1)) {
+    if (!scene_id.empty() && (nameId != -1 || addedId != -1 || orderId != -1)) {
         if (auto* reg = container->FindSystem<Registry>()) {
             if (auto* scene = reg->Find<Scene>(scene_id)) {
                 if (nameId != -1) scene->Unsubscribe(nameId);
                 if (addedId != -1) scene->Unsubscribe(addedId);
+                if (orderId != -1) scene->Unsubscribe(orderId);
             }
         }
     }
@@ -185,16 +198,7 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
             collapsed = !collapsed;
             for (int i = 0; i < model->rowCount(); ++i)
                 setRowHidden(i, QModelIndex(), collapsed);
-            if (collapsed) {
-                setFixedHeight(header()->height());
-                setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-            } else {
-                setMaximumHeight(16777215);
-                setMinimumHeight(0);
-                setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-                updateGeometry();
-                adjustSize();
-            }
+            UpdateHeight();
         });
         menu.exec(header()->mapToGlobal(pos));
     });
@@ -231,29 +235,33 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
             QString gameObjectId = index.data(Qt::UserRole + 1).toString();
             if (gameObjectId.isEmpty()) return;
             selectionManager->Select(gameObjectId.toStdString());
-            
+
         });
+
+    connect(this, &QTreeView::expanded, this, [this](const QModelIndex&) { UpdateHeight(); });
+    connect(this, &QTreeView::collapsed, this, [this](const QModelIndex&) { UpdateHeight(); });
 }
 
 SceneTree::~SceneTree() {
     UnsubscribeFromContainer(Engine::Get()->GetEditorContainer(), scene_id,
-        selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId);
+        selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId, sceneOrderSubscriptionId);
     if (Engine::Get()->GetRuntimeContainer()) {
         UnsubscribeFromContainer(Engine::Get()->GetRuntimeContainer(), scene_id,
-            selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId);
+            selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId, sceneOrderSubscriptionId);
     }
 }
 
 void SceneTree::RebuildFromScene(Scene* scene) {
     UnsubscribeFromContainer(Engine::Get()->GetEditorContainer(), scene_id,
-        selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId);
+        selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId, sceneOrderSubscriptionId);
     if (Engine::Get()->GetRuntimeContainer()) {
         UnsubscribeFromContainer(Engine::Get()->GetRuntimeContainer(), scene_id,
-            selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId);
+            selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId, sceneOrderSubscriptionId);
     }
     sceneNameSubscriptionId = -1;
     sceneAddedSubscriptionId = -1;
     selectionSubscriptionId = -1;
+    sceneOrderSubscriptionId = -1;
 
     model->clear();
     m_activeBtn->hide();
@@ -285,7 +293,7 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     QStandardItem* rootItem = model->invisibleRootItem();
     rootItem->setFlags(rootItem->flags() | Qt::ItemIsDropEnabled);
     for (GameObject* rootObject : scene->GetRootObjects()) {
-        AddGameObjectNode(model, rootItem, rootObject);
+        AddGameObjectNode(this, rootItem, rootObject);
     }
 
     auto* container = Engine::Get()->GetActiveContainer();    
@@ -310,13 +318,52 @@ void SceneTree::RebuildFromScene(Scene* scene) {
         return true;
     }, Scene::GAMEOBJECT_ADDED_EVENT);
 
+    sceneOrderSubscriptionId = scene->Subscribe([this](const std::any& data) {
+        const std::string& movedId = std::any_cast<const std::string&>(data);
+        ReorderItem(movedId);
+        return true;
+    }, Scene::ORDER_CHANGED_EVENT);
+
     expandAll();
+    UpdateHeight();
 }
 
 void SceneTree::dropEvent(QDropEvent* event) {
     DropIndicatorPosition pos = dropIndicatorPosition();
+
+    // Sibling reorder (drop between items). We ignore Qt's internal move entirely and
+    // drive the model from the data side via Scene::ORDER_CHANGED_EVENT.
     if (pos == AboveItem || pos == BelowItem) {
         event->ignore();
+
+        const QModelIndex draggedIndex = currentIndex();
+        const QString childIdQt = draggedIndex.data(GAMEOBJECT_ID_ROLE).toString();
+        const QModelIndex dropIndex = indexAt(event->position().toPoint());
+        if (childIdQt.isEmpty() || scene_id.empty() || !dropIndex.isValid()) return;
+
+        const QString targetIdQt = dropIndex.data(GAMEOBJECT_ID_ROLE).toString();
+        if (targetIdQt == childIdQt) return; // dropped onto itself
+
+        // New parent = the drop target's parent; target row = its sibling position.
+        const QModelIndex targetParentIndex = dropIndex.parent();
+        const QString newParentIdQt = targetParentIndex.isValid()
+            ? targetParentIndex.data(GAMEOBJECT_ID_ROLE).toString() : QString();
+        int targetRow = dropIndex.row();
+        if (pos == BelowItem) targetRow += 1;
+
+        Registry* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+        if (!registry) return;
+
+        GameObject* childObj = registry->Find<GameObject>(childIdQt.toStdString());
+        GameObject* newParentObj = newParentIdQt.isEmpty()
+            ? nullptr : registry->Find<GameObject>(newParentIdQt.toStdString());
+        if (childObj && newParentObj &&
+            WouldCreateCycle(childObj->GetTransform(), newParentObj->GetTransform()))
+            return;
+
+        Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) return;
+        scene->ReorderObject(childIdQt.toStdString(), newParentIdQt.toStdString(), targetRow);
         return;
     }
 
@@ -377,6 +424,81 @@ void SceneTree::dropEvent(QDropEvent* event) {
     handlingDrop = false;
 }
 
+void SceneTree::UpdateHeight() {
+    if (collapsed) {
+        setFixedHeight(header()->height());
+        updateGeometry();
+        return;
+    }
+
+    int rows = 0;
+    std::function<void(const QModelIndex&)> countVisible = [&](const QModelIndex& parent) {
+        const int n = model->rowCount(parent);
+        for (int i = 0; i < n; ++i) {
+            if (isRowHidden(i, parent)) continue;
+            const QModelIndex idx = model->index(i, 0, parent);
+            ++rows;
+            if (isExpanded(idx)) countVisible(idx);
+        }
+    };
+    countVisible(QModelIndex());
+
+    constexpr int ROW_HEIGHT = 24; // matches SceneTreeItemDelegate::sizeHint
+    const int total = header()->height() + rows * ROW_HEIGHT + 2 * frameWidth() + 2;
+    setFixedHeight(total);
+    updateGeometry();
+}
+
+void SceneTree::ReorderItem(const std::string& id) {
+    Registry* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+    if (!registry) return;
+    GameObject* obj = registry->Find<GameObject>(id);
+    if (!obj) return;
+    Transform* t = obj->GetTransform();
+    if (!t) return;
+
+    // Resolve the object's parent and its desired index among siblings from the data.
+    std::string parentId;
+    if (Transform* p = t->GetParent(); p && p->GetGameObject())
+        parentId = p->GetGameObject()->GetID();
+
+    QStandardItem* parentItem = nullptr;
+    int targetIndex = -1;
+    if (parentId.empty()) {
+        parentItem = model->invisibleRootItem();
+        Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) return;
+        auto roots = scene->GetRootObjects();
+        for (int i = 0; i < (int)roots.size(); ++i)
+            if (roots[i] && roots[i]->GetID() == id) { targetIndex = i; break; }
+    } else {
+        QModelIndex pIdx = FindItemById(parentId);
+        if (!pIdx.isValid()) return;
+        parentItem = model->itemFromIndex(pIdx);
+        GameObject* pObj = registry->Find<GameObject>(parentId);
+        if (!pObj || !pObj->GetTransform()) return;
+        auto children = pObj->GetTransform()->GetChildren();
+        for (int i = 0; i < (int)children.size(); ++i)
+            if (children[i] && children[i]->GetGameObject() &&
+                children[i]->GetGameObject()->GetID() == id) { targetIndex = i; break; }
+    }
+    if (!parentItem || targetIndex < 0) return;
+
+    QModelIndex idx = FindItemById(id);
+    if (!idx.isValid()) return;
+    QStandardItem* item = model->itemFromIndex(idx);
+    if (!item) return;
+    QStandardItem* curParent = item->parent();
+    if (!curParent) curParent = model->invisibleRootItem();
+
+    if (curParent == parentItem && item->row() == targetIndex) return; // already placed
+
+    QList<QStandardItem*> taken = curParent->takeRow(item->row());
+    if (targetIndex > parentItem->rowCount()) targetIndex = parentItem->rowCount();
+    parentItem->insertRow(targetIndex, taken);
+    UpdateHeight();
+}
+
 void SceneTree::OnObjectSelected(const std::string& id) {
     if (id.empty()) {
         clearSelection();
@@ -433,19 +555,21 @@ void SceneTree::AddItem(const std::string& parentId, GameObject* child) {
     
     if (!parentItem) return;
 
-    auto* item = CreateGameObjectItem(model, child);
+    auto* item = CreateGameObjectItem(this, child);
     if (!item) return;
-    
+
     parentItem->appendRow(item);
-    
+
     Transform* transform = child->GetTransform();
     if (transform) {
         for (Transform* childTransform : transform->GetChildren()) {
             if (!childTransform) continue;
             GameObject* childObject = childTransform->GetGameObject();
-            AddGameObjectNode(model, item, childObject);
+            AddGameObjectNode(this, item, childObject);
         }
     }
+
+    UpdateHeight();
 }
 
 void SceneTree::RemoveItem(const std::string& id) {
@@ -459,8 +583,9 @@ void SceneTree::RemoveItem(const std::string& id) {
     if (!parentItem) {
         parentItem = model->invisibleRootItem();
     }
-    
+
     parentItem->removeRow(item->row());
+    UpdateHeight();
 }
 
 void SceneTree::ReparentItem(const std::string& childId, const std::string& newParentId) {
@@ -488,6 +613,7 @@ void SceneTree::ReparentItem(const std::string& childId, const std::string& newP
     int row = childItem->row();
     QList<QStandardItem*> taken = oldParent->takeRow(row);
     newParent->appendRow(taken);
+    UpdateHeight();
 }
 
 bool SceneTree::eventFilter(QObject* obj, QEvent* event) {
