@@ -128,7 +128,7 @@ components:
     enabled: true
     type: Transform
     gameobject: o3
-    localPosition: [-494.30524, -268.1317]
+    localPosition: [-608.61707, 167.94691]
     localRotation: 0
     localScale: [100, 100]
     parent_id: ~
@@ -361,32 +361,6 @@ components:
     bodyType: Kinematic
     useGravity: true
     lockRotation: false
-  - id: 9bc7419b1b22c72c098aa701a7b2c618
-    enabled: true
-    type: Transform
-    gameobject: e48b83c2348f4bbfb25660c539466599
-    localPosition: [0, 0]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 77427e2fc2df639427c4140308b6314b
-    enabled: true
-    type: Transform
-    gameobject: 9dcf6010c9576c4308dd560bec15e6fb
-    localPosition: [0, 0]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 97e06402ecf15dfdaa84a206d9933276
-    enabled: true
-    type: ScriptComponent
-    gameobject: 9dcf6010c9576c4308dd560bec15e6fb
-    module: Ball Generator
-    class: BallGenerator
-    fields:
-      power: 30
-      gameobject: ""
-      scale: 10
 gameobjects:
   - id: o1
     type: GameObject
@@ -457,16 +431,3 @@ gameobjects:
       - s7
       - b7
       - 5bbe7f17a667728b7ae0db61c51e2c43
-  - id: e48b83c2348f4bbfb25660c539466599
-    type: GameObject
-    name: GameObject
-    tag: Untagged
-    component_ids:
-      - 9bc7419b1b22c72c098aa701a7b2c618
-  - id: 9dcf6010c9576c4308dd560bec15e6fb
-    type: GameObject
-    name: GameObject
-    tag: Untagged
-    component_ids:
-      - 77427e2fc2df639427c4140308b6314b
-      - 97e06402ecf15dfdaa84a206d9933276
