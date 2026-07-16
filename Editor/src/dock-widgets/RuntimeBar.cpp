@@ -42,19 +42,59 @@ void RuntimeBar::Init() {
         }
     });
     
-    QIcon* pauseIcon = new QIcon(GetAssetPath("Domain/lib/assets/icons/pause_icon.png").c_str());
+    pauseIcon = new QIcon(GetAssetPath("Domain/lib/assets/icons/pause_icon.png").c_str());
     pauseButton = new QPushButton("", this);
     pauseButton->setIcon(*pauseIcon);
     pauseButton->setFixedWidth(48);
+    pauseButton->setEnabled(false);
+    connect(pauseButton, &QPushButton::clicked, [this]() {
+        py::gil_scoped_acquire gil;
+        if (Engine::Get()->IsPaused()){
+            Engine::Get()->ResumeMode();
+            pauseButton->setIcon(*pauseIcon);
+        }
+        else {
+            Engine::Get()->PauseMode();
+            pauseButton->setIcon(*playIcon);   // show resume glyph while paused
+        }
+    });
+
+    stepIcon = new QIcon(GetAssetPath("Domain/lib/assets/icons/FastForwardIcon.png").c_str());
+    stepButton = new QPushButton("", this);
+    stepButton->setIcon(*stepIcon);
+    stepButton->setFixedWidth(48);
+    stepButton->setEnabled(false);
+    connect(stepButton, &QPushButton::clicked, [this]() {
+        py::gil_scoped_acquire gil;
+        if (!Engine::Get()->IsPaused()){        // auto-pause a running game (Unity-style)
+            Engine::Get()->PauseMode();
+            pauseButton->setIcon(*playIcon);
+        }
+        Engine::Get()->StepFrame();
+    });
 
     layout->addStretch();
     layout->addWidget(runtimeButton);
     layout->addWidget(pauseButton);
-    layout->addStretch(); 
+    layout->addWidget(stepButton);
+    layout->addStretch();
 
     const int contentHeight = pauseButton->sizeHint().height() + 2;
     setFixedHeight(contentHeight);
-    
+
+    // Pause/Step are only meaningful in play mode: enable on enter, disable + reset on exit.
+    Engine::Get()->Subscribe([this]() {
+        pauseButton->setEnabled(true);
+        stepButton->setEnabled(true);
+        return true;
+    }, Engine::ENTER_PLAY_MODE_EVENT);
+    Engine::Get()->Subscribe([this]() {
+        pauseButton->setEnabled(false);
+        stepButton->setEnabled(false);
+        pauseButton->setIcon(*pauseIcon);
+        return true;
+    }, Engine::EXIT_PLAY_MODE_EVENT);
+
     std::cout << "RuntimeBar Initialized" << std::endl;
 }
 

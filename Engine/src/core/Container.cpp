@@ -45,6 +45,12 @@ void Container::Update(){
     }
 }
 
+void Container::StepFrame(){
+    if (auto* sceneManager = FindSystem<SceneManager>()) {
+        sceneManager->StepFrame();
+    }
+}
+
 void Container::Shutdown() {
     for (auto it = systems.rbegin(); it != systems.rend(); ++it) {
         if (*it) {

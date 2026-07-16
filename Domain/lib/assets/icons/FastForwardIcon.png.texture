@@ -1,0 +1,8 @@
+type: Texture2D
+id: 48108a3d9402e065b9e9bc82e3d83b71
+name: FastForwardIcon
+path: Domain/lib/assets/icons/FastForwardIcon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

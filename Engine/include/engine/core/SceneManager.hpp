@@ -20,6 +20,10 @@ public:
     void Update() override;
     void Shutdown() override;
 
+    // Advances the simulation exactly one fixed timestep + one variable update,
+    // independent of the accumulator. Used by the editor's Step button while paused.
+    void StepFrame();
+
     void LoadScene(const std::string& file_path);
     void SaveScene(const std::string& scene_id);
     void RemoveScene(const std::string& scene_id);

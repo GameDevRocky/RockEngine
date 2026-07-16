@@ -31,6 +31,7 @@ void Editor::Init() {
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
     format.setSamples(4);
+    format.setSwapInterval(1); // vsync: pace buffer swaps to the display refresh
     QSurfaceFormat::setDefaultFormat(format);
 
     if (!QApplication::instance()) {
@@ -80,24 +81,46 @@ void Editor::Update(){
 
 }
 
+void Editor::FrameTick(){
+    lastTickTime = std::chrono::steady_clock::now();
+    Engine::Get()->Update();
+    Update(); // schedule the next repaint; the Scene view's swap re-arms this loop
+}
+
 void Editor::PostInit() {
     std::cout << "Editor Starting ..." << std::endl;
     timer = new QTimer();
 
-
-
-
-
-
-
-
     MainWindow::Get()->PostInit();
 
-    QObject::connect(timer, &QTimer::timeout, [this]() {
-        Engine::Get()->Update();
-        Update();
+    // Primary clock: the Scene view swaps its buffers under vsync, so its
+    // frameSwapped signal fires at the display refresh rate. Each frame we
+    // advance the engine and request the next repaint, which swaps again and
+    // re-fires this signal -- a self-sustaining, vsync-locked frame loop.
+    QObject::connect(SceneViewGui::Get(), &QOpenGLWidget::frameSwapped, [this]() {
+        FrameTick();
     });
-    timer->start(16);
+
+    // Fallback watchdog: when no view is presenting (Scene view hidden,
+    // minimized, or occluded) frameSwapped stops firing. This keeps the engine
+    // ticking so scripts, file-watching, and logic never freeze. It only steps
+    // when the vsync loop has clearly stalled, so it never double-drives a
+    // healthy 60Hz+ loop.
+    constexpr int kWatchdogIntervalMs = 16; // how often to check for a stall
+    constexpr int kStallThresholdMs   = 32; // ~2 frames at 60Hz without a swap
+    timer->setTimerType(Qt::PreciseTimer);
+    QObject::connect(timer, &QTimer::timeout, [this]() {
+        const auto sinceLastTick = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now() - lastTickTime).count();
+        if (sinceLastTick >= kStallThresholdMs) {
+            FrameTick();
+        }
+    });
+
+    lastTickTime = std::chrono::steady_clock::now();
+    timer->start(kWatchdogIntervalMs);
+    SceneViewGui::Get()->update(); // kick off the first frame
+
     app->exec();
 
 }

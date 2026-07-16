@@ -20,9 +20,12 @@ private:
     ~RuntimeBar() override = default;
     QPushButton* runtimeButton = nullptr;
     QPushButton* pauseButton = nullptr;
+    QPushButton* stepButton = nullptr;
 
     QIcon* playIcon = nullptr;
     QIcon* stopIcon = nullptr;
+    QIcon* pauseIcon = nullptr;
+    QIcon* stepIcon = nullptr;
 
 
 };

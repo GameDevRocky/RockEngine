@@ -31,6 +31,13 @@ public:
 		Notify();
 	}
 
+	// Orthogonal pause flag: while paused the mode stays Runtime, so every
+	// existing `== Runtime`/`== Editor` check remains valid. The simulation is
+	// frozen in SceneManager::Update(); StepFrame() advances it exactly one frame.
+	bool IsPaused() const { return paused; }
+	void SetPaused(bool p) { paused = p; }
+	void StepFrame();
+
 	void Init() override;
 	void PostInit() override;
 	void Awake() override;
@@ -64,6 +71,7 @@ public:
 private:
     bool initialized = false;
 	Mode mode = Mode::Editor;
+	bool paused = false;
 	std::vector<System*> systems;
 	std::unordered_map<std::type_index, System*> systemIndex;
 

@@ -51,7 +51,11 @@ void SceneManager::Start(){
     std::cout << "SceneManager Started" << std::endl;
 }
 
-void SceneManager::Update() { 
+void SceneManager::Update() {
+    // Frozen while paused: return before touching the accumulator so no time
+    // debt builds up. Rendering (Qt paintGL) and TimeManager keep running.
+    if (container->IsPaused()) return;
+
     const float fixedDeltaTime = timeManager->FixedDeltaTime();
     const float frameTime = timeManager->DeltaTime();
 
@@ -69,6 +73,31 @@ void SceneManager::Update() {
         physicsSystem->Step();
         accumulator -= fixedDeltaTime; 
     }
+
+    for (auto& scene_id : scene_ids) {
+        Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) continue;
+        scene->Update();
+    }
+
+    for (auto& scene_id : scene_ids) {
+        Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) continue;
+        scene->LateUpdate();
+    }
+
+    registry->FlushPendingShutdowns();
+}
+
+void SceneManager::StepFrame() {
+    // Exactly one fixed step (FixedUpdate + physics), then one variable update.
+    // The accumulator is intentionally left untouched so resuming stays clean.
+    for (auto& scene_id : scene_ids) {
+        Scene* scene = registry->Find<Scene>(scene_id);
+        if (!scene) continue;
+        scene->FixedUpdate();
+    }
+    physicsSystem->Step();
 
     for (auto& scene_id : scene_ids) {
         Scene* scene = registry->Find<Scene>(scene_id);

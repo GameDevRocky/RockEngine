@@ -11,6 +11,8 @@ class Engine : public Observable {
 public:
     static inline const Event ENTER_PLAY_MODE_EVENT = Engine::CreateEvent();
     static inline const Event EXIT_PLAY_MODE_EVENT = Engine::CreateEvent();
+    static inline const Event PAUSE_MODE_EVENT = Engine::CreateEvent();
+    static inline const Event RESUME_MODE_EVENT = Engine::CreateEvent();
     
     static Engine* Get() {
         static Engine* instance = new Engine();
@@ -25,6 +27,11 @@ public:
 
     void EnterPlayMode();
     void ExitPlayMode();
+
+    void PauseMode();
+    void ResumeMode();
+    void StepFrame();
+    bool IsPaused() const { return activeContainer && activeContainer->IsPaused(); }
 
     void LoadDefaultScene();
 

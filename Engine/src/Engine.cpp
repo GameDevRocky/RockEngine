@@ -101,6 +101,23 @@ void Engine::ExitPlayMode(){
     Notify(EXIT_PLAY_MODE_EVENT);
 }
 
+void Engine::PauseMode(){
+    if (activeContainer->GetMode() != Container::Mode::Runtime) return;
+    activeContainer->SetPaused(true);
+    Notify(PAUSE_MODE_EVENT);
+}
+
+void Engine::ResumeMode(){
+    if (activeContainer->GetMode() != Container::Mode::Runtime) return;
+    activeContainer->SetPaused(false);
+    Notify(RESUME_MODE_EVENT);
+}
+
+void Engine::StepFrame(){
+    if (activeContainer->GetMode() != Container::Mode::Runtime) return;
+    activeContainer->StepFrame();
+}
+
 void Engine::LoadDefaultScene(){
     SceneManager* sceneManager = activeContainer->FindSystem<SceneManager>();
     sceneManager->LoadScene(EngineUtils::GetAssetPath(SAMPLE_SCENE_PATH));
