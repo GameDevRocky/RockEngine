@@ -47,8 +47,10 @@ headers (embedded interpreter — see `requirements.txt`). `PROJECT_ROOT` is com
 ## How the layers fit together
 
 - `src/main.cpp` runs `Engine::Init → Editor::Init → Engine::PostInit → Editor::PostInit`
-  (the last blocks in the Qt event loop). The editor's `QTimer` (~16ms) drives
-  `Engine::Get()->Update()` every frame.
+  (the last blocks in the Qt event loop). The frame loop is **vsync-driven**: the Scene view's
+  `frameSwapped` signal drives `Engine::Get()->Update()` every frame, so FPS tracks the
+  monitor's refresh rate (a ~16ms `QTimer` is only a stall-recovery watchdog). See
+  `Editor/CLAUDE.md`.
 - **Engine** is the runtime world (containers of systems + game objects). **Editor** observes
   and drives the engine via its event system; it holds no game logic. **Domain** is data and
   Python scripts loaded at runtime. Engine exposes C++ to Python; Domain's handlers wrap it.

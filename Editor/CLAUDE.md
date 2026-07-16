@@ -8,10 +8,19 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 
 - **`Editor`** singleton (`src/Editor.cpp`) sets up `QApplication`, Fusion style +
   `Domain/lib/assets/styling/default.qss`, and an OpenGL 4.6 **core profile** default surface
-  format (depth 24, stencil 8, 4x MSAA, `AA_ShareOpenGLContexts`). Then runs `MainWindow`.
-- `Editor::PostInit` starts a `QTimer` at ~16ms (≈60fps). Each tick:
-  `Engine::Get()->Update()` then `Editor::Update()`. `app->exec()` blocks here — this is the
-  app's main loop.
+  format (depth 24, stencil 8, 4x MSAA, `AA_ShareOpenGLContexts`, `setSwapInterval(1)` for
+  vsync). Then runs `MainWindow`.
+- **The frame loop is vsync-driven, not timer-driven.** `Editor::PostInit` connects the Scene
+  view's `QOpenGLWidget::frameSwapped` signal to `Editor::FrameTick()`. Because `setSwapInterval(1)`
+  paces buffer swaps to the display refresh, each swap fires `frameSwapped` → `FrameTick()`
+  (`Engine::Get()->Update()` then `Editor::Update()`), which requests the next repaint → swaps
+  again → re-fires the signal. A self-sustaining loop **locked to the monitor's refresh rate**,
+  so FPS equals the display's Hz (e.g. 165 on a 165Hz panel), *not* a fixed 60. Time-dependent
+  logic must scale by delta-time or it runs faster on high-refresh displays.
+- A `QTimer` (~16ms, `Qt::PreciseTimer`) is only a **fallback watchdog**, not the driver: it
+  calls `FrameTick()` only when ≥32ms (~2 frames) pass with no swap — e.g. Scene view hidden,
+  minimized, or occluded — so scripts/logic never freeze. On a healthy loop it never fires.
+- `app->exec()` (in `PostInit`) blocks as the app's main loop.
 - `Editor::Update()` refreshes `SceneViewGui` and `GameViewGui` each frame.
 - Entry order from `src/main.cpp`: `Engine::Init → Editor::Init → Engine::PostInit →
   Editor::PostInit` (blocks) → shutdown in reverse.
