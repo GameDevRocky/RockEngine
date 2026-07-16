@@ -20,11 +20,11 @@ YAML::Node BoxCollider::Serialize(){
 void BoxCollider::Deserialize(const YAML::Node& node){
     if (state >= State::Loaded) return;
     Collider::Deserialize(node);
-    
-    float w = node["size"][0].as<float>();
-    float h = node["size"][1].as<float> ();
-    
-    size = {w, h};
+
+    // Absent dimensions stay 0 so PostInit auto-sizes them from the sprite.
+    if (node["size"]) {
+        size = {node["size"][0].as<float>(), node["size"][1].as<float>()};
+    }
     state = State::Loaded;
 }
 

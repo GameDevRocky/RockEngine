@@ -18,9 +18,9 @@
 #include "engine/core/SelectionManager.hpp"
 #include "Engine.hpp"
 #include "utils/ComponentPickerWidget.hpp"
+#include "utils/TexturePreviewWidget.hpp"
 #include "dock-widgets/SpriteEditorModal.hpp"
 #include <QLabel>
-#include <QPixmap>
 #include <QSizePolicy>
 #include <QPushButton>
 #include <map>
@@ -645,20 +645,10 @@ void InspectorVisitor::Visit(Material* mat) {
 }
 
 void InspectorVisitor::Visit(Texture2D* tex) {
-    // Image preview — spans both columns, same load path as AssetPreviewDelegate.
-    auto* preview = new QLabel();
-    preview->setAlignment(Qt::AlignCenter);
-    preview->setFixedHeight(180);
-    preview->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    preview->setStyleSheet("background-color: #1a1a1a; border: 1px solid #3a3a3a;");
-
-    const std::string& imgPath = tex->GetPath();
-    if (!imgPath.empty()) {
-        QPixmap px(QString::fromStdString(imgPath));
-        if (!px.isNull())
-            preview->setPixmap(px.scaled(180, 180, Qt::KeepAspectRatio, Qt::SmoothTransformation));
-    }
-    AddFullRow(preview);
+    // Live GL preview — spans both columns. Samples the engine's uploaded texture
+    // in the shared context rather than re-decoding the file off disk, so it
+    // reflects the Filtering/Wrap settings bound below.
+    AddFullRow(new TexturePreviewWidget(tex->GetID()));
 
     // Open the interactive sprite editor for this texture (a centered, click-away modal).
     auto* editSpritesBtn = new QPushButton("Edit Sprites");
@@ -675,8 +665,8 @@ void InspectorVisitor::Visit(Texture2D* tex) {
     auto h_get    = [=]() { return static_cast<float>(tex->GetHeight()); };
 
     BindProperty<std::string>(tex, "Path: ",   path_get, [](std::string){}, Observable::CreateEvent(), PropDesc().Tag(Tags::READONLY));
-    BindProperty<float>(tex,       "Width: ",  w_get,    [](float){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT));
-    BindProperty<float>(tex,       "Height: ", h_get,    [](float){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT));
+    BindProperty<float>(tex,       "Width: ",  w_get,    [](float){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT).ReadOnly());
+    BindProperty<float>(tex,       "Height: ", h_get,    [](float){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT).ReadOnly());
 
     auto filter_get = [=]() { return static_cast<int>(tex->GetFilter()); };
     auto filter_set = [=](int v) { tex->SetFilter(static_cast<TextureFilter>(v)); };

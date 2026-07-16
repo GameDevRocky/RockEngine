@@ -83,6 +83,73 @@ static QPixmap endFBO(int sz, GLuint fbo, GLuint colorTex,
     return QPixmap::fromImage(img);
 }
 
+// Renders a texture — or a sub-rect of one — into a square thumbnail using the
+// engine's sprite shader. Shared by forSprite and forTexture: a whole-texture
+// thumbnail is just the full [0,1] UV range with no pivot offset.
+static QPixmap renderTextureQuad(int sz, Texture2D* tex, glm::vec2 uvMin,
+                                 glm::vec2 uvMax, glm::vec2 pivot)
+{
+    Shader* shader = AssetManager::Get().GetShader("s1");
+    if (!tex || !shader) return {};
+
+    SceneViewGui* sv = SceneViewGui::Get();
+    if (!sv || !sv->context() || !sv->context()->isValid()) return {};
+    sv->makeCurrent();
+
+    GLuint vao = 0, vbo = 0;
+    makeQuad(vao, vbo);
+
+    GLuint fbo = 0, colorTex = 0;
+    GLint prevFBO = 0, prevVp[4] = {};
+    if (!beginFBO(sz, fbo, colorTex, prevFBO, prevVp)) {
+        glad_glDeleteVertexArrays(1, &vao);
+        glad_glDeleteBuffers(1, &vbo);
+        sv->doneCurrent();
+        return {};
+    }
+
+    // Letterbox into the square target so the source pixels keep their aspect.
+    const glm::vec2 uvScale = uvMax - uvMin;
+    float aspect = 1.f;
+    if (tex->GetWidth() > 0 && tex->GetHeight() > 0) {
+        float pw = uvScale.x * static_cast<float>(tex->GetWidth());
+        float ph = uvScale.y * static_cast<float>(tex->GetHeight());
+        if (ph > 0.f) aspect = pw / ph;
+    }
+    float sx = (aspect >= 1.f) ? 2.f : 2.f * aspect;
+    float sy = (aspect >= 1.f) ? 2.f / aspect : 2.f;
+
+    shader->Bind();
+
+    const glm::mat4 model = glm::scale(glm::mat4(1.f), glm::vec3(sx, sy, 1.f));
+    const glm::mat4 ident = glm::mat4(1.f);
+    const auto& au = shader->GetActiveUniforms();
+    auto has = [&](const char* n) { return au.count(n) > 0; };
+
+    if (has("uModel"))    shader->SetMat4("uModel",    model);
+    if (has("uView"))     shader->SetMat4("uView",     ident);
+    if (has("uProj"))     shader->SetMat4("uProj",     ident);
+    if (has("uSize"))     shader->SetVec2("uSize",     glm::vec2(1.f));
+    if (has("uPivot"))    shader->SetVec2("uPivot",    pivot);
+    if (has("uUVScale"))  shader->SetVec2("uUVScale",  uvScale);
+    if (has("uUVOffset")) shader->SetVec2("uUVOffset", uvMin);
+    if (has("uColor"))    shader->SetVec4("uColor",    glm::vec4(1.f));
+
+    tex->Bind(0);
+    if (has("uTexture")) shader->SetTexture("uTexture", 0);
+
+    glad_glBindVertexArray(vao);
+    glad_glDrawArrays(GL_TRIANGLES, 0, 6);
+    glad_glBindVertexArray(0);
+    glad_glUseProgram(0);
+
+    QPixmap result = endFBO(sz, fbo, colorTex, prevFBO, prevVp);
+    glad_glDeleteVertexArrays(1, &vao);
+    glad_glDeleteBuffers(1, &vbo);
+    sv->doneCurrent();
+    return result;
+}
+
 // ─── Public API ──────────────────────────────────────────────────────────────
 
 namespace AssetThumbnails {
@@ -151,74 +218,14 @@ QPixmap forSprite(const std::string& id)
 {
     Sprite* sprite = AssetManager::Get().GetSprite(id);
     if (!sprite) return {};
-    Texture2D* tex = sprite->GetTexture();
-    Shader* shader = AssetManager::Get().GetShader("s1");
-    if (!tex || !shader) return {};
-
-    SceneViewGui* sv = SceneViewGui::Get();
-    if (!sv || !sv->context() || !sv->context()->isValid()) return {};
-    sv->makeCurrent();
-
-    GLuint vao = 0, vbo = 0;
-    makeQuad(vao, vbo);
-
-    GLuint fbo = 0, colorTex = 0;
-    GLint prevFBO = 0, prevVp[4] = {};
-    if (!beginFBO(kSize, fbo, colorTex, prevFBO, prevVp)) {
-        glad_glDeleteVertexArrays(1, &vao);
-        glad_glDeleteBuffers(1, &vbo);
-        sv->doneCurrent();
-        return {};
-    }
-
-    float aspect = 1.f;
-    if (tex->GetWidth() > 0 && tex->GetHeight() > 0) {
-        glm::vec2 uvScale = sprite->GetUVMax() - sprite->GetUVMin();
-        float pw = uvScale.x * static_cast<float>(tex->GetWidth());
-        float ph = uvScale.y * static_cast<float>(tex->GetHeight());
-        if (ph > 0.f) aspect = pw / ph;
-    }
-    float sx = (aspect >= 1.f) ? 2.f : 2.f * aspect;
-    float sy = (aspect >= 1.f) ? 2.f / aspect : 2.f;
-
-    shader->Bind();
-
-    const glm::mat4 model = glm::scale(glm::mat4(1.f), glm::vec3(sx, sy, 1.f));
-    const glm::mat4 ident = glm::mat4(1.f);
-    const auto& au = shader->GetActiveUniforms();
-    auto has = [&](const char* n) { return au.count(n) > 0; };
-
-    if (has("uModel"))    shader->SetMat4("uModel",    model);
-    if (has("uView"))     shader->SetMat4("uView",     ident);
-    if (has("uProj"))     shader->SetMat4("uProj",     ident);
-    if (has("uSize"))     shader->SetVec2("uSize",     glm::vec2(1.f));
-    if (has("uPivot"))    shader->SetVec2("uPivot",    sprite->GetPivot());
-    if (has("uUVScale"))  shader->SetVec2("uUVScale",  sprite->GetUVMax() - sprite->GetUVMin());
-    if (has("uUVOffset")) shader->SetVec2("uUVOffset", sprite->GetUVMin());
-    if (has("uColor"))    shader->SetVec4("uColor",    glm::vec4(1.f));
-
-    tex->Bind(0);
-    if (has("uTexture")) shader->SetTexture("uTexture", 0);
-
-    glad_glBindVertexArray(vao);
-    glad_glDrawArrays(GL_TRIANGLES, 0, 6);
-    glad_glBindVertexArray(0);
-    glad_glUseProgram(0);
-
-    QPixmap result = endFBO(kSize, fbo, colorTex, prevFBO, prevVp);
-    glad_glDeleteVertexArrays(1, &vao);
-    glad_glDeleteBuffers(1, &vbo);
-    sv->doneCurrent();
-    return result;
+    return renderTextureQuad(kSize, sprite->GetTexture(), sprite->GetUVMin(),
+                             sprite->GetUVMax(), sprite->GetPivot());
 }
 
 QPixmap forTexture(const std::string& id)
 {
-    Texture2D* tex = AssetManager::Get().GetTexture(id);
-    if (!tex) return {};
-    const std::string& path = tex->GetPath();
-    if (path.empty()) return {};
-    return QPixmap(QString::fromStdString(path));
+    return renderTextureQuad(kSize, AssetManager::Get().GetTexture(id),
+                             glm::vec2(0.f), glm::vec2(1.f), glm::vec2(0.f));
 }
 
-} // namespace AssetThumbnails
+}

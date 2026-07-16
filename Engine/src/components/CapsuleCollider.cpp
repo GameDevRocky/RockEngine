@@ -10,10 +10,19 @@
 
 using namespace EngineUtils::RenderUtils;
 
+YAML::Node CapsuleCollider::Serialize(){
+    YAML::Node node = Collider::Serialize();
+    node["radius"] = radius;
+    node["height"] = height;
+    return node;
+}
+
 void CapsuleCollider::Deserialize(const YAML::Node& node){
+    if (state >= State::Loaded) return;
     Collider::Deserialize(node);
-    radius = node["radius"].as<float>();
-    height = node["height"].as<float>();
+    // Absent dimensions stay 0 so PostInit auto-sizes them from the sprite.
+    if (node["radius"]) radius = node["radius"].as<float>();
+    if (node["height"]) height = node["height"].as<float>();
     state = State::Loaded;
 }
 

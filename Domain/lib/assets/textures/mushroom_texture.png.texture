@@ -2,11 +2,11 @@ type: Texture2D
 id: t2
 name: mushroom_texture
 path: Domain/lib/assets/textures/mushroom_texture.png
-filtering: linear
+filtering: nearest
 wrap: repeat
 sprites:
   - id: h3or3rbjjk3rk
     name: test
-    uvMin: [0.0, 0.0]
-    uvMax: [1.0, 1.0]
+    uvMin: [0, 0]
+    uvMax: [1, 1]
     pivot: [0, 0]

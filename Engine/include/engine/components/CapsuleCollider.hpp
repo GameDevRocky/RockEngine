@@ -11,7 +11,8 @@ public:
     static inline const Event RADIUS_CHANGED_EVENT = Collider::CreateEvent();
     static inline const Event HEIGHT_CHANGED_EVENT = Collider::CreateEvent();
 
-    void Deserialize(const YAML::Node& node);
+    void Deserialize(const YAML::Node& node) override;
+    YAML::Node Serialize() override;
     virtual void Awake() override;
     virtual void PostInit() override;
     std::string GetTypeName() const override {return "CapsuleCollider";}

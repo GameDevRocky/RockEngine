@@ -51,6 +51,14 @@ public:
         spin->setDecimals(desc.tag == Properties::Tags::INT ? 0 : 2);
         spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
+        // PropDesc::tag holds a single value, so Tags::READONLY and a type tag such
+        // as Tags::FLOAT are mutually exclusive. Accept either signal so a caller can
+        // keep its type tag and still be display-only via PropDesc::ReadOnly().
+        if (desc.readOnly || desc.tag == Properties::Tags::READONLY) {
+            spin->setReadOnly(true);
+            spin->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        }
+
         QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this](double val) {
             if (onChanged) onChanged(static_cast<float>(val));
         });

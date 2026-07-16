@@ -14,8 +14,9 @@ using namespace EngineUtils::RenderUtils;
 void CircleCollider::Deserialize(const YAML::Node& node){
     if (state >= State::Loaded) return;
     Collider::Deserialize(node);
- 
-    radius = node["radius"].as<float>();
+
+    // Absent dimensions stay 0 so PostInit auto-sizes them from the sprite.
+    if (node["radius"]) radius = node["radius"].as<float>();
     state = State::Loaded;
 }
 

@@ -1,0 +1,6 @@
+type: Texture2D
+id: t0
+name: default
+path: Domain/lib/assets/defaults/default.png
+filtering: linear
+wrap: repeat

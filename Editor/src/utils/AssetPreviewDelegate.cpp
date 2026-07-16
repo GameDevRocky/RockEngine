@@ -1,4 +1,5 @@
 #include "utils/AssetPreviewDelegate.hpp"
+#include "utils/AssetThumbnails.hpp"
 #include "dock-widgets/SceneViewGui.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/Material.hpp"
@@ -30,15 +31,6 @@ static std::string yamlField(const QString& filePath, const char* key) {
         if (n[key]) return n[key].as<std::string>();
     } catch (...) {}
     return {};
-}
-
-// Resolve the source image path for a .texture meta file.
-// The meta file has a "path" field that is relative to PROJECT_ROOT.
-static QString textureSourcePath(const QString& metaPath) {
-    std::string rel = yamlField(metaPath, "path");
-    if (rel.empty()) return {};
-    QString abs = QString(PROJECT_ROOT) + "/" + QString::fromStdString(rel);
-    return QFileInfo::exists(abs) ? abs : QString();
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -145,8 +137,10 @@ void AssetPreviewDelegate::paint(QPainter* painter,
     if (ext == "mat" || ext == "material") {
         px = renderMaterialPreview(filePath);
     } else if (ext == "texture") {
-        QString src = textureSourcePath(filePath);
-        if (!src.isEmpty()) px = QPixmap(src);
+        // Render the engine's uploaded GPU texture, like the material preview
+        // above, rather than re-decoding the source image off disk.
+        const std::string id = yamlField(filePath, "id");
+        if (!id.empty()) px = AssetThumbnails::forTexture(id);
     }
 
     if (px.isNull()) {

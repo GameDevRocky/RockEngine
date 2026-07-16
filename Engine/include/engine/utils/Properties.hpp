@@ -39,7 +39,7 @@ namespace Properties {
         float step = 0.1f;
         std::string description = "";
         std::string refClassFilter = "";  // For OBJECT_REF: filters GameObjects to those with this script class
-        bool readOnly = false;            // For Tags::LIST: display-only (no add/remove, non-editable rows)
+        bool readOnly = false;            // Display-only. Tags::LIST: no add/remove buttons. Scalars: non-editable input.
 
         std::vector<std::pair<std::string, std::any>> dropdownOptions;
 
