@@ -66,6 +66,7 @@ void GameViewGui::OnViewInitialized()
 
     imGuiInstance = new ImGuiInstance();
     imGuiInstance->Init();
+    imGuiInstance->AddDrawCall([this](){ DrawNoCameraOverlay(); });
     imGuiInstance->AddDrawCall([this](){ DrawToolBar(); });
 
     // Default to Free Aspect: fill the panel instead of letterboxing to the
@@ -150,6 +151,36 @@ void GameViewGui::DrawToolBar()
 
     ImGui::PopStyleColor();
     ImGui::PopStyleVar();
+}
+
+void GameViewGui::DrawNoCameraOverlay()
+{
+    // The Game view keeps blitting its last resolved frame when no Camera is
+    // active (see GameRenderView::UpdateCamera), so overlay a notice to make
+    // the "nothing is driving this view" state explicit instead of silent.
+    if (!gameView || gameView->HasActiveCamera()) return;
+
+    const char* text = "No cameras rendering";
+
+    // The main viewport spans this widget's ImGui display, so Pos/Size is the
+    // full panel rect in ImGui's coordinate space.
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImVec2 min = viewport->Pos;
+    ImVec2 max(viewport->Pos.x + viewport->Size.x, viewport->Pos.y + viewport->Size.y);
+    ImVec2 center(viewport->Pos.x + viewport->Size.x * 0.5f,
+                  viewport->Pos.y + viewport->Size.y * 0.5f);
+
+    // Draw the text at 2x the base font size.
+    ImFont* font = ImGui::GetFont();
+    float fontSize = ImGui::GetFontSize() * 2.0f;
+    ImVec2 textSize = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, text);
+    ImVec2 pos(center.x - textSize.x * 0.5f, center.y - textSize.y * 0.5f);
+
+    ImDrawList* dl = ImGui::GetForegroundDrawList();
+    // Full-screen semi-transparent backdrop keeps the text legible over any
+    // clear color and makes the "nothing is driving this view" state obvious.
+    dl->AddRectFilled(min, max, IM_COL32(0, 0, 0, 140));
+    dl->AddText(font, fontSize, pos, IM_COL32(230, 230, 230, 255), text);
 }
 
 void GameViewGui::keyPressEvent(QKeyEvent* event) {

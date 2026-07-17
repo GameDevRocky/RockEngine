@@ -25,8 +25,14 @@ void GameRenderView::UpdateCamera()
     if (Camera* mainCam = Camera::GetMain())
     {
         mainCam->ApplyTo(*camera);
+        hasActiveCamera = true;
     }
-    // Else: no enabled Camera component in the active scenes. Leave `camera`
-    // as-is rather than resetting to defaults every frame -- matches the
-    // pre-Camera-component behavior of a static, unmoving view exactly.
+    else
+    {
+        // No enabled Camera component in the active scenes. Leave `camera`
+        // as-is rather than resetting to defaults every frame -- matches the
+        // pre-Camera-component behavior of a static, unmoving view exactly.
+        // The host reads HasActiveCamera() to overlay a notice.
+        hasActiveCamera = false;
+    }
 }

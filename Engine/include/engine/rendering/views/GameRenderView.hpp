@@ -11,6 +11,15 @@ class GameRenderView : public RenderView
 public:
     void Init() override;
 
+    // True if the last UpdateCamera() resolved a live main Camera (i.e.
+    // Camera::GetMain() found an enabled Camera on an active GameObject).
+    // Hosts use this to overlay a "no cameras rendering" notice. Reflects the
+    // most recently rendered frame, so read it after Render().
+    bool HasActiveCamera() const { return hasActiveCamera; }
+
 protected:
     void UpdateCamera() override;
+
+private:
+    bool hasActiveCamera = false;
 };

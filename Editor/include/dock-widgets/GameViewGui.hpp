@@ -39,6 +39,8 @@ protected:
 private:
     // Unity-style aspect/resolution selector, drawn as an ImGui toolbar.
     void DrawToolBar();
+    // Centered notice shown when no Camera is resolving for the Game view.
+    void DrawNoCameraOverlay();
     void ApplyAspectPreset(int index);
 
     GameRenderView* gameView = nullptr;   // borrowed; same object as ViewportWidget::view
