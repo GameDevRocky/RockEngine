@@ -352,12 +352,6 @@ void DebugPass::DrawPolygonDirect(const std::vector<glm::vec2>& pts, GLenum mode
     glad_glBindVertexArray(0);
 }
 
-void DebugPass::Resize(int width, int height)
-{
-    viewportWidth = width;
-    viewportHeight = height;
-}
-
 void DebugPass::Shutdown()
 {
     if (boxVbo)     glad_glDeleteBuffers(1, &boxVbo);
@@ -371,5 +365,6 @@ void DebugPass::Shutdown()
     if (polyVbo)    glad_glDeleteBuffers(1, &polyVbo);
     if (polyVao)    glad_glDeleteVertexArrays(1, &polyVao);
     if (ssbo)       glad_glDeleteBuffers(1, &ssbo);
-    if (debugShader) delete debugShader;
+    // debugShader is borrowed from AssetManager -- do NOT delete it (see RenderPass.hpp).
+    debugShader = nullptr;
 }

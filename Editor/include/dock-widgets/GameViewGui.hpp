@@ -1,23 +1,14 @@
 #pragma once
-#include <QWidget>
-#include <glad/glad.h>
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLBuffer>
-#include <QOpenGLVertexArrayObject>
+#include "dock-widgets/ViewportWidget.hpp"   // must precede any Qt header that pulls GL headers (glad.h ordering)
 #include <glm/glm.hpp>
-#include "engine/rendering/pipelines/RenderPipeline.hpp"
-#include "engine/rendering/cameras/RenderCamera.hpp"
-#include <QElapsedTimer>
-#include <QTimer>
 #include <QWheelEvent>
-#include <QPoint>
 #include <QMouseEvent>
+#include "engine/rendering/views/GameRenderView.hpp"
+#include "utils/ImGuiInstance.hpp"
 #include "Engine.hpp"
 using namespace EngineUtils;
 
-class GameViewGui : public QOpenGLWidget, protected QOpenGLFunctions {
+class GameViewGui : public ViewportWidget {
     Q_OBJECT
 
 public:
@@ -29,36 +20,32 @@ public:
         return instance;
     }
     void Init();
-    void Render();
     explicit GameViewGui(QWidget* parent = nullptr);
 
 protected:
+    RenderView* CreateView(int pixelW, int pixelH) override;
+    void OnViewInitialized() override;
+    void OnResized(int logicalW, int logicalH) override;
+    void OnAfterPresent() override;
+
     void keyPressEvent(QKeyEvent* e) override;
     void keyReleaseEvent(QKeyEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
-    void initializeGL() override;
-    void resizeGL(int w, int h) override;
-    void paintGL() override;
-    void initializeRenderPipeline();
+    bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
-    RenderPipeline* renderPipeline = nullptr;
-    RenderCamera* camera = nullptr;
-    static inline Proxy<SceneManager> sceneManager;
+    // Unity-style aspect/resolution selector, drawn as an ImGui toolbar.
+    void DrawToolBar();
+    void ApplyAspectPreset(int index);
+
+    GameRenderView* gameView = nullptr;   // borrowed; same object as ViewportWidget::view
+    ImGuiInstance* imGuiInstance = nullptr;
+    int aspectPresetIndex = 0;            // index into kPresets (0 == Free Aspect)
+
     static inline Proxy<InputManager> inputManager;
 
-    QOpenGLShaderProgram program;
-    QOpenGLBuffer vbo{QOpenGLBuffer::VertexBuffer};
-    QOpenGLVertexArrayObject vao;
-    QElapsedTimer elapsedTimer;
-    GLuint quadVAO = 0;
-    GLuint quadVBO = 0;
-    GLuint quadShader = 0;
-
     ~GameViewGui() override = default;
-
-
 };

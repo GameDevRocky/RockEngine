@@ -6,6 +6,9 @@
 #include <QFileInfo>
 #include <QStringList>
 #include <QSurfaceFormat>
+// QOpenGLWidget comes transitively from dock-widgets/*.hpp below, which
+// include it via ViewportWidget.hpp -- that header orders glad.h first, so
+// QOpenGLWidget must never be included directly before it in this file.
 #include "dock-widgets/MainWindowGui.hpp"
 #include "dock-widgets/ConsoleGui.hpp"
 #include "dock-widgets/SceneViewGui.hpp"
@@ -30,7 +33,7 @@ void Editor::Init() {
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
-    format.setSamples(4);
+    format.setSamples(4);   // 4x MSAA
     format.setSwapInterval(1); // vsync: pace buffer swaps to the display refresh
     QSurfaceFormat::setDefaultFormat(format);
 
@@ -76,15 +79,24 @@ void Editor::Init() {
 }
 
 void Editor::Update(){
-    SceneViewGui::Get()->update();
-    GameViewGui::Get()->update();
-
+    if (frameDriver) frameDriver->update();
 }
 
 void Editor::FrameTick(){
     lastTickTime = std::chrono::steady_clock::now();
     Engine::Get()->Update();
-    Update(); // schedule the next repaint; the Scene view's swap re-arms this loop
+    Update(); // schedule the next repaint; the driver's swap re-arms this loop
+}
+
+void Editor::SetFrameDriver(QOpenGLWidget* w) {
+    if (frameDriver == w) return;
+    if (frameDriverConn) QObject::disconnect(frameDriverConn);
+    frameDriver = w;
+    if (!w) return;
+    frameDriverConn = QObject::connect(w, &QOpenGLWidget::frameSwapped, [this]() {
+        FrameTick();
+    });
+    w->update(); // re-arm: the previous driver's vsync loop has already stopped
 }
 
 void Editor::PostInit() {
@@ -93,15 +105,15 @@ void Editor::PostInit() {
 
     MainWindow::Get()->PostInit();
 
-    // Primary clock: the Scene view swaps its buffers under vsync, so its
-    // frameSwapped signal fires at the display refresh rate. Each frame we
-    // advance the engine and request the next repaint, which swaps again and
-    // re-fires this signal -- a self-sustaining, vsync-locked frame loop.
-    QObject::connect(SceneViewGui::Get(), &QOpenGLWidget::frameSwapped, [this]() {
-        FrameTick();
-    });
+    // Primary clock: whichever viewport is currently visible drives the loop
+    // -- its frameSwapped signal fires at the display refresh rate under
+    // vsync. Each frame we advance the engine and request the next repaint,
+    // which swaps again and re-fires this signal -- a self-sustaining,
+    // vsync-locked frame loop. Starts on the Scene view (the initially
+    // active tab); MainWindowGui switches the driver on tab changes.
+    SetFrameDriver(SceneViewGui::Get());
 
-    // Fallback watchdog: when no view is presenting (Scene view hidden,
+    // Fallback watchdog: when no view is presenting (driver hidden,
     // minimized, or occluded) frameSwapped stops firing. This keeps the engine
     // ticking so scripts, file-watching, and logic never freeze. It only steps
     // when the vsync loop has clearly stalled, so it never double-drives a
@@ -119,7 +131,6 @@ void Editor::PostInit() {
 
     lastTickTime = std::chrono::steady_clock::now();
     timer->start(kWatchdogIntervalMs);
-    SceneViewGui::Get()->update(); // kick off the first frame
 
     app->exec();
 

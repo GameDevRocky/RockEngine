@@ -24,8 +24,6 @@ public:
 
     void Init() override;
 
-    void Resize(int width, int height) override;
-
     void Execute(RenderCamera* camera, Scene* scene) override;
 
     void Shutdown() override;
@@ -46,6 +44,4 @@ private:
     int capsuleVertexCount = 0;
 
     Shader* debugShader = nullptr;
-    int viewportWidth = 0;
-    int viewportHeight = 0;
 };

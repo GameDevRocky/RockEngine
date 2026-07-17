@@ -37,21 +37,17 @@ void GridPass::Execute(RenderCamera* camera, Scene* scene){
         shader->SetFloat("uTime", timeManager->ElapsedTime());
         float zoom = camera->GetZoom();
         float orthoSize = camera->GetOrthoSize();
-        float pixelsPerWorldUnit = (viewportHeight * zoom / (2.0f * orthoSize)) * 0.01f;
+        float pixelsPerWorldUnit = (camera->GetPixelHeight() * zoom / (2.0f * orthoSize)) * 0.01f;
         shader->SetFloat("uPixelsPerWorldUnit", pixelsPerWorldUnit);
 
         glad_glDrawArrays(GL_TRIANGLES, 0, 3);
         glad_glBindVertexArray(0);
 }
 
-void GridPass::Resize(int w, int h){
-    viewportWidth = w;
-    viewportHeight = h;
-}
-
 void GridPass::Shutdown(){
     if (vbo) glad_glDeleteBuffers(1, &vbo);
         if (vao) glad_glDeleteVertexArrays(1, &vao);
         vao = vbo = 0;
-        if (shader) delete shader; shader = nullptr; 
+        // shader is borrowed from AssetManager -- do NOT delete it (see RenderPass.hpp).
+        shader = nullptr;
 }

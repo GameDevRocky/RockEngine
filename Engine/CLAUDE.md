@@ -68,8 +68,9 @@ YAML (yaml-cpp) throughout.
 - Component types register via `RegisterComponentTypes()` (`src/components/ComponentRegistrars.cpp`),
   called in `Engine::Init`.
 
-Scenes are `.scene` YAML; sample scene is `Domain/lib/configs/Sample_Scene.yaml`
-(`SAMPLE_SCENE_PATH` in `Engine.cpp`).
+Scenes are `.scene` YAML. There is no default/sample scene wired up — scenes load only via
+drag-and-drop onto the hierarchy panel (`Editor/src/dock-widgets/HierarchyGui.cpp`). The only
+scene checked into the repo is `Domain/sandbox/default.scene`.
 
 ## Assets
 
@@ -89,11 +90,63 @@ New asset type → extend `AssetMetaService` (meta convention) and `AssetManager
 
 ## Rendering
 
-- `src/rendering/core/`: Shader, Texture2D, Material, Sprite, Resource, GizmosManager.
-- `src/rendering/cameras/`: RenderCamera (base), SceneCamera (editor), GameCamera (runtime).
+Rendering lifecycle lives entirely in Engine, **outside any `Container`** — render resources
+have no per-world identity, so the editor and runtime containers (which share one screen and
+one GL context) must not fight over ownership of a pipeline. The GL context itself still comes
+from the editor's Qt `QOpenGLWidget`s (`AA_ShareOpenGLContexts` shares one context group across
+all of them), but from the FBO inward, Engine owns everything.
+
+**Ownership chain:** `Renderer` (`src/rendering/Renderer.cpp`, singleton — alongside
+`AssetManager`) → owns one `RenderView` per viewport (`src/rendering/views/`:
+`EditorRenderView`, `GameRenderView`) → each owns a `RenderPipeline`
+(`src/rendering/pipelines/`, a list of `RenderPass`es plus a `RenderTarget`) and a resolved
+`RenderCamera`. A Qt widget (`ViewportWidget` in Editor, and its `SceneViewGui`/`GameViewGui`
+subclasses) only hosts a `RenderView` and hands it an FBO id + pixel size each frame — it never
+touches GL beyond that.
+
+**`Renderer::EnsureInitialized()`** is the one-time bootstrap: `gladLoadGL()`, the
+`AssetManager` load, and the shared fullscreen-quad blit resources, all idempotent so whichever
+viewport gets a GL context first does the work and every other viewport is a no-op.
+
+**Camera: authored vs. resolved.** `Camera` (`src/components/Camera.cpp`) is a `Component` —
+authored settings only (projection, orthoSize, clear flags/color, priority, target aspect,
+viewport rect, culling mask, target texture id). Serialized, inspectable, scriptable, and
+copyable across the play-mode container swap like any other component. It has **no GL, no
+matrices, and no RenderCamera member** — viewport pixel dimensions belong to the view, not the
+camera, so two views rendering the same camera at different sizes would otherwise fight over
+one set of dims. `RenderCamera` is the **resolved** counterpart: everything a `RenderPass`
+actually needs for one view for one frame (pose, matrices, clear settings, culling mask,
+viewport rect, target aspect). Owned by a `RenderView`, never serialized. Each frame,
+`RenderView::Render()` calls `UpdateCamera()` (a pull, not a push — see below) which resolves
+the active camera and calls `Camera::ApplyTo(RenderCamera&)` to write settings + the
+GameObject's world pose in. `GameRenderView` resolves via `Camera::GetMain()` (highest-priority
+enabled `Camera` on an active GameObject, scanned across loaded scenes — a seam, not a
+registered system; see the comment on `GetMain()` before reaching for a `CameraSystem`).
+`EditorRenderView` instead owns an `EditorCamera : RenderCamera` — the Scene view's pan/zoom
+navigation camera, deliberately **outside the ECS**: never serialized, never deep-copied, never
+in the hierarchy.
+
+Sync is a **pull at render time**, not a lifecycle hook: `SceneManager::Update` early-returns
+while paused, and Qt can repaint without a `FrameTick` (expose/resize), so pushing camera state
+from `Update()`/`LateUpdate()` would go stale. Pulling in `RenderView::Render()` has no
+ordering dependency and is always correct — and it's why `Camera` needs no `Update()` override
+at all.
+
+**Letterboxing.** A camera's `targetAspect` (`<= 0` means "free" — fill the panel, which is
+what the editor view always uses) drives `RenderView::ApplyTargetSizing()`: it fits the largest
+rect of that aspect inside the panel, sizes the `RenderPipeline`'s `RenderTarget` to *that* (not
+the panel), and `Present()` blits into the centered offset, clearing the rest black. Runs every
+frame (not just on resize) since `targetAspect` can change live from the inspector.
+
+- `src/rendering/core/`: Shader, Texture2D, Material, Sprite, Resource, GizmosManager,
+  `RenderTarget` (FBO + color texture + depth renderbuffer; owned by `RenderPipeline`).
+- `src/rendering/cameras/`: `RenderCamera` (resolved state, see above), `EditorCamera`
+  (editor-viewport navigation; pan via `PanByPixels`, zoom-to-cursor via `ZoomAt`).
 - `src/rendering/passes/`: ClearPass, GridPass, ScenePass, PickingPass (mouse-pick via id
-  buffer), DebugPass — composed by `RenderPipeline` (`src/rendering/pipelines/`).
-- OpenGL 4.6 core profile; the GL context comes from the editor's Qt OpenGL widget.
+  buffer), DebugPass — composed by a `RenderPipeline`. A pass may **borrow** shaders/textures
+  from `AssetManager` but must never delete them in `Shutdown()` — see the ownership comment on
+  `RenderPass`.
+- OpenGL 4.6 core profile.
 
 ## Scripting — C++ side (pybind11)
 

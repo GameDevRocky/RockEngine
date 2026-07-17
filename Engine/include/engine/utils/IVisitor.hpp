@@ -19,6 +19,7 @@ class Sprite;
 class Material;
 class Texture2D;
 class Shader;
+class Camera;
 
 class IVisitor {
 public:
@@ -37,4 +38,5 @@ public:
     virtual void Visit(Material* m) {}
     virtual void Visit(Texture2D* t) {}
     virtual void Visit(Shader* s) {}
+    virtual void Visit(Camera* c) {}
 };

@@ -13,7 +13,6 @@
 #include "engine/utils/EngineUtils.hpp"
 #include <filesystem>
 #include <cstdlib>
-#define SAMPLE_SCENE_PATH "Domain/lib/configs/Sample_Scene.yaml"
 
 namespace py = pybind11;
 
@@ -117,12 +116,6 @@ void Engine::StepFrame(){
     if (activeContainer->GetMode() != Container::Mode::Runtime) return;
     activeContainer->StepFrame();
 }
-
-void Engine::LoadDefaultScene(){
-    SceneManager* sceneManager = activeContainer->FindSystem<SceneManager>();
-    sceneManager->LoadScene(EngineUtils::GetAssetPath(SAMPLE_SCENE_PATH));
-}
-
 
 void Engine::Shutdown() {
    

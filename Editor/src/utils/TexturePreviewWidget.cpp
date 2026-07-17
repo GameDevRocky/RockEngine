@@ -47,9 +47,11 @@ TexturePreviewWidget::~TexturePreviewWidget()
 
 void TexturePreviewWidget::initializeGL()
 {
-    // The scene view owns the shared context and is what loads glad. It is
-    // constructed at startup, long before an inspector row exists, but bail
-    // rather than call through null entry points if that ever stops holding.
+    // Whichever render viewport (Scene or Game) gets a GL context first calls
+    // Renderer::EnsureInitialized(), which loads glad for the whole shared
+    // context group. That happens at startup, long before an inspector row
+    // exists, but bail rather than call through null entry points if that
+    // ever stops holding.
     if (!glad_glGenVertexArrays) return;
 
     // Textures, buffers and shader programs are shared via AA_ShareOpenGLContexts,

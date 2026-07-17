@@ -1,151 +1,155 @@
 #include "dock-widgets/GameViewGui.hpp"
 #include <QDebug>
-#include <QOpenGLContext>
-#include <QSurfaceFormat>
 #include "engine/debug/Console.hpp"
 #include "engine/core/InputManager.hpp"
+#include "engine/core/TimeManager.hpp"
 #include <glm/glm.hpp>
-#include "engine/rendering/passes/ClearPass.hpp"
-#include "engine/rendering/passes/ScenePass.hpp"
-#include "engine/rendering/passes/GridPass.hpp"
+#include "engine/rendering/Renderer.hpp"
 #include "Engine.hpp"
+#include "imgui.h"
+#include "imgui_impl_opengl3.h"
 
-GameViewGui::GameViewGui(QWidget* parent)
-    : QOpenGLWidget(parent)
-{
-    setFocusPolicy(Qt::StrongFocus);
-setMouseTracking(true);
-
-}
-void GameViewGui::Init(){ 
-    resize(300, 500);
-    std::cout << "GameViewGui Initialized" << std::endl;
-}  
-
-void GameViewGui::initializeRenderPipeline(){
-    int fbw = static_cast<int>(width() * devicePixelRatio());
-    int fbh = static_cast<int>(height() * devicePixelRatio());
-    
-    renderPipeline = new RenderPipeline();
-    camera = new RenderCamera();
-    
-    ClearPass* clearPass = new ClearPass();
-    ScenePass* scenePass = new ScenePass();
-    
-    renderPipeline->AddSetupPass(clearPass);
-    renderPipeline->AddScenePass(scenePass);
-    
-    renderPipeline->Init();
-    camera->Init();
-
-    renderPipeline->Resize(fbw, fbh);
-    camera->Resize(fbw, fbh);
-}
-
-void GameViewGui::initializeGL() {
-    initializeOpenGLFunctions();
-    
-    if (!gladLoadGL()) {
-        QSurfaceFormat fmt = context()->format();
-        std::cerr << "Failed to initialize GLAD (GameView). Context obtained: "
-                   << fmt.majorVersion() << "." << fmt.minorVersion()
-                   << (fmt.profile() == QSurfaceFormat::CoreProfile ? " core" : " non-core")
-                   << " | GL_VENDOR=" << reinterpret_cast<const char*>(glGetString(GL_VENDOR))
-                   << " | GL_RENDERER=" << reinterpret_cast<const char*>(glGetString(GL_RENDERER))
-                   << " | GL_VERSION=" << reinterpret_cast<const char*>(glGetString(GL_VERSION))
-                   << std::endl;
-        return;
-    }
-
-    initializeRenderPipeline();
-
-    float quadVertices[] = {
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-
-        -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-         1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-         1.0f,  1.0f, 0.0f, 1.0f, 1.0f
+namespace {
+    // The Game view's aspect/resolution presets, mirroring Unity's Game-view
+    // dropdown. Aspect entries letterbox to a ratio; Resolution entries render
+    // at an exact internal size, scaled to fit the panel.
+    struct AspectPreset {
+        const char* label;
+        enum Kind { Free, Aspect, Resolution } kind;
+        float aspect;   // Kind::Aspect
+        int   w, h;     // Kind::Resolution
     };
 
-    glGenVertexArrays(1, &quadVAO);
-    glGenBuffers(1, &quadVBO);
-    glBindVertexArray(quadVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-
-    glBindVertexArray(0);
-
-    const char* quadVert = R"(#version 460 core
-    layout(location = 0) in vec3 aPos;
-    layout(location = 1) in vec2 aTexCoord;
-    out vec2 TexCoord;
-    void main() {
-        TexCoord = aTexCoord;
-        gl_Position = vec4(aPos, 1.0);
-    })";
-
-    const char* quadFrag = R"(#version 460 core
-    in vec2 TexCoord;
-    out vec4 FragColor;
-    uniform sampler2D uTexture;
-    void main() {
-        FragColor = texture(uTexture, TexCoord);
-    })";
-
-    quadShader = glCreateProgram();
-    GLuint v = glCreateShader(GL_VERTEX_SHADER);
-    GLuint f = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(v, 1, &quadVert, nullptr);
-    glCompileShader(v);
-    glShaderSource(f, 1, &quadFrag, nullptr);
-    glCompileShader(f);
-    glAttachShader(quadShader, v);
-    glAttachShader(quadShader, f);
-    glLinkProgram(quadShader);
-    glDeleteShader(v);
-    glDeleteShader(f);
+    const AspectPreset kPresets[] = {
+        { "Free Aspect",         AspectPreset::Free,       0.0f,        0,    0    },
+        { "5:4",                 AspectPreset::Aspect,     5.0f / 4.0f,  0,    0    },
+        { "4:3",                 AspectPreset::Aspect,     4.0f / 3.0f,  0,    0    },
+        { "3:2",                 AspectPreset::Aspect,     3.0f / 2.0f,  0,    0    },
+        { "16:10",               AspectPreset::Aspect,     16.0f / 10.0f, 0,   0    },
+        { "16:9",                AspectPreset::Aspect,     16.0f / 9.0f, 0,    0    },
+        { "21:9",                AspectPreset::Aspect,     21.0f / 9.0f, 0,    0    },
+        { "32:9",                AspectPreset::Aspect,     32.0f / 9.0f, 0,    0    },
+        // ---- fixed resolutions (a separator precedes this block) ----
+        { "Full HD (1920x1080)", AspectPreset::Resolution, 0.0f,        1920, 1080 },
+        { "WXGA (1366x768)",     AspectPreset::Resolution, 0.0f,        1366, 768  },
+        { "QHD (2560x1440)",     AspectPreset::Resolution, 0.0f,        2560, 1440 },
+        { "4K UHD (3840x2160)",  AspectPreset::Resolution, 0.0f,        3840, 2160 },
+    };
+    constexpr int kPresetCount = IM_ARRAYSIZE(kPresets);
+    constexpr int kFirstResolutionIndex = 8;   // where the resolution block starts
 }
 
-void GameViewGui::resizeGL(int w, int h) {
-    int fbw = static_cast<int>(w * devicePixelRatio());
-    int fbh = static_cast<int>(h * devicePixelRatio());
-
-    renderPipeline->Resize(fbw, fbh);
-    camera->Resize(fbw, fbh);
-    glViewport(0, 0, fbw, fbh);
+GameViewGui::GameViewGui(QWidget* parent)
+    : ViewportWidget(parent)
+{
+    setFocusPolicy(Qt::StrongFocus);
+    setMouseTracking(true);
 }
 
-void GameViewGui::paintGL() {
-
-    makeCurrent();
-    Render();
-    GLuint tex = renderPipeline->GetOutputTexture();
-    GLuint qtFBO = static_cast<GLuint>(defaultFramebufferObject());
-    glBindFramebuffer(GL_FRAMEBUFFER, qtFBO);
-
-    int fbw = static_cast<int>(width() * devicePixelRatio());
-    int fbh = static_cast<int>(height() * devicePixelRatio());
-    glViewport(0, 0, fbw, fbh);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glUseProgram(quadShader);
-    glBindVertexArray(quadVAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glUniform1i(glGetUniformLocation(quadShader, "uTexture"), 0);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
-    glUseProgram(0);
+void GameViewGui::Init(){
+    resize(300, 500);
+    std::cout << "GameViewGui Initialized" << std::endl;
 }
 
-void GameViewGui::Render(){
-    renderPipeline->Render(camera, sceneManager->GetScenes());
+RenderView* GameViewGui::CreateView(int pixelW, int pixelH)
+{
+    gameView = Renderer::Get().CreateGameView(pixelW, pixelH);
+    return gameView;
+}
+
+void GameViewGui::OnViewInitialized()
+{
+    // Must precede imGuiInstance construction with no intervening event-loop
+    // turn: eventFilter() calls ImGui::GetIO(), which asserts if a filtered
+    // event arrives before ImGui::CreateContext() has run.
+    installEventFilter(this);
+
+    imGuiInstance = new ImGuiInstance();
+    imGuiInstance->Init();
+    imGuiInstance->AddDrawCall([this](){ DrawToolBar(); });
+
+    // Default to Free Aspect: fill the panel instead of letterboxing to the
+    // camera's authored aspect. Matches Unity's default and fixes the image not
+    // filling the Game view widget out of the box.
+    ApplyAspectPreset(0);
+
+    std::cout << "GameViewGui OpenGL Initialized. " << std::endl;
+}
+
+void GameViewGui::OnResized(int w, int h)
+{
+    if (imGuiInstance) imGuiInstance->Resize(w, h, devicePixelRatioF());
+}
+
+void GameViewGui::OnAfterPresent()
+{
+    if (!imGuiInstance) return;
+
+    // ImGui::NewFrame() (inside Render()) asserts io.DeltaTime > 0, so feed it
+    // the frame's unscaled delta before drawing.
+    imGuiInstance->MakeCurrent();
+    ImGuiIO& io = ImGui::GetIO();
+    TimeManager* timeManager = Engine::Get()->GetActiveContainer()->FindSystem<TimeManager>();
+    float dt = timeManager ? timeManager->UnscaledDeltaTime() : 0.0f;
+    io.DeltaTime = (dt > 0.0f) ? dt : (1.0f / 60.0f);
+
+    imGuiInstance->Render();
+}
+
+void GameViewGui::ApplyAspectPreset(int index)
+{
+    if (index < 0 || index >= kPresetCount) return;
+    aspectPresetIndex = index;
+    if (!gameView) return;
+
+    const AspectPreset& p = kPresets[index];
+    switch (p.kind)
+    {
+        case AspectPreset::Free:       gameView->SetDisplayFree();               break;
+        case AspectPreset::Aspect:     gameView->SetDisplayAspect(p.aspect);     break;
+        case AspectPreset::Resolution: gameView->SetDisplayResolution(p.w, p.h); break;
+    }
+}
+
+void GameViewGui::DrawToolBar()
+{
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 3.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.12f, 0.12f, 0.12f, 0.85f));
+
+    // Pin to the top-left of the panel.
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + 8.0f, viewport->WorkPos.y + 8.0f),
+                            ImGuiCond_Always);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration |
+                             ImGuiWindowFlags_AlwaysAutoResize |
+                             ImGuiWindowFlags_NoSavedSettings |
+                             ImGuiWindowFlags_NoFocusOnAppearing |
+                             ImGuiWindowFlags_NoNav |
+                             ImGuiWindowFlags_NoMove;
+
+    if (ImGui::Begin("###GameViewToolbar", nullptr, flags))
+    {
+        ImGui::SetNextItemWidth(190.0f);
+        if (ImGui::BeginCombo("###AspectCombo", kPresets[aspectPresetIndex].label))
+        {
+            for (int i = 0; i < kPresetCount; ++i)
+            {
+                if (i == kFirstResolutionIndex) ImGui::Separator();
+
+                const bool selected = (i == aspectPresetIndex);
+                if (ImGui::Selectable(kPresets[i].label, selected))
+                    ApplyAspectPreset(i);
+                if (selected)
+                    ImGui::SetItemDefaultFocus();
+            }
+            ImGui::EndCombo();
+        }
+    }
+    ImGui::End();
+
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
 }
 
 void GameViewGui::keyPressEvent(QKeyEvent* event) {
@@ -161,7 +165,6 @@ void GameViewGui::wheelEvent(QWheelEvent* event)
 {
     event->accept();
 }
-
 
 
 void GameViewGui::mousePressEvent(QMouseEvent* event)
@@ -180,13 +183,55 @@ void GameViewGui::mouseReleaseEvent(QMouseEvent* event)
 
 void GameViewGui::mouseMoveEvent(QMouseEvent* e)
 {
-    if (!inputManager || !camera) {
+    if (!inputManager || !gameView) {
         e->accept();
         return;
     }
-    
-    glm::vec2 screenPos = { static_cast<float>(e->pos().x()), static_cast<float>(e->pos().y()) };
-    glm::vec2 worldPos = camera->ScreenToWorld(screenPos, width(), height());
+
+    glm::vec2 fbPos(e->pos().x() * devicePixelRatioF(), e->pos().y() * devicePixelRatioF());
+    glm::vec2 worldPos = gameView->ScreenToWorld(fbPos);
     inputManager->SetMousePosition(worldPos);
     e->accept();
+}
+
+bool GameViewGui::eventFilter(QObject* obj, QEvent* event)
+{
+    if (!imGuiInstance) return QOpenGLWidget::eventFilter(obj, event);
+
+    // Two ImGui contexts are live (Scene + Game); make ours current before
+    // touching its IO so events route to the right one.
+    imGuiInstance->MakeCurrent();
+    ImGuiIO& io = ImGui::GetIO();
+
+    switch (event->type()) {
+        case QEvent::MouseMove: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            io.MousePos = ImVec2(me->pos().x(), me->pos().y());
+            break;   // let the game keep tracking the cursor too
+        }
+        case QEvent::MouseButtonPress: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            io.MousePos = ImVec2(me->pos().x(), me->pos().y());
+            if (me->button() == Qt::LeftButton)  io.MouseDown[0] = true;
+            if (me->button() == Qt::RightButton) io.MouseDown[1] = true;
+            // Swallow the click (don't forward to the game) when the toolbar
+            // wants it.
+            return io.WantCaptureMouse;
+        }
+        case QEvent::MouseButtonRelease: {
+            auto* me = static_cast<QMouseEvent*>(event);
+            io.MousePos = ImVec2(me->pos().x(), me->pos().y());
+            if (me->button() == Qt::LeftButton)  io.MouseDown[0] = false;
+            if (me->button() == Qt::RightButton) io.MouseDown[1] = false;
+            return io.WantCaptureMouse;
+        }
+        case QEvent::Wheel: {
+            auto* we = static_cast<QWheelEvent*>(event);
+            io.MouseWheel += we->angleDelta().y() / 120.0f;
+            return io.WantCaptureMouse;
+        }
+        default:
+            break;
+    }
+    return QOpenGLWidget::eventFilter(obj, event);
 }

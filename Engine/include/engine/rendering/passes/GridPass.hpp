@@ -19,15 +19,10 @@ public:
 
     void Init() override ;
     void Execute(RenderCamera* camera, Scene* scene) override;
-    void Resize(int w, int h) override;
     void Shutdown() override;
-
-
 
 private:
     GLuint vao = 0;
     GLuint vbo = 0;
     Shader* shader = nullptr;
-    int viewportWidth = 1;  
-    int viewportHeight = 1;
 };

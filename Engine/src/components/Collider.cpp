@@ -64,6 +64,7 @@ void Collider::PostInit(){
     const std::string& id = this->GetID();
     transform->Subscribe([id](){
         auto* collider = Registry::FindInRuntime<Collider>(id);
+        if (!collider) return false;
         collider->OnTransformScaleUpdate();
         return true;
     }, Transform::SCALE_CHANGED_EVENT);

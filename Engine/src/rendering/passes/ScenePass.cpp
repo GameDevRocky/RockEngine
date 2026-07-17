@@ -34,17 +34,10 @@ void ScenePass::Init(){
     glad_glBindVertexArray(0);
 }
 
-void ScenePass::Resize(int width, int height)
-{
-    viewportWidth = width;
-    viewportHeight = height;
-}
-
 void ScenePass::Execute(RenderCamera* camera, Scene* scene)
 {
     if (!scene) return;
     const auto& objects = scene->GetAllGameObjects();
-    float elapsedTime = timeManager ? timeManager->ElapsedTime() : 0.0f;
 
     struct DrawCall
     {
@@ -73,6 +66,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
         }
         if (!renderer) continue;
         if (!renderer->GetEnabled() || !renderer->GetVisible()) continue;
+        if (camera && !camera->PassesCullingMask(renderer->GetSortingLayer())) continue;
 
         Material* mat = renderer->GetMaterial();
         if (!mat)

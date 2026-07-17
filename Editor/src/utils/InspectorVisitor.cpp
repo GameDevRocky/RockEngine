@@ -8,6 +8,7 @@
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ScriptComponent.hpp"
+#include "engine/components/Camera.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/rendering/core/Sprite.hpp"
@@ -689,4 +690,43 @@ void InspectorVisitor::Visit(Shader* shader) {
     auto id_get = [=]() { return shader->GetID(); };
 
     BindProperty<std::string>(shader, "ID: ", id_get, [](std::string){}, Observable::CreateEvent(), PropDesc().Tag(Tags::READONLY));
+}
+
+void InspectorVisitor::Visit(Camera* camera) {
+    // Culling mask, viewport rect, and render-target are serialized and
+    // scriptable but have no inspector widget yet -- the inspector's DROPDOWN
+    // is single-select and a culling mask needs multi-select over
+    // LayerManager's sorting layers, which doesn't exist as a widget today.
+
+    auto orthoSize_get = [=]() { return camera->GetOrthoSize(); };
+    auto orthoSize_set = [=](float v) { camera->SetOrthoSize(v); };
+    BindProperty<float>(camera, "Ortho Size: ", orthoSize_get, orthoSize_set,
+        camera->ORTHO_SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0.01f, 100000.0f).Step(1));
+
+    auto priority_get = [=]() { return static_cast<float>(camera->GetPriority()); };
+    auto priority_set = [=](float v) { camera->SetPriority(static_cast<int>(v)); };
+    BindProperty<float>(camera, "Priority: ", priority_get, priority_set,
+        camera->PRIORITY_CHANGED_EVENT, PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
+
+    auto aspect_get = [=]() { return camera->GetTargetAspect(); };
+    auto aspect_set = [=](float v) { camera->SetTargetAspect(v); };
+    BindProperty<float>(camera, "Target Aspect: ", aspect_get, aspect_set,
+        camera->TARGET_ASPECT_CHANGED_EVENT,
+        PropDesc().Tag(Tags::FLOAT).Range(0.0f, 10.0f).Step(0.01f)
+            .Desc("<= 0 fills the panel (no letterboxing). e.g. 16/9 = 1.778"));
+
+    auto clearFlags_get = [=]() { return static_cast<int>(camera->GetClearFlags()); };
+    auto clearFlags_set = [=](int v) { camera->SetClearFlags(static_cast<RenderCamera::ClearFlags>(v)); };
+    BindProperty<int>(camera, "Clear Flags: ", clearFlags_get, clearFlags_set,
+        camera->CLEAR_FLAGS_CHANGED_EVENT,
+        PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Solid Color", static_cast<int>(RenderCamera::ClearFlags::SolidColor)},
+            {"Depth Only",  static_cast<int>(RenderCamera::ClearFlags::DepthOnly)},
+            {"Don't Clear", static_cast<int>(RenderCamera::ClearFlags::Nothing)}
+        }));
+
+    auto clearColor_get = [=]() { return camera->GetClearColor(); };
+    auto clearColor_set = [=](glm::vec4 c) { camera->SetClearColor(c); };
+    BindProperty<glm::vec4>(camera, "Background: ", clearColor_get, clearColor_set,
+        camera->CLEAR_COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
 }

@@ -9,6 +9,8 @@
 #include "dock-widgets/RuntimeBar.hpp"
 #include "dock-widgets/MenuBar.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
+#include "Editor.hpp"
+#include <QOpenGLWidget>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent){}
 MainWindow::~MainWindow(){SaveLayout();}
@@ -45,10 +47,17 @@ void MainWindow::Init()
     
 
     central_tabs = new QTabWidget(this);
-    
+
     central_tabs->addTab(scene_view, "Scene");
     central_tabs->addTab(game_view, "Game");
     setCentralWidget(central_tabs);
+
+    // Keep the frame-loop driver in sync with whichever viewport is actually
+    // visible (e.g. RuntimeBar switches to the Game tab on play) -- see
+    // Editor::SetFrameDriver.
+    connect(central_tabs, &QTabWidget::currentChanged, this, [this](int) {
+        Editor::Get()->SetFrameDriver(qobject_cast<QOpenGLWidget*>(central_tabs->currentWidget()));
+    });
 
     hierarchyDock = new QDockWidget("Hierarchy", this);
     hierarchyDock->setWidget(hierarchy);
@@ -107,7 +116,7 @@ void MainWindow::PostInit(){
     showMaximized();
     HierarchyGui::Get()->PostInit();
     std::cout << "MainWindow Started" << std::endl;
-}   
+}
 
 void MainWindow::SaveLayout()
 {

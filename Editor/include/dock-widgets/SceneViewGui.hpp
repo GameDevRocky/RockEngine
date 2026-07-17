@@ -1,23 +1,14 @@
 #pragma once
-#include <glad/glad.h>
-#include <QOpenGLWidget>
-#include <QOpenGLFunctions>
-#include <QOpenGLShaderProgram>
-#include <QOpenGLBuffer>
-#include <QOpenGLVertexArrayObject>
-#include <QElapsedTimer>
-#include <QTimer>
+#include "dock-widgets/ViewportWidget.hpp"   // must precede any Qt header that pulls GL headers (glad.h ordering)
 #include <QWheelEvent>
 #include <QPoint>
 #include <QMouseEvent>
 #include <glm/glm.hpp>
-#include "engine/rendering/pipelines/RenderPipeline.hpp"
-#include "engine/rendering/cameras/RenderCamera.hpp"
-#include "engine/rendering/passes/PickingPass.hpp"
+#include "engine/rendering/views/EditorRenderView.hpp"
 #include "utils/ImGuiInstance.hpp"
 
-class SceneViewGui : public QOpenGLWidget, protected QOpenGLFunctions {
-    Q_OBJECT 
+class SceneViewGui : public ViewportWidget {
+    Q_OBJECT
 
 public:
     static SceneViewGui* Get() {
@@ -28,19 +19,17 @@ public:
         return instance;
     }
 
-    ~SceneViewGui() override;
-    
     void Init();
-    void Render();
-    
-    protected:
+
+protected:
     void DrawGizmos();
     void DrawToolBar();
-    void initializeRenderPipeline();
 
-    void initializeGL() override;
-    void resizeGL(int w, int h) override;
-    void paintGL() override;
+    RenderView* CreateView(int pixelW, int pixelH) override;
+    void OnViewInitialized() override;
+    void OnResized(int logicalW, int logicalH) override;
+    void OnAfterPresent() override;
+
     void keyPressEvent(QKeyEvent* e) override;
     void keyReleaseEvent(QKeyEvent* event) override;
     void wheelEvent(QWheelEvent* event) override;
@@ -48,26 +37,13 @@ public:
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
     bool eventFilter(QObject *obj, QEvent *event) override;
-    glm::vec2 ScreenToWorld(const QPoint& p);
 
-
-    private:
+private:
     explicit SceneViewGui(QWidget* parent = nullptr);
 
-    RenderPipeline* renderPipeline = nullptr;
-    RenderCamera* camera = nullptr;
-    PickingPass* pickingPass = nullptr;
+    EditorRenderView* editorView = nullptr;   // borrowed; same object as ViewportWidget::view
     ImGuiInstance* imGuiInstance = nullptr;
 
-    
     QPoint lastMousePos;
     bool isPanning = false;
-    
-    QOpenGLShaderProgram program;
-    QOpenGLBuffer vbo{QOpenGLBuffer::VertexBuffer};
-    QOpenGLVertexArrayObject vao;
-    QElapsedTimer elapsedTimer;
-    GLuint quadVAO = 0;
-    GLuint quadVBO = 0;
-    GLuint quadShader = 0;
 };

@@ -2,8 +2,6 @@
 #include <glad/glad.h>
 #include <iostream>
 
-RenderPipeline::RenderPipeline() {}
-
 RenderPipeline::~RenderPipeline()
 {
     Shutdown();
@@ -43,10 +41,7 @@ void RenderPipeline::Init()
 
 void RenderPipeline::Resize(int width, int height)
 {
-    viewportWidth = width;
-    viewportHeight = height;
-
-    CreateOutputFBO(width, height);
+    outputTarget.Resize(width, height);
 
     for (auto* pass : setupPasses)
         pass->Resize(width, height);
@@ -56,12 +51,29 @@ void RenderPipeline::Resize(int width, int height)
         pass->Resize(width, height);
 }
 
-void RenderPipeline::Render(RenderCamera* camera, std::vector<Scene*> scenes)
+void RenderPipeline::Render(RenderCamera* camera, const std::vector<Scene*>& scenes)
 {
 
     GLint prevFBO = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, outputTarget.GetFBO());
+
+    const int targetW = outputTarget.GetWidth();
+    const int targetH = outputTarget.GetHeight();
+
+    // Camera's normalized viewport rect narrows drawing to a sub-region of the
+    // output target (e.g. split-screen). glClear ignores glViewport but
+    // respects glScissor, so scissor must be enabled for ClearPass to clear
+    // only the camera's region -- and disabled again after, or later passes
+    // (and the widget's subsequent blit) would be silently clipped.
+    const glm::vec4& vpRect = camera->GetViewportRect();
+    const bool narrowed = vpRect.x != 0.0f || vpRect.y != 0.0f || vpRect.z != 1.0f || vpRect.w != 1.0f;
+    GLint vx = static_cast<GLint>(vpRect.x * targetW);
+    GLint vy = static_cast<GLint>(vpRect.y * targetH);
+    GLsizei vw = static_cast<GLsizei>(glm::max(1.0f, vpRect.z * targetW));
+    GLsizei vh = static_cast<GLsizei>(glm::max(1.0f, vpRect.w * targetH));
+    glViewport(vx, vy, vw, vh);
+    if (narrowed) { glEnable(GL_SCISSOR_TEST); glScissor(vx, vy, vw, vh); }
 
     for (auto* pass : setupPasses)
         pass->Execute(camera, nullptr);
@@ -74,69 +86,24 @@ void RenderPipeline::Render(RenderCamera* camera, std::vector<Scene*> scenes)
 
     for (auto* pass : finalizePasses)
         pass->Execute(camera, nullptr);
-    
+
+    if (narrowed) glDisable(GL_SCISSOR_TEST);
+    glViewport(0, 0, targetW, targetH);
+
     glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
 }
 
 void RenderPipeline::Shutdown()
 {
-    for (auto* pass : setupPasses)
-        pass->Shutdown();
-    for (auto* pass : scenePasses)
-        pass->Shutdown();
-    for (auto* pass : finalizePasses)
-        pass->Shutdown();
- 
-    DestroyOutputFBO();
-}
+    if (shutdown) return;
+    shutdown = true;
 
-void RenderPipeline::CreateOutputFBO(int width, int height)
-{
-    DestroyOutputFBO();
+    for (auto* pass : setupPasses)    { pass->Shutdown(); delete pass; }
+    for (auto* pass : scenePasses)    { pass->Shutdown(); delete pass; }
+    for (auto* pass : finalizePasses) { pass->Shutdown(); delete pass; }
+    setupPasses.clear();
+    scenePasses.clear();
+    finalizePasses.clear();
 
-    // FBO
-    glGenFramebuffers(1, &outputFBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, outputFBO);
-
-    // Texture
-    glGenTextures(1, &outputTexture);
-    glBindTexture(GL_TEXTURE_2D, outputTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height,
-                 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, outputTexture, 0);
-
-    // Depth/stencil
-    glGenRenderbuffers(1, &outputRBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, outputRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, outputRBO);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-        std::cerr << "RenderPipeline FBO error: incomplete framebuffer!" << std::endl;
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-void RenderPipeline::DestroyOutputFBO()
-{
-    if (outputTexture)
-    {
-        glDeleteTextures(1, &outputTexture);
-        outputTexture = 0;
-    }
-    if (outputRBO)
-    {
-        glDeleteRenderbuffers(1, &outputRBO);
-        outputRBO = 0;
-    }
-    if (outputFBO)
-    {
-        glDeleteFramebuffers(1, &outputFBO);
-        outputFBO = 0;
-    }
+    outputTarget.Destroy();
 }

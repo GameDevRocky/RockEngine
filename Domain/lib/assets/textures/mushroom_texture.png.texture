@@ -2,7 +2,7 @@ type: Texture2D
 id: t2
 name: mushroom_texture
 path: Domain/lib/assets/textures/mushroom_texture.png
-filtering: nearest
+filtering: linear
 wrap: repeat
 sprites:
   - id: h3or3rbjjk3rk

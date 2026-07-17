@@ -4,40 +4,36 @@
 #include <stdexcept>
 
 #include "engine/rendering/passes/RenderPass.hpp"
-#include "engine/core/System.hpp"
 #include "engine/rendering/cameras/RenderCamera.hpp"
+#include "engine/rendering/core/RenderTarget.hpp"
 #include "engine/core/Scene.hpp"
 #include "engine/rendering/passes/ClearPass.hpp"
 
-class RenderPipeline : public System
+// A plain, non-Container-owned class: render resources have no per-world
+// identity (the editor and runtime containers share one screen and one GL
+// context), so a pipeline is constructed and owned directly by a viewport,
+// not registered as a System.
+class RenderPipeline
 {
 public:
-    RenderPipeline();
+    RenderPipeline() = default;
     ~RenderPipeline();
 
     void AddSetupPass(RenderPass* pass);
     void AddScenePass(RenderPass* pass);
     void AddFinalizePass(RenderPass* pass);
-    void Init() override;
+    void Init();
     void Resize(int width, int height);
-    void Render(RenderCamera* camera, std::vector<Scene*> scenes);
-    void Shutdown() override;
+    void Render(RenderCamera* camera, const std::vector<Scene*>& scenes);
+    void Shutdown();   // idempotent; safe to call more than once (dtor calls it too)
 
-    unsigned int GetOutputTexture() const { return outputTexture; }
+    unsigned int GetOutputTexture() const { return outputTarget.GetColorTexture(); }
 
 private:
-    void CreateOutputFBO(int width, int height);
-    void DestroyOutputFBO();
-
     std::vector<RenderPass*> setupPasses;
     std::vector<RenderPass*> scenePasses;
     std::vector<RenderPass*> finalizePasses;
 
-
-    unsigned int outputFBO = 0;
-    unsigned int outputTexture = 0;
-    unsigned int outputRBO = 0;
-
-    int viewportWidth  = 1;
-    int viewportHeight = 1;
+    RenderTarget outputTarget;
+    bool shutdown = false;
 };

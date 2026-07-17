@@ -33,8 +33,6 @@ public:
     void StepFrame();
     bool IsPaused() const { return activeContainer && activeContainer->IsPaused(); }
 
-    void LoadDefaultScene();
-
     Container* GetActiveContainer(){ return activeContainer;}
     Container* GetEditorContainer(){ return editorContainer;}
     Container* GetRuntimeContainer(){ return runtimeContainer;}

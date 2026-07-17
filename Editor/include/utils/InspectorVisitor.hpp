@@ -32,6 +32,7 @@ class InspectorVisitor : public IVisitor{
         void Visit(Material* material) override;
         void Visit(Texture2D* texture) override;
         void Visit(Shader* shader) override;
+        void Visit(Camera* camera) override;
 
 
         QWidget* GetContent(){ return content;}
