@@ -118,6 +118,14 @@ void SceneViewGui::wheelEvent(QWheelEvent* event)
 }
 
 bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
+    if (!imGuiInstance) return QOpenGLWidget::eventFilter(obj, event);
+
+    // Two ImGui contexts are live (Scene + Game); make ours current before
+    // touching its IO. Without this, ImGui::GetIO() returns whichever context
+    // rendered last -- so with both viewports visible at once, a mouse event
+    // over the Scene view would write MousePos/MouseDown into the *Game* view's
+    // IO (input bleeding between the two panels). See GameViewGui::eventFilter.
+    imGuiInstance->MakeCurrent();
     ImGuiIO& io = ImGui::GetIO();
     if (event->type() == QEvent::MouseMove) {
         auto* me = static_cast<QMouseEvent*>(event);

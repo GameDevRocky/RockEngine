@@ -470,9 +470,14 @@ void ScriptComponent::IntrospectFields()
             if (!py::hasattr(scriptInstance, info.name.c_str())) {
                 py::object defaultVal = d["default"];
                 if (!defaultVal.is_none()) {
-                    // For unassigned sprite/material refs, set None so handler
-                    // setters' `if value is not None` guards behave correctly.
-                    if ((info.refTypeName == "sprite" || info.refTypeName == "material")
+                    // For unassigned sprite/material/component refs, set None so
+                    // the field starts empty rather than as a handler bound to an
+                    // empty id (and handler setters' `if value is not None`
+                    // guards behave correctly).
+                    const bool isRef = info.refTypeName == "sprite"
+                                    || info.refTypeName == "material"
+                                    || info.refTypeName.rfind("component:", 0) == 0;
+                    if (isRef
                         && py::isinstance<py::str>(defaultVal)
                         && defaultVal.cast<std::string>().empty()) {
                         py::setattr(scriptInstance, info.name.c_str(), py::none());
@@ -567,6 +572,13 @@ void ScriptComponent::ApplyPendingFields()
                         py::module_ mat_mod = py::module_::import("Domain.lib.api.rendering.material_handler");
                         py::setattr(scriptInstance, field.name.c_str(), mat_mod.attr("Material")(strVal));
                     }
+                } else if (field.refTypeName.rfind("component:", 0) == 0) {
+                    // Component ref: strVal is the owning GameObject's id; wrap it
+                    // in the matching component handler (empty → None).
+                    std::string typeName = field.refTypeName.substr(std::string("component:").size());
+                    py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+                    py::setattr(scriptInstance, field.name.c_str(),
+                                intro.attr("make_component_ref")(strVal, typeName));
                 } else {
                     py::setattr(scriptInstance, field.name.c_str(), py::str(strVal));
                 }
@@ -760,6 +772,14 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
                         py::module_ mat_mod = py::module_::import("Domain.lib.api.rendering.material_handler");
                         py::setattr(scriptInstance, name.c_str(), mat_mod.attr("Material")(v));
                     }
+                } else if (refTypeName.rfind("component:", 0) == 0) {
+                    // Component ref: `v` is the owning GameObject's id; wrap it in
+                    // the matching component handler (empty → None). See
+                    // introspection.make_component_ref.
+                    std::string typeName = refTypeName.substr(std::string("component:").size());
+                    py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+                    py::setattr(scriptInstance, name.c_str(),
+                                intro.attr("make_component_ref")(v, typeName));
                 } else {
                     py::setattr(scriptInstance, name.c_str(), py::str(v));
                 }

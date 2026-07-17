@@ -14,7 +14,15 @@ class Component:
     def __init__(self, obj_id=None):
         self._gameobject_id = obj_id
         self._component_id = None # Should be set by C++ or lookup
-    
+
+    @property
+    def id(self):
+        """The id of the GameObject this component is attached to. Component
+        handlers are always constructed with their owning object's id, so this
+        is what a `field : <ComponentType>` reference stores and round-trips
+        through (mirrors Sprite/Material `.id`)."""
+        return self._gameobject_id
+
     @property
     def gameobject(self) -> GameObject:
         # Use the central function to ensure identity is consistent

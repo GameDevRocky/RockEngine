@@ -543,7 +543,9 @@ private:
             for (const auto& [id, sh] : am.GetAllShaders())
                 items.push_back({sh->GetName(), id});
         } else {
-            // Generic OBJECT_REF — enumerate all GameObjects, optionally filtered by script class
+            // Generic OBJECT_REF — enumerate all GameObjects, optionally filtered
+            // by script class (gameobject:<Class>) or native component type
+            // (component:<Type>, e.g. a Camera field).
             auto* container = Engine::Get()->GetActiveContainer();
             if (!container) return items;
             auto* sm = container->FindSystem<SceneManager>();
@@ -555,6 +557,9 @@ private:
                         if (!sc || sc->GetScriptClassName() != m_desc.refClassFilter)
                             continue;
                     }
+                    if (!m_desc.componentTypeFilter.empty() &&
+                        !go->HasComponentByName(m_desc.componentTypeFilter))
+                        continue;
                     items.push_back({go->GetName(), go->GetID()});
                 }
             }

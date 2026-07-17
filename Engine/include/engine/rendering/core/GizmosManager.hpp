@@ -33,9 +33,12 @@ public:
     void SetEditMode(EditMode mode) { m_editMode = mode; }
     EditMode GetEditMode() const { return m_editMode; }
 
-    bool IsHandleHovered() const { return m_hoveredHandle >= 0; }
-    bool IsDraggingHandle() const { return m_dragHandle >= 0; }
-    bool WantsCaptureMouse() const { return m_hoveredHandle >= 0 || m_dragHandle >= 0; }
+    bool IsHandleHovered() const { return m_hoveredHandle >= 0 || m_hoveredCameraCorner >= 0; }
+    bool IsDraggingHandle() const { return m_dragHandle >= 0 || m_dragCameraCorner >= 0; }
+    bool WantsCaptureMouse() const {
+        return m_hoveredHandle >= 0 || m_dragHandle >= 0 ||
+               m_hoveredCameraCorner >= 0 || m_dragCameraCorner >= 0;
+    }
 
     GizmosManager* Copy() override;
     GizmosManager* Copy(Container* container) override;
@@ -85,6 +88,15 @@ private:
     std::vector<ComponentIcon> m_componentIcons;
     bool m_componentIconsRegistered = false;
     static constexpr float kComponentIconSizePx = 32.0f;
+
+    // Camera view-rect corner drag state. Dragging a corner rescales the
+    // camera's orthoSize (its zoom); all four corners follow since they're
+    // derived from orthoSize + the Game view's aspect. Scoped by camera id so
+    // only one of several drawn camera rects owns a drag at a time.
+    int m_hoveredCameraCorner = -1;      // reset each frame; 0..3 when a corner is hovered
+    int m_dragCameraCorner = -1;         // -1 = none
+    std::string m_dragCameraId;          // which camera owns the active corner drag ("" = none)
+    float m_dragStartOrthoSize = 0.0f;
 
     // Collider drag state
     int m_dragHandle = -1;           // -1 = none

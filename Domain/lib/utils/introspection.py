@@ -3,24 +3,64 @@ from .properties import Range, Step, Tooltip
 
 
 def _get_ref_classes():
-    """Lazily import Material, Sprite, and GameObject to avoid circular imports at module load time."""
+    """Lazily import the classes used for reference-field detection, to avoid
+    circular imports at module load time. Returns
+    (Material, Sprite, GameObject, Component, ScriptableComponent)."""
     try:
         from Domain.lib.api.rendering.material_handler import Material
         from Domain.lib.api.rendering.sprite_handler import Sprite
         from Domain.lib.api.core.gameobject_handler import GameObject
-        return Material, Sprite, GameObject
+        from Domain.lib.api.components.component_handler import Component
+        from Domain.lib.api.components.scriptable_component_handler import ScriptableComponent
+        return Material, Sprite, GameObject, Component, ScriptableComponent
     except ImportError:
-        return None, None, None
+        return None, None, None, None, None
 
 
-def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls):
+# Cache of engine component type name (e.g. "Camera") -> handler class, built
+# once from the exported component handlers.
+_COMPONENT_CLASS_BY_TYPE = None
+
+
+def _component_classes_by_type():
+    global _COMPONENT_CLASS_BY_TYPE
+    if _COMPONENT_CLASS_BY_TYPE is None:
+        _COMPONENT_CLASS_BY_TYPE = {}
+        try:
+            from Domain.lib.api import components as comps
+            for attr in dir(comps):
+                cls = getattr(comps, attr)
+                type_name = isinstance(cls, type) and getattr(cls, '_type_name', None)
+                if type_name:
+                    _COMPONENT_CLASS_BY_TYPE[type_name] = cls
+        except ImportError:
+            pass
+    return _COMPONENT_CLASS_BY_TYPE
+
+
+def make_component_ref(gameobject_id, type_name):
+    """Build a component handler of engine type `type_name` (e.g. "Camera")
+    bound to `gameobject_id`, for a script's ``field : <ComponentType>``
+    reference. Empty/falsy id → None (an unassigned reference). Called from the
+    C++ ScriptComponent when applying a stored value to the live instance.
+    """
+    if not gameobject_id:
+        return None
+    cls = _component_classes_by_type().get(type_name)
+    return cls(gameobject_id) if cls else None
+
+
+def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls,
+              ComponentCls=None, ScriptableComponentCls=None):
     """Map a single Python type to (type_name, ref_type_name).
 
-    Handles scalars (float/int/bool/str), Vector2/3/4, and class refs
-    (Material -> "material", Sprite -> "sprite", the base GameObject -> an
-    unfiltered "gameobject:" reference, any other class -> a class-filtered
-    "gameobject:<ClassName>" reference). Returns (None, "") if unmappable.
-    Used for both top-level fields and the element type of list[...] fields.
+    Handles scalars (float/int/bool/str), Vector2/3/4, and class refs:
+    Material -> "material", Sprite -> "sprite", the base GameObject -> an
+    unfiltered "gameobject:" reference, a native component handler (Camera,
+    Rigidbody, a collider, ...) -> a "component:<EngineTypeName>" reference,
+    any other class (a user script subclass) -> a class-filtered
+    "gameobject:<ClassName>" reference. Returns (None, "") if unmappable. Used
+    for both top-level fields and the element type of list[...] fields.
     """
     type_map = {float: "float", int: "int", bool: "bool", str: "str"}
     type_name = type_map.get(base_type)
@@ -45,8 +85,17 @@ def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls):
         elif GameObjectCls and base_type is GameObjectCls:
             # Base GameObject → reference to ANY object (no script-class filter).
             ref_type_name = "gameobject:"
+        elif (ScriptableComponentCls and issubclass(base_type, ScriptableComponentCls)):
+            # A user script subclass → filter the picker to that script class.
+            ref_type_name = f"gameobject:{base_type.__name__}"
+        elif (ComponentCls and issubclass(base_type, ComponentCls)):
+            # A built-in component handler (Camera, Rigidbody, colliders, ...) →
+            # pick a GameObject that HAS this native component. Stored as the
+            # object's id; resolved to a component handler at runtime.
+            engine_type = getattr(base_type, '_type_name', base_type.__name__)
+            ref_type_name = f"component:{engine_type}"
         else:
-            # A specific user script subclass → filter the picker to that class.
+            # Any other class → treat the name as a script-class filter.
             ref_type_name = f"gameobject:{base_type.__name__}"
 
     return type_name, ref_type_name
@@ -76,7 +125,7 @@ def get_exposed_fields(cls):
     except Exception:
         return []
 
-    MaterialCls, SpriteCls, GameObjectCls = _get_ref_classes()
+    MaterialCls, SpriteCls, GameObjectCls, ComponentCls, ScriptableComponentCls = _get_ref_classes()
 
     fields = []
     for name, hint in hints.items():
@@ -142,14 +191,17 @@ def get_exposed_fields(cls):
             if not list_args:
                 continue  # bare `list` annotation is ambiguous — skip
             element_type_name, element_ref_type_name = _map_type(
-                list_args[0], MaterialCls, SpriteCls, GameObjectCls)
+                list_args[0], MaterialCls, SpriteCls, GameObjectCls,
+                ComponentCls, ScriptableComponentCls)
             if element_type_name is None or element_type_name == "list":
                 continue  # unmappable or nested list element
             type_name = "list"
             if not isinstance(default, list):
                 default = []
         else:
-            type_name, field_ref_type_name = _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls)
+            type_name, field_ref_type_name = _map_type(
+                base_type, MaterialCls, SpriteCls, GameObjectCls,
+                ComponentCls, ScriptableComponentCls)
 
             # Normalize ref-field default: handler instance → its ID string; else ""
             if field_ref_type_name:

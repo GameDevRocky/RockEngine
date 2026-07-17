@@ -430,6 +430,9 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             } else if (field.refTypeName.rfind("gameobject:", 0) == 0) {
                 std::string cls = field.refTypeName.substr(std::string("gameobject:").size());
                 strDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).RefClass(cls);
+            } else if (field.refTypeName.rfind("component:", 0) == 0) {
+                std::string comp = field.refTypeName.substr(std::string("component:").size());
+                strDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).ComponentType(comp);
             }
             // else: plain string — PropDesc defaults produce a StringPropertyWidget
 
@@ -538,6 +541,9 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 } else if (field.elementRefTypeName.rfind("gameobject:", 0) == 0) {
                     std::string cls = field.elementRefTypeName.substr(std::string("gameobject:").size());
                     elemDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).RefClass(cls);
+                } else if (field.elementRefTypeName.rfind("component:", 0) == 0) {
+                    std::string comp = field.elementRefTypeName.substr(std::string("component:").size());
+                    elemDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).ComponentType(comp);
                 }
 
                 BindProperty<std::vector<std::string>>(sc, label, getter, setter, field.changeEvent,

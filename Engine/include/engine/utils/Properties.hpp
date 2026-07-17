@@ -39,6 +39,7 @@ namespace Properties {
         float step = 0.1f;
         std::string description = "";
         std::string refClassFilter = "";  // For OBJECT_REF: filters GameObjects to those with this script class
+        std::string componentTypeFilter = "";  // For OBJECT_REF: filters GameObjects that have this native component type (e.g. "Camera")
         bool readOnly = false;            // Display-only. Tags::LIST: no add/remove buttons. Scalars: non-editable input.
 
         std::vector<std::pair<std::string, std::any>> dropdownOptions;
@@ -53,6 +54,7 @@ namespace Properties {
         PropDesc& RefType(Tags t)              { refType = t; return *this; }
         PropDesc& Step(float s)                  { step = s; return *this; }
         PropDesc& RefClass(const std::string& cls) { refClassFilter = cls; return *this; }
+        PropDesc& ComponentType(const std::string& t) { componentTypeFilter = t; return *this; }
         PropDesc& DropVals(std::vector<std::pair<std::string, std::any>> vals) {
             dropdownOptions = std::move(vals);
             return *this;

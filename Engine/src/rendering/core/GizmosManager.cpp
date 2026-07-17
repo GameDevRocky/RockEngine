@@ -32,7 +32,8 @@ GizmosManager* GizmosManager::Copy() { return nullptr; }
 GizmosManager* GizmosManager::Copy(Container* /*container*/) { return nullptr; }
 
 void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
-    m_hoveredHandle = -1;  // reset each frame; DrawBoxColliderGizmo sets it if applicable
+    m_hoveredHandle = -1;        // reset each frame; DrawBoxColliderGizmo sets it if applicable
+    m_hoveredCameraCorner = -1;  // reset each frame; DrawCameraGizmo sets it if applicable
 
     // Camera view-region rects and component icons are non-interactive and
     // independent of selection, so draw them first -- before the no-selection
@@ -154,6 +155,14 @@ void GizmosManager::DrawCameraGizmos(const glm::mat4& view, const glm::mat4& pro
     SceneManager* sceneManager = container->FindSystem<SceneManager>();
     if (!sceneManager) return;
 
+    // End any active camera-corner drag the moment the mouse is released.
+    // Centralised here (this runs every frame, before the per-camera draw loop)
+    // so DrawCameraGizmo only has to start and process an ongoing drag.
+    if (!ImGui::GetIO().MouseDown[0]) {
+        m_dragCameraCorner = -1;
+        m_dragCameraId.clear();
+    }
+
     // Alpha tiers: a selected camera (its object is the current selection) is
     // fully opaque; the active/main camera (the one driving the Game view) is
     // 75%; any other enabled camera is 50%. Selected wins over active.
@@ -232,6 +241,78 @@ void GizmosManager::DrawCameraGizmo(const glm::mat4& view, const glm::mat4& proj
     float lineThickness = 2.0f;
     for (int i = 0; i < 4; i++) {
         drawList->AddLine(screenCorners[i], screenCorners[(i + 1) % 4], outlineColor, lineThickness);
+    }
+
+    // A rect drawn fully transparent (alpha 0 -- a non-selected, non-main
+    // camera) isn't visible, so it gets no grab handles and no interaction.
+    if (alpha <= 0) return;
+
+    // ─── Interactive corners: drag one to rescale the camera's orthoSize ──────
+    // The rect is fully determined by orthoSize (halfHeight == orthoSize,
+    // halfWidth == orthoSize * aspect), so moving any corner just needs to solve
+    // for a new orthoSize and every corner follows. We map the cursor into the
+    // camera's local (un-rotated, center-relative) frame and project it onto the
+    // dragged corner's diagonal direction (signX*aspect, signY): the projection
+    // length is exactly the orthoSize that puts that corner under the cursor,
+    // while keeping the aspect locked.
+    ImGuiIO& io = ImGui::GetIO();
+    ImVec2 mousePos = io.MousePos;
+
+    constexpr float kCornerHandleRadius = 5.0f;
+    constexpr float kCornerHitRadius    = kCornerHandleRadius + 4.0f;
+    constexpr float kMinOrthoSize       = 1.0f;
+
+    // Hit-test this camera's corners (skip while another camera owns the drag).
+    int hoveredCorner = -1;
+    if (m_dragCameraCorner < 0) {
+        for (int i = 0; i < 4; i++) {
+            float dx = mousePos.x - screenCorners[i].x;
+            float dy = mousePos.y - screenCorners[i].y;
+            if (dx * dx + dy * dy < kCornerHitRadius * kCornerHitRadius) {
+                hoveredCorner = i;
+                break;
+            }
+        }
+    }
+    if (hoveredCorner >= 0) m_hoveredCameraCorner = hoveredCorner;
+
+    // Start a drag: only if nothing else (ImGuizmo, a collider handle, or another
+    // camera) already owns the mouse this frame.
+    if (io.MouseClicked[0] && hoveredCorner >= 0 &&
+        !ImGuizmo::IsUsing() && m_dragHandle < 0 && m_dragCameraCorner < 0) {
+        m_dragCameraCorner   = hoveredCorner;
+        m_dragCameraId       = camera->GetID();
+        m_dragStartOrthoSize = camera->GetOrthoSize();
+    }
+
+    // Process the drag for the camera that owns it.
+    if (m_dragCameraCorner >= 0 && m_dragCameraId == camera->GetID() && io.MouseDown[0]) {
+        // corners: 0=BL(-,-) 1=BR(+,-) 2=TR(+,+) 3=TL(-,+)
+        float signX = (m_dragCameraCorner == 1 || m_dragCameraCorner == 2) ? 1.0f : -1.0f;
+        float signY = (m_dragCameraCorner == 2 || m_dragCameraCorner == 3) ? 1.0f : -1.0f;
+
+        glm::vec2 mouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
+        glm::vec2 relWorld   = mouseWorld - center;
+        // Rotate world delta into the camera's local frame: local = R(-rot) * rel.
+        glm::vec2 localMouse(
+             relWorld.x * cosR + relWorld.y * sinR,
+            -relWorld.x * sinR + relWorld.y * cosR);
+
+        glm::vec2 diag(signX * aspect, signY);
+        float newOrthoSize = glm::dot(localMouse, diag) / glm::dot(diag, diag);
+        camera->SetOrthoSize(std::max(newOrthoSize, kMinOrthoSize));
+    }
+
+    // Draw the corner handles (brighter when hovered or actively dragged).
+    ImU32 handleColor      = IM_COL32(255, 200, 0, std::max(alpha, 160));
+    ImU32 handleHoverColor = IM_COL32(255, 235, 150, 255);
+    bool draggingThis = (m_dragCameraCorner >= 0 && m_dragCameraId == camera->GetID());
+    for (int i = 0; i < 4; i++) {
+        bool isHot = (i == hoveredCorner) || (draggingThis && i == m_dragCameraCorner);
+        drawList->AddRectFilled(
+            ImVec2(screenCorners[i].x - kCornerHandleRadius, screenCorners[i].y - kCornerHandleRadius),
+            ImVec2(screenCorners[i].x + kCornerHandleRadius, screenCorners[i].y + kCornerHandleRadius),
+            isHot ? handleHoverColor : handleColor);
     }
 }
 

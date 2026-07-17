@@ -5,9 +5,9 @@ components:
     enabled: true
     type: Transform
     gameobject: 27d025e08ff0501fbf199080ce91f924
-    localPosition: [-40.23811, 186.68916]
-    localRotation: 90.00001
-    localScale: [2.3597748, 2.4651806]
+    localPosition: [-369.3442, 63.465527]
+    localRotation: 0
+    localScale: [2.3597758, 2.4651823]
     parent_id: ~
   - id: 104a1015c1e12db37ea53169f31278b3
     enabled: true
@@ -31,7 +31,7 @@ components:
     isSensor: false
     density: 1
     friction: 0.4
-    bounciness: 0
+    bounciness: 0.4
     rollingResistance: 0
     radius: 35.875
     height: 29.6875
@@ -41,7 +41,7 @@ components:
     gameobject: 27d025e08ff0501fbf199080ce91f924
     bodyType: Dynamic
     useGravity: true
-    lockRotation: false
+    lockRotation: true
   - id: 5acc02eb3c119671148c5187a504b268
     enabled: true
     type: ScriptComponent
@@ -60,7 +60,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 8469c612ac06a40f3930511ee5621374
-    localPosition: [69.63122, -92.30261]
+    localPosition: [69.63122, -92.302605]
     localRotation: 0
     localScale: [12.45, 12.57]
     parent_id: c0e695f36d91b9e90514bac0d88af299
@@ -122,9 +122,9 @@ components:
     enabled: true
     type: Transform
     gameobject: 31d7a2f3fe37efa1781b6275caed3926
-    localPosition: [-329.07022, 133.66476]
-    localRotation: 0
-    localScale: [14.22, 12.26]
+    localPosition: [-382.16052, 40.354507]
+    localRotation: -7.792217
+    localScale: [14.220003, 12.259998]
     parent_id: c0e695f36d91b9e90514bac0d88af299
   - id: 4111908962e4219c0b39cdcf2c0f78f4
     enabled: true
@@ -147,7 +147,7 @@ components:
     center: [-0.11550903, -0.06388044]
     isSensor: false
     density: 1
-    friction: 0
+    friction: 0.7
     bounciness: 0
     rollingResistance: 0
     size: [28.891884, 9.688462]
@@ -184,34 +184,16 @@ components:
     enabled: true
     type: Transform
     gameobject: 983d4dc0871048db88c0abb372766b89
-    localPosition: [0, 0]
+    localPosition: [-369.38675, 63.55596]
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
-  - id: 1e39018c13f15876a430f7219040f2c4
-    enabled: true
-    type: BoxCollider
-    gameobject: 983d4dc0871048db88c0abb372766b89
-    center: [0, 0]
-    isSensor: false
-    density: 1
-    friction: 0
-    bounciness: 0
-    rollingResistance: 0
-    size: [1, 1]
-  - id: 98835a2f12b5b282360915981291a743
-    enabled: true
-    type: RigidBody
-    gameobject: 983d4dc0871048db88c0abb372766b89
-    bodyType: Kinematic
-    useGravity: true
-    lockRotation: false
   - id: ab6a535aa7c8097d435069a2364202c5
     enabled: true
     type: Camera
     gameobject: 983d4dc0871048db88c0abb372766b89
     projection: 0
-    orthoSize: 354.01
+    orthoSize: 727.68005
     clearFlags: 0
     clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
     priority: 0
@@ -274,6 +256,4 @@ gameobjects:
     tag: Untagged
     component_ids:
       - c557d15402229f902111d454d6003197
-      - 1e39018c13f15876a430f7219040f2c4
-      - 98835a2f12b5b282360915981291a743
       - ab6a535aa7c8097d435069a2364202c5

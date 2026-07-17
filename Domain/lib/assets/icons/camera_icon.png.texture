@@ -4,5 +4,3 @@ name: camera_icon
 path: Domain/lib/assets/icons/camera_icon.png
 filtering: linear
 wrap: repeat
-sprites:
-  []
