@@ -6,6 +6,13 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
+#include "engine/components/Camera.hpp"
+#include "engine/core/SceneManager.hpp"
+#include "engine/core/Scene.hpp"
+#include "engine/rendering/Renderer.hpp"
+#include "engine/rendering/views/GameRenderView.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
+#include "engine/rendering/core/Texture2D.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "imgui.h"
 #include <cmath>
@@ -26,6 +33,12 @@ GizmosManager* GizmosManager::Copy(Container* /*container*/) { return nullptr; }
 
 void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
     m_hoveredHandle = -1;  // reset each frame; DrawBoxColliderGizmo sets it if applicable
+
+    // Camera view-region rects and component icons are non-interactive and
+    // independent of selection, so draw them first -- before the no-selection
+    // early-return below.
+    DrawCameraGizmos(view, proj, viewWidth, viewHeight);
+    DrawComponentIcons(view, proj, viewWidth, viewHeight);
 
     Container* container = Engine::Get()->GetActiveContainer();
     SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
@@ -129,6 +142,184 @@ void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& pr
     }
 
     if (!anyCollider) DrawTransformGizmo(view, proj, viewWidth, viewHeight);
+}
+
+// ─── Camera Gizmo ───────────────────────────────────────────────────────────
+// Orange rect showing the world region each enabled camera renders to the Game
+// view. Scans every active GameObject (like Camera::GetMain) so the main
+// camera's region is always visible without selecting it.
+void GizmosManager::DrawCameraGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
+    Container* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+    SceneManager* sceneManager = container->FindSystem<SceneManager>();
+    if (!sceneManager) return;
+
+    // Alpha tiers: a selected camera (its object is the current selection) is
+    // fully opaque; the active/main camera (the one driving the Game view) is
+    // 75%; any other enabled camera is 50%. Selected wins over active.
+    SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+    Serializable* selected = selectionManager ? selectionManager->GetSerializable() : nullptr;
+    GameObject* selectedObj = dynamic_cast<GameObject*>(selected);
+    Camera* mainCamera = Camera::GetMain();
+
+    // Rect width follows the aspect the Game view ACTUALLY displays (it fills
+    // its panel in Free mode, ignoring the camera's authored targetAspect), so
+    // read the game view's resolved aspect. Fall back to 16:9 until it has
+    // rendered a frame (targetW/H still 0) or if no Game view exists.
+    float gameAspect = 16.0f / 9.0f;
+    if (GameRenderView* gameView = Renderer::Get().GetGameView()) {
+        float a = gameView->GetResolvedAspect();
+        if (a > 0.0f) gameAspect = a;
+    }
+
+    constexpr int kAlphaBase     = 0;   // 50%
+    constexpr int kAlphaActive   = 64;   // 75%
+    constexpr int kAlphaSelected = 255;   // 100%
+
+    for (Scene* scene : sceneManager->GetScenes()) {
+        if (!scene) continue;
+        for (GameObject* obj : scene->GetAllGameObjects()) {
+            if (!obj || !obj->GetActive()) continue;
+            Transform* transform = obj->GetComponent<Transform>();
+            if (!transform) continue;
+            for (Camera* camera : obj->GetComponents<Camera>()) {
+                if (!camera->GetEnabled()) continue;
+                int alpha = kAlphaBase;
+                if (selectedObj && obj == selectedObj) alpha = kAlphaSelected;
+                else if (camera == mainCamera)         alpha = kAlphaActive;
+                DrawCameraGizmo(view, proj, viewWidth, viewHeight, transform, camera, alpha, gameAspect);
+            }
+        }
+    }
+}
+
+void GizmosManager::DrawCameraGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight,
+                                    Transform* transform, Camera* camera, int alpha, float aspect) {
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+    // World-space half-extents of the camera's view rect. halfHeight == orthoSize
+    // (a game camera never zooms -- see Camera::ApplyTo), so the rect scales
+    // proportionally with orthoSize. halfWidth applies the Game view's displayed
+    // aspect (passed in), not the camera's authored targetAspect.
+    float halfHeight = camera->GetOrthoSize();
+    float halfWidth  = halfHeight * aspect;
+
+    // The camera renders from its object's world position + rotation only
+    // (Camera::ApplyTo ignores scale), so build the rect the same way instead
+    // of using the full world matrix.
+    glm::vec2 center = transform->GetWorldPosition();
+    float rot = glm::radians(transform->GetWorldRotation());
+    float cosR = std::cos(rot), sinR = std::sin(rot);
+
+    glm::vec2 localCorners[4] = {
+        { -halfWidth, -halfHeight },  // bottom-left
+        {  halfWidth, -halfHeight },  // bottom-right
+        {  halfWidth,  halfHeight },  // top-right
+        { -halfWidth,  halfHeight },  // top-left
+    };
+
+    glm::mat4 vp = proj * view;
+    ImVec2 screenCorners[4];
+    for (int i = 0; i < 4; i++) {
+        glm::vec2 rotated = {
+            localCorners[i].x * cosR - localCorners[i].y * sinR,
+            localCorners[i].x * sinR + localCorners[i].y * cosR,
+        };
+        screenCorners[i] = WorldToScreen(center + rotated, vp, viewWidth, viewHeight);
+    }
+
+    ImU32 outlineColor = IM_COL32(255, 200, 0, alpha);   // orange; alpha by camera state
+    float lineThickness = 2.0f;
+    for (int i = 0; i < 4; i++) {
+        drawList->AddLine(screenCorners[i], screenCorners[(i + 1) % 4], outlineColor, lineThickness);
+    }
+}
+
+// ─── Component-type icons ────────────────────────────────────────────────────
+// To add an icon for a new component type: drop its PNG in Domain's icons
+// folder (registered by AssetManager under the file stem) and add one entry
+// here mapping that texture name to a "does this object have the component?"
+// predicate. Everything else -- lookup, positioning, alpha -- is generic.
+void GizmosManager::RegisterComponentIcons() {
+    m_componentIcons.push_back({
+        "camera_icon",
+        [](GameObject* obj) { return obj->GetComponent<Camera>() != nullptr; },
+        nullptr,
+    });
+}
+
+void GizmosManager::DrawComponentIcons(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
+    if (!m_componentIconsRegistered) {
+        RegisterComponentIcons();
+        m_componentIconsRegistered = true;
+    }
+    if (m_componentIcons.empty()) return;
+
+    Container* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+    SceneManager* sceneManager = container->FindSystem<SceneManager>();
+    if (!sceneManager) return;
+
+    SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+    Serializable* selected = selectionManager ? selectionManager->GetSerializable() : nullptr;
+    GameObject* selectedObj = dynamic_cast<GameObject*>(selected);
+
+    // Fixed screen-space size, so icons stay the same on-screen regardless of
+    // the Scene camera's ortho/zoom. Flip V (uv 0->1 top-to-bottom) because
+    // textures load vertically flipped (stbi_set_flip_vertically_on_load), so
+    // this cancels it and the icon renders upright in ImGui's y-down space.
+    const float half = kComponentIconSizePx * 1.0f;
+    const ImVec2 uv0(0.0f, 1.0f);
+    const ImVec2 uv1(1.0f, 0.0f);
+    const float gap = 4.0f;   // horizontal spacing when an object stacks several icons
+
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    glm::mat4 vp = proj * view;
+
+    for (Scene* scene : sceneManager->GetScenes()) {
+        if (!scene) continue;
+        for (GameObject* obj : scene->GetAllGameObjects()) {
+            if (!obj || !obj->GetActive()) continue;
+            Transform* transform = obj->GetComponent<Transform>();
+            if (!transform) continue;
+
+            // Collect the resolved textures this object should show.
+            std::vector<Texture2D*> icons;
+            for (ComponentIcon& icon : m_componentIcons) {
+                if (!icon.matches(obj)) continue;
+                if (!icon.texture) icon.texture = AssetManager::Get().GetTextureByName(icon.textureName);
+                if (icon.texture) icons.push_back(icon.texture);
+            }
+            if (icons.empty()) continue;
+
+            // 75% alpha when this object is selected, 25% otherwise.
+            int alpha = (selectedObj && obj == selectedObj) ? 191 : 64;
+            ImU32 tint = IM_COL32(255, 255, 255, alpha);
+
+            // Lay the icons out as a horizontal row centered on the transform.
+            // Each icon gets a uniform square slot (side 2*half); the image is
+            // fitted inside it preserving the texture's aspect ratio so a
+            // non-square icon isn't stretched.
+            ImVec2 center = WorldToScreen(transform->GetWorldPosition(), vp, viewWidth, viewHeight);
+            float slot = 2.0f * half;
+            float totalW = icons.size() * slot + (icons.size() - 1) * gap;
+            float cx = center.x - totalW * 0.5f + half;   // center of the first slot
+            for (Texture2D* tex : icons) {
+                // Fit the texture inside a half x half box without stretching.
+                float hw = half, hh = half;
+                float tw = static_cast<float>(tex->GetWidth());
+                float th = static_cast<float>(tex->GetHeight());
+                if (tw > 0.0f && th > 0.0f) {
+                    if (tw >= th) hh = half * (th / tw);   // wider than tall -> shrink height
+                    else          hw = half * (tw / th);   // taller than wide -> shrink width
+                }
+                ImVec2 pMin(cx - hw, center.y - hh);
+                ImVec2 pMax(cx + hw, center.y + hh);
+                drawList->AddImage((ImTextureID)tex->GetTextureID(), pMin, pMax, uv0, uv1, tint);
+                cx += slot + gap;
+            }
+        }
+    }
 }
 
 ImVec2 GizmosManager::WorldToScreen(const glm::vec2& world, const glm::mat4& vp, float viewWidth, float viewHeight) {

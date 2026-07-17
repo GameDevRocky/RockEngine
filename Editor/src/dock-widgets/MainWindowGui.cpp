@@ -46,17 +46,50 @@ void MainWindow::Init()
     });
     
 
-    central_tabs = new QTabWidget(this);
+    // The Scene/Game viewports live as dock widgets inside an inner QMainWindow
+    // that is this window's central widget. Because that inner window has no
+    // central widget, the two docks fill its entire area -- so they can be
+    // tabbed together (the default, mimicking the old QTabWidget), dragged out
+    // to float, split side-by-side, and re-docked in the center. Hierarchy /
+    // Inspector / Console etc. remain docks of the OUTER window and surround it.
+    viewportArea = new QMainWindow(this);
+    viewportArea->setWindowFlags(Qt::Widget);          // embed, don't behave as a top-level window
+    viewportArea->setDockNestingEnabled(true);          // allow splitting Scene | Game in the center
+    viewportArea->setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::AllowNestedDocks);
 
-    central_tabs->addTab(scene_view, "Scene");
-    central_tabs->addTab(game_view, "Game");
-    setCentralWidget(central_tabs);
+    sceneviewDock = new QDockWidget("Scene", viewportArea);
+    sceneviewDock->setObjectName("SceneViewDock");
+    sceneviewDock->setWidget(scene_view);
+    // Movable + floatable, but not closable: closing would hide a viewport with
+    // no menu path to bring it back. Undock via drag/double-click instead.
+    sceneviewDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    viewportArea->addDockWidget(Qt::LeftDockWidgetArea, sceneviewDock);
+
+    gameviewDock = new QDockWidget("Game", viewportArea);
+    gameviewDock->setObjectName("GameViewDock");
+    gameviewDock->setWidget(game_view);
+    gameviewDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
+    viewportArea->addDockWidget(Qt::LeftDockWidgetArea, gameviewDock);
+
+    // Start tabbed with Scene in front, matching the previous QTabWidget layout.
+    viewportArea->tabifyDockWidget(sceneviewDock, gameviewDock);
+    sceneviewDock->raise();
+
+    setCentralWidget(viewportArea);
 
     // Keep the frame-loop driver in sync with whichever viewport is actually
-    // visible (e.g. RuntimeBar switches to the Game tab on play) -- see
-    // Editor::SetFrameDriver.
-    connect(central_tabs, &QTabWidget::currentChanged, this, [this](int) {
-        Editor::Get()->SetFrameDriver(qobject_cast<QOpenGLWidget*>(central_tabs->currentWidget()));
+    // visible (tab switch, float, or RuntimeBar raising the Game view on play)
+    // -- see Editor::SetFrameDriver. QDockWidget::visibilityChanged fires when a
+    // dock is raised to the front of a tab group, hidden behind one, floated, or
+    // shown/hidden. Each handler falls back to the other viewport so we always
+    // drive something that's on screen.
+    connect(sceneviewDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (visible)                         Editor::Get()->SetFrameDriver(SceneViewGui::Get());
+        else if (gameviewDock->isVisible())  Editor::Get()->SetFrameDriver(GameViewGui::Get());
+    });
+    connect(gameviewDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
+        if (visible)                          Editor::Get()->SetFrameDriver(GameViewGui::Get());
+        else if (sceneviewDock->isVisible())  Editor::Get()->SetFrameDriver(SceneViewGui::Get());
     });
 
     hierarchyDock = new QDockWidget("Hierarchy", this);
@@ -124,6 +157,9 @@ void MainWindow::SaveLayout()
 
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
+    // saveState() only serializes THIS window's docks; the Scene/Game docks
+    // belong to the inner viewportArea, so persist its arrangement separately.
+    if (viewportArea) settings.setValue("viewportState", viewportArea->saveState());
 }
 
 void MainWindow::LoadLayout()
@@ -132,6 +168,7 @@ void MainWindow::LoadLayout()
 
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
+    if (viewportArea) viewportArea->restoreState(settings.value("viewportState").toByteArray());
 }
 
 void MainWindow::Shutdown(){
@@ -145,4 +182,5 @@ void MainWindow::ClearLayout()
     QSettings settings("Rocklyn", "RockEngineEditor");
     settings.remove("geometry");
     settings.remove("windowState");
+    settings.remove("viewportState");
 }

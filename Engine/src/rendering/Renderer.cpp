@@ -116,6 +116,13 @@ void Renderer::DestroyView(RenderView* view)
     delete view;
 }
 
+GameRenderView* Renderer::GetGameView() const
+{
+    for (RenderView* v : views)
+        if (auto* gv = dynamic_cast<GameRenderView*>(v)) return gv;
+    return nullptr;
+}
+
 void Renderer::Blit(unsigned int texture, unsigned int targetFBO, int x, int y, int w, int h)
 {
     glBindFramebuffer(GL_FRAMEBUFFER, targetFBO);

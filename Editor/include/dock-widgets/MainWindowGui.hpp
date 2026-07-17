@@ -2,7 +2,6 @@
 #include <QMainWindow>
 #include <QSettings>
 #include <QDockWidget>
-#include <QTabWidget>
 #include <QWidget>
 
 class MainWindow : public QMainWindow {
@@ -21,8 +20,12 @@ public:
     void Shutdown();
     void ClearLayout();
 
-    QTabWidget* central_tabs;
-    QDockWidget* centralDock;
+    // Inner QMainWindow used as this window's central widget. It has no central
+    // widget of its own, so the Scene/Game dock widgets fill its whole area and
+    // can be tabbed, split, floated, and re-docked "in the center" -- something
+    // a top-level QMainWindow can't do (its center is reserved for the central
+    // widget, docks only surround it).
+    QMainWindow* viewportArea;
     QDockWidget* sceneviewDock;
     QDockWidget* gameviewDock;
     QDockWidget* hierarchyDock;

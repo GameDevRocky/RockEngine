@@ -3,8 +3,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
+#include <vector>
+#include <functional>
 #include "imgui.h"
 #include "ImGuizmo.h"
+
+class Texture2D;
+class GameObject;
 
 class GizmosManager : public System {
 public:
@@ -44,6 +49,23 @@ private:
 
     void DrawTransformGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight);
     void DrawColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight);
+    // Orange outline for every enabled Camera showing the world region it
+    // renders to the Game view. Non-interactive; drawn regardless of selection.
+    void DrawCameraGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight);
+    void DrawCameraGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight,
+                         class Transform* transform, class Camera* camera, int alpha, float aspect);
+
+    // ─── Component-type icons ────────────────────────────────────────────────
+    // Fixed screen-space icon drawn at an object's transform for every
+    // component type registered below. Expandable: add a component -> icon
+    // mapping in RegisterComponentIcons() and it shows up here automatically.
+    struct ComponentIcon {
+        std::string textureName;                  // AssetManager texture name (icon PNG stem)
+        std::function<bool(GameObject*)> matches; // true if this object should show the icon
+        Texture2D* texture = nullptr;             // resolved lazily from AssetManager, then cached
+    };
+    void RegisterComponentIcons();   // populate m_componentIcons once
+    void DrawComponentIcons(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight);
     void DrawBoxColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight,
                               class Transform* transform, class BoxCollider* boxCollider);
     void DrawCircleColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight,
@@ -57,6 +79,12 @@ private:
     static GizmosManager* instance;
     ImGuizmo::OPERATION m_currentOperation = ImGuizmo::UNIVERSAL;
     EditMode m_editMode = EditMode::Transform;
+
+    // Component-type icon table (see ComponentIcon above). Registered on first
+    // draw so it doesn't depend on Init() ordering vs. AssetManager load.
+    std::vector<ComponentIcon> m_componentIcons;
+    bool m_componentIconsRegistered = false;
+    static constexpr float kComponentIconSizePx = 32.0f;
 
     // Collider drag state
     int m_dragHandle = -1;           // -1 = none

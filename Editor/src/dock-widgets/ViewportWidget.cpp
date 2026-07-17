@@ -1,16 +1,22 @@
 #include "dock-widgets/ViewportWidget.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/rendering/views/RenderView.hpp"
+#include "Editor.hpp"
 #include <QSurfaceFormat>
 #include <iostream>
 
 ViewportWidget::ViewportWidget(QWidget* parent)
     : QOpenGLWidget(parent)
 {
+    // Join the editor's per-tick repaint set so every on-screen viewport stays
+    // live, not just the frame driver. See Editor::Update / RegisterViewport.
+    Editor::Get()->RegisterViewport(this);
 }
 
 ViewportWidget::~ViewportWidget()
 {
+    Editor::Get()->UnregisterViewport(this);
+
     // Dead in practice today: SceneViewGui/GameViewGui are leaked
     // function-local-static singletons (see their Get()), so this destructor
     // never actually runs during normal operation. Implemented correctly

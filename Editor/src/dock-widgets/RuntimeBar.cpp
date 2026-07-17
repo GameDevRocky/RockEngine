@@ -33,7 +33,10 @@ void RuntimeBar::Init() {
         if (container->GetMode() == Container::Mode::Editor){
             Engine::Get()->EnterPlayMode();
             runtimeButton->setIcon(*stopIcon);
-            MainWindow::Get()->central_tabs->setCurrentWidget(GameViewGui::Get());
+            // Bring the Game viewport to the front (raise() surfaces it whether
+            // it's tabbed behind the Scene view or floating in its own window).
+            MainWindow::Get()->gameviewDock->show();
+            MainWindow::Get()->gameviewDock->raise();
             GameViewGui::Get()->setFocus();
         }
         else if (container->GetMode() == Container::Mode::Runtime){

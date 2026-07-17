@@ -1,0 +1,8 @@
+type: Texture2D
+id: 9f661e0bd2f42aa70f6eec0a9e310489
+name: camera_icon
+path: Domain/lib/assets/icons/camera_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

@@ -33,6 +33,11 @@ public:
     // Context must be current.
     void DestroyView(RenderView* view);
 
+    // The first live Game view, or nullptr if none exists yet. The camera
+    // gizmos read its resolved aspect so the Scene-view overlay rect matches
+    // the region the Game view actually displays.
+    GameRenderView* GetGameView() const;
+
     // Draws `texture` into `targetFBO` at the pixel rect (x, y, w, h),
     // GL bottom-left origin. Owns the only fullscreen quad + blit program.
     void Blit(unsigned int texture, unsigned int targetFBO, int x, int y, int w, int h);

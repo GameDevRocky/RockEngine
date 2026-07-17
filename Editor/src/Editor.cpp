@@ -16,6 +16,7 @@
 #include "dock-widgets/HierarchyGui.hpp"
 #include <QCoreApplication>
 #include "engine/utils/EngineUtils.hpp"
+#include <algorithm>
 
 Editor::Editor(){
     QCoreApplication::setOrganizationName("Rocklyn");
@@ -79,7 +80,26 @@ void Editor::Init() {
 }
 
 void Editor::Update(){
-    if (frameDriver) frameDriver->update();
+    // Repaint every viewport that's currently on screen -- not just the frame
+    // driver. When Scene and Game are visible at the same time (split or
+    // floated), both must re-render each tick to reflect the latest engine
+    // state; driving only one leaves the other frozen (and, because its ImGui
+    // overlay only processes input during its own paint, makes its gizmos and
+    // clicks appear dead). The frameDriver still *paces* the loop -- its
+    // frameSwapped re-arms FrameTick -- but it no longer owns the repaint.
+    for (QOpenGLWidget* v : viewports) {
+        if (v && v->isVisible()) v->update();
+    }
+}
+
+void Editor::RegisterViewport(QOpenGLWidget* w) {
+    if (w && std::find(viewports.begin(), viewports.end(), w) == viewports.end())
+        viewports.push_back(w);
+}
+
+void Editor::UnregisterViewport(QOpenGLWidget* w) {
+    viewports.erase(std::remove(viewports.begin(), viewports.end(), w), viewports.end());
+    if (frameDriver == w) frameDriver = nullptr;
 }
 
 void Editor::FrameTick(){

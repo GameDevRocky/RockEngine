@@ -66,6 +66,14 @@ public:
     float       GetDisplayAspect() const { return displayAspect; }
     glm::ivec2  GetDisplayResolution() const { return { fixedResW, fixedResH }; }
 
+    // Aspect ratio (w/h) of the image this view actually displays: the resolved
+    // render-target dims after fitting/letterboxing, so it reflects what's on
+    // screen in EVERY display mode (Free included) -- unlike GetDisplayAspect(),
+    // which is only the FixedAspect *setting*. 0 before the first Render().
+    float GetResolvedAspect() const {
+        return targetH > 0 ? static_cast<float>(targetW) / static_cast<float>(targetH) : 0.0f;
+    }
+
 protected:
     RenderView() = default;
     virtual void UpdateCamera() {}   // pull authored settings into `camera`
