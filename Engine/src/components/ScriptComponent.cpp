@@ -58,9 +58,9 @@ namespace {
         return py::str(s);
     }
 
-    // Pull a string ID out of a list element: handler objects expose `.id`,
-    // plain strings cast directly, None → "".
-    std::string ListElementToString(const py::handle& el) {
+    // Pull a string ID out of a field value (scalar or list element): handler
+    // objects expose `.id`, plain strings cast directly, None → "".
+    std::string RefToIdString(const py::handle& el) {
         if (el.is_none()) return std::string();
         if (py::hasattr(el, "id")) return el.attr("id").cast<std::string>();
         return el.cast<std::string>();
@@ -87,7 +87,7 @@ namespace {
         }
         // "str" and asset-ref element lists both marshal as vector<string> of IDs
         std::vector<std::string> out;
-        if (isList) for (auto el : val) out.push_back(ListElementToString(el));
+        if (isList) for (auto el : val) out.push_back(RefToIdString(el));
         return out;
     }
 }
@@ -146,7 +146,10 @@ YAML::Node ScriptComponent::Serialize()
                 } else if (field.typeName == "bool") {
                     fieldsNode[field.name] = val.cast<bool>();
                 } else if (field.typeName == "str") {
-                    fieldsNode[field.name] = val.cast<std::string>();
+                    // Covers plain strings and every ref flavour (sprite/material/
+                    // component:/gameobject:) — a ref holds a handler object or None,
+                    // not a str, so it must go out as its id. Mirrors GetAllFieldValues.
+                    fieldsNode[field.name] = RefToIdString(val);
                 } else if (field.typeName == "vec2") {
                     float x = py::getattr(val, "x").cast<float>();
                     float y = py::getattr(val, "y").cast<float>();
@@ -173,7 +176,7 @@ YAML::Node ScriptComponent::Serialize()
                             else if (field.elementTypeName == "bool")
                                 seq.push_back(el.cast<bool>());
                             else
-                                seq.push_back(ListElementToString(el));
+                                seq.push_back(RefToIdString(el));
                         }
                     }
                     fieldsNode[field.name] = seq;
@@ -850,45 +853,14 @@ ScriptComponent* ScriptComponent::Copy(){
     copy->moduleName = moduleName;
     copy->className = className;
 
-    // Carry current field values as pending values for the copy
-    auto& scriptInstance = m_pyData->scriptInstance;
-    if (!m_fields.empty() && scriptInstance && !scriptInstance.is_none()) {
-        py::gil_scoped_acquire gil;
-        for (const auto& field : m_fields) {
-            try {
-                py::object val = py::getattr(scriptInstance, field.name.c_str());
-                YAML::Node node;
-                if (field.typeName == "float") {
-                    node = val.cast<float>();
-                } else if (field.typeName == "int") {
-                    node = val.cast<int>();
-                } else if (field.typeName == "bool") {
-                    node = val.cast<bool>();
-                } else if (field.typeName == "str") {
-                    if (val.is_none()) {
-                        node = std::string();
-                    } else if (py::hasattr(val, "id")) {
-                        node = val.attr("id").cast<std::string>();
-                    } else {
-                        node = val.cast<std::string>();
-                    }
-                } else if (field.typeName == "vec2") {
-                    node.push_back(py::getattr(val, "x").cast<float>());
-                    node.push_back(py::getattr(val, "y").cast<float>());
-                } else if (field.typeName == "vec3") {
-                    node.push_back(py::getattr(val, "x").cast<float>());
-                    node.push_back(py::getattr(val, "y").cast<float>());
-                    node.push_back(py::getattr(val, "z").cast<float>());
-                } else if (field.typeName == "vec4") {
-                    node.push_back(py::getattr(val, "x").cast<float>());
-                    node.push_back(py::getattr(val, "y").cast<float>());
-                    node.push_back(py::getattr(val, "z").cast<float>());
-                    node.push_back(py::getattr(val, "w").cast<float>());
-                }
-                copy->m_pendingFieldValues[field.name] = node;
-            }
-            catch (const std::exception&) {}
-        }
+    // Carry current field values as pending values for the copy. Serialize()
+    // already marshals every field type (including lists and refs) into exactly
+    // the shape Deserialize() feeds m_pendingFieldValues, so reuse it rather
+    // than maintaining a second copy of that marshalling here.
+    YAML::Node serialized = Serialize();
+    if (serialized["fields"]) {
+        for (auto it = serialized["fields"].begin(); it != serialized["fields"].end(); ++it)
+            copy->m_pendingFieldValues[it->first.as<std::string>()] = it->second;
     }
 
     return copy;

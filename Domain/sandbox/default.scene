@@ -5,7 +5,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 27d025e08ff0501fbf199080ce91f924
-    localPosition: [-369.3442, 63.465527]
+    localPosition: [73.43739, 229.0278]
     localRotation: 0
     localScale: [2.3597758, 2.4651823]
     parent_id: ~
@@ -29,9 +29,9 @@ components:
     gameobject: 27d025e08ff0501fbf199080ce91f924
     center: [0, 0]
     isSensor: false
-    density: 1
+    density: 0.1
     friction: 0.4
-    bounciness: 0.4
+    bounciness: 0
     rollingResistance: 0
     radius: 35.875
     height: 29.6875
@@ -48,6 +48,22 @@ components:
     gameobject: 27d025e08ff0501fbf199080ce91f924
     module: PlayerController
     class: PlayerController
+    fields:
+      camera: 983d4dc0871048db88c0abb372766b89
+      speed: 500
+      jump_height: 200
+      ground_check: 9a30149c1af0006e3edb419555007c18
+      direction:
+        - 0
+        - -16.7
+  - id: 9f2e07b3dfa8d4c1693c5b590f6839d7
+    enabled: true
+    type: Transform
+    gameobject: 9a30149c1af0006e3edb419555007c18
+    localPosition: [1.9073486e-06, -27.740005]
+    localRotation: 0
+    localScale: [0.4237691, 0.4056495]
+    parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: c0e695f36d91b9e90514bac0d88af299
     enabled: true
     type: Transform
@@ -123,8 +139,8 @@ components:
     type: Transform
     gameobject: 31d7a2f3fe37efa1781b6275caed3926
     localPosition: [-382.16052, 40.354507]
-    localRotation: -7.792217
-    localScale: [14.220003, 12.259998]
+    localRotation: -7.7922173
+    localScale: [14.220003, 12.26]
     parent_id: c0e695f36d91b9e90514bac0d88af299
   - id: 4111908962e4219c0b39cdcf2c0f78f4
     enabled: true
@@ -212,6 +228,12 @@ gameobjects:
       - d968e8b8f246d02d43881d65af5c8ef4
       - cd1b3bf5c7d6724462186bcd03a2d355
       - 5acc02eb3c119671148c5187a504b268
+  - id: 9a30149c1af0006e3edb419555007c18
+    type: GameObject
+    name: Ground Check
+    tag: Untagged
+    component_ids:
+      - 9f2e07b3dfa8d4c1693c5b590f6839d7
   - id: f6bdf2bd638bc8e2612fdd70cb8d562f
     type: GameObject
     name: Pivot
