@@ -83,6 +83,14 @@ void AssetMetaService::ProcessShader(const fs::path& glslPath) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+void AssetMetaService::GenerateFor(const std::string& sourceFile) {
+    fs::path p(sourceFile);
+    const std::string metaExt = MetaExtensionFor(p.extension().string());
+    if (metaExt == ".texture")      ProcessTexture(p);
+    else if (metaExt == ".shader")  ProcessShader(p);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 void AssetMetaService::ScanAndGenerate(const std::string& rootDir) {
     fs::path root(rootDir);
     if (!fs::exists(root) || !fs::is_directory(root)) {

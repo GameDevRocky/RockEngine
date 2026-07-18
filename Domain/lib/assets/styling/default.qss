@@ -10,7 +10,7 @@ QWidget
 {
     background: palette(window);
     font-family: "Segoe UI";
-    font-size: 14px;
+    font-size: 16px;
 }
 
 #RuntimeBar
@@ -386,7 +386,7 @@ QDockWidget {
 }
 
 QDockWidget::title {
-    border: 1px solid rgb(59, 59, 59);
+    border: 1px solid rgb(39, 39, 39);
     font-weight: bold;
     padding-left: 2px;    /* Keeps text away from the left edge */
     padding-top: 2px;      /* Centers it vertically */

@@ -56,6 +56,24 @@ public:
     // reference the id simply resolve to nullptr afterwards.
     void RemoveSprite(const std::string& id);
 
+    // Remove an asset from memory by id, whichever kind it is (material, texture,
+    // shader, or sprite). Removing a texture also removes every sprite carved from
+    // it. Fires ASSET_REMOVED_EVENT (payload = id) and frees the object; anything
+    // still referencing the id resolves to nullptr. Does NOT touch disk -- the
+    // caller deletes the file(s). No-op for an unknown id.
+    void RemoveAsset(const std::string& id);
+
+    // Create a brand-new material as a .material file at filePath, register it,
+    // and return it. Defaults to the "sprite" shader when present so it renders
+    // (and its uniform defaults get seeded) out of the box. For the editor's
+    // "New > Material".
+    Material* CreateMaterial(const std::string& filePath, const std::string& name);
+
+    // Import an external image into destDir: copy the file in (unless it already
+    // lives there), generate its .texture meta, register the texture, and return
+    // it (nullptr on failure). Powers dropping images onto the Folder view.
+    Texture2D* ImportTexture(const std::string& sourceFile, const std::string& destDir);
+
     void LoadAsset(const YAML::Node& node, const std::string& type);
     void LoadAssetFromFile(const std::string& filePath);
 

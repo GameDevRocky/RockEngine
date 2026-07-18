@@ -24,6 +24,11 @@ public:
     // Safe to call on every startup – it skips files that already exist.
     static void ScanAndGenerate(const std::string& rootDir);
 
+    // Generate the meta for a single source file, if it maps to a known asset
+    // type (image → .texture, .glsl → .shader) and doesn't already have one.
+    // Used when importing one dropped file rather than rescanning a whole tree.
+    static void GenerateFor(const std::string& sourceFile);
+
     // Returns true if ext is a meta extension (.texture / .shader / .material)
     static bool IsMetaExtension(const std::string& ext);
 

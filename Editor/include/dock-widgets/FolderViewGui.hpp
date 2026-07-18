@@ -42,6 +42,20 @@ private:
     void dragMoveEvent(QDragMoveEvent* event) override;
     void dropEvent(QDropEvent* event) override;
 
+    // Right-click "New" menu: create asset files on disk in the current folder.
+    void ShowContextMenu(const QPoint& pos);
+    void CreateNewMaterial();
+    void CreateNewScene();
+    // A non-colliding path in the current folder for "<baseName><ext>", adding
+    // " 1", " 2", … before the extension if needed.
+    QString UniqueAssetPath(const QString& baseName, const QString& ext) const;
+
+    // Delete the currently selected asset(s) after a confirmation prompt. Removes
+    // the file from disk (plus any companion source/meta) and the asset from
+    // AssetManager memory. Triggered by the Del key or the context-menu action.
+    void DeleteSelectedAssets();
+    void DeleteOneAsset(const QString& filePath);
+
     QListView*              gridView          = nullptr;
     QFileSystemModel*       model             = nullptr;
     AssetFilterProxyModel*  proxy             = nullptr;

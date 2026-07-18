@@ -231,6 +231,114 @@ void AssetManager::RemoveSprite(const std::string& id)
     delete sprite;
 }
 
+Material* AssetManager::CreateMaterial(const std::string& filePath, const std::string& name) {
+    Material* mat = new Material();
+
+    YAML::Node node;
+    node["type"] = "Material";
+    node["name"] = name;
+    node["id"]   = GenerateUUID();
+    // Default to the sprite shader when it exists so the material is usable and
+    // Awake()→SetShader()→Validate() can seed its uniform defaults; otherwise it
+    // is created blank and the user assigns a shader in the inspector.
+    if (Shader* s = GetShaderByName("sprite")) node["shader_id"] = s->GetID();
+
+    mat->Deserialize(node);
+    mat->SetFilePath(filePath);
+    mat->Init();
+    mat->Awake();          // resolves the shader and seeds uniform defaults
+    AddMaterial(mat);      // registers + fires ASSET_ADDED_EVENT + arms auto-save
+    SaveResource(mat);     // write the canonical, fully-seeded file to disk
+    std::cout << "Created Material: " + filePath << std::endl;
+    return mat;
+}
+
+Texture2D* AssetManager::ImportTexture(const std::string& sourceFile, const std::string& destDir) {
+    std::error_code ec;
+    fs::path src(sourceFile);
+    if (!fs::is_regular_file(src, ec)) {
+        Console::Alert("ImportTexture: source not found: " + sourceFile);
+        return nullptr;
+    }
+
+    fs::path dest = fs::path(destDir) / src.filename();
+
+    // Copy into the folder unless the source already lives there (dragged from
+    // within the project). Never clobber an existing file of the same name.
+    const bool sameFile = fs::weakly_canonical(src, ec) == fs::weakly_canonical(dest, ec);
+    if (!sameFile) {
+        if (fs::exists(dest, ec)) {
+            Console::Alert("ImportTexture: '" + dest.filename().string() + "' already exists here.");
+            return nullptr;
+        }
+        fs::copy_file(src, dest, ec);
+        if (ec) {
+            Console::Alert("ImportTexture: copy failed: " + ec.message());
+            return nullptr;
+        }
+    }
+
+    // Generate the .texture meta for just this file, then register the texture
+    // (LoadAssetFromFile dedupes by id, so a re-import is a no-op).
+    AssetMetaService::GenerateFor(dest.string());
+    const fs::path metaPath(dest.string() + ".texture");
+    if (!fs::exists(metaPath, ec)) {
+        Console::Alert("ImportTexture: failed to generate meta for: " + dest.string());
+        return nullptr;
+    }
+    LoadAssetFromFile(metaPath.string());
+
+    try {
+        YAML::Node meta = YAML::LoadFile(metaPath.string());
+        if (meta["id"]) return GetTexture(meta["id"].as<std::string>());
+    } catch (...) {}
+    return nullptr;
+}
+
+void AssetManager::RemoveAsset(const std::string& id) {
+    if (auto it = materials.find(id); it != materials.end()) {
+        Material* m = it->second;
+        materials.erase(it);
+        Notify(ASSET_REMOVED_EVENT, id);
+        delete m;
+        return;
+    }
+
+    if (auto it = textures.find(id); it != textures.end()) {
+        Texture2D* tex = it->second;
+
+        // Cascade: every sprite carved from this texture goes with it. Collect
+        // first, then erase (don't mutate the map mid-iteration). Erase directly
+        // rather than via RemoveSprite -- that would re-save the texture file
+        // we're about to delete.
+        std::vector<std::string> owned;
+        for (auto& [sid, sp] : sprites)
+            if (sp && sp->GetTextureID() == id) owned.push_back(sid);
+        for (const std::string& sid : owned) {
+            Sprite* sp = sprites[sid];
+            sprites.erase(sid);
+            Notify(ASSET_REMOVED_EVENT, sid);
+            delete sp;
+        }
+
+        textures.erase(id);
+        Notify(ASSET_REMOVED_EVENT, id);
+        delete tex;
+        return;
+    }
+
+    if (auto it = shaders.find(id); it != shaders.end()) {
+        Shader* s = it->second;
+        shaders.erase(it);
+        Notify(ASSET_REMOVED_EVENT, id);
+        delete s;
+        return;
+    }
+
+    // A standalone sprite -- reuse the sprite path (it rewrites the parent texture).
+    if (sprites.count(id)) RemoveSprite(id);
+}
+
 void AssetManager::SubscribeAutoSave(Resource* r) {
     if (!r) return;
     r->Subscribe([this, r]() {
