@@ -22,6 +22,7 @@
 #include "engine/core/GameObject.hpp"
 #include "engine/components/ScriptComponent.hpp"
 #include "utils/EditorUtils.hpp"
+#include "utils/RefDropFilter.hpp"
 #include "dock-widgets/FolderViewGui.hpp"
 #include <QFileInfo>
 
@@ -430,6 +431,17 @@ public:
 
         QObject::connect(m_btn, &QPushButton::clicked, [this]() { openPicker(); });
         QObject::connect(m_edit, &ClickableLineEdit::clicked, [this]() { openPicker(); });
+
+        // Drag & drop: accept a compatible Hierarchy GameObject / Folder-view
+        // asset dropped onto this row (see RefDropFilter). The read-only line
+        // edit would otherwise swallow drops, so let them fall through to the
+        // container that hosts the filter.
+        m_edit->setAcceptDrops(false);
+        m_container->setAcceptDrops(true);
+        m_container->installEventFilter(new RefDropFilter(m_desc, [this](const std::string& id) {
+            SetValue(id);
+            if (onChanged) onChanged(id);
+        }, m_container));
     }
 
     QWidget* GetWidget() override { return m_container; }
@@ -649,6 +661,15 @@ public:
         QObject::connect(m_collapseBtn, &QPushButton::clicked, [this]() { setCollapsed(!m_collapsed); });
 
         QObject::connect(m_thumb, &EditorUtils::ClickableLabel::clicked, [this]() { openPicker(); });
+
+        // Drag & drop: accept a matching-type asset dragged from the Folder view
+        // (material onto a material slot, sprite onto a sprite slot, etc.). The
+        // child labels don't accept drops, so events reach the container filter.
+        m_container->setAcceptDrops(true);
+        m_container->installEventFilter(new RefDropFilter(m_desc, [this](const std::string& id) {
+            SetValue(id);
+            if (onChanged) onChanged(id);
+        }, m_container));
 
         // Start collapsed: show just the name bar until the user expands it.
         setCollapsed(true);

@@ -29,9 +29,33 @@
 #include "engine/core/RuntimeObject.hpp"
 
 #include "engine/utils/EngineUtils.hpp"
+#include "utils/DragDropMime.hpp"
+#include <QMimeData>
 using namespace EngineUtils;
 namespace {
 constexpr int GAMEOBJECT_ID_ROLE = Qt::UserRole + 1;
+
+// Standard item model that also stamps the dragged GameObject's id onto the
+// drag's mime data (in addition to the built-in internal-move payload), so
+// inspector reference widgets can accept a Hierarchy item dropped onto them.
+// Internal reordering is untouched -- the original mime data is preserved.
+class GameObjectDragModel : public QStandardItemModel {
+public:
+    using QStandardItemModel::QStandardItemModel;
+
+    QMimeData* mimeData(const QModelIndexList& indexes) const override {
+        QMimeData* data = QStandardItemModel::mimeData(indexes);
+        if (!data) return data;
+        for (const QModelIndex& idx : indexes) {
+            const QString goId = idx.data(GAMEOBJECT_ID_ROLE).toString();
+            if (!goId.isEmpty()) {
+                data->setData(kGameObjectMimeType, goId.toUtf8());
+                break;   // dragging is single-selection; first valid id wins
+            }
+        }
+        return data;
+    }
+};
 
 bool WouldCreateCycle(Transform* childTransform, Transform* newParentTransform) {
     if (!childTransform || !newParentTransform)
@@ -157,7 +181,7 @@ void UnsubscribeFromContainer(Container* container, const std::string& scene_id,
 } // namespace
 
 SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
-    model = new QStandardItemModel(this);
+    model = new GameObjectDragModel(this);
     auto* headerItem = new QStandardItem(style()->standardIcon(QStyle::SP_DirIcon), "Hierarchy");
     model->setHorizontalHeaderItem(0, headerItem);
     setModel(model);
