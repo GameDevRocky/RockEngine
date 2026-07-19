@@ -65,6 +65,22 @@ class ScriptableComponent(Component):
             return None
         return get_gameobject(new_id)
 
+    def duplicate(self, target=None):
+        """Clone a GameObject and its whole subtree, as a sibling of the original.
+
+        Every cloned object and component gets a new id, and references between
+        them are rewired to the clones; references to anything outside the
+        subtree (sprites, materials, another object's Camera) still point at the
+        original target. Defaults to this script's own GameObject. `target` may
+        be a GameObject or any component handler on it.
+        """
+        from ..core.gameobject_handler import get_gameobject
+        obj_id = self._gameobject_id if target is None else target.id
+        new_id = gameobject_module.duplicate(obj_id)
+        if not new_id:
+            return None
+        return get_gameobject(new_id)
+
     def on_collision_enter(self, other: Collider):
         pass
     def on_collision_exit(self, other: Collider):

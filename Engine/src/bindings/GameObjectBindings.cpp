@@ -90,6 +90,15 @@ void BindGameObject(pybind11::module_& m) {
         return obj->GetID();
     });
 
+    gameobject_module.def("duplicate", [](const std::string& target_id) -> std::string {
+        GameObject* source = registry->Find<GameObject>(target_id);
+        if (!source) return {};
+        Scene* scene = source->GetScene();
+        if (!scene) return {};
+        GameObject* clone = scene->DuplicateGameObject(source);
+        return clone ? clone->GetID() : std::string{};
+    });
+
     gameobject_module.def("shut_down", [](const std::string& id){
         GameObject* obj = registry->Find<GameObject>(id);
         if (!obj) return;

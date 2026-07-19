@@ -45,6 +45,9 @@ class SceneTree : public QTreeView{
 
     private:
         QModelIndex FindItemById(const std::string& id) const;
+        // Clone the object as a sibling and select the clone. Shared by the
+        // per-item context menu and Ctrl+D.
+        void DuplicateObject(const std::string& id);
         void OnObjectSelected(const std::string& selectedId);
         void OnItemEntered(const QModelIndex& index);
         // Resize the view to fit its visible rows (scrollbars are off; the outer

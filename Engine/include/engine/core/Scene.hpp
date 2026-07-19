@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <unordered_set>
 #include "yaml-cpp/yaml.h"
 #include "engine/serialization/Serializable.hpp"
 #include "engine/core/RuntimeObject.hpp"
@@ -37,6 +38,14 @@ public:
     std::string GetTypeName() override { return "Scene"; }
     
     void AddGameObject(GameObject* obj);
+
+    // Clone `source` and its whole subtree into this scene with brand new ids,
+    // remapping every reference *within* the subtree to the new ids while
+    // references pointing outside it (assets, other objects) keep their target.
+    // The clone becomes a sibling of the source. Returns the new subtree root,
+    // or nullptr if the source isn't a live object in this scene.
+    GameObject* DuplicateGameObject(GameObject* source);
+
     void Sync(GameObject* obj);
     void SyncRootObjects(const std::string& child_id, const std::string& parent_id);
     void SyncAllObjects(const std::string& id);
@@ -66,7 +75,17 @@ public:
 
 
 private:
-    
+
+    // Serialize `root` and its descendants top-down into the two sequences
+    // Deserialize() consumes. `visited` guards against cycles and lets callers
+    // emit several roots into one pair of sequences.
+    void EmitSubtree(GameObject* root, YAML::Node& gameobjects, YAML::Node& components,
+                     std::unordered_set<std::string>& visited);
+
+    // "Player" -> "Player (1)" -> "Player (2)", scanning `source`'s siblings for
+    // the highest existing suffix.
+    std::string MakeUniqueSiblingName(GameObject* source);
+
     std::string name;
     std::string path;
     std::vector<std::string> rootobject_ids;

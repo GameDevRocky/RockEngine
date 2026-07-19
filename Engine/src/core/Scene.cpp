@@ -5,6 +5,7 @@
 #include "engine/components/Transform.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
+#include "engine/serialization/IdRemapper.hpp"
 #include "engine/debug/Console.hpp"
 #include <algorithm>
 #include <functional>
@@ -101,6 +102,19 @@ void Scene::LateUpdate()
     }
 }
 
+void Scene::EmitSubtree(GameObject* root, YAML::Node& gameobjects, YAML::Node& components,
+                        std::unordered_set<std::string>& visited)
+{
+    if (!root || visited.count(root->GetID())) return;
+    visited.insert(root->GetID());
+    gameobjects.push_back(root->Serialize());
+    for (auto* comp : root->GetAllComponents())
+        if (comp) components.push_back(comp->Serialize());
+    if (Transform* t = root->GetTransform())
+        for (Transform* child : t->GetChildren())
+            if (child) EmitSubtree(child->GetGameObject(), gameobjects, components, visited);
+}
+
 YAML::Node Scene::Serialize()
 {
     YAML::Node node;
@@ -114,18 +128,8 @@ YAML::Node Scene::Serialize()
     // sibling ordering is reproduced on load — the loader rebuilds root/child order
     // from the sequence in which objects are deserialized.
     std::unordered_set<std::string> visited;
-    std::function<void(GameObject*)> emit = [&](GameObject* obj) {
-        if (!obj || visited.count(obj->GetID())) return;
-        visited.insert(obj->GetID());
-        gameobjects.push_back(obj->Serialize());
-        for (auto* comp : obj->GetAllComponents())
-            if (comp) components.push_back(comp->Serialize());
-        if (Transform* t = obj->GetTransform())
-            for (Transform* child : t->GetChildren())
-                if (child) emit(child->GetGameObject());
-    };
-    for (GameObject* root : GetRootObjects()) emit(root);
-    for (GameObject* obj : GetAllGameObjects()) emit(obj); // safety: any orphans
+    for (GameObject* root : GetRootObjects()) EmitSubtree(root, gameobjects, components, visited);
+    for (GameObject* obj : GetAllGameObjects()) EmitSubtree(obj, gameobjects, components, visited); // safety: any orphans
 
     node["components"] = components;
     node["gameobjects"] = gameobjects;
@@ -262,6 +266,131 @@ void Scene::AddGameObject(GameObject *obj)
         rootobject_ids.push_back(obj->GetID());
     }
     Notify(GAMEOBJECT_ADDED_EVENT, obj->GetID());
+}
+
+std::string Scene::MakeUniqueSiblingName(GameObject* source)
+{
+    // Strip an existing " (N)" suffix so duplicating "Player (1)" yields
+    // "Player (2)", not "Player (1) (1)".
+    std::string base = source->GetName();
+    int sourceIndex = 0;
+    if (!base.empty() && base.back() == ')') {
+        size_t open = base.rfind(" (");
+        if (open != std::string::npos) {
+            std::string digits = base.substr(open + 2, base.size() - open - 3);
+            if (!digits.empty() &&
+                digits.find_first_not_of("0123456789") == std::string::npos) {
+                sourceIndex = std::stoi(digits);
+                base = base.substr(0, open);
+            }
+        }
+    }
+
+    // Siblings = children of the same parent, or the scene roots.
+    std::vector<GameObject*> siblings;
+    Transform* t = source->GetTransform();
+    Transform* parent = t ? t->GetParent() : nullptr;
+    if (parent) {
+        for (Transform* child : parent->GetChildren())
+            if (child && child->GetGameObject()) siblings.push_back(child->GetGameObject());
+    } else {
+        siblings = GetRootObjects();
+    }
+
+    int highest = sourceIndex;
+    for (GameObject* sibling : siblings) {
+        if (!sibling) continue;
+        const std::string& n = sibling->GetName();
+        if (n == base) continue;                       // the un-suffixed original
+        if (n.size() < base.size() + 4) continue;      // shortest match is base + " (1)"
+        if (n.compare(0, base.size(), base) != 0) continue;
+        if (n.compare(base.size(), 2, " (") != 0 || n.back() != ')') continue;
+        std::string digits = n.substr(base.size() + 2, n.size() - base.size() - 3);
+        if (digits.empty() || digits.find_first_not_of("0123456789") != std::string::npos) continue;
+        highest = std::max(highest, std::stoi(digits));
+    }
+
+    return base + " (" + std::to_string(highest + 1) + ")";
+}
+
+GameObject* Scene::DuplicateGameObject(GameObject* source)
+{
+    if (!source || !registry || !registry->Find<GameObject>(source->GetID())) return nullptr;
+
+    // 1. Snapshot the subtree in the same shape Deserialize() consumes. The root
+    //    is emitted first and the walk is top-down — both relied on below.
+    YAML::Node gameobjects(YAML::NodeType::Sequence);
+    YAML::Node components(YAML::NodeType::Sequence);
+    std::unordered_set<std::string> visited;
+    EmitSubtree(source, gameobjects, components, visited);
+    if (gameobjects.size() == 0) return nullptr;
+
+    // 2. Give everything in the snapshot a new identity. Only ids *inside* the
+    //    subtree are in the map, so the root's parent_id, asset ids, and any
+    //    reference to an object elsewhere in the scene survive untouched — which
+    //    is exactly what makes the clone a sibling of the source.
+    auto idMap = IdRemapper::BuildMap(gameobjects, components);
+    IdRemapper::Apply(gameobjects, idMap);
+    IdRemapper::Apply(components, idMap);
+
+    gameobjects[0]["name"] = MakeUniqueSiblingName(source);
+
+    // 3. Build every GameObject before any of them initializes: Transform::Init
+    //    resolves parent_id through the registry, so the whole subtree has to be
+    //    registered first.
+    //
+    //    AddGameObject() looks like the right call here but is not — it creates a
+    //    Transform when GetTransform() returns null, and at this point the
+    //    deserialized component_ids point at components that don't exist yet, so
+    //    it would attach a spurious second Transform. Going direct also bypasses
+    //    AddComponent's singleton rejection, which is correct: the source already
+    //    satisfies that constraint, so its components are attached verbatim.
+    std::vector<GameObject*> created;
+    created.reserve(gameobjects.size());
+    for (const auto& goNode : gameobjects) {
+        auto* obj = new GameObject();
+        obj->Attach(container);
+        obj->SetScene(this);
+        obj->Deserialize(goNode);
+        registry->Register(obj);
+        gameobject_ids.push_back(obj->GetID());
+        created.push_back(obj);
+    }
+
+    for (const auto& compNode : components) {
+        auto* createdComp = SerializableFactory::Create(compNode["type"].as<std::string>());
+        auto* comp = dynamic_cast<Component*>(createdComp);
+        if (!comp) { delete createdComp; continue; }
+        comp->Attach(container);
+        comp->Deserialize(compNode);
+        registry->Register(comp);
+    }
+
+    // 4. Lifecycle, top-down. Sync() must run before Init() so the PARENT_CHANGED
+    //    subscription is live when Transform::Init -> SetParent fires and
+    //    SyncRootObjects maintains rootobject_ids.
+    for (auto* obj : created) {
+        Sync(obj);
+        obj->Init();
+        obj->PostInit();
+        if (container->GetMode() == Container::Mode::Runtime) {
+            obj->Awake();
+            obj->Start();
+        }
+    }
+
+    GameObject* newRoot = created.front();
+    Transform* rootTransform = newRoot->GetTransform();
+    if (rootTransform && !rootTransform->GetParent()) {
+        // Guarded because SetParent(nullptr) during Init may already have routed
+        // through SyncRootObjects.
+        const std::string& newId = newRoot->GetID();
+        if (std::find(rootobject_ids.begin(), rootobject_ids.end(), newId) == rootobject_ids.end())
+            rootobject_ids.push_back(newId);
+    }
+
+    Notify(GAMEOBJECT_ADDED_EVENT, newRoot->GetID());
+    return newRoot;
 }
 
 void Scene::Sync(GameObject* obj){

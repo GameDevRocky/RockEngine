@@ -262,8 +262,33 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
 
         });
 
+    // Per-item context menu. Separate from the header menu above, which is
+    // connected to header()'s own customContextMenuRequested.
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &QTreeView::customContextMenuRequested, this, [this](const QPoint& pos) {
+        QModelIndex index = indexAt(pos);
+        if (!index.isValid()) return;
+        QString idQt = index.data(GAMEOBJECT_ID_ROLE).toString();
+        if (idQt.isEmpty()) return;
+
+        QMenu menu(this);
+        menu.addAction("Duplicate", this, [this, id = idQt.toStdString()]() {
+            DuplicateObject(id);
+        });
+        menu.exec(viewport()->mapToGlobal(pos));
+    });
+
     connect(this, &QTreeView::expanded, this, [this](const QModelIndex&) { UpdateHeight(); });
     connect(this, &QTreeView::collapsed, this, [this](const QModelIndex&) { UpdateHeight(); });
+}
+
+void SceneTree::DuplicateObject(const std::string& id) {
+    GameObject* source = registry->Find<GameObject>(id);
+    if (!source) return;
+    Scene* scene = source->GetScene();
+    if (!scene) return;
+    if (GameObject* clone = scene->DuplicateGameObject(source))
+        selectionManager->Select(clone->GetID());
 }
 
 SceneTree::~SceneTree() {
@@ -684,6 +709,14 @@ void SceneTree::OnItemEntered(const QModelIndex& index) {
 }
 
 void SceneTree::keyPressEvent(QKeyEvent* event) {
+    if (event->key() == Qt::Key_D && (event->modifiers() & Qt::ControlModifier)) {
+        QModelIndex index = currentIndex();
+        if (!index.isValid()) return;
+        QString idQt = index.data(GAMEOBJECT_ID_ROLE).toString();
+        if (idQt.isEmpty()) return;
+        DuplicateObject(idQt.toStdString());
+        return;
+    }
     if (event->key() == Qt::Key_Delete) {
         QModelIndex index = currentIndex();
         if (!index.isValid()) return;

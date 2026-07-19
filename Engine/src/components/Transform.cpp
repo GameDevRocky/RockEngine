@@ -319,6 +319,6 @@ Transform* Transform::Copy() {
     copy->localPosition = localPosition;
     copy->localRotation = localRotation;
     copy->localScale= localScale;
-    state = State::Loaded;
+    copy->state = State::Loaded;
     return copy;
 }
