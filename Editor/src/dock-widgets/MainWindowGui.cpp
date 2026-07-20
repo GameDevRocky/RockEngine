@@ -148,6 +148,7 @@ void MainWindow::Init()
 void MainWindow::PostInit(){
     showMaximized();
     HierarchyGui::Get()->PostInit();
+    MenuBar::Get()->PostInit();
     std::cout << "MainWindow Started" << std::endl;
 }
 

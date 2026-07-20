@@ -53,10 +53,12 @@ void InspectorVisitor::Visit(GameObject* obj){
             auto it = std::find(t.begin(), t.end(), obj->GetTag());
             return it != t.end() ? static_cast<int>(it - t.begin()) : 0;
         };
-        auto tag_set = [=](int idx) {
-            const auto& t = tagManager->GetTags();
-            if (idx >= 0 && idx < static_cast<int>(t.size()))
-                obj->SetTag(t[idx]);
+        // Captures the tag names by value rather than the TagManager, so the
+        // setter stays pointer-free and an undo resolves the same tag it recorded
+        // even if the tag list has since been edited.
+        auto tag_set = [tags = allTags](GameObject* go, const int& idx) {
+            if (idx >= 0 && idx < static_cast<int>(tags.size()))
+                go->SetTag(tags[idx]);
         };
 
         BindProperty<int>(obj, "Tag: ", tag_get, tag_set,
@@ -71,30 +73,27 @@ void InspectorVisitor::Visit(Transform* transform){
         return transform->localPosition;
     };  
 
-    auto pos_set = [=](glm::vec2 pos){
-        if (!transform) return;
-        transform->SetPosition(pos);
-    };  
+    auto pos_set = [](Transform* t, const glm::vec2& pos){
+        t->SetPosition(pos);
+    };
 
     auto rot_get = [=](){
         if (!transform) return 0.0f;
         return transform->localRotation;
-    };  
+    };
 
-    auto rot_set = [=](float val){
-        if (!transform) return;
-        transform->SetRotation(val);
-    }; 
-    
+    auto rot_set = [](Transform* t, const float& val){
+        t->SetRotation(val);
+    };
+
     auto scale_get = [=](){
         if (!transform) return glm::vec2(0.0f);
         return transform->localScale;
-    };  
+    };
 
-    auto scale_set = [=](glm::vec2 pos){
-        if (!transform) return;
-        transform->SetScale(pos);
-    };  
+    auto scale_set = [](Transform* t, const glm::vec2& scale){
+        t->SetScale(scale);
+    };
 
     BindProperty<glm::vec2>(transform, "Position: ", pos_get, pos_set, transform->POSITION_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
     BindProperty<float>(transform, "Rotation: ", rot_get, rot_set, transform->ROTATION_CHANGED_EVENT, PropDesc().Tag(Tags::ANGLE).Step(1));
@@ -108,28 +107,31 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
     auto color_get = [=](){
         return renderer->GetColor();
     };
-    auto color_set = [=](glm::vec4 color){
-        renderer->SetColor(color);
+    auto color_set = [](SpriteRenderer* r, const glm::vec4& color){
+        r->SetColor(color);
     };
     auto flipX_get = [=](){
         return renderer->GetFlipX();
     };
-    auto flipX_set = [=](bool val){
-        renderer->SetFlipX(val);
+    auto flipX_set = [](SpriteRenderer* r, const bool& val){
+        r->SetFlipX(val);
     };
     auto flipY_get = [=](){
         return renderer->GetFlipY();
     };
-    auto flipY_set = [=](bool val){
-        renderer->SetFlipY(val);
+    auto flipY_set = [](SpriteRenderer* r, const bool& val){
+        r->SetFlipY(val);
     };
-    
+
     auto visible_get = [=](){
         return renderer->GetVisible();
     };
 
-    auto visible_set = [=](bool val){
-        renderer->SetVisible(val);
+    // SetVisible/SetMaterial/SetSprite take a non-const reference, so copy into a
+    // mutable local before calling.
+    auto visible_set = [](SpriteRenderer* r, const bool& val){
+        bool v = val;
+        r->SetVisible(v);
     };
 
     auto material_get = [=](){
@@ -137,16 +139,18 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
         return mat? mat->GetID() : "";
     };
 
-    auto material_set = [=](std::string val){
-        renderer->SetMaterial(val);
+    auto material_set = [](SpriteRenderer* r, const std::string& val){
+        std::string v = val;
+        r->SetMaterial(v);
     };
     auto sprite_get = [=](){
         auto* sprite = renderer->GetSprite();
         return sprite? sprite->GetID() : "";
     };
 
-    auto sprite_set = [=](std::string val){
-        renderer->SetSprite(val);
+    auto sprite_set = [](SpriteRenderer* r, const std::string& val){
+        std::string v = val;
+        r->SetSprite(v);
     };
 
     BindProperty<glm::vec4>(renderer, "Color: ", color_get, color_set, renderer->COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
@@ -166,12 +170,13 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
         auto layer_get = [=]() -> int {
             return layerManager->GetPriority(renderer->GetSortingLayer());
         };
-        auto layer_set = [=](int priority) {
-            for (const auto& layer : layerManager->GetLayers())
+        // Captures the priority->name pairs by value so the setter is pointer-free.
+        auto layer_set = [layers = layerOptions](SpriteRenderer* r, const int& priority) {
+            for (const auto& [name, prio] : layers)
             {
-                if (layer.priority == priority)
+                if (std::any_cast<int>(prio) == priority)
                 {
-                    renderer->SetSortingLayer(layer.name);
+                    r->SetSortingLayer(name);
                     return;
                 }
             }
@@ -183,7 +188,7 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
     }
 
     auto order_get = [=]() -> float { return static_cast<float>(renderer->GetSortingOrder()); };
-    auto order_set = [=](float val) { renderer->SetSortingOrder(static_cast<int>(val)); };
+    auto order_set = [](SpriteRenderer* r, const float& val) { r->SetSortingOrder(static_cast<int>(val)); };
     BindProperty<float>(renderer, "Order in Layer: ", order_get, order_set,
         renderer->SORTING_ORDER_CHANGED_EVENT,
         PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
@@ -191,47 +196,47 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
 }
 
 void InspectorVisitor::Visit(Collider* collider){
-    auto setCenter = [=](glm::vec2 val){
-        collider->SetCenter(val);
+    auto setCenter = [](Collider* c, const glm::vec2& val){
+        c->SetCenter(val);
     };
     auto getCenter = [=](){
         return collider->GetCenter();
     };
 
-    auto setDensity = [=](float val){
-        collider->SetDensity(val);
+    auto setDensity = [](Collider* c, const float& val){
+        c->SetDensity(val);
     };
 
     auto getDensity = [=](){
         return collider->GetDensity();
     };
 
-    auto setBounciness = [=](float val){
-        collider->SetBounciness(val);
+    auto setBounciness = [](Collider* c, const float& val){
+        c->SetBounciness(val);
     };
 
     auto getBounciness = [=](){
         return collider->GetBounciness();
     };
 
-    auto setIsSensor = [=](bool val){
-        collider->SetIsSensor(val);
+    auto setIsSensor = [](Collider* c, const bool& val){
+        c->SetIsSensor(val);
     };
 
     auto getIsSensor = [=](){
         return collider->GetIsSensor();
     };
 
-    auto setFriction = [=](float val){
-        collider->SetFriction(val);
+    auto setFriction = [](Collider* c, const float& val){
+        c->SetFriction(val);
     };
 
     auto getFriction = [=](){
         return collider->GetFriction();
     };
 
-    auto setRollingResistance = [=](float val){
-        collider->SetRollingResistance(val);
+    auto setRollingResistance = [](Collider* c, const float& val){
+        c->SetRollingResistance(val);
     };
 
     auto getRollingResistance = [=](){
@@ -252,8 +257,8 @@ void InspectorVisitor::Visit(BoxCollider* boxCollider){
     auto getSize = [=](){
         return boxCollider->GetSize();
     };
-    auto setSize = [=](glm::vec2 size){
-        boxCollider->SetSize(size);
+    auto setSize = [](BoxCollider* c, const glm::vec2& size){
+        c->SetSize(size);
     };
    
     BindProperty<glm::vec2>(boxCollider, "Size: ", getSize, setSize, boxCollider->SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));    
@@ -264,8 +269,8 @@ void InspectorVisitor::Visit(CircleCollider* circleCollider){
     auto getRadius = [=](){
         return circleCollider->GetRadius();
     };
-    auto setRadius = [=](float radius){
-        circleCollider->SetRadius(radius);
+    auto setRadius = [](CircleCollider* c, const float& radius){
+        c->SetRadius(radius);
     };
     
     BindProperty<float>(circleCollider, "Radius: ", getRadius, setRadius, circleCollider->RADIUS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
@@ -276,14 +281,14 @@ void InspectorVisitor::Visit(CapsuleCollider* capsuleCollider){
     auto getRadius = [=](){
         return capsuleCollider->GetRadius();
     };
-    auto setRadius = [=](float radius){
-        capsuleCollider->SetRadius(radius);
+    auto setRadius = [](CapsuleCollider* c, const float& radius){
+        c->SetRadius(radius);
     };
     auto getHeight = [=](){
         return capsuleCollider->GetHeight();
     };
-    auto setHeight = [=](float radius){
-        capsuleCollider->SetHeight(radius);
+    auto setHeight = [](CapsuleCollider* c, const float& height){
+        c->SetHeight(height);
     };
     
     BindProperty<float>(capsuleCollider, "Height: ", getHeight, setHeight, capsuleCollider->HEIGHT_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
@@ -294,20 +299,20 @@ void InspectorVisitor::Visit(RigidBody* rb){
     auto getUseGravity = [=](){
         return rb->GetUseGravity();
     };
-    auto setUseGravity = [=](bool val){
-        rb->SetUseGravity(val);
+    auto setUseGravity = [](RigidBody* b, const bool& val){
+        b->SetUseGravity(val);
     };
     auto getLockRotation = [=](){
         return rb->GetLockRotation();
     };
-    auto setLockRotation = [=](bool val){
-        rb->SetLockRotation(val);
+    auto setLockRotation = [](RigidBody* b, const bool& val){
+        b->SetLockRotation(val);
     };
     auto getBodyType = [=]() -> int {
         return static_cast<int>(rb->GetBodyType());
     };
-    auto setBodyType = [=](int type){
-        rb->SetBodyType(static_cast<b2BodyType>(type));
+    auto setBodyType = [](RigidBody* b, const int& type){
+        b->SetBodyType(static_cast<b2BodyType>(type));
     };
 
     BindProperty<bool>(rb, "Use Gravity: ", getUseGravity, setUseGravity, rb->USE_GRAVITY_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
@@ -378,7 +383,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<float>(val) ? std::get<float>(val) : 0.0f;
             };
-            auto setter = [sc, name = field.name](float v) {
+            auto setter = [name = field.name](ScriptComponent* sc, const float& v) {
                 sc->SetFieldValue(name, v);
             };
             BindProperty<float>(sc, label, getter, setter, field.changeEvent,
@@ -391,7 +396,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<int>(val) ? static_cast<float>(std::get<int>(val)) : 0.0f;
             };
-            auto setter = [sc, name = field.name](float v) {
+            auto setter = [name = field.name](ScriptComponent* sc, const float& v) {
                 sc->SetFieldValue(name, static_cast<int>(v));
             };
             BindProperty<float>(sc, label, getter, setter, field.changeEvent,
@@ -404,7 +409,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<bool>(val) ? std::get<bool>(val) : false;
             };
-            auto setter = [sc, name = field.name](bool v) {
+            auto setter = [name = field.name](ScriptComponent* sc, const bool& v) {
                 sc->SetFieldValue(name, v);
             };
             BindProperty<bool>(sc, label, getter, setter, field.changeEvent,
@@ -417,7 +422,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<std::string>(val) ? std::get<std::string>(val) : "";
             };
-            auto setter = [sc, name = field.name](std::string v) {
+            auto setter = [name = field.name](ScriptComponent* sc, const std::string& v) {
                 sc->SetFieldValue(name, v);
             };
 
@@ -446,7 +451,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<glm::vec2>(val) ? std::get<glm::vec2>(val) : glm::vec2(0.0f);
             };
-            auto setter = [sc, name = field.name](glm::vec2 v) {
+            auto setter = [name = field.name](ScriptComponent* sc, const glm::vec2& v) {
                 sc->SetFieldValue(name, v);
             };
             BindProperty<glm::vec2>(sc, label, getter, setter, field.changeEvent,
@@ -459,7 +464,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<glm::vec3>(val) ? std::get<glm::vec3>(val) : glm::vec3(0.0f);
             };
-            auto setter = [sc, name = field.name](glm::vec3 v) {
+            auto setter = [name = field.name](ScriptComponent* sc, const glm::vec3& v) {
                 sc->SetFieldValue(name, v);
             };
             BindProperty<glm::vec3>(sc, label, getter, setter, field.changeEvent,
@@ -472,7 +477,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 auto val = sc->GetFieldValue(name);
                 return std::holds_alternative<glm::vec4>(val) ? std::get<glm::vec4>(val) : glm::vec4(0.0f);
             };
-            auto setter = [sc, name = field.name](glm::vec4 v) {
+            auto setter = [name = field.name](ScriptComponent* sc, const glm::vec4& v) {
                 sc->SetFieldValue(name, v);
             };
             BindProperty<glm::vec4>(sc, label, getter, setter, field.changeEvent,
@@ -485,7 +490,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                     return std::holds_alternative<std::vector<bool>>(val)
                         ? std::get<std::vector<bool>>(val) : std::vector<bool>{};
                 };
-                auto setter = [sc, name = field.name](std::vector<bool> v) {
+                auto setter = [name = field.name](ScriptComponent* sc, const std::vector<bool>& v) {
                     sc->SetFieldValue(name, v);
                 };
                 BindProperty<std::vector<bool>>(sc, label, getter, setter, field.changeEvent,
@@ -497,7 +502,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                     return std::holds_alternative<std::vector<float>>(val)
                         ? std::get<std::vector<float>>(val) : std::vector<float>{};
                 };
-                auto setter = [sc, name = field.name](std::vector<float> v) {
+                auto setter = [name = field.name](ScriptComponent* sc, const std::vector<float>& v) {
                     sc->SetFieldValue(name, v);
                 };
                 BindProperty<std::vector<float>>(sc, label, getter, setter, field.changeEvent,
@@ -513,7 +518,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                         for (int x : std::get<std::vector<int>>(val)) out.push_back(static_cast<float>(x));
                     return out;
                 };
-                auto setter = [sc, name = field.name](std::vector<float> v) {
+                auto setter = [name = field.name](ScriptComponent* sc, const std::vector<float>& v) {
                     std::vector<int> out;
                     out.reserve(v.size());
                     for (float x : v) out.push_back(static_cast<int>(x));
@@ -528,7 +533,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                     return std::holds_alternative<std::vector<std::string>>(val)
                         ? std::get<std::vector<std::string>>(val) : std::vector<std::string>{};
                 };
-                auto setter = [sc, name = field.name](std::vector<std::string> v) {
+                auto setter = [name = field.name](ScriptComponent* sc, const std::vector<std::string>& v) {
                     sc->SetFieldValue(name, v);
                 };
 
@@ -571,18 +576,27 @@ void InspectorVisitor::AddFullRow(QWidget* widget) {
     gridRow++;
 }
 
+// Asset visitors (Sprite / Material / Texture2D / Shader) below.
+//
+// These are Serializables but not RuntimeObjects: they live in AssetManager, not
+// in a container's Registry. BindProperty applies their edits through the
+// inspected instance as usual, but the undo stack resolves targets through the
+// registry, so assets never produce a command and are deliberately not undoable.
+// Reverting an asset in memory without reverting the meta file it persists to
+// would desync the two — that needs a file-level transaction story, not this.
+
 void InspectorVisitor::Visit(Sprite* sprite) {
     auto uvMin_get = [=]() { return sprite->GetUVMin(); };
-    auto uvMin_set = [=](glm::vec2 v) { sprite->SetUVMin(v); };
+    auto uvMin_set = [](Sprite* s, const glm::vec2& v) { s->SetUVMin(v); };
     auto uvMax_get = [=]() { return sprite->GetUVMax(); };
-    auto uvMax_set = [=](glm::vec2 v) { sprite->SetUVMax(v); };
+    auto uvMax_set = [](Sprite* s, const glm::vec2& v) { s->SetUVMax(v); };
     auto pivot_get = [=]() { return sprite->GetPivot(); };
-    auto pivot_set = [=](glm::vec2 v) { sprite->SetPivot(v); };
+    auto pivot_set = [](Sprite* s, const glm::vec2& v) { s->SetPivot(v); };
     auto tex_get   = [=]() -> std::string {
         auto* t = sprite->GetTexture();
         return t ? t->GetID() : "";
     };
-    auto tex_set   = [=](std::string id) { sprite->SetTexture(id); };
+    auto tex_set   = [](Sprite* s, const std::string& id) { std::string v = id; s->SetTexture(v); };
 
     BindProperty<glm::vec2>(sprite, "UV Min: ",   uvMin_get,  uvMin_set,  sprite->UV_MIN_CHANGED_EVENT,  PropDesc().Tag(Tags::VECTOR2).Step(0.01).Range(0, 1));
     BindProperty<glm::vec2>(sprite, "UV Max: ",   uvMax_get,  uvMax_set,  sprite->UV_MAX_CHANGED_EVENT,  PropDesc().Tag(Tags::VECTOR2).Step(0.01).Range(0, 1));
@@ -595,7 +609,7 @@ void InspectorVisitor::Visit(Material* mat) {
         auto* s = mat->GetShader();
         return s ? s->GetID() : "";
     };
-    auto shader_set = [=](std::string id) { mat->SetShader(id); };
+    auto shader_set = [](Material* m, const std::string& id) { std::string v = id; m->SetShader(v); };
     BindProperty<std::string>(mat, "Shader: ", shader_get, shader_set, mat->SHADER_CHANGED_EVENT, PropDesc().Tag(Tags::SHADER).RefType(Tags::OBJECT_REF));
 
     Shader* shader = mat->GetShader();
@@ -616,32 +630,32 @@ void InspectorVisitor::Visit(Material* mat) {
         switch (info.type) {
             case GL_FLOAT: {
                 auto get = [mat, name = uname]() { return mat->GetFloat(name); };
-                auto set = [mat, name = uname](float v) { mat->SetFloat(name, v); };
+                auto set = [name = uname](Material* m, const float& v) { m->SetFloat(name, v); };
                 BindProperty<float>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT));
                 break;
             }
             case GL_FLOAT_VEC2: {
                 auto get = [mat, name = uname]() { return mat->GetVec2(name); };
-                auto set = [mat, name = uname](glm::vec2 v) { mat->SetVec2(name, v); };
+                auto set = [name = uname](Material* m, const glm::vec2& v) { m->SetVec2(name, v); };
                 BindProperty<glm::vec2>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2));
                 break;
             }
             case GL_FLOAT_VEC3: {
                 auto get = [mat, name = uname]() { return mat->GetVec3(name); };
-                auto set = [mat, name = uname](glm::vec3 v) { mat->SetVec3(name, v); };
+                auto set = [name = uname](Material* m, const glm::vec3& v) { m->SetVec3(name, v); };
                 BindProperty<glm::vec3>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR3));
                 break;
             }
             case GL_FLOAT_VEC4: {
                 Tags widgetTag = isColorName(uname) ? Tags::COLOR : Tags::VECTOR4;
                 auto get = [mat, name = uname]() { return mat->GetVec4(name); };
-                auto set = [mat, name = uname](glm::vec4 v) { mat->SetVec4(name, v); };
+                auto set = [name = uname](Material* m, const glm::vec4& v) { m->SetVec4(name, v); };
                 BindProperty<glm::vec4>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(widgetTag));
                 break;
             }
             case GL_SAMPLER_2D: {
                 auto get = [mat, name = uname]() { return mat->GetTexUniform(name); };
-                auto set = [mat, name = uname](std::string id) { mat->SetTexture(name, id); };
+                auto set = [name = uname](Material* m, const std::string& id) { m->SetTexture(name, id); };
                 BindProperty<std::string>(mat, uname + ": ", get, set, mat->UNIFORM_CHANGED_EVENT, PropDesc().Tag(Tags::TEXTURE).RefType(Tags::OBJECT_REF));
                 break;
             }
@@ -671,12 +685,12 @@ void InspectorVisitor::Visit(Texture2D* tex) {
     auto w_get    = [=]() { return static_cast<float>(tex->GetWidth()); };
     auto h_get    = [=]() { return static_cast<float>(tex->GetHeight()); };
 
-    BindProperty<std::string>(tex, "Path: ",   path_get, [](std::string){}, Observable::CreateEvent(), PropDesc().Tag(Tags::READONLY));
-    BindProperty<float>(tex,       "Width: ",  w_get,    [](float){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT).ReadOnly());
-    BindProperty<float>(tex,       "Height: ", h_get,    [](float){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT).ReadOnly());
+    BindProperty<std::string>(tex, "Path: ",   path_get, [](Texture2D*, const std::string&){}, Observable::CreateEvent(), PropDesc().Tag(Tags::READONLY));
+    BindProperty<float>(tex,       "Width: ",  w_get,    [](Texture2D*, const float&){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT).ReadOnly());
+    BindProperty<float>(tex,       "Height: ", h_get,    [](Texture2D*, const float&){},       Observable::CreateEvent(), PropDesc().Tag(Tags::FLOAT).ReadOnly());
 
     auto filter_get = [=]() { return static_cast<int>(tex->GetFilter()); };
-    auto filter_set = [=](int v) { tex->SetFilter(static_cast<TextureFilter>(v)); };
+    auto filter_set = [](Texture2D* t, const int& v) { t->SetFilter(static_cast<TextureFilter>(v)); };
     BindProperty<int>(tex, "Filtering: ", filter_get, filter_set, tex->FILTER_CHANGED_EVENT,
         PropDesc().Tag(Tags::DROPDOWN).DropVals({
             {"Nearest", static_cast<int>(TextureFilter::Nearest)},
@@ -684,7 +698,7 @@ void InspectorVisitor::Visit(Texture2D* tex) {
         }));
 
     auto wrap_get = [=]() { return static_cast<int>(tex->GetWrap()); };
-    auto wrap_set = [=](int v) { tex->SetWrap(static_cast<TextureWrap>(v)); };
+    auto wrap_set = [](Texture2D* t, const int& v) { t->SetWrap(static_cast<TextureWrap>(v)); };
     BindProperty<int>(tex, "Wrap: ", wrap_get, wrap_set, tex->WRAP_CHANGED_EVENT,
         PropDesc().Tag(Tags::DROPDOWN).DropVals({
             {"Repeat", static_cast<int>(TextureWrap::Repeat)},
@@ -695,7 +709,7 @@ void InspectorVisitor::Visit(Texture2D* tex) {
 void InspectorVisitor::Visit(Shader* shader) {
     auto id_get = [=]() { return shader->GetID(); };
 
-    BindProperty<std::string>(shader, "ID: ", id_get, [](std::string){}, Observable::CreateEvent(), PropDesc().Tag(Tags::READONLY));
+    BindProperty<std::string>(shader, "ID: ", id_get, [](Shader*, const std::string&){}, Observable::CreateEvent(), PropDesc().Tag(Tags::READONLY));
 }
 
 void InspectorVisitor::Visit(Camera* camera) {
@@ -705,24 +719,24 @@ void InspectorVisitor::Visit(Camera* camera) {
     // LayerManager's sorting layers, which doesn't exist as a widget today.
 
     auto orthoSize_get = [=]() { return camera->GetOrthoSize(); };
-    auto orthoSize_set = [=](float v) { camera->SetOrthoSize(v); };
+    auto orthoSize_set = [](Camera* c, const float& v) { c->SetOrthoSize(v); };
     BindProperty<float>(camera, "Ortho Size: ", orthoSize_get, orthoSize_set,
         camera->ORTHO_SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0.01f, 100000.0f).Step(1));
 
     auto priority_get = [=]() { return static_cast<float>(camera->GetPriority()); };
-    auto priority_set = [=](float v) { camera->SetPriority(static_cast<int>(v)); };
+    auto priority_set = [](Camera* c, const float& v) { c->SetPriority(static_cast<int>(v)); };
     BindProperty<float>(camera, "Priority: ", priority_get, priority_set,
         camera->PRIORITY_CHANGED_EVENT, PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
 
     auto aspect_get = [=]() { return camera->GetTargetAspect(); };
-    auto aspect_set = [=](float v) { camera->SetTargetAspect(v); };
+    auto aspect_set = [](Camera* c, const float& v) { c->SetTargetAspect(v); };
     BindProperty<float>(camera, "Target Aspect: ", aspect_get, aspect_set,
         camera->TARGET_ASPECT_CHANGED_EVENT,
         PropDesc().Tag(Tags::FLOAT).Range(0.0f, 10.0f).Step(0.01f)
             .Desc("<= 0 fills the panel (no letterboxing). e.g. 16/9 = 1.778"));
 
     auto clearFlags_get = [=]() { return static_cast<int>(camera->GetClearFlags()); };
-    auto clearFlags_set = [=](int v) { camera->SetClearFlags(static_cast<RenderCamera::ClearFlags>(v)); };
+    auto clearFlags_set = [](Camera* c, const int& v) { c->SetClearFlags(static_cast<RenderCamera::ClearFlags>(v)); };
     BindProperty<int>(camera, "Clear Flags: ", clearFlags_get, clearFlags_set,
         camera->CLEAR_FLAGS_CHANGED_EVENT,
         PropDesc().Tag(Tags::DROPDOWN).DropVals({
@@ -732,7 +746,7 @@ void InspectorVisitor::Visit(Camera* camera) {
         }));
 
     auto clearColor_get = [=]() { return camera->GetClearColor(); };
-    auto clearColor_set = [=](glm::vec4 c) { camera->SetClearColor(c); };
+    auto clearColor_set = [](Camera* cam, const glm::vec4& c) { cam->SetClearColor(c); };
     BindProperty<glm::vec4>(camera, "Background: ", clearColor_get, clearColor_set,
         camera->CLEAR_COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
 }

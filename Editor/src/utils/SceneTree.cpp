@@ -10,6 +10,12 @@
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/RigidBody.hpp"
+#include "engine/core/UndoSystem.hpp"
+#include "engine/commands/SubtreeCommand.hpp"
+#include "engine/commands/ReparentCommand.hpp"
+#include "engine/commands/MacroCommand.hpp"
+#include <algorithm>
+#include <vector>
 
 #include <QSizePolicy>
 #include <QKeyEvent>
@@ -138,6 +144,32 @@ GameObjectItem* CreateGameObjectItem(SceneTree* tree, GameObject* gameObject) {
         return false;
     }, RuntimeObject::SHUTDOWN_EVENT);
 
+    // Keep the row under the right parent when the data side reparents. This lives here
+    // rather than in HierarchyGui (where it used to be, walking the scene at load time)
+    // because objects created *after* the walk — new, duplicated, or restored by undo —
+    // never got a subscription and their row would sit under the old parent until the
+    // next full refresh. Every row is built here, so every row is covered.
+    //
+    // It also matters that this is the only mechanism: SceneTree::dropEvent moves the Qt
+    // row itself before calling SetParent, but an undo has no such Qt-side move, so the
+    // row follows the data only through this event.
+    if (Transform* transform = gameObject->GetTransform()) {
+        transform->Subscribe([weakTree, id](const std::any& data) {
+            if (!weakTree) return false;
+
+            const std::string& newParentTransformId = std::any_cast<const std::string&>(data);
+            std::string newParentGameObjectId;
+            if (!newParentTransformId.empty()) {
+                Transform* parentTransform = Registry::FindInRuntime<Transform>(newParentTransformId);
+                if (parentTransform && parentTransform->GetGameObject())
+                    newParentGameObjectId = parentTransform->GetGameObject()->GetID();
+            }
+
+            weakTree->ReparentItem(id, newParentGameObjectId);
+            return true;
+        }, Transform::PARENT_CHANGED_EVENT);
+    }
+
     return item;
 }
 
@@ -185,6 +217,11 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     auto* headerItem = new QStandardItem(style()->standardIcon(QStyle::SP_DirIcon), "Hierarchy");
     model->setHorizontalHeaderItem(0, headerItem);
     setModel(model);
+    // Multi-select. Qt's ExtendedSelection hardwires Ctrl = toggle and Shift =
+    // range-extend; the viewport matches by using Ctrl for toggle too, which is why
+    // its pan gesture moved off Ctrl and onto Alt.
+    setSelectionMode(QAbstractItemView::ExtendedSelection);
+    setSelectionBehavior(QAbstractItemView::SelectRows);
     setHeaderHidden(false);
     setDragEnabled(true);
     setAcceptDrops(true);
@@ -213,6 +250,14 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
             obj->SetName("GameObject");
             scene->AddGameObject(obj);
             selectionManager->Select(obj->GetID());
+
+            // Snapshot after AddGameObject so the record includes the Transform it
+            // synthesised. Undo destroys the object; redo restores it with the
+            // same id, so anything that referenced it still resolves.
+            if (undoSystem) {
+                undoSystem->Push(SubtreeCommand::RecordCreated(
+                    obj, scene->SnapshotSubtree(obj), "Create GameObject"));
+            }
         });
 
         QAction* collapseAction = menu.addAction("Collapse");
@@ -254,13 +299,34 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
         if (go) go->SetActive(checked);
     });
 
-    connect(this, &QTreeView::clicked, this, [this](const QModelIndex& index) {
-            if (!index.isValid()) return;
-            QString gameObjectId = index.data(Qt::UserRole + 1).toString();
-            if (gameObjectId.isEmpty()) return;
-            selectionManager->Select(gameObjectId.toStdString());
+    // Driven off the selection model rather than QTreeView::clicked: clicked fires
+    // per-index, ignores modifiers entirely, and never fires for keyboard navigation.
+    connect(selectionModel(), &QItemSelectionModel::selectionChanged, this,
+            [this](const QItemSelection&, const QItemSelection&) {
+        if (m_syncingSelection) return;
 
-        });
+        std::vector<std::string> ids;
+        for (const QModelIndex& index : selectionModel()->selectedRows()) {
+            QString idQt = index.data(GAMEOBJECT_ID_ROLE).toString();
+            if (!idQt.isEmpty()) ids.push_back(idQt.toStdString());
+        }
+
+        // selectedRows() comes back in MODEL order, not click order. Rotate the
+        // current index to the back so the last-clicked row becomes the primary —
+        // otherwise the inspector and gizmo pivot jump to whatever sits lowest in
+        // the tree rather than what the user just clicked.
+        QString currentIdQt = currentIndex().data(GAMEOBJECT_ID_ROLE).toString();
+        if (!currentIdQt.isEmpty()) {
+            const std::string currentId = currentIdQt.toStdString();
+            auto it = std::find(ids.begin(), ids.end(), currentId);
+            if (it != ids.end() && it + 1 != ids.end())
+                std::rotate(it, it + 1, ids.end());
+        }
+
+        m_syncingSelection = true;
+        selectionManager->SelectMany(ids);
+        m_syncingSelection = false;
+    });
 
     // Per-item context menu. Separate from the header menu above, which is
     // connected to header()'s own customContextMenuRequested.
@@ -282,13 +348,107 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     connect(this, &QTreeView::collapsed, this, [this](const QModelIndex&) { UpdateHeight(); });
 }
 
-void SceneTree::DuplicateObject(const std::string& id) {
+std::unique_ptr<Command> SceneTree::DuplicateOne(const std::string& id,
+                                                 std::string* outCloneId) {
     GameObject* source = registry->Find<GameObject>(id);
-    if (!source) return;
+    if (!source) return nullptr;
     Scene* scene = source->GetScene();
-    if (!scene) return;
-    if (GameObject* clone = scene->DuplicateGameObject(source))
-        selectionManager->Select(clone->GetID());
+    if (!scene) return nullptr;
+
+    // Capture the post-remap YAML so redo rebuilds *this* clone rather than
+    // duplicating again — a second DuplicateGameObject call would mint fresh
+    // UUIDs and orphan every reference captured against the first clone.
+    YAML::Node snapshot;
+    GameObject* clone = scene->DuplicateGameObject(source, &snapshot);
+    if (!clone) return nullptr;
+    if (outCloneId) *outCloneId = clone->GetID();
+
+    // Neither pushes nor selects: the caller decides, because a multi-duplicate has
+    // to land as one history entry and select every clone at the end.
+    return SubtreeCommand::RecordCreated(clone, snapshot, "Duplicate " + source->GetName());
+}
+
+void SceneTree::DuplicateObject(const std::string& id) {
+    std::string cloneId;
+    auto command = DuplicateOne(id, &cloneId);
+    if (cloneId.empty()) return;
+
+    selectionManager->Select(cloneId);
+    if (undoSystem) undoSystem->Push(std::move(command));
+}
+
+void SceneTree::DuplicateSelection() {
+    // Roots only: duplicating a parent already clones its children, so also
+    // duplicating a selected child would produce a stray second copy.
+    std::vector<std::string> roots = selectionManager->GetSelectedRoots();
+    if (roots.empty()) return;
+    if (roots.size() == 1) { DuplicateObject(roots.front()); return; }
+
+    std::vector<std::unique_ptr<Command>> commands;
+    std::vector<std::string> cloneIds;
+    commands.reserve(roots.size());
+
+    for (const std::string& id : roots) {
+        std::string cloneId;
+        if (auto command = DuplicateOne(id, &cloneId)) {
+            commands.push_back(std::move(command));
+            cloneIds.push_back(cloneId);
+        }
+    }
+    if (cloneIds.empty()) return;
+
+    selectionManager->SelectMany(cloneIds);
+
+    if (undoSystem) {
+        auto macro = MacroCommand::Wrap(
+            std::move(commands),
+            "Duplicate " + std::to_string(cloneIds.size()) + " Objects");
+        if (auto* m = dynamic_cast<MacroCommand*>(macro.get())) {
+            m->SetSelectionAfterUndo(roots);      // undo removes the clones
+            m->SetSelectionAfterRedo(cloneIds);   // redo brings them back
+        }
+        undoSystem->Push(std::move(macro));
+    }
+}
+
+void SceneTree::DeleteSelection() {
+    // Roots only, for two reasons: destroying a parent already destroys its
+    // children, and a child's id would no longer resolve by the time we reached it.
+    std::vector<std::string> roots = selectionManager->GetSelectedRoots();
+    if (roots.empty()) return;
+
+    std::vector<std::unique_ptr<Command>> commands;
+    commands.reserve(roots.size());
+
+    for (const std::string& id : roots) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) continue;
+        // DestroyAndRecord performs the Shutdown itself so it can snapshot first,
+        // but it returns nullptr WITHOUT destroying when the object has no scene —
+        // so the two branches are not interchangeable.
+        if (undoSystem) {
+            if (auto command = SubtreeCommand::DestroyAndRecord(go))
+                commands.push_back(std::move(command));
+        } else {
+            go->Shutdown();
+        }
+    }
+
+    if (undoSystem) {
+        auto macro = MacroCommand::Wrap(
+            std::move(commands),
+            roots.size() == 1 ? "Delete Object"
+                              : "Delete " + std::to_string(roots.size()) + " Objects");
+        if (auto* m = dynamic_cast<MacroCommand*>(macro.get())) {
+            // Each child SubtreeCommand re-selects the object it restores, stomping
+            // the last; the macro sets the correct final selection once at the end.
+            m->SetSelectionAfterUndo(roots);
+            m->SetSelectionAfterRedo({});
+        }
+        undoSystem->Push(std::move(macro));
+    }
+
+    selectionManager->ClearSelection();
 }
 
 SceneTree::~SceneTree() {
@@ -347,10 +507,10 @@ void SceneTree::RebuildFromScene(Scene* scene) {
 
     auto* container = Engine::Get()->GetActiveContainer();    
     auto* selectionManager = container->FindSystem<SelectionManager>();
-    selectionSubscriptionId = selectionManager->Subscribe([this](const std::any& data) {
-
-            const std::string& selectedId = std::any_cast<const std::string&>(data);
-            OnObjectSelected(selectedId);
+    // The payload carries only the primary id; OnSelectionChanged reads the whole
+    // set from the manager, so it is ignored here.
+    selectionSubscriptionId = selectionManager->Subscribe([this](const std::any&) {
+            OnSelectionChanged();
             return true;
     }, SelectionManager::SELECTION_CHANGED_EVENT);
 
@@ -378,6 +538,15 @@ void SceneTree::RebuildFromScene(Scene* scene) {
 }
 
 void SceneTree::dropEvent(QDropEvent* event) {
+    // Multi-object reparent is not implemented: GameObjectDragModel::mimeData
+    // encodes a single id (and its consumer RefDropFilter is a single-valued sink),
+    // so a multi-row drag would silently move only currentIndex()'s object and
+    // leave the rest behind. Refuse the drop rather than half-perform it.
+    if (selectionModel()->selectedRows().size() > 1) {
+        event->ignore();
+        return;
+    }
+
     DropIndicatorPosition pos = dropIndicatorPosition();
 
     // Sibling reorder (drop between items). We ignore Qt's internal move entirely and
@@ -411,8 +580,12 @@ void SceneTree::dropEvent(QDropEvent* event) {
             return;
 
         Scene* scene = registry->Find<Scene>(scene_id);
-        if (!scene) return;
+        if (!scene || !childObj) return;
+
+        auto command = ReparentCommand::Capture(childObj);
         scene->ReorderObject(childIdQt.toStdString(), newParentIdQt.toStdString(), targetRow);
+        if (command && command->Commit(childObj) && undoSystem)
+            undoSystem->Push(std::move(command));
         return;
     }
 
@@ -463,6 +636,9 @@ void SceneTree::dropEvent(QDropEvent* event) {
         return;
     }
 
+    // Capture before Qt moves the row, so the recorded "before" is the real one.
+    auto command = ReparentCommand::Capture(childObject);
+
     QTreeView::dropEvent(event);
 
     if (!event->isAccepted())
@@ -471,6 +647,10 @@ void SceneTree::dropEvent(QDropEvent* event) {
     handlingDrop = true;
     childTransform->SetParent(parentTransform, true);
     handlingDrop = false;
+
+    // SetParent appends, so the new sibling index is read back rather than assumed.
+    if (command && command->Commit(childObject) && undoSystem)
+        undoSystem->Push(std::move(command));
 }
 
 void SceneTree::UpdateHeight() {
@@ -548,29 +728,47 @@ void SceneTree::ReorderItem(const std::string& id) {
     UpdateHeight();
 }
 
-void SceneTree::OnObjectSelected(const std::string& id) {
-    if (id.empty()) {
+void SceneTree::OnSelectionChanged() {
+    if (m_syncingSelection) return;
+    m_syncingSelection = true;
+
+    QItemSelection selection;
+    QModelIndex primaryIndex;
+    const std::string& primaryId = selectionManager->GetPrimaryId();
+
+    for (const std::string& id : selectionManager->GetSelectedIds()) {
+        QModelIndex index = FindItemById(id);
+        // Not in THIS tree — skip it, but keep going. There is one SceneTree per
+        // scene and they all hear the same event.
+        if (!index.isValid()) continue;
+
+        for (QModelIndex parent = index.parent(); parent.isValid(); parent = parent.parent())
+            expand(parent);
+
+        selection.select(index, index);
+        if (id == primaryId) primaryIndex = index;
+    }
+
+    // Unconditional. The old early-return-on-not-found was the cross-tree stale
+    // highlight bug: a tree that contains none of the new selection must still clear
+    // its own, or selecting in one scene leaves the other scene looking selected.
+    if (selection.isEmpty()) {
         clearSelection();
+    } else {
+        selectionModel()->select(selection, QItemSelectionModel::ClearAndSelect
+                                          | QItemSelectionModel::Rows);
+    }
+
+    if (primaryIndex.isValid()) {
+        // NoUpdate, not ClearAndSelect|Rows: the latter would wipe the multi-row
+        // selection just applied above and leave only the primary highlighted.
+        selectionModel()->setCurrentIndex(primaryIndex, QItemSelectionModel::NoUpdate);
+        scrollTo(primaryIndex);
+    } else {
         setCurrentIndex(QModelIndex());
-        return;
     }
 
-    QModelIndex index = FindItemById(id);
-    if (!index.isValid()) return;
-
-    QModelIndex parent = index.parent();
-    while (parent.isValid()) {
-        expand(parent);
-        parent = parent.parent();
-    }
-
-    setCurrentIndex(index);
-    selectionModel()->setCurrentIndex(
-        index,
-        QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows
-    );
-
-    scrollTo(index);
+    m_syncingSelection = false;
 }
 
 QModelIndex SceneTree::FindItemById(const std::string& id) const {
@@ -709,23 +907,16 @@ void SceneTree::OnItemEntered(const QModelIndex& index) {
 }
 
 void SceneTree::keyPressEvent(QKeyEvent* event) {
+    // Both operate on the whole selection, via the engine's SelectionManager rather
+    // than currentIndex(), so they agree with what the user sees highlighted.
     if (event->key() == Qt::Key_D && (event->modifiers() & Qt::ControlModifier)) {
-        QModelIndex index = currentIndex();
-        if (!index.isValid()) return;
-        QString idQt = index.data(GAMEOBJECT_ID_ROLE).toString();
-        if (idQt.isEmpty()) return;
-        DuplicateObject(idQt.toStdString());
+        DuplicateSelection();
         return;
     }
     if (event->key() == Qt::Key_Delete) {
-        QModelIndex index = currentIndex();
-        if (!index.isValid()) return;
-        QString idQt = index.data(GAMEOBJECT_ID_ROLE).toString();
-        if (idQt.isEmpty()) return;
-        Registry* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
-        GameObject* go = registry->Find<GameObject>(idQt.toStdString());
-        if (go) go->Shutdown();
+        DeleteSelection();
         return;
     }
     QTreeView::keyPressEvent(event);
 }
+

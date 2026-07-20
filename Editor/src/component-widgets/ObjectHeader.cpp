@@ -8,6 +8,10 @@
 #include <QPointer>
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/GameObject.hpp"
+#include "engine/core/UndoSystem.hpp"
+#include "engine/core/Container.hpp"
+#include "engine/commands/PropertyCommand.hpp"
+#include "Engine.hpp"
 #include <QHeaderView>
 #include <QFormLayout>
 #include <QDoubleSpinBox>
@@ -44,21 +48,49 @@ void ObjectHeader::Bind(const std::string id) {
     label->setText(QString::fromStdString(obj->GetName()));
     activeButton->setChecked(obj->GetActive());
 
-    connect(activeButton, &QRadioButton::toggled, safeThis, [safeThis](bool val){
-        if (!safeThis) return;
-        auto* currentObj = Registry::FindInRuntime<GameObject>(safeThis->gameobject_id);
-        if (currentObj) {
-            currentObj->SetActive(val); 
-        }
-    }); 
+    // Both handlers record into the active container's history, so an edit made
+    // during play mode is recorded against the runtime world and discarded with it.
+    // Neither needs coalescing: toggled and editingFinished each fire once per
+    // completed interaction, unlike the spinbox valueChanged stream.
+    auto activeUndoSystem = []() -> UndoSystem* {
+        Container* active = Engine::Get()->GetActiveContainer();
+        return active ? active->FindSystem<UndoSystem>() : nullptr;
+    };
 
-    connect(label, &QLineEdit::editingFinished, safeThis, [safeThis](){
+    connect(activeButton, &QRadioButton::toggled, safeThis, [safeThis, activeUndoSystem](bool val){
         if (!safeThis) return;
         auto* currentObj = Registry::FindInRuntime<GameObject>(safeThis->gameobject_id);
-        if (currentObj) {
-            currentObj->SetName(safeThis->label->text().toStdString()); 
+        if (!currentObj) return;
+        const bool oldVal = currentObj->GetActive();
+        if (oldVal == val) return;
+
+        currentObj->SetActive(val);
+
+        if (auto* undoSystem = activeUndoSystem()) {
+            undoSystem->Push(std::make_unique<PropertyCommand<GameObject, bool>>(
+                safeThis->gameobject_id, "active", oldVal, val,
+                [](GameObject* go, const bool& v){ bool b = v; go->SetActive(b); },
+                val ? "Enable Object" : "Disable Object"));
         }
-    }); 
+    });
+
+    connect(label, &QLineEdit::editingFinished, safeThis, [safeThis, activeUndoSystem](){
+        if (!safeThis) return;
+        auto* currentObj = Registry::FindInRuntime<GameObject>(safeThis->gameobject_id);
+        if (!currentObj) return;
+        const std::string oldName = currentObj->GetName();
+        const std::string newName = safeThis->label->text().toStdString();
+        if (oldName == newName) return;
+
+        currentObj->SetName(newName);
+
+        if (auto* undoSystem = activeUndoSystem()) {
+            undoSystem->Push(std::make_unique<PropertyCommand<GameObject, std::string>>(
+                safeThis->gameobject_id, "name", oldName, newName,
+                [](GameObject* go, const std::string& v){ go->SetName(v); },
+                "Rename Object"));
+        }
+    });
 
     int nameSub = obj->Subscribe([safeThis](std::any data){
         if (!safeThis) return false;

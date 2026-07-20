@@ -36,6 +36,10 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
+
+    // Alt+Left or middle-mouse. Ctrl is reserved for additive selection so it means
+    // the same thing here as in the hierarchy tree.
+    bool IsPanGesture(Qt::MouseButton button, Qt::KeyboardModifiers modifiers) const;
     bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:

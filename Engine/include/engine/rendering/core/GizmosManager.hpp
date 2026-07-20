@@ -2,6 +2,7 @@
 #include "engine/core/System.hpp"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <any>
 #include <string>
 #include <vector>
 #include <functional>
@@ -11,9 +12,27 @@
 class Texture2D;
 class GameObject;
 
+// One committed gizmo edit: what changed, on what, from what, to what.
+//
+// The gizmo draw code writes its target every frame while a drag is in flight,
+// which is right for live feedback but must never become one undo entry per frame.
+// A GizmoEdit is emitted once per completed gesture instead.
+struct GizmoEdit {
+    std::string targetId;   // Transform / collider / Camera id
+    std::string property;   // "localPosition" | "localRotation" | "localScale"
+                            // | "size" | "center" | "radius" | "height" | "orthoSize"
+    std::any before;
+    std::any after;
+};
+
 class GizmosManager : public System {
 public:
     enum class EditMode { Transform, Collider };
+
+    // Payload: std::vector<GizmoEdit>. Emitted on drag release, never per frame.
+    // GizmosManager deliberately does not touch the UndoSystem itself — it only
+    // reports, and the editor decides whether the gesture is worth recording.
+    static inline const Event EDIT_COMMITTED_EVENT = Observable::CreateEvent();
 
     static GizmosManager* Get()
     {
@@ -97,6 +116,51 @@ private:
     int m_dragCameraCorner = -1;         // -1 = none
     std::string m_dragCameraId;          // which camera owns the active corner drag ("" = none)
     float m_dragStartOrthoSize = 0.0f;
+
+    // Emit a finished gesture. No-ops when nothing actually moved, so a click that
+    // merely grabs a handle without dragging records nothing.
+    void CommitTransformDrag();
+    void CommitColliderDrag();
+    void CommitCameraDrag();
+
+    // Decompose `world` and write it onto `transform` via the SetWorld* trio.
+    void ApplyWorld(class Transform* transform, const glm::mat4& world);
+
+    // Per-object state captured once at the start of a transform-gizmo drag.
+    //
+    // The capture has to happen BEFORE ImGuizmo::Manipulate(), because Manipulate
+    // mutates the matrix it is given on the same frame the drag begins — by the time
+    // IsUsing() first returns true the original value is already gone.
+    //
+    // Locals are what the undo entry restores (re-deriving world->local through a
+    // parent drifts on every round trip); the world TRS is what the group delta is
+    // applied to.
+    struct TransformDragRecord {
+        std::string transformId;
+        glm::vec2 startLocalPos{0};
+        float     startLocalRot = 0.0f;
+        glm::vec2 startLocalScale{1};
+        glm::vec2 startWorldPos{0};
+        float     startWorldRot = 0.0f;
+        glm::vec2 startWorldScale{1};
+    };
+
+    bool m_transformGizmoActive = false;
+    std::vector<TransformDragRecord> m_dragRecords;
+    // The matrix handed to ImGuizmo, persisted ACROSS FRAMES while a drag is live.
+    //
+    // ImGuizmo accumulates into the matrix you give it: HandleRotation composes only
+    // the rotation since the *previous frame* (it resets mRotationAngleOrigin every
+    // frame) onto whatever matrix it was passed. Rebuilding the pivot from the live
+    // centroid each frame therefore threw away everything accumulated so far, and the
+    // gizmo read back one frame's worth of angle — which is why rotating a
+    // multi-selection just jittered back and forth instead of turning.
+    glm::mat4 m_pivotMatrix{1.0f};
+    // The pivot's world matrix at drag start. Every frame the group delta is
+    // recomputed as pivotNow * inverse(this), so it is derived fresh from the
+    // authoritative pivot rather than accumulated frame to frame — no drift over a
+    // long drag.
+    glm::mat4 m_dragStartPivotWorld{1.0f};
 
     // Collider drag state
     int m_dragHandle = -1;           // -1 = none

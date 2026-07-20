@@ -12,6 +12,12 @@
 #include "imgui_impl_opengl3.h"
 #include "engine/core/TimeManager.hpp"
 #include "utils/IconMaps.h"
+#include "engine/core/UndoSystem.hpp"
+#include "engine/commands/SubtreeCommand.hpp"
+#include "engine/commands/MacroCommand.hpp"
+#include "engine/serialization/Registry.hpp"
+#include <memory>
+#include <vector>
 
 namespace {
     void DrawFPS(){
@@ -89,12 +95,44 @@ void SceneViewGui::keyPressEvent(QKeyEvent* event) {
 
     if (event->key() == Qt::Key_Delete) {
         auto* selMgr = container->FindSystem<SelectionManager>();
-        if (selMgr) {
-            GameObject* go = dynamic_cast<GameObject*>(selMgr->GetSerializable());
-            if (go) {
-                go->Shutdown();
-                return;
+        auto* registry = container->FindSystem<Registry>();
+        if (selMgr && registry && selMgr->HasSelection()) {
+            // Roots only: destroying a parent already destroys its children, and a
+            // child's id would no longer resolve by the time we reached it.
+            std::vector<std::string> roots = selMgr->GetSelectedRoots();
+            auto* undoSystem = container->FindSystem<UndoSystem>();
+
+            std::vector<std::unique_ptr<Command>> commands;
+            commands.reserve(roots.size());
+            for (const std::string& id : roots) {
+                GameObject* go = registry->Find<GameObject>(id);
+                if (!go) continue;
+                // DestroyAndRecord performs the Shutdown so it can snapshot first,
+                // but returns nullptr WITHOUT destroying when the object has no
+                // scene — the branches are not interchangeable.
+                if (undoSystem) {
+                    if (auto command = SubtreeCommand::DestroyAndRecord(go))
+                        commands.push_back(std::move(command));
+                } else {
+                    go->Shutdown();
+                }
             }
+
+            if (undoSystem) {
+                auto macro = MacroCommand::Wrap(
+                    std::move(commands),
+                    roots.size() == 1
+                        ? "Delete Object"
+                        : "Delete " + std::to_string(roots.size()) + " Objects");
+                if (auto* m = dynamic_cast<MacroCommand*>(macro.get())) {
+                    m->SetSelectionAfterUndo(roots);
+                    m->SetSelectionAfterRedo({});
+                }
+                undoSystem->Push(std::move(macro));
+            }
+
+            selMgr->ClearSelection();
+            return;
         }
     }
 
@@ -161,12 +199,21 @@ bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
     return QOpenGLWidget::eventFilter(obj, event);
 }
 
+bool SceneViewGui::IsPanGesture(Qt::MouseButton button, Qt::KeyboardModifiers modifiers) const
+{
+    // Alt+Left, not Ctrl+Left: Qt's ExtendedSelection hardwires Ctrl = toggle in the
+    // hierarchy tree, so leaving pan on Ctrl would make the modifier mean two
+    // different things depending on which panel the cursor was over. Alt+drag to
+    // navigate is the Unity/Blender/Maya convention. Middle-mouse pan is unchanged.
+    //
+    // Hoisted because three handlers read this and they must not drift apart.
+    return button == Qt::MiddleButton
+        || (button == Qt::LeftButton && (modifiers & Qt::AltModifier));
+}
+
 void SceneViewGui::mousePressEvent(QMouseEvent* event)
 {
-    bool ctrlLeftPan = (event->button() == Qt::LeftButton &&
-                        (event->modifiers() & Qt::ControlModifier));
-
-    if (event->button() == Qt::MiddleButton || ctrlLeftPan)
+    if (IsPanGesture(event->button(), event->modifiers()))
     {
         isPanning = true;
         lastMousePos = event->pos();
@@ -174,10 +221,9 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
         return;
     }
 
-    // Left click without modifier - try to select object
     if (event->button() == Qt::LeftButton)
     {
-        // Don't deselect if GizmosManager is using a handle
+        // Don't disturb the selection if GizmosManager is using a handle
         if (GizmosManager::Get()->WantsCaptureMouse())
             return;
 
@@ -190,13 +236,17 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
         std::string objectId = editorView->Pick(fbX, fbY);
 
         auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+        const bool additive =
+            event->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier);
 
         if (!objectId.empty()) {
-            selMgr->Select(objectId);
-            std::cout << "Selected GameObject: " << objectId << std::endl;
-        } else {
-            selMgr->Deselect();
-            std::cout << "Selection cleared" << std::endl;
+            if (additive) selMgr->ToggleSelection(objectId);
+            else          selMgr->Select(objectId);
+        } else if (!additive) {
+            // Only a plain click on empty space clears. An additive click that
+            // happens to miss must leave the selection alone, or building one up
+            // becomes an exercise in never missing.
+            selMgr->ClearSelection();
         }
     }
 }
@@ -204,10 +254,7 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
 
 void SceneViewGui::mouseReleaseEvent(QMouseEvent* event)
 {
-    bool ctrlLeftPan = (event->button() == Qt::LeftButton &&
-                        (event->modifiers() & Qt::ControlModifier));
-
-    if (event->button() == Qt::MiddleButton || ctrlLeftPan)
+    if (IsPanGesture(event->button(), event->modifiers()))
     {
         isPanning = false;
         setCursor(Qt::ArrowCursor);
@@ -220,8 +267,9 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
     Engine* engine = Engine::Get();
     InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
 
-    bool ctrlHeld = (e->modifiers() & Qt::ControlModifier);
-    bool leftDragPan = (e->buttons() & Qt::LeftButton) && ctrlHeld;
+    // Mirrors IsPanGesture, but tested against held buttons rather than the one
+    // button that triggered the event.
+    bool leftDragPan = (e->buttons() & Qt::LeftButton) && (e->modifiers() & Qt::AltModifier);
     bool midDragPan  = (e->buttons() & Qt::MiddleButton);
 
     glm::vec2 fbPos(e->pos().x() * devicePixelRatioF(), e->pos().y() * devicePixelRatioF());

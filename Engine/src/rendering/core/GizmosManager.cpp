@@ -44,7 +44,13 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
     Container* container = Engine::Get()->GetActiveContainer();
     SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
     if (!selectionManager->HasSelection()) {
+        // Selection cleared mid-drag: the per-gizmo release handlers below never
+        // run, so drop the drag state here or m_transformGizmoActive stays stuck
+        // true and the next drag would diff against a stale start value.
         m_dragHandle = -1;
+        m_dragColliderId.clear();
+        m_transformGizmoActive = false;
+        m_dragRecords.clear();
         return;
     }
 
@@ -58,11 +64,37 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
 void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
     Container* container = Engine::Get()->GetActiveContainer();
     SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
-    GameObject* selectedObj = dynamic_cast<GameObject*>(selectionManager->GetSerializable());
-    if (!selectedObj) return;
-    Transform* transform = selectedObj->GetComponent<Transform>();
 
-    glm::mat4 objectMatrix = transform->GetWorldMatrix();
+    // Roots only: a selected child already follows its selected parent (MarkDirty
+    // propagates), so applying the group delta to both would move it twice.
+    std::vector<Transform*> targets;
+    for (const std::string& id : selectionManager->GetSelectedRoots()) {
+        auto* obj = dynamic_cast<GameObject*>(selectionManager->GetSerializable(id));
+        if (!obj) continue;
+        if (Transform* t = obj->GetComponent<Transform>()) targets.push_back(t);
+    }
+    if (targets.empty()) return;
+
+    const bool multi = targets.size() > 1;
+
+    // Pivot. One object: its own world matrix — which is already what we wrote last
+    // frame, so ImGuizmo sees its own accumulated output fed back.
+    //
+    // Several: a translation-only matrix at the centroid of their world positions.
+    // Only rebuilt when NOT dragging; during a drag ImGuizmo owns m_pivotMatrix and
+    // accumulates into it. Recomputing it mid-drag would discard that accumulation
+    // (see the member's comment).
+    if (multi) {
+        if (!m_transformGizmoActive) {
+            glm::vec2 centroid(0.0f);
+            for (Transform* t : targets) centroid += t->GetWorldPosition();
+            centroid /= static_cast<float>(targets.size());
+            m_pivotMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(centroid, 0.0f));
+        }
+    } else {
+        m_pivotMatrix = targets.front()->GetWorldMatrix();
+    }
+    glm::mat4& pivotMatrix = m_pivotMatrix;
 
     ImGuizmo::SetOrthographic(true);
     ImGuizmo::SetRect(0, 0, viewWidth, viewHeight);
@@ -86,27 +118,168 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
 
     float* snapPtr = nullptr;
 
+    // Capture the pre-drag state *before* Manipulate(): it mutates pivotMatrix on
+    // the very frame the drag starts, so by the time IsUsing() is true the original
+    // is already lost.
+    const bool wasActive = m_transformGizmoActive;
+    if (!wasActive) {
+        m_dragRecords.clear();
+        m_dragRecords.reserve(targets.size());
+        for (Transform* t : targets)
+            m_dragRecords.push_back({t->GetID(),
+                                     t->localPosition, t->localRotation, t->localScale,
+                                     t->GetWorldPosition(), t->GetWorldRotation(),
+                                     t->GetWorldScale()});
+        m_dragStartPivotWorld = pivotMatrix;
+    }
+
     ImGuizmo::Manipulate(
         glm::value_ptr(view),
         glm::value_ptr(proj),
         op,
-        ImGuizmo::LOCAL,
-        glm::value_ptr(objectMatrix),
+        // A centroid pivot has no rotation basis, so LOCAL would silently degenerate
+        // to WORLD for a multi-selection. Say so explicitly.
+        multi ? ImGuizmo::WORLD : ImGuizmo::LOCAL,
+        glm::value_ptr(pivotMatrix),
+        // deltaMatrix stays null: ImGuizmo writes it in the pivot's LOCAL frame for
+        // rotation (mModelInverse * delta * mModel) and as a bare origin-centered
+        // scale, so it cannot be pre-multiplied onto another object's world matrix.
+        // The group delta below is derived from drag-start matrices instead.
         nullptr,
         snapPtr);
 
     if (ImGuizmo::IsUsing()) {
-        float matrixTranslation[3], matrixRotation[3], matrixScale[3];
-        ImGuizmo::DecomposeMatrixToComponents(
-            glm::value_ptr(objectMatrix),
-            matrixTranslation,
-            matrixRotation,
-            matrixScale);
+        m_transformGizmoActive = true;
 
-        transform->SetWorldPosition(glm::vec2(matrixTranslation[0], matrixTranslation[1]));
-        transform->SetWorldRotation(matrixRotation[2]);
-        transform->SetWorldScale(glm::vec2(matrixScale[0], matrixScale[1]));
+        if (!multi) {
+            // Unchanged single-object path.
+            ApplyWorld(targets.front(), pivotMatrix);
+        } else if (m_dragRecords.size() == targets.size()) {
+            // Apply the gesture per-property rather than as one matrix product.
+            //
+            // `delta * startWorld` would be the conventional group transform, but it
+            // makes rotation ORBIT each object around the centroid and scale push
+            // them apart from it. What's wanted here is: translation moves the group
+            // together, while rotation and scale act on each object IN PLACE.
+            //
+            // The decomposition is exact because the multi-select pivot is built
+            // translation-only above — identity rotation, unit scale — so whatever
+            // ImGuizmo wrote into it *is* the delta.
+            float pivotT[3], pivotR[3], pivotS[3];
+            ImGuizmo::DecomposeMatrixToComponents(
+                glm::value_ptr(pivotMatrix), pivotT, pivotR, pivotS);
+
+            const glm::vec2 startCentroid(m_dragStartPivotWorld[3]);
+            const glm::vec2 deltaPos   = glm::vec2(pivotT[0], pivotT[1]) - startCentroid;
+            const float     deltaRot   = pivotR[2];                       // start was 0
+            const glm::vec2 deltaScale = glm::vec2(pivotS[0], pivotS[1]); // start was 1
+
+            for (std::size_t i = 0; i < targets.size(); ++i) {
+                const TransformDragRecord& record = m_dragRecords[i];
+                targets[i]->SetWorldPosition(record.startWorldPos + deltaPos);
+                targets[i]->SetWorldRotation(record.startWorldRot + deltaRot);
+                targets[i]->SetWorldScale(record.startWorldScale * deltaScale);
+            }
+        }
+    } else if (wasActive) {
+        // Release: one event for the whole gesture.
+        m_transformGizmoActive = false;
+        CommitTransformDrag();
     }
+}
+
+void GizmosManager::ApplyWorld(Transform* transform, const glm::mat4& world)
+{
+    if (!transform) return;
+
+    float matrixTranslation[3], matrixRotation[3], matrixScale[3];
+    ImGuizmo::DecomposeMatrixToComponents(
+        glm::value_ptr(world), matrixTranslation, matrixRotation, matrixScale);
+
+    transform->SetWorldPosition(glm::vec2(matrixTranslation[0], matrixTranslation[1]));
+    transform->SetWorldRotation(matrixRotation[2]);
+    transform->SetWorldScale(glm::vec2(matrixScale[0], matrixScale[1]));
+}
+
+void GizmosManager::CommitTransformDrag()
+{
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    if (!registry) { m_dragRecords.clear(); return; }
+
+    // The gizmo writes all three every frame even for a translate-only op, so diff
+    // rather than trusting the operation mode — otherwise a move would record a
+    // no-op rotation and scale alongside it. With a centroid pivot a rotation
+    // legitimately changes position too, which the diff picks up for free.
+    std::vector<GizmoEdit> edits;
+    for (const TransformDragRecord& record : m_dragRecords) {
+        // Re-resolve by id rather than trusting a cached pointer: an object can be
+        // destroyed mid-drag.
+        Transform* transform = registry->Find<Transform>(record.transformId);
+        if (!transform) continue;
+
+        if (transform->localPosition != record.startLocalPos)
+            edits.push_back({record.transformId, "localPosition",
+                             record.startLocalPos, transform->localPosition});
+        if (transform->localRotation != record.startLocalRot)
+            edits.push_back({record.transformId, "localRotation",
+                             record.startLocalRot, transform->localRotation});
+        if (transform->localScale != record.startLocalScale)
+            edits.push_back({record.transformId, "localScale",
+                             record.startLocalScale, transform->localScale});
+    }
+
+    m_dragRecords.clear();
+    // One notify for the whole gesture; the editor wraps whatever arrives into a
+    // single undo entry.
+    if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
+}
+
+void GizmosManager::CommitColliderDrag()
+{
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    if (!registry) { m_dragColliderId.clear(); return; }
+
+    std::vector<GizmoEdit> edits;
+    const std::string id = m_dragColliderId;
+
+    // Center lives on the Collider base, so it is diffed once for every type.
+    if (auto* collider = registry->Find<Collider>(id)) {
+        if (collider->GetCenter() != m_dragStartCenter)
+            edits.push_back({id, "center", m_dragStartCenter, collider->GetCenter()});
+    }
+
+    if (auto* box = registry->Find<BoxCollider>(id)) {
+        if (box->GetSize() != m_dragStartSize)
+            edits.push_back({id, "size", m_dragStartSize, box->GetSize()});
+    } else if (auto* circle = registry->Find<CircleCollider>(id)) {
+        if (circle->GetRadius() != m_dragStartRadius)
+            edits.push_back({id, "radius", m_dragStartRadius, circle->GetRadius()});
+    } else if (auto* capsule = registry->Find<CapsuleCollider>(id)) {
+        if (capsule->GetRadius() != m_dragStartRadius)
+            edits.push_back({id, "radius", m_dragStartRadius, capsule->GetRadius()});
+        if (capsule->GetHeight() != m_dragStartHeight)
+            edits.push_back({id, "height", m_dragStartHeight, capsule->GetHeight()});
+    }
+
+    if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
+}
+
+void GizmosManager::CommitCameraDrag()
+{
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    if (!registry) return;
+
+    auto* camera = registry->Find<Camera>(m_dragCameraId);
+    if (!camera) return;
+    if (camera->GetOrthoSize() == m_dragStartOrthoSize) return;
+
+    std::vector<GizmoEdit> edits{
+        {m_dragCameraId, "orthoSize", m_dragStartOrthoSize, camera->GetOrthoSize()}
+    };
+    Notify(EDIT_COMMITTED_EVENT, edits);
 }
 
 void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
@@ -121,6 +294,8 @@ void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& pr
     // each running its own hit-test, scattered release logic would race.
     ImGuiIO& io = ImGui::GetIO();
     if (!io.MouseDown[0]) {
+        // Emit the finished gesture before clearing the state it is diffed against.
+        if (m_dragHandle >= 0 && !m_dragColliderId.empty()) CommitColliderDrag();
         m_dragHandle = -1;
         m_dragColliderId.clear();
     }
@@ -159,16 +334,15 @@ void GizmosManager::DrawCameraGizmos(const glm::mat4& view, const glm::mat4& pro
     // Centralised here (this runs every frame, before the per-camera draw loop)
     // so DrawCameraGizmo only has to start and process an ongoing drag.
     if (!ImGui::GetIO().MouseDown[0]) {
+        if (m_dragCameraCorner >= 0 && !m_dragCameraId.empty()) CommitCameraDrag();
         m_dragCameraCorner = -1;
         m_dragCameraId.clear();
     }
 
-    // Alpha tiers: a selected camera (its object is the current selection) is
+    // Alpha tiers: a selected camera (its object is in the current selection) is
     // fully opaque; the active/main camera (the one driving the Game view) is
     // 75%; any other enabled camera is 50%. Selected wins over active.
     SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
-    Serializable* selected = selectionManager ? selectionManager->GetSerializable() : nullptr;
-    GameObject* selectedObj = dynamic_cast<GameObject*>(selected);
     Camera* mainCamera = Camera::GetMain();
 
     // Rect width follows the aspect the Game view ACTUALLY displays (it fills
@@ -194,7 +368,8 @@ void GizmosManager::DrawCameraGizmos(const glm::mat4& view, const glm::mat4& pro
             for (Camera* camera : obj->GetComponents<Camera>()) {
                 if (!camera->GetEnabled()) continue;
                 int alpha = kAlphaBase;
-                if (selectedObj && obj == selectedObj) alpha = kAlphaSelected;
+                if (selectionManager && selectionManager->IsSelected(obj->GetID()))
+                    alpha = kAlphaSelected;
                 else if (camera == mainCamera)         alpha = kAlphaActive;
                 DrawCameraGizmo(view, proj, viewWidth, viewHeight, transform, camera, alpha, gameAspect);
             }
@@ -342,8 +517,6 @@ void GizmosManager::DrawComponentIcons(const glm::mat4& view, const glm::mat4& p
     if (!sceneManager) return;
 
     SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
-    Serializable* selected = selectionManager ? selectionManager->GetSerializable() : nullptr;
-    GameObject* selectedObj = dynamic_cast<GameObject*>(selected);
 
     // Fixed screen-space size, so icons stay the same on-screen regardless of
     // the Scene camera's ortho/zoom. Flip V (uv 0->1 top-to-bottom) because
@@ -374,7 +547,8 @@ void GizmosManager::DrawComponentIcons(const glm::mat4& view, const glm::mat4& p
             if (icons.empty()) continue;
 
             // 75% alpha when this object is selected, 25% otherwise.
-            int alpha = (selectedObj && obj == selectedObj) ? 191 : 64;
+            int alpha = (selectionManager && selectionManager->IsSelected(obj->GetID()))
+                            ? 191 : 64;
             ImU32 tint = IM_COL32(255, 255, 255, alpha);
 
             // Lay the icons out as a horizontal row centered on the transform.

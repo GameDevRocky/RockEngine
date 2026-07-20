@@ -33,9 +33,18 @@ void Transform::OnDisabled(){
 }
 
 void Transform::MarkDirty() {
+    // Already dirty means every descendant is too: a clean child is only reachable
+    // through GetWorldMatrix(), which recurses upward and cleans its parent first,
+    // so "parent dirty, child clean" is unreachable. That makes this short-circuit
+    // safe, and it collapses the 2nd and 3rd SetWorld* of a gizmo frame from a full
+    // subtree walk to O(1).
+    if (dirty) return;
     dirty = true;
-    Engine* engine = Engine::Get();
-    Registry* registry = engine->GetActiveContainer()->FindSystem<Registry>();
+
+    // The cached member, NOT Engine::Get()->GetActiveContainer(): during play mode an
+    // editor-container Transform would otherwise resolve the *runtime* registry, find
+    // none of its children there, and silently skip the whole subtree.
+    if (!registry) return;   // setters can run before Init() caches it
 
     for (const std::string& id : children_ids) {
         Transform* transform = registry->Find<Transform>(id);

@@ -1,27 +1,37 @@
 #include "engine/core/SelectionManager.hpp"
+#include <algorithm>
 #include "engine/core/Container.hpp"
 #include "engine/core/GameObject.hpp"
+#include "engine/core/HierarchyUtils.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
+
+namespace {
+const std::string kEmptyId;
+}
 
 void SelectionManager::Init()
 {
     registry = container->FindSystem<Registry>();
-    selectedObjectId.clear();
+    m_selectedIds.clear();
+    m_shutdownSubs.clear();
 }
 
 void SelectionManager::Shutdown()
 {
-    m_shutdownSubId = -1;
-    selectedObjectId.clear();
+    // Deliberately not unsubscribing: during container teardown the objects these
+    // ids refer to may already be gone.
+    m_shutdownSubs.clear();
+    m_selectedIds.clear();
 }
 
 SelectionManager* SelectionManager::Copy()
 {
-    auto* copy = new SelectionManager();
-    copy->selectedObjectId = selectedObjectId;
-    copy->subscribers = subscribers;
-    return copy;
+    // Deliberately empty, matching Copy(Container*) — which is the only overload
+    // Container::Copy ever calls, so this one was unreachable. It used to copy
+    // `subscribers`, which would have handed the runtime manager the editor's Qt
+    // handlers and driven editor widgets against runtime ids.
+    return new SelectionManager();
 }
 
 SelectionManager* SelectionManager::Copy(Container* container)
@@ -31,78 +41,145 @@ SelectionManager* SelectionManager::Copy(Container* container)
     return copy;
 }
 
-Serializable* SelectionManager::GetSerializable() const {
-    if (selectedObjectId.empty()) return nullptr;
+bool SelectionManager::Resolves(const std::string& id) const
+{
+    if (id.empty()) return false;
+    if (registry && registry->Find<Serializable>(id)) return true;
 
-    // Check runtime objects first (GameObjects, Components)
-    auto* reg = container->FindSystem<Registry>();
-    if (reg) {
-        auto* obj = reg->Find<Serializable>(selectedObjectId);
-        if (obj) return obj;
+    auto& assets = AssetManager::Get();
+    return assets.GetSprite(id) || assets.GetMaterial(id)
+        || assets.GetTexture(id) || assets.GetShader(id);
+}
+
+void SelectionManager::ClearShutdownSubs()
+{
+    for (const auto& [id, subId] : m_shutdownSubs) {
+        if (!registry) break;
+        if (auto* obj = registry->Find<GameObject>(id)) obj->Unsubscribe(subId);
+    }
+    m_shutdownSubs.clear();
+}
+
+void SelectionManager::SetSelection(std::vector<std::string> ids)
+{
+    // Drop empty, unresolvable and duplicate ids, preserving order.
+    std::vector<std::string> next;
+    next.reserve(ids.size());
+    for (auto& id : ids) {
+        if (!Resolves(id)) continue;
+        if (std::find(next.begin(), next.end(), id) != next.end()) continue;
+        next.push_back(std::move(id));
     }
 
-    // Fall back to AssetManager
-    auto& am = AssetManager::Get();
-    if (auto* s = am.GetSprite(selectedObjectId))   return s;
-    if (auto* m = am.GetMaterial(selectedObjectId)) return m;
-    if (auto* t = am.GetTexture(selectedObjectId))  return t;
-    if (auto* sh = am.GetShader(selectedObjectId))  return sh;
+    // Compare the whole vector, never just the primary: going {A,B,C} -> {A,C}
+    // removes a non-primary entry and leaves the primary at C, so a primary-only
+    // check would suppress a real change. This also means an unresolvable id now
+    // clears the selection *and notifies*, where the old code cleared silently and
+    // left every listener showing a stale object.
+    if (next == m_selectedIds) return;
 
-    return nullptr;
+    ClearShutdownSubs();
+    m_selectedIds = std::move(next);
+
+    for (const std::string& id : m_selectedIds) {
+        if (!registry) break;
+        auto* obj = registry->Find<GameObject>(id);
+        if (!obj) continue;   // assets have no shutdown event
+
+        m_shutdownSubs[id] = obj->Subscribe([this, id](std::any) {
+            // `this`, not Engine::Get()->GetActiveContainer(): during play mode an
+            // editor object's destruction would otherwise deselect on the RUNTIME
+            // manager. And RemoveFromSelection, not a full clear — destroying one of
+            // N selected objects should drop that one.
+            //
+            // Erase first: this handler is one-shot (returns false), so Observable
+            // unsubscribes it itself and ClearShutdownSubs must not then call
+            // Unsubscribe with a stale id on an object mid-teardown.
+            m_shutdownSubs.erase(id);
+            RemoveFromSelection(id);
+            return false;
+        }, RuntimeObject::SHUTDOWN_EVENT);
+    }
+
+    Notify(SELECTION_CHANGED_EVENT,
+           m_selectedIds.empty() ? std::string{} : m_selectedIds.back());
 }
 
 void SelectionManager::Select(const std::string& objectId)
 {
-    if (selectedObjectId == objectId) return;
-
-    // Unsubscribe from the previously selected object's shutdown event
-    if (m_shutdownSubId != -1) {
-        auto* prevObj = registry->Find<GameObject>(selectedObjectId);
-        if (prevObj) prevObj->Unsubscribe(m_shutdownSubId);
-        m_shutdownSubId = -1;
-    }
-
-    selectedObjectId = objectId;
-
-    // Try to find as a GameObject first — subscribe to its shutdown so we
-    // auto-deselect when it's destroyed.
-    auto* obj = registry->Find<GameObject>(selectedObjectId);
-    if (obj) {
-        m_shutdownSubId = obj->Subscribe([](std::any data){
-            auto* sm = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
-            sm->Deselect();
-            return false;
-        }, RuntimeObject::SHUTDOWN_EVENT);
-        Notify(SELECTION_CHANGED_EVENT, selectedObjectId);
-        return;
-    }
-
-    // Fall back: check AssetManager. Assets don't have a shutdown event,
-    // so just verify the ID exists then notify.
-    auto& am = AssetManager::Get();
-    bool found = am.GetSprite(selectedObjectId)   != nullptr
-              || am.GetMaterial(selectedObjectId) != nullptr
-              || am.GetTexture(selectedObjectId)  != nullptr
-              || am.GetShader(selectedObjectId)   != nullptr;
-
-    if (!found) {
-        selectedObjectId.clear();
-        return;
-    }
-
-    Notify(SELECTION_CHANGED_EVENT, selectedObjectId);
+    if (m_selectedIds.size() == 1 && m_selectedIds[0] == objectId) return;
+    SetSelection({objectId});
 }
 
-void SelectionManager::Deselect()
+void SelectionManager::SelectMany(const std::vector<std::string>& ids)
 {
-    if (selectedObjectId.empty()) return;
+    SetSelection(ids);
+}
 
-    if (m_shutdownSubId != -1) {
-        auto* obj = registry->Find<GameObject>(selectedObjectId);
-        if (obj) obj->Unsubscribe(m_shutdownSubId);
-        m_shutdownSubId = -1;
+void SelectionManager::AddToSelection(const std::string& objectId)
+{
+    if (IsSelected(objectId)) return;
+    std::vector<std::string> next = m_selectedIds;
+    next.push_back(objectId);        // appended, so it becomes the primary
+    SetSelection(std::move(next));
+}
+
+void SelectionManager::RemoveFromSelection(const std::string& objectId)
+{
+    if (!IsSelected(objectId)) return;
+    std::vector<std::string> next;
+    next.reserve(m_selectedIds.size());
+    for (const std::string& id : m_selectedIds)
+        if (id != objectId) next.push_back(id);
+    SetSelection(std::move(next));
+}
+
+void SelectionManager::ToggleSelection(const std::string& objectId)
+{
+    if (IsSelected(objectId)) RemoveFromSelection(objectId);
+    else                      AddToSelection(objectId);
+}
+
+void SelectionManager::ClearSelection()
+{
+    SetSelection({});
+}
+
+const std::string& SelectionManager::GetPrimaryId() const
+{
+    return m_selectedIds.empty() ? kEmptyId : m_selectedIds.back();
+}
+
+bool SelectionManager::IsSelected(const std::string& objectId) const
+{
+    return std::find(m_selectedIds.begin(), m_selectedIds.end(), objectId)
+        != m_selectedIds.end();
+}
+
+std::vector<std::string> SelectionManager::GetSelectedRoots() const
+{
+    return HierarchyUtils::FilterToRoots(container, m_selectedIds);
+}
+
+Serializable* SelectionManager::GetSerializable() const
+{
+    return GetSerializable(GetPrimaryId());
+}
+
+Serializable* SelectionManager::GetSerializable(const std::string& id) const
+{
+    if (id.empty()) return nullptr;
+
+    // Runtime objects (GameObjects, Components) first, then assets.
+    if (auto* reg = container ? container->FindSystem<Registry>() : nullptr) {
+        if (auto* obj = reg->Find<Serializable>(id)) return obj;
     }
 
-    selectedObjectId.clear();
-    Notify(SELECTION_CHANGED_EVENT, selectedObjectId);
+    auto& assets = AssetManager::Get();
+    if (auto* s  = assets.GetSprite(id))   return s;
+    if (auto* m  = assets.GetMaterial(id)) return m;
+    if (auto* t  = assets.GetTexture(id))  return t;
+    if (auto* sh = assets.GetShader(id))   return sh;
+
+    return nullptr;
 }

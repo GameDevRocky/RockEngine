@@ -19,45 +19,11 @@
 #include "engine/serialization/Registry.hpp"
 #include <unordered_set>
 
-namespace {
-void SubscribeTransformRecursive(Transform* transform, SceneTree* tree) {
-    if (!transform) return;
-
-    GameObject* gameObject = transform->GetGameObject();
-    if (!gameObject) return;
-
-    std::string gameObjectId = gameObject->GetID();
-    
-    transform->Subscribe([tree, gameObjectId](const std::any& data) {
-        
-        std::string newParentTransformId = std::any_cast<std::string>(data);
-        
-        std::string newParentGameObjectId;
-        if (!newParentTransformId.empty()) {
-            Transform* parentTransform = Registry::FindInRuntime<Transform>(newParentTransformId);
-            if (parentTransform && parentTransform->GetGameObject()) {
-                newParentGameObjectId = parentTransform->GetGameObject()->GetID();
-            }
-        }
-        
-        tree->ReparentItem(gameObjectId, newParentGameObjectId);
-        return true;
-    }, Transform::PARENT_CHANGED_EVENT);
-
-    for (Transform* child : transform->GetChildren()) {
-        SubscribeTransformRecursive(child, tree);
-    }
-}
-
-void SubscribeToSceneTransforms(Scene* scene, SceneTree* tree) {
-    if (!scene || !tree) return;
-    
-    for (GameObject* rootObject : scene->GetRootObjects()) {
-        Transform* transform = rootObject->GetTransform();
-        SubscribeTransformRecursive(transform, tree);
-    }
-}
-}
+// Transform::PARENT_CHANGED_EVENT subscriptions used to be installed here, by walking
+// the scene's transforms whenever a tree was built or refreshed. That missed every
+// object created after the walk, so new/duplicated objects never moved their tree row.
+// The subscription now lives in CreateGameObjectItem (SceneTree.cpp), which runs for
+// every row regardless of how the object got there.
 
 HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
     setMinimumWidth(200);
@@ -127,7 +93,6 @@ void HierarchyGui::AddSceneTree(const std::string& scene_id) {
     sceneTrees[sceneId] = tree;
     tree->RebuildFromScene(scene);
     tree->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-    SubscribeToSceneTransforms(scene, tree);
     // Insert before the trailing stretch
     int insertIndex = scrollLayout->count() - 1;
     scrollLayout->insertWidget(insertIndex, tree);
@@ -167,7 +132,6 @@ void HierarchyGui::RefreshHierarchy() {
         std::string sceneId = scene->GetID();
         if (sceneTrees.count(sceneId)) {
             sceneTrees[sceneId]->RebuildFromScene(scene);
-            SubscribeToSceneTransforms(scene, sceneTrees[sceneId]);
         } else {
             AddSceneTree(sceneId);
         }

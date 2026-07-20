@@ -16,6 +16,11 @@
 #include <QAction>
 #include <QContextMenuEvent>
 #include "engine/components/Component.hpp"
+#include "engine/core/Container.hpp"
+#include "engine/core/UndoSystem.hpp"
+#include "engine/commands/ComponentCommand.hpp"
+#include "engine/commands/PropertyCommand.hpp"
+#include "Engine.hpp"
 
 ComponentHeader::ComponentHeader(QWidget* parent)
     : ComponentHeader("Untitled Label", parent)
@@ -34,10 +39,19 @@ ComponentHeader::ComponentHeader(std::string label, QWidget* parent)
 void ComponentHeader::OnActiveToggled(bool val){
     if (this->component_id.empty()) return;
     auto* comp = Registry::FindInRuntime<Component>(this->component_id);
-    if (comp) {
-        comp->SetEnabled(val); 
-    }
+    if (!comp) return;
+    if (comp->GetEnabled() == val) return;
 
+    comp->SetEnabled(val);
+
+    // No coalescing needed: toggled fires once per completed interaction.
+    Container* active = Engine::Get()->GetActiveContainer();
+    if (auto* undoSystem = active ? active->FindSystem<UndoSystem>() : nullptr) {
+        undoSystem->Push(std::make_unique<PropertyCommand<Component, bool>>(
+            component_id, "enabled", !val, val,
+            [](Component* c, const bool& v){ bool b = v; c->SetEnabled(b); },
+            std::string(val ? "Enable " : "Disable ") + comp->GetTypeName()));
+    }
 }
 
 void ComponentHeader::Bind(std::string id){
@@ -89,6 +103,14 @@ void ComponentHeader::contextMenuEvent(QContextMenuEvent* event) {
     // deleteLater()s this widget — so don't touch `this` afterwards.
     Component* comp = Registry::FindInRuntime<Component>(component_id);
     if (!comp) return;
-    if (GameObject* go = comp->GetGameObject())
-        go->RemoveComponent(comp);
+    GameObject* go = comp->GetGameObject();
+    if (!go) return;
+
+    // RemoveAndRecord does the removal itself so it can snapshot first; the
+    // component is removed either way, recorded only if there is a history to
+    // record into.
+    Container* active = Engine::Get()->GetActiveContainer();
+    auto* undoSystem = active ? active->FindSystem<UndoSystem>() : nullptr;
+    if (undoSystem) undoSystem->Push(ComponentCommand::RemoveAndRecord(go, comp));
+    else            go->RemoveComponent(comp);
 }

@@ -16,6 +16,9 @@
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/components/Component.hpp"
 #include "utils/ComponentPickerWidget.hpp"
+#include "engine/core/UndoSystem.hpp"
+#include "engine/core/Container.hpp"
+#include "engine/commands/ComponentCommand.hpp"
 #include <QPushButton>
 #include <QSizePolicy>
 
@@ -101,6 +104,14 @@ void InspectorGui::SubscribeToSelector(){
 
 void InspectorGui::OnObjectSelected(const std::string& id)
 {
+    // Rebuilding the inspector ends any in-progress coalescing gesture: the
+    // widgets that were accumulating into the current undo entry are about to be
+    // destroyed, so the next edit must start a fresh entry.
+    if (Container* active = Engine::Get()->GetActiveContainer()) {
+        if (auto* undoSystem = active->FindSystem<UndoSystem>())
+            undoSystem->BreakMergeChain();
+    }
+
     for (auto& [compId, subId] : m_scriptReloadSubs) {
         auto* sc = Registry::FindInRuntime<ScriptComponent>(compId);
         if (sc) sc->Unsubscribe(subId);
@@ -225,6 +236,15 @@ void InspectorGui::OnObjectSelected(const std::string& id)
                 auto* comp = dynamic_cast<Component*>(SerializableFactory::Create(typeName));
                 if (!comp) return;
                 obj->AddComponent(comp);  // fires ADD_COMPONENT_EVENT → inspector rebuilds
+
+                // Record after the add so the snapshot carries the component's
+                // initialised state, and only if AddComponent actually kept it —
+                // its singleton guard deletes rejected components.
+                Container* active = Engine::Get()->GetActiveContainer();
+                auto* undoSystem = active ? active->FindSystem<UndoSystem>() : nullptr;
+                auto* registry = active ? active->FindSystem<Registry>() : nullptr;
+                if (undoSystem && registry && registry->Find<Component>(comp->GetID()))
+                    undoSystem->Push(ComponentCommand::RecordAdded(obj, comp));
             };
             picker->move(addComponentButton->mapToGlobal(QPoint(0, addComponentButton->height())));
             picker->show();

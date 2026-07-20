@@ -4,7 +4,7 @@ id: 179e5f207d01ef30a5eec55460b440b3
 shader_id: s1
 uniforms:
   textures:
-    uTexture: ""
+    uTexture: t0
   floats:
     {}
   vec2:

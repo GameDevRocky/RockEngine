@@ -16,6 +16,7 @@
 #include "dock-widgets/HierarchyGui.hpp"
 #include <QCoreApplication>
 #include "engine/utils/EngineUtils.hpp"
+#include "utils/GizmoUndoBridge.hpp"
 #include <algorithm>
 
 Editor::Editor(){
@@ -122,6 +123,10 @@ void Editor::SetFrameDriver(QOpenGLWidget* w) {
 void Editor::PostInit() {
     std::cout << "Editor Starting ..." << std::endl;
     timer = new QTimer();
+
+    // Subscribes to GizmosManager so viewport drags land in the undo history.
+    // After Engine::PostInit, so the container and its UndoSystem exist.
+    GizmoUndoBridge::Install();
 
     MainWindow::Get()->PostInit();
 

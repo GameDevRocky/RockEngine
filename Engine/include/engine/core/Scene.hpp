@@ -44,7 +44,29 @@ public:
     // references pointing outside it (assets, other objects) keep their target.
     // The clone becomes a sibling of the source. Returns the new subtree root,
     // or nullptr if the source isn't a live object in this scene.
-    GameObject* DuplicateGameObject(GameObject* source);
+    //
+    // If `outSnapshot` is given it receives the *post-remap* YAML, which
+    // RestoreSubtree can replay to rebuild the identical clone — same ids and
+    // all. Without it, redoing a duplicate would mint fresh UUIDs every time and
+    // orphan any reference captured against the first clone.
+    GameObject* DuplicateGameObject(GameObject* source, YAML::Node* outSnapshot = nullptr);
+
+    // Serialize `root` and its descendants into { gameobjects: [...], components: [...] },
+    // the same shape Deserialize() consumes. Public counterpart to EmitSubtree,
+    // for undo and any other rehydrate path.
+    YAML::Node SnapshotSubtree(GameObject* root);
+
+    // Rebuild a subtree from SnapshotSubtree output, preserving every id in the
+    // snapshot verbatim — no IdRemapper. That is the point: an object restored
+    // after a delete keeps its identity, so every reference to it from outside
+    // the subtree (script fields, selection) still resolves.
+    //
+    // Places the root under `parentId` ("" = scene root) at `siblingIndex`.
+    // Returns the new root, or nullptr if the snapshot is empty or its root id is
+    // already live (a double restore would collide).
+    GameObject* RestoreSubtree(const YAML::Node& snapshot,
+                               const std::string& parentId,
+                               int siblingIndex);
 
     void Sync(GameObject* obj);
     void SyncRootObjects(const std::string& child_id, const std::string& parent_id);
@@ -85,6 +107,12 @@ private:
     // "Player" -> "Player (1)" -> "Player (2)", scanning `source`'s siblings for
     // the highest existing suffix.
     std::string MakeUniqueSiblingName(GameObject* source);
+
+    // Build a live subtree from the two parallel sequences Deserialize() consumes,
+    // using the ids in the YAML verbatim. Shared by DuplicateGameObject (which
+    // remaps to fresh ids first) and RestoreSubtree (which does not). Returns the
+    // root, which is assumed to be gameobjects[0].
+    GameObject* InstantiateSubtree(const YAML::Node& gameobjects, const YAML::Node& components);
 
     std::string name;
     std::string path;

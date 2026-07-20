@@ -1,7 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
  
-file(GLOB_RECURSE ENGINE_SOURCES "src/*.cpp")
-file(GLOB_RECURSE ENGINE_HEADERS "include/*.hpp")
+# CONFIGURE_DEPENDS so a newly added source is picked up on the next build.
+# Without it the glob is only evaluated at configure time, and a new .cpp silently
+# fails to link (with an unresolved-symbol error that points at the caller, not at
+# the missing file) until someone reconfigures by hand. Editor/CMakeLists.txt has
+# always done this; Engine's not doing it was the odd one out.
+file(GLOB_RECURSE ENGINE_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS "include/*.hpp")
 
 add_library(RockEngineCore STATIC ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 target_include_directories(RockEngineCore 

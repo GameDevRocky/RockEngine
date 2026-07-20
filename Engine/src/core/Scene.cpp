@@ -313,38 +313,21 @@ std::string Scene::MakeUniqueSiblingName(GameObject* source)
     return base + " (" + std::to_string(highest + 1) + ")";
 }
 
-GameObject* Scene::DuplicateGameObject(GameObject* source)
+GameObject* Scene::InstantiateSubtree(const YAML::Node& gameobjects, const YAML::Node& components)
 {
-    if (!source || !registry || !registry->Find<GameObject>(source->GetID())) return nullptr;
+    if (!registry || gameobjects.size() == 0) return nullptr;
 
-    // 1. Snapshot the subtree in the same shape Deserialize() consumes. The root
-    //    is emitted first and the walk is top-down — both relied on below.
-    YAML::Node gameobjects(YAML::NodeType::Sequence);
-    YAML::Node components(YAML::NodeType::Sequence);
-    std::unordered_set<std::string> visited;
-    EmitSubtree(source, gameobjects, components, visited);
-    if (gameobjects.size() == 0) return nullptr;
-
-    // 2. Give everything in the snapshot a new identity. Only ids *inside* the
-    //    subtree are in the map, so the root's parent_id, asset ids, and any
-    //    reference to an object elsewhere in the scene survive untouched — which
-    //    is exactly what makes the clone a sibling of the source.
-    auto idMap = IdRemapper::BuildMap(gameobjects, components);
-    IdRemapper::Apply(gameobjects, idMap);
-    IdRemapper::Apply(components, idMap);
-
-    gameobjects[0]["name"] = MakeUniqueSiblingName(source);
-
-    // 3. Build every GameObject before any of them initializes: Transform::Init
-    //    resolves parent_id through the registry, so the whole subtree has to be
-    //    registered first.
+    // Build every GameObject before any of them initializes: Transform::Init
+    // resolves parent_id through the registry, so the whole subtree has to be
+    // registered first.
     //
-    //    AddGameObject() looks like the right call here but is not — it creates a
-    //    Transform when GetTransform() returns null, and at this point the
-    //    deserialized component_ids point at components that don't exist yet, so
-    //    it would attach a spurious second Transform. Going direct also bypasses
-    //    AddComponent's singleton rejection, which is correct: the source already
-    //    satisfies that constraint, so its components are attached verbatim.
+    // AddGameObject() looks like the right call here but is not — it creates a
+    // Transform when GetTransform() returns null, and at this point the
+    // deserialized component_ids point at components that don't exist yet, so
+    // it would attach a spurious second Transform. Going direct also bypasses
+    // AddComponent's singleton rejection, which is correct: the snapshot came
+    // from an object that already satisfied that constraint, so its components
+    // are attached verbatim.
     std::vector<GameObject*> created;
     created.reserve(gameobjects.size());
     for (const auto& goNode : gameobjects) {
@@ -366,9 +349,9 @@ GameObject* Scene::DuplicateGameObject(GameObject* source)
         registry->Register(comp);
     }
 
-    // 4. Lifecycle, top-down. Sync() must run before Init() so the PARENT_CHANGED
-    //    subscription is live when Transform::Init -> SetParent fires and
-    //    SyncRootObjects maintains rootobject_ids.
+    // Lifecycle, top-down. Sync() must run before Init() so the PARENT_CHANGED
+    // subscription is live when Transform::Init -> SetParent fires and
+    // SyncRootObjects maintains rootobject_ids.
     for (auto* obj : created) {
         Sync(obj);
         obj->Init();
@@ -391,6 +374,74 @@ GameObject* Scene::DuplicateGameObject(GameObject* source)
 
     Notify(GAMEOBJECT_ADDED_EVENT, newRoot->GetID());
     return newRoot;
+}
+
+YAML::Node Scene::SnapshotSubtree(GameObject* root)
+{
+    YAML::Node snapshot;
+    YAML::Node gameobjects(YAML::NodeType::Sequence);
+    YAML::Node components(YAML::NodeType::Sequence);
+    std::unordered_set<std::string> visited;
+    EmitSubtree(root, gameobjects, components, visited);
+    snapshot["gameobjects"] = gameobjects;
+    snapshot["components"] = components;
+    return snapshot;
+}
+
+GameObject* Scene::RestoreSubtree(const YAML::Node& snapshot,
+                                  const std::string& parentId, int siblingIndex)
+{
+    if (!registry || !snapshot) return nullptr;
+
+    const YAML::Node gameobjects = snapshot["gameobjects"];
+    const YAML::Node components = snapshot["components"];
+    if (!gameobjects || gameobjects.size() == 0) return nullptr;
+
+    // Ids are preserved verbatim, so restoring twice would register duplicates.
+    const std::string rootId = gameobjects[0]["id"].as<std::string>();
+    if (registry->Find<GameObject>(rootId)) return nullptr;
+
+    // Note this deliberately does not route through Deserialize(), which
+    // early-returns once the scene is Loaded and would silently do nothing.
+    GameObject* root = InstantiateSubtree(gameobjects, components);
+    if (!root) return nullptr;
+
+    // ReorderObject restores both halves of the placement in one call: it
+    // reparents first (SetParent always appends) and then indexes.
+    ReorderObject(root->GetID(), parentId, siblingIndex);
+    return root;
+}
+
+GameObject* Scene::DuplicateGameObject(GameObject* source, YAML::Node* outSnapshot)
+{
+    if (!source || !registry || !registry->Find<GameObject>(source->GetID())) return nullptr;
+
+    // 1. Snapshot the subtree in the same shape Deserialize() consumes. The root
+    //    is emitted first and the walk is top-down — both relied on below.
+    YAML::Node gameobjects(YAML::NodeType::Sequence);
+    YAML::Node components(YAML::NodeType::Sequence);
+    std::unordered_set<std::string> visited;
+    EmitSubtree(source, gameobjects, components, visited);
+    if (gameobjects.size() == 0) return nullptr;
+
+    // 2. Give everything in the snapshot a new identity. Only ids *inside* the
+    //    subtree are in the map, so the root's parent_id, asset ids, and any
+    //    reference to an object elsewhere in the scene survive untouched — which
+    //    is exactly what makes the clone a sibling of the source.
+    auto idMap = IdRemapper::BuildMap(gameobjects, components);
+    IdRemapper::Apply(gameobjects, idMap);
+    IdRemapper::Apply(components, idMap);
+
+    gameobjects[0]["name"] = MakeUniqueSiblingName(source);
+
+    // 3. Hand back the post-remap YAML so a caller (the undo stack) can rebuild
+    //    this exact clone later instead of duplicating afresh with new ids.
+    if (outSnapshot) {
+        (*outSnapshot)["gameobjects"] = gameobjects;
+        (*outSnapshot)["components"] = components;
+    }
+
+    return InstantiateSubtree(gameobjects, components);
 }
 
 void Scene::Sync(GameObject* obj){

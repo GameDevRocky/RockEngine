@@ -13,11 +13,13 @@
 #include <QStandardItemModel>
 #include <QMenu>
 #include <QToolButton>
+#include <memory>
 #include "engine/core/Scene.hpp"
 #include "engine/core/SelectionManager.hpp"
+#include "engine/core/Command.hpp"
+#include "engine/core/UndoSystem.hpp"
 #include "Engine.hpp"
 #include "engine/serialization/Registry.hpp"
-#include "Engine.hpp"
 
 using namespace EngineUtils;
 
@@ -45,10 +47,20 @@ class SceneTree : public QTreeView{
 
     private:
         QModelIndex FindItemById(const std::string& id) const;
-        // Clone the object as a sibling and select the clone. Shared by the
-        // per-item context menu and Ctrl+D.
+        // Clone the object as a sibling and select the clone. Used by the per-item
+        // context menu, which acts on the clicked row rather than the selection.
         void DuplicateObject(const std::string& id);
-        void OnObjectSelected(const std::string& selectedId);
+        // Clones one object and returns the command WITHOUT pushing or selecting,
+        // so a multi-duplicate can group them into a single history entry.
+        std::unique_ptr<Command> DuplicateOne(const std::string& id, std::string* outCloneId);
+        // Whole-selection operations, both grouped into one undo entry. Roots only —
+        // an object whose ancestor is also selected is already covered by it.
+        void DuplicateSelection();
+        void DeleteSelection();
+        // Pushes the engine's current selection into this tree's highlight. Reads
+        // the manager directly rather than taking the event payload, since the
+        // payload only carries the primary id.
+        void OnSelectionChanged();
         void OnItemEntered(const QModelIndex& index);
         // Resize the view to fit its visible rows (scrollbars are off; the outer
         // scroll area handles overflow). Call after any content/expansion change.
@@ -60,6 +72,10 @@ class SceneTree : public QTreeView{
         std::string scene_id;
         QStandardItemModel* model = nullptr;
         bool handlingDrop = false;
+        // Guards the selection round trip in BOTH directions: tree -> engine (so the
+        // engine's notify doesn't bounce back and rewrite the tree mid-signal) and
+        // engine -> tree (so Qt's selectionChanged doesn't bounce back into the engine).
+        bool m_syncingSelection = false;
         bool collapsed = false;
         int selectionSubscriptionId = -1;
         int sceneNameSubscriptionId = -1;
@@ -72,6 +88,10 @@ class SceneTree : public QTreeView{
         Proxy<SceneManager> sceneManager;
         Proxy<Registry> registry;
         Proxy<SelectionManager> selectionManager;
+        // Resolves through the active container, so hierarchy edits made during
+        // play mode are recorded on the runtime world's history and thrown away
+        // with it, never on the editor's.
+        Proxy<UndoSystem> undoSystem;
 };
 
 class GameObjectItem : public QStandardItem {

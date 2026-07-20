@@ -7,6 +7,7 @@
 #include "engine/bindings/PythonBindings.hpp"
 #include "engine/core/PhysicsSystem.hpp"
 #include "engine/core/SelectionManager.hpp"
+#include "engine/core/UndoSystem.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/core/FileWatcherSystem.hpp"
@@ -58,6 +59,9 @@ void Engine::Init() {
     editorContainer->AddSystem(new PhysicsSystem());
     editorContainer->AddSystem(new SceneManager());
     editorContainer->AddSystem(new SelectionManager());
+    // After SelectionManager: UndoSystem::Init subscribes to it to break the
+    // coalescing gesture when the selection changes.
+    editorContainer->AddSystem(new UndoSystem());
     editorContainer->AddSystem(new LayerManager());
     editorContainer->AddSystem(new TagManager());
     editorContainer->AddSystem(new FileWatcherSystem());

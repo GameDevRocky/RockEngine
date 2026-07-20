@@ -16,6 +16,9 @@ public:
         return instance;
     }
     void Init();
+    // Wires the Undo/Redo actions to the engine's UndoSystem. Separate from Init
+    // because it needs the engine container, which only exists after Engine::Init.
+    void PostInit();
 
 signals:
     void NewSceneRequested();
@@ -23,8 +26,9 @@ signals:
     void SaveSceneRequested();
     void SaveSceneAsRequested();
     void ExitRequested();
-    void UndoRequested();
-    void RedoRequested();
+    // No UndoRequested/RedoRequested: undoAction/redoAction come from
+    // QUndoStack::createUndoAction and are already connected to the stack.
+    // Routing them through a signal would invite a second, competing path.
     void ResetLayoutRequested();
     void AboutRequested();
 
@@ -32,7 +36,15 @@ private:
     explicit MenuBar(QWidget* parent = nullptr);
     ~MenuBar() override = default;
 
+    // (Re)subscribes to the active container's UndoSystem. Must run again after
+    // each play-mode swap: the containers own separate UndoSystem instances.
+    void SubscribeToUndoSystem();
+    // Pushes the current history state onto the two QActions: enabled/disabled
+    // plus the "Undo Change Rotation" style text.
+    void RefreshUndoActions();
+
     bool initialized_ = false;
+    int m_undoSubId = -1;
 
     QMenu* fileMenu = nullptr;
     QMenu* editMenu = nullptr;
