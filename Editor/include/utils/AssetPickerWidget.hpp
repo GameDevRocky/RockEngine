@@ -14,7 +14,7 @@
 class AssetPickerWidget : public QWidget {
     Q_OBJECT
 public:
-    static constexpr int kThumbSize  = 72;
+    static constexpr int kThumbSize  = 172;
     static constexpr int kCellWidth  = kThumbSize + 18;
     static constexpr int kCellHeight = kThumbSize + 30;
 
