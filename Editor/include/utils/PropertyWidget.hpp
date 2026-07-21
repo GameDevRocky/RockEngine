@@ -21,6 +21,8 @@
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/components/ScriptComponent.hpp"
+#include "engine/components/SpriteRenderer.hpp"
+#include "engine/utils/EngineUtils.hpp"
 #include "utils/EditorUtils.hpp"
 #include "utils/RefDropFilter.hpp"
 #include "dock-widgets/FolderViewGui.hpp"
@@ -470,6 +472,15 @@ private:
             thumbGen = [](const std::string& id) { return AssetThumbnails::forSprite(id); };
         else if (m_desc.tag == Properties::Tags::TEXTURE)
             thumbGen = [](const std::string& id) { return AssetThumbnails::forTexture(id); };
+        else
+            // Generic OBJECT_REF (game objects): preview the object's SpriteRenderer sprite.
+            thumbGen = [this](const std::string& id) -> QPixmap {
+                auto* go = findGameObject(id);
+                if (!go) return {};
+                auto* sr = go->GetComponent<SpriteRenderer>();
+                if (!sr || sr->GetSpriteID().empty()) return {};
+                return AssetThumbnails::forSprite(sr->GetSpriteID());
+            };
 
         // Fallback: use CustomIconProvider on the asset's file path.
         // Gives shader cells the shader icon, .material/.sprite files the OS icon, etc.
@@ -500,7 +511,13 @@ private:
                 auto* a = AssetManager::Get().GetShader(id);
                 return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
             };
-        // Game objects have no file path — they keep the grey placeholder.
+        else
+            // Game objects have no file path (and may have no sprite) — fall back
+            // to the generic game-object (cube) icon.
+            fallbackIconGen = [](const std::string&) -> QIcon {
+                return QIcon(QString::fromStdString(
+                    EngineUtils::GetAssetPath("Domain/lib/assets/icons/cube.png")));
+            };
 
         auto* picker = new AssetPickerWidget(std::move(items), std::move(thumbGen), std::move(fallbackIconGen), m_container);
         picker->onSelected = [this](const std::string& id) {
@@ -527,15 +544,22 @@ private:
         } else if (m_desc.tag == Properties::Tags::SHADER) {
             auto* a = am.GetShader(id);   return a ? a->GetName() : id;
         } else {
-            auto* container = Engine::Get()->GetActiveContainer();
-            if (!container) return id;
-            auto* sm = container->FindSystem<SceneManager>();
-            if (!sm) return id;
-            for (auto* scene : sm->GetScenes())
-                for (auto* go : scene->GetAllGameObjects())
-                    if (go->GetID() == id) return go->GetName();
-            return id;
+            auto* go = findGameObject(id);
+            return go ? go->GetName() : id;
         }
+    }
+
+    // Looks up a GameObject by ID across all loaded scenes; nullptr if not found.
+    GameObject* findGameObject(const std::string& id) const {
+        if (id.empty()) return nullptr;
+        auto* container = Engine::Get()->GetActiveContainer();
+        if (!container) return nullptr;
+        auto* sm = container->FindSystem<SceneManager>();
+        if (!sm) return nullptr;
+        for (auto* scene : sm->GetScenes())
+            for (auto* go : scene->GetAllGameObjects())
+                if (go->GetID() == id) return go;
+        return nullptr;
     }
 
     std::vector<std::pair<std::string, std::string>> buildItems() {
