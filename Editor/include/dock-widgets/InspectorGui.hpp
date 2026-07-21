@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QScrollArea>
+#include <QTimer>
 #include <iostream>
 #include <string>
 #include <utility>
@@ -36,6 +37,11 @@ public:
 private:
     void SubscribeToSelector();
     void OnObjectSelected(const std::string& id);
+    // Poll the currently-inspected ScriptComponent(s) for Python-side field
+    // mutations. Python scripts change fields by plain attribute assignment, which
+    // fires no change event, so without this the inspector widgets go stale during
+    // play. Driven by m_pollTimer; a no-op outside Runtime mode (scripts don't run).
+    void PollScriptFields();
     ~InspectorGui() override = default;
     
     QScrollArea* scrollArea = nullptr;
@@ -43,6 +49,10 @@ private:
     ObjectHeader* header = nullptr;
     QVBoxLayout* mainLayout = nullptr;
     Proxy<SelectionManager> selectionManager;
+    QTimer* m_pollTimer = nullptr;
+    // Component ids of the ScriptComponents in the current inspection, polled by
+    // m_pollTimer for Python-side field changes. Rebuilt each OnObjectSelected.
+    std::vector<std::string> m_polledScriptIds;
     std::vector<std::pair<std::string, int>> m_scriptReloadSubs;
     // Store the material's asset id (not a raw Material*): an asset can be deleted
     // (e.g. removed on disk) while its subscription handle is still held here, which

@@ -89,6 +89,15 @@ public:
     ScriptFieldValue GetFieldValue(const std::string& name);
     std::map<std::string, ScriptFieldValue> GetAllFieldValues();
     void SetFieldValue(const std::string& name, const ScriptFieldValue& value);
+
+    // Detect fields the Python script mutated by direct attribute assignment
+    // (self.x = ...), which — unlike SetFieldValue — fires no change event. Reads
+    // the current values, and for each one that differs from the last observed
+    // value fires the field's changeEvent so a bound inspector widget refreshes
+    // through the normal subscription. Cheap no-op when nothing changed; the
+    // editor calls this on a timer only for the currently-inspected component(s).
+    void PollFieldChanges();
+
     void ApplyHotReload();
 
     ScriptComponent();
@@ -109,6 +118,10 @@ private:
     std::unique_ptr<ScriptInstanceData> m_pyData;
     std::vector<ScriptFieldInfo> m_fields;
     std::map<std::string, YAML::Node> m_pendingFieldValues;
+    // Last field values the inspector was synced to, keyed by field name. Seeded
+    // and updated by PollFieldChanges; cleared on (re)introspection since a reload
+    // can change the field set and each field's changeEvent id.
+    std::map<std::string, ScriptFieldValue> m_lastPolledValues;
 
     
 };

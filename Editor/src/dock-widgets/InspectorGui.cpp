@@ -90,8 +90,27 @@ void InspectorGui::Init(){
         return true;
     }, Engine::EXIT_PLAY_MODE_EVENT);
     SubscribeToSelector();
-    
+
+    // Poll the inspected script(s) for Python-side field changes (see
+    // PollScriptFields). 20 Hz is responsive for an inspector and only touches the
+    // currently-selected object's fields, and only while in play mode.
+    m_pollTimer = new QTimer(this);
+    m_pollTimer->setInterval(50);
+    connect(m_pollTimer, &QTimer::timeout, this, &InspectorGui::PollScriptFields);
+    m_pollTimer->start();
+
     std::cout << "InspectorGui Initialized" << std::endl;
+}
+
+void InspectorGui::PollScriptFields(){
+    if (m_polledScriptIds.empty()) return;
+    // Python only mutates fields while its update loop runs — i.e. in Runtime mode.
+    // At edit time nothing changes silently, so skip the GIL work entirely.
+    Container* active = Engine::Get()->GetActiveContainer();
+    if (!active || active->GetMode() != Container::Mode::Runtime) return;
+    for (const auto& id : m_polledScriptIds)
+        if (auto* sc = Registry::FindInRuntime<ScriptComponent>(id))
+            sc->PollFieldChanges();
 }
 
 void InspectorGui::SubscribeToSelector(){
@@ -118,6 +137,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         if (sc) sc->Unsubscribe(subId);
     }
     m_scriptReloadSubs.clear();
+    m_polledScriptIds.clear();
 
     for (auto& [matId, subId] : m_materialShaderSubs)
         if (auto* mat = AssetManager::Get().GetMaterial(matId))
@@ -211,6 +231,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
                     return true;
                 }, ScriptComponent::SCRIPT_RELOADED_EVENT);
                 m_scriptReloadSubs.emplace_back(sc->GetID(), subId);
+                m_polledScriptIds.push_back(sc->GetID());
             }
         }
 

@@ -441,6 +441,10 @@ void ScriptComponent::IntrospectFields()
     
     py::gil_scoped_acquire gil;
     m_fields.clear();
+    // A reload can change the field set and reassigns every changeEvent id, so the
+    // last-synced snapshot no longer applies — drop it and let PollFieldChanges
+    // reseed from the fresh values.
+    m_lastPolledValues.clear();
 
     try {
         py::module introspection = py::module::import("Domain.lib.utils.introspection");
@@ -824,6 +828,11 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
                 break;
             }
         }
+
+        // Keep the poll snapshot current so this editor-driven edit doesn't look
+        // like a script-side mutation on the next PollFieldChanges (which would
+        // fire a redundant change event / thumbnail refresh).
+        m_lastPolledValues[name] = value;
     }
     catch (const py::error_already_set& e) {
         std::cerr << "[ScriptComponent] Error setting field '" << name 
@@ -831,6 +840,36 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
     }
 }
 
+
+void ScriptComponent::PollFieldChanges()
+{
+    {
+        py::gil_scoped_acquire gil;
+        auto& scriptInstance = m_pyData->scriptInstance;
+        if (!scriptInstance || scriptInstance.is_none()) return;
+    }
+
+    // Read every field in one GIL acquisition (inside GetAllFieldValues), then
+    // diff against the last values the inspector saw. GetAllFieldValues has
+    // released the GIL by the time we Notify, so widget refreshes (which may touch
+    // GL for thumbnails) never run under it.
+    auto current = GetAllFieldValues();
+    for (auto& [name, value] : current) {
+        auto it = m_lastPolledValues.find(name);
+        if (it == m_lastPolledValues.end()) {
+            // First observation — seed without notifying; the bound widget was just
+            // built from this same value.
+            m_lastPolledValues.emplace(name, value);
+            continue;
+        }
+        if (it->second != value) {
+            it->second = value;
+            for (const auto& f : m_fields) {
+                if (f.name == name) { Notify(f.changeEvent); break; }
+            }
+        }
+    }
+}
 
 ScriptComponent::~ScriptComponent() {
     if (Py_IsInitialized() && m_pyData) {

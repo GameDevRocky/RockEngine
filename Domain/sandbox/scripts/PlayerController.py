@@ -8,6 +8,9 @@ class PlayerController(ScriptableComponent):
     jump_height : float = 20
     ground_check : Transform = None
     direction : Vector2 = Vector2(0, -1)
+    position : Vector2
+    test_list : list[str]
+
 
     def awake(self):
         self.rb = self.get_component(Rigidbody)
@@ -16,11 +19,9 @@ class PlayerController(ScriptableComponent):
             self.ground_check = self.instantiate("Ground Check")
             self.ground_check.transform.parent = self.transform
 
-
-
     def update(self):
         
-
+        self.position = self.transform.position
         Debug.draw_line(self.ground_check.transform.world_position, self.ground_check.transform.world_position + self.direction)
         
 
