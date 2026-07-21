@@ -8,6 +8,7 @@
 #include "dock-widgets/FolderViewGui.hpp"
 #include "dock-widgets/RuntimeBar.hpp"
 #include "dock-widgets/MenuBar.hpp"
+#include "dock-widgets/AnimatorGui.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "Editor.hpp"
 #include <QOpenGLWidget>
@@ -36,6 +37,11 @@ void MainWindow::Init()
     folder_view->Init();
     runtime_bar->Init();
     menu_bar->Init();
+
+    // Created and wired up now (so its selection subscription is set up in edit
+    // mode, like the other panels), but not docked until ShowAnimator() is first
+    // called from the Animator inspector.
+    AnimatorGui::Get()->Init();
 
     setMenuBar(menu_bar);
 
@@ -150,6 +156,23 @@ void MainWindow::PostInit(){
     HierarchyGui::Get()->PostInit();
     MenuBar::Get()->PostInit();
     std::cout << "MainWindow Started" << std::endl;
+}
+
+void MainWindow::ShowAnimator(){
+    // Lazily create the dock the first time it's opened, tabbed into the central
+    // viewport area beside Scene/Game. Closable, since it's opened on demand.
+    if (!animatorDock) {
+        animatorDock = new QDockWidget("Animator", viewportArea);
+        animatorDock->setObjectName("AnimatorDock");
+        animatorDock->setWidget(AnimatorGui::Get());
+        animatorDock->setFeatures(QDockWidget::DockWidgetMovable |
+                                  QDockWidget::DockWidgetFloatable |
+                                  QDockWidget::DockWidgetClosable);
+        viewportArea->addDockWidget(Qt::LeftDockWidgetArea, animatorDock);
+        viewportArea->tabifyDockWidget(sceneviewDock, animatorDock);
+    }
+    animatorDock->show();     // re-show if the user had closed it
+    animatorDock->raise();    // bring the tab to the front (focus)
 }
 
 void MainWindow::SaveLayout()

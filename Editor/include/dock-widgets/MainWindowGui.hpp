@@ -20,6 +20,11 @@ public:
     void Shutdown();
     void ClearLayout();
 
+    // Show the Animator editor panel, creating its dock the first time (tabbed
+    // into the central viewport area next to Scene/Game) and raising it to focus.
+    // Called from the Animator component's inspector "Open Animator" button.
+    void ShowAnimator();
+
     // Inner QMainWindow used as this window's central widget. It has no central
     // widget of its own, so the Scene/Game dock widgets fill its whole area and
     // can be tabbed, split, floated, and re-docked "in the center" -- something
@@ -34,6 +39,7 @@ public:
     QDockWidget* folderViewDock;
     QDockWidget* consoleDock;
     QDockWidget* runtimeBarDock;
+    QDockWidget* animatorDock = nullptr;   // created lazily by ShowAnimator()
 
     class SceneViewGui* scene_view;
     class GameViewGui* game_view;

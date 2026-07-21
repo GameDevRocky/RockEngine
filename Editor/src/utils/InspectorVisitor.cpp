@@ -22,6 +22,8 @@
 #include "utils/ComponentPickerWidget.hpp"
 #include "utils/TexturePreviewWidget.hpp"
 #include "dock-widgets/SpriteEditorModal.hpp"
+#include "dock-widgets/MainWindowGui.hpp"
+#include "dock-widgets/AnimatorGui.hpp"
 #include <QLabel>
 #include <QSizePolicy>
 #include <QPushButton>
@@ -763,4 +765,15 @@ void InspectorVisitor::Visit(Animator* animator) {
     auto current_set = [](Animator*, const std::string&) {};   // display only
     BindProperty<std::string>(animator, "Current Animation: ", current_get, current_set,
         animator->CURRENT_ANIMATION_CHANGED_EVENT, PropDesc().Tag(Tags::READONLY));
+
+    // Opens (creating on first use) the Animator editor panel and focuses it.
+    // SyncToSelection() re-reads the current selection first, so an Animator just
+    // added to this (already-selected) object shows immediately instead of the
+    // stale "No Animator Selected" -- adding a component fires no selection event.
+    auto* openBtn = new QPushButton("Open Animator");
+    QObject::connect(openBtn, &QPushButton::clicked, openBtn, []() {
+        AnimatorGui::Get()->SyncToSelection();
+        MainWindow::Get()->ShowAnimator();
+    });
+    AddFullRow(openBtn);
 }
