@@ -44,7 +44,11 @@ private:
     QVBoxLayout* mainLayout = nullptr;
     Proxy<SelectionManager> selectionManager;
     std::vector<std::pair<std::string, int>> m_scriptReloadSubs;
-    std::vector<std::pair<class Material*, int>> m_materialShaderSubs;
+    // Store the material's asset id (not a raw Material*): an asset can be deleted
+    // (e.g. removed on disk) while its subscription handle is still held here, which
+    // would leave a dangling pointer. Re-resolve through AssetManager before
+    // unsubscribing so a since-deleted material is simply skipped.
+    std::vector<std::pair<std::string, int>> m_materialShaderSubs;
     // Per-rebuild subscriptions from BindProperty and the header Bind() calls,
     // torn down at the top of OnObjectSelected. Targets are alive at teardown:
     // object deletion is deferred (Registry::FlushPendingShutdowns shuts down —

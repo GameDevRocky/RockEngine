@@ -3,6 +3,7 @@
 #include <vector>
 #include <functional>
 #include <utility>
+#include <algorithm>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLineEdit>
@@ -10,6 +11,8 @@
 #include <QKeyEvent>
 #include <QPixmap>
 #include <QIcon>
+#include <QScreen>
+#include <QGuiApplication>
 
 class AssetPickerWidget : public QWidget {
     Q_OBJECT
@@ -68,6 +71,26 @@ public:
     }
 
     std::function<void(const std::string&)> onSelected;
+
+    // Show the popup with its top-left at the given global position, nudged so the
+    // whole widget stays within the available area of the screen it lands on — it is
+    // never clipped by a physical screen edge (or the taskbar). Use this instead of
+    // move()+show() so callers don't each have to redo the clamping.
+    void showAt(QPoint globalTopLeft) {
+        adjustSize();  // resolve the real popup size before clamping to the screen
+        const QSize sz = size();
+        QScreen* scr = screen();
+        if (!scr) scr = QGuiApplication::primaryScreen();
+        if (scr) {
+            const QRect avail = scr->availableGeometry();
+            const int maxX = std::max(avail.left(), avail.right()  - sz.width()  + 1);
+            const int maxY = std::max(avail.top(),  avail.bottom() - sz.height() + 1);
+            globalTopLeft.setX(std::clamp(globalTopLeft.x(), avail.left(), maxX));
+            globalTopLeft.setY(std::clamp(globalTopLeft.y(), avail.top(),  maxY));
+        }
+        move(globalTopLeft);
+        show();
+    }
 
 protected:
     void keyPressEvent(QKeyEvent* e) override {

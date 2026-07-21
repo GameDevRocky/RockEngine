@@ -13,6 +13,7 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/Shader.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/components/Component.hpp"
 #include "utils/ComponentPickerWidget.hpp"
@@ -118,8 +119,9 @@ void InspectorGui::OnObjectSelected(const std::string& id)
     }
     m_scriptReloadSubs.clear();
 
-    for (auto& [mat, subId] : m_materialShaderSubs)
-        mat->Unsubscribe(subId);
+    for (auto& [matId, subId] : m_materialShaderSubs)
+        if (auto* mat = AssetManager::Get().GetMaterial(matId))
+            mat->Unsubscribe(subId);
     m_materialShaderSubs.clear();
 
     // Tear down the per-rebuild property/header subscriptions from the previous
@@ -274,7 +276,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
                 }, Qt::QueuedConnection);
                 return true;
             }, Material::SHADER_CHANGED_EVENT);
-            m_materialShaderSubs.emplace_back(mat, subId);
+            m_materialShaderSubs.emplace_back(id, subId);
         }
     }
 

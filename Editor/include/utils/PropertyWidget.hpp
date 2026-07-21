@@ -526,8 +526,7 @@ private:
         };
         auto pos = m_container->rect().topLeft();
         pos.setX(pos.x() - picker->width());
-        picker->move(m_container->mapToGlobal(pos));
-        picker->show();
+        picker->showAt(m_container->mapToGlobal(pos));
     }
 
     // Resolves a human-readable name for an ID based on the widget's tag type.
@@ -816,8 +815,7 @@ private:
         auto pos = m_container->rect().topLeft();
         pos.setX(pos.x() - picker->width());
         pos.setY(pos.y() - picker->height()/2);
-        picker->move(m_container->mapToGlobal(pos));
-        picker->show();
+        picker->showAt(m_container->mapToGlobal(pos));
     }
 
     std::vector<std::pair<std::string, std::string>> buildItems() {
