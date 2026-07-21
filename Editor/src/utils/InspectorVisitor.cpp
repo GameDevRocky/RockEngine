@@ -9,6 +9,7 @@
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ScriptComponent.hpp"
 #include "engine/components/Camera.hpp"
+#include "engine/components/Animator.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/rendering/core/Sprite.hpp"
@@ -749,4 +750,17 @@ void InspectorVisitor::Visit(Camera* camera) {
     auto clearColor_set = [](Camera* cam, const glm::vec4& c) { cam->SetClearColor(c); };
     BindProperty<glm::vec4>(camera, "Background: ", clearColor_get, clearColor_set,
         camera->CLEAR_COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
+}
+
+void InspectorVisitor::Visit(Animator* animator) {
+    // For now the Animator inspector just shows which animation is current (the
+    // authoring GUI -- setting frames, building graphs -- comes later). Read-only
+    // display; it refreshes when the current animation changes.
+    auto current_get = [=]() -> std::string {
+        const std::string& cur = animator->GetCurrentAnimation();
+        return cur.empty() ? std::string("None") : cur;
+    };
+    auto current_set = [](Animator*, const std::string&) {};   // display only
+    BindProperty<std::string>(animator, "Current Animation: ", current_get, current_set,
+        animator->CURRENT_ANIMATION_CHANGED_EVENT, PropDesc().Tag(Tags::READONLY));
 }

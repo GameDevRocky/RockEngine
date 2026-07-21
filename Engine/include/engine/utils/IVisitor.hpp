@@ -20,6 +20,7 @@ class Material;
 class Texture2D;
 class Shader;
 class Camera;
+class Animator;
 
 class IVisitor {
 public:
@@ -39,4 +40,5 @@ public:
     virtual void Visit(Texture2D* t) {}
     virtual void Visit(Shader* s) {}
     virtual void Visit(Camera* c) {}
+    virtual void Visit(Animator* a) {}
 };

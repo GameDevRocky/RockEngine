@@ -36,7 +36,6 @@ class PlayerController(ScriptableComponent):
             grounded = True
              
         if grounded and Input.is_key_down(Keys.W):
-            Console.comment("Key W Pressed")
             self.rb.apply_impulse(Vector2(0, self.jump_height))
 
 

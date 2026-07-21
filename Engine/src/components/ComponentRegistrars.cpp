@@ -8,6 +8,7 @@
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/Camera.hpp"
+#include "engine/components/Animator.hpp"
 #include <iostream>
 
 
@@ -19,6 +20,7 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("BoxCollider", []() { return new BoxCollider(); });
     SerializableFactory::RegisterType("CircleCollider", []() { return new CircleCollider(); });
     SerializableFactory::RegisterType("CapsuleCollider", []() { return new CapsuleCollider(); });
+    SerializableFactory::RegisterType("Animator", []() { return new Animator(); });
     SerializableFactory::RegisterType("Camera", []() { return new Camera(); });
 
 }
