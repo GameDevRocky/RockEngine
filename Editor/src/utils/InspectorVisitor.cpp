@@ -759,12 +759,12 @@ void InspectorVisitor::Visit(Animator* animator) {
     // authoring GUI -- setting frames, building graphs -- comes later). Read-only
     // display; it refreshes when the current animation changes.
     auto current_get = [=]() -> std::string {
-        const std::string& cur = animator->GetCurrentAnimation();
+        const std::string& cur = animator->GetCurrentState();
         return cur.empty() ? std::string("None") : cur;
     };
     auto current_set = [](Animator*, const std::string&) {};   // display only
-    BindProperty<std::string>(animator, "Current Animation: ", current_get, current_set,
-        animator->CURRENT_ANIMATION_CHANGED_EVENT, PropDesc().Tag(Tags::READONLY));
+    BindProperty<std::string>(animator, "Current State: ", current_get, current_set,
+        animator->STATE_CHANGED_EVENT, PropDesc().Tag(Tags::READONLY));
 
     // Opens (creating on first use) the Animator editor panel and focuses it.
     // SyncToSelection() re-reads the current selection first, so an Animator just

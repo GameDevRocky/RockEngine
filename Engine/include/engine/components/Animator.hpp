@@ -1,24 +1,26 @@
 #pragma once
 #include "engine/components/Component.hpp"
+#include "engine/components/AnimatorTypes.hpp"
 #include "yaml-cpp/yaml.h"
 #include <string>
 #include <vector>
-#include <map>
 
 class Sprite;
 class IVisitor;
 
-// Sprite-flipbook animator. Holds named animations (each an ordered list of
-// sprite ids) and, in play mode, drives the GameObject's SpriteRenderer by
-// swapping its sprite at `frameRate` FPS. The editor GUI for authoring these
-// (a Unity-style graph) comes later; for now it stores/plays what's set on it.
+// Unity-style sprite animation state machine. Holds named STATES (each a
+// self-contained sprite flipbook), TRANSITIONS between them (guarded by
+// conditions and/or exit time), and typed PARAMETERS that scripts set to drive
+// those transitions. The whole machine is embedded on the component (serialized
+// inline with the scene, deep-copied for play mode). In play mode Update() walks
+// the machine and drives the GameObject's SpriteRenderer; the node-graph editor
+// (AnimatorGui) authors it.
 class Animator : public Component{
 
     public:
-    static inline const Event ANIMATION_ADDED_EVENT           = Animator::CreateEvent();
-    static inline const Event SPRITE_ADDED_EVENT              = Animator::CreateEvent();
-    static inline const Event CURRENT_ANIMATION_CHANGED_EVENT = Animator::CreateEvent();
-
+    static inline const Event STATE_CHANGED_EVENT      = Animator::CreateEvent();  // runtime current state switched
+    static inline const Event GRAPH_CHANGED_EVENT       = Animator::CreateEvent();  // states/transitions edited
+    static inline const Event PARAMETERS_CHANGED_EVENT   = Animator::CreateEvent();  // parameter list edited
 
     void Deserialize(const YAML::Node& node) override;
     YAML::Node Serialize() override;
@@ -30,35 +32,70 @@ class Animator : public Component{
     Animator* Copy() override;
     void Accept(IVisitor* v) override;
 
-    void AddAnimation(const std::string& animation );
-    void AddSprite(const std::string& animation, const std::string& sprite_id);
+    // ─── Scripting / runtime control (also exposed to Python) ───────────────────
+    void  SetFloat(const std::string& name, float v);
+    void  SetInt(const std::string& name, int v);
+    void  SetBool(const std::string& name, bool v);
+    void  SetTrigger(const std::string& name);
+    void  ResetTrigger(const std::string& name);
+    float GetFloat(const std::string& name) const;
+    int   GetInt(const std::string& name) const;
+    bool  GetBool(const std::string& name) const;
+    const std::string& GetCurrentState() const { return currentState; }
+    void  Play(const std::string& stateName);   // force-enter a state now
 
-    // Switch the playing animation, restarting it at its first frame. No-op if
-    // no animation by that name exists.
-    void Play(const std::string& animation);
+    // ─── Editor mutators (fire GRAPH_CHANGED_EVENT / PARAMETERS_CHANGED_EVENT) ───
+    AnimatorState*      AddState(const std::string& name, glm::vec2 pos = {0.0f, 0.0f});
+    void                RemoveState(const std::string& name);
+    void                RenameState(const std::string& oldName, const std::string& newName);
+    AnimatorState*      FindState(const std::string& name);
 
-    const std::string& GetCurrentAnimation() const { return currentAnimation; }
-    const std::map<std::string, std::vector<std::string>>& GetAnimations() const { return animations; }
+    AnimatorTransition* AddTransition(const std::string& fromState, const std::string& toState, bool fromAny = false);
+    void                RemoveTransition(const std::string& id);
+    AnimatorTransition* FindTransition(const std::string& id);
 
-    float GetFrameRate() const { return frameRate; }
-    void  SetFrameRate(float fps) { frameRate = fps; }
-    bool  IsPlaying() const { return playing; }
-    void  SetPlaying(bool p) { playing = p; }
-    bool  IsLooping() const { return loop; }
-    void  SetLooping(bool l) { loop = l; }
+    AnimatorParameter*  AddParameter(const std::string& name, AnimatorParameter::Type type);
+    void                RemoveParameter(const std::string& name);
+    void                RenameParameter(const std::string& oldName, const std::string& newName);
+    AnimatorParameter*  FindParameter(const std::string& name);
+
+    void SetDefaultState(const std::string& name);
+    const std::string& GetDefaultState() const { return defaultState; }
+
+    void AddFrame(const std::string& stateName, const std::string& spriteId);
+    void RemoveFrame(const std::string& stateName, int frameIndex);
+
+    // Read-only views for the editor.
+    const std::vector<AnimatorState>&      GetStates()      const { return states; }
+    const std::vector<AnimatorTransition>& GetTransitions() const { return transitions; }
+    const std::vector<AnimatorParameter>&  GetParameters()  const { return parameters; }
+
+    // Editors mutate a struct in place (via a Find*), then call this so the graph
+    // canvas / panels refresh.
+    void NotifyGraphChanged() { Notify(GRAPH_CHANGED_EVENT); }
+    void NotifyParametersChanged() { Notify(PARAMETERS_CHANGED_EVENT); }
 
     std::string GetTypeName() const override {return "Animator";}
 
 private:
-    // Push the sprite at curr_index of `frames` onto the GameObject's SpriteRenderer.
-    void ApplyCurrentFrame(const std::vector<std::string>& frames);
+    void ApplyCurrentFrame();                             // push current frame's sprite to the SpriteRenderer
+    void EnterState(const std::string& name);             // switch + reset timers + apply frame 0 + notify
+    const AnimatorState* CurrentStateData() const;
+    const AnimatorParameter* FindParameterConst(const std::string& name) const;
+    bool EvaluateCondition(const AnimatorCondition& c) const;
+    bool ConditionsMet(const AnimatorTransition& t) const;
+    std::string MakeUniqueStateName(const std::string& base) const;
+    std::string MakeUniqueParameterName(const std::string& base) const;
 
-    std::map<std::string, std::vector<std::string>>  animations;  // name -> ordered frame sprite ids
-    std::string currentAnimation;      // "" when none is selected
-    int   curr_index = 0;              // current frame within currentAnimation
-    float frameRate = 12.0f;           // frames per second
-    bool  loop = true;
-    bool  playing = true;
-    float timeAccumulator = 0.0f;      // runtime-only; not serialized
+    // Definition (serialized).
+    std::vector<AnimatorState>      states;
+    std::vector<AnimatorTransition> transitions;
+    std::vector<AnimatorParameter>  parameters;
+    std::string defaultState;          // entry state name
 
+    // Runtime (copied on the play-mode deep copy; re-seeded in Awake).
+    std::string currentState;
+    int   curr_index = 0;              // current frame within currentState
+    float stateTime = 0.0f;            // seconds elapsed in currentState (for exit time)
+    float timeAccumulator = 0.0f;      // frame timing; transient, not serialized
 };

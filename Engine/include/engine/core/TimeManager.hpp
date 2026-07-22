@@ -39,5 +39,5 @@ public:
     float unscaledTime = 0.0f;
     float unscaledDeltaTime = 0.0f;
     float unscaledFixedDeltaTime = 1.0f / 60.0f;
-    float timeScale = 1.0f;
+    float timeScale = 2.0f;
 };

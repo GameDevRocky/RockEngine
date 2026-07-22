@@ -11,8 +11,8 @@ uniforms:
     uUVScale: [1, 1]
     uUVOffset: [0, 0]
     uSize: [1, 1]
-    uPivot: [0.5, 0.5]
+    uPivot: [0.7, 0.5]
   vec3:
     {}
   vec4:
-    uColor: [1, 1, 1, 1]
+    uColor: [0.84313726, 1, 0.5019608, 1]

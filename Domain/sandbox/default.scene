@@ -5,36 +5,24 @@ components:
     enabled: true
     type: Transform
     gameobject: 27d025e08ff0501fbf199080ce91f924
-    localPosition: [880.3706, 149.31311]
+    localPosition: [131.13548, -82.94651]
     localRotation: 0
-    localScale: [2.3597758, 2.4651823]
+    localScale: [150, 150]
     parent_id: ~
   - id: 104a1015c1e12db37ea53169f31278b3
     enabled: true
     type: SpriteRenderer
     gameobject: 27d025e08ff0501fbf199080ce91f924
     material_id: m1
-    sprite_id: h3or3rbjjk3rk
+    sprite_id: 39b7487aa383d7beb6bb395094722e00
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
     uvScale: [1, 1]
     sortingOrder: 0
     sortingLayer: Default
-    flipX: false
+    flipX: true
     flipY: false
     visible: true
-  - id: d968e8b8f246d02d43881d65af5c8ef4
-    enabled: true
-    type: CapsuleCollider
-    gameobject: 27d025e08ff0501fbf199080ce91f924
-    center: [0, 0]
-    isSensor: false
-    density: 0.1
-    friction: 0.4
-    bounciness: 0
-    rollingResistance: 0
-    radius: 35.875
-    height: 29.6875
   - id: cd1b3bf5c7d6724462186bcd03a2d355
     enabled: true
     type: RigidBody
@@ -49,20 +37,177 @@ components:
     module: PlayerController
     class: PlayerController
     fields:
-      camera: 983d4dc0871048db88c0abb372766b89
-      speed: 600
-      jump_height: 600
+      test_var: ""
+      move_speed: 200
+      acceleration: 400
+      deceleration: 500
+      air_control: 0.7
+      jump_velocity: 500
+      jump_cut_multiplier: 0.5
+      max_fall_speed: 700
+      coyote_time: 0.1
+      jump_buffer_time: 0.12
       ground_check: 9a30149c1af0006e3edb419555007c18
-      direction:
-        - 0
-        - -16.7
+      ground_check_offset: 40
+      ground_check_distance: 20
+      camera: 983d4dc0871048db88c0abb372766b89
+      camera_smoothing: 0.1
+  - id: 453452e197bd49681846836930760cac
+    enabled: true
+    type: Animator
+    gameobject: 27d025e08ff0501fbf199080ce91f924
+    defaultState: Idle
+    states:
+      - name: Idle
+        frames: [2db8b16b099a3b6bfe2ba4898490293e, 0e7bd447398312e1da25a708aa58818a, 278e5607b4964c80ad70e7049f3842d3, a6e0feec744c3bbbc6c4b18efb5a5b8e, 39b7487aa383d7beb6bb395094722e00, 31cfdfe074cca7df6b128d9bf3ae27ce, 17de916ec6dcdd2d0e523dac2d05c92b, 1e4c590a79307b6ecafd7103157aada0]
+        frameRate: 18
+        speed: 0.5
+        loop: true
+        pos: [28, -239]
+      - name: Jump
+        frames: [29b1d5a2a6ae215c0befe7ee01e7b2a3]
+        frameRate: 12
+        speed: 1
+        loop: true
+        pos: [288, -275]
+      - name: Fall
+        frames: [c76439ede36b18ec5dc6680f4e6fcebb]
+        frameRate: 12
+        speed: 1
+        loop: true
+        pos: [274, -86]
+      - name: Run
+        frames: [2db8b16b099a3b6bfe2ba4898490293e, 0e7bd447398312e1da25a708aa58818a, 278e5607b4964c80ad70e7049f3842d3, a6e0feec744c3bbbc6c4b18efb5a5b8e, 39b7487aa383d7beb6bb395094722e00, 31cfdfe074cca7df6b128d9bf3ae27ce, 17de916ec6dcdd2d0e523dac2d05c92b, 1e4c590a79307b6ecafd7103157aada0]
+        frameRate: 18
+        speed: 1
+        loop: true
+        pos: [28, -430]
+    transitions:
+      - id: f955069893fad5f5897e8a4982ff3849
+        from: ""
+        fromAny: true
+        to: Idle
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: ""
+            mode: 4
+            threshold: 0
+      - id: aefc1b12dacd78797c0406cb8039b967
+        from: Idle
+        fromAny: false
+        to: Jump
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: yvel
+            mode: 0
+            threshold: 2
+          - parameter: grounded
+            mode: 3
+            threshold: 0
+      - id: 911cce286e24eb4995d330f995d42ee4
+        from: Fall
+        fromAny: false
+        to: Idle
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: grounded
+            mode: 3
+            threshold: 0
+      - id: 6b4ad64a84c6d0db17bc939a966284b8
+        from: Idle
+        fromAny: false
+        to: Fall
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: yvel
+            mode: 1
+            threshold: -1
+      - id: 5639a7b709afa013d75aa7a2a491810e
+        from: Jump
+        fromAny: false
+        to: Fall
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: yvel
+            mode: 1
+            threshold: -4
+      - id: a1b2c3d4e5f60718293a4b5c6d7e8f90
+        from: Idle
+        fromAny: false
+        to: Run
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: Speed
+            mode: 0
+            threshold: 10
+      - id: c3d4e5f60718293a4b5c6d7e8f90a1b2
+        from: Run
+        fromAny: false
+        to: Jump
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: yvel
+            mode: 0
+            threshold: 2
+          - parameter: grounded
+            mode: 3
+            threshold: 0
+      - id: d4e5f60718293a4b5c6d7e8f90a1b2c3
+        from: Run
+        fromAny: false
+        to: Fall
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: yvel
+            mode: 1
+            threshold: -1
+      - id: b2c3d4e5f60718293a4b5c6d7e8f90a1
+        from: Run
+        fromAny: false
+        to: Idle
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: Speed
+            mode: 1
+            threshold: 5
+    parameters:
+      - name: yvel
+        type: 0
+        default: 0
+      - name: grounded
+        type: 2
+        default: 0
+      - name: Speed
+        type: 0
+        default: 0
+  - id: c303c455117224d384f33744cd565b88
+    enabled: true
+    type: CapsuleCollider
+    gameobject: 27d025e08ff0501fbf199080ce91f924
+    center: [0, 0]
+    isSensor: false
+    density: 0.1
+    friction: 0.5
+    bounciness: 0
+    rollingResistance: 0
+    radius: 0.6040344
+    height: 0.32350922
   - id: 9f2e07b3dfa8d4c1693c5b590f6839d7
     enabled: true
     type: Transform
     gameobject: 9a30149c1af0006e3edb419555007c18
-    localPosition: [0.00012207031, -27.740028]
+    localPosition: [1.3113022e-06, -0.38194174]
     localRotation: 0
-    localScale: [0.4237691, 0.4056495]
+    localScale: [0.42376906, 0.4056495]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: c0e695f36d91b9e90514bac0d88af299
     enabled: true
@@ -160,13 +305,13 @@ components:
     enabled: true
     type: BoxCollider
     gameobject: 31d7a2f3fe37efa1781b6275caed3926
-    center: [-0.11550903, -0.06388044]
+    center: [-0.11550903, -0.12535334]
     isSensor: false
     density: 1
     friction: 0.7
     bounciness: 0
     rollingResistance: 0
-    size: [28.891884, 9.688462]
+    size: [28.891884, 9.565516]
   - id: b203d082695de367cf207c122fefd747
     enabled: true
     type: RigidBody
@@ -292,13 +437,13 @@ components:
     enabled: true
     type: BoxCollider
     gameobject: 147ebab9c2abede018b5142bbd4690ac
-    center: [-0.11550903, -0.06388044]
+    center: [-0.11550903, 0.038505554]
     isSensor: false
     density: 1
     friction: 0.7
     bounciness: 0
     rollingResistance: 0
-    size: [28.891884, 9.688462]
+    size: [28.891884, 9.893234]
   - id: cf50514219fe33b898abc3c3d9717652
     enabled: true
     type: RigidBody
@@ -312,7 +457,7 @@ components:
     gameobject: 6b98a52169806a2409225acf00fa4c4a
     localPosition: [767.4628, -16.301315]
     localRotation: 81.873566
-    localScale: [12.450003, 12.569994]
+    localScale: [12.450003, 12.5699835]
     parent_id: 43efb254de82833447fb2426e6955dfc
   - id: 86379451ec2dc92fe532f22aa190039d
     enabled: true
@@ -350,9 +495,9 @@ components:
     enabled: true
     type: Transform
     gameobject: eecb99e31bb6eadce76124461315e4dd
-    localPosition: [2.199955, 8.457596]
-    localRotation: 0
-    localScale: [1.3163049, 1.1904354]
+    localPosition: [2.1999626, 8.457726]
+    localRotation: 6.4861393e-07
+    localScale: [1.3163048, 1.1904356]
     parent_id: cad61599a81c709395ecd86f77c05422
   - id: fc753010b6625ad6a410fa45b8535587
     enabled: true
@@ -416,7 +561,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 983d4dc0871048db88c0abb372766b89
-    localPosition: [880.45337, 149.32225]
+    localPosition: [131.13542, -82.94654]
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
@@ -441,9 +586,10 @@ gameobjects:
     component_ids:
       - 1de8c26b6a54ebc62cde50fa554c7bfb
       - 104a1015c1e12db37ea53169f31278b3
-      - d968e8b8f246d02d43881d65af5c8ef4
       - cd1b3bf5c7d6724462186bcd03a2d355
       - 5acc02eb3c119671148c5187a504b268
+      - 453452e197bd49681846836930760cac
+      - c303c455117224d384f33744cd565b88
   - id: 9a30149c1af0006e3edb419555007c18
     type: GameObject
     name: Ground Check
@@ -544,7 +690,7 @@ gameobjects:
       - c213151fdd21577208e520ff6adec339
   - id: 11b8c9d544d183cf443ac84d7665706f
     type: GameObject
-    name: GameObject (2)
+    name: Leaf
     tag: Untagged
     component_ids:
       - 3b8fb73c5bd833f7838df9c68bc855f5

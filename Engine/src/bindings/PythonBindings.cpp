@@ -31,6 +31,7 @@ void BindSpriteRenderer(py::module_& m);
 void BindRigidBody(py::module_& m);
 void BindCollider(py::module_& m);
 void BindCamera(py::module_& m);
+void BindAnimator(py::module_& m);
 
 // RENDERING
 void BindSprite(py::module_ & m);
@@ -63,6 +64,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindRigidBody(components);
     BindCollider(components);
     BindCamera(components);
+    BindAnimator(components);
 
     // RENDERING
     py::module_ rendering = m.def_submodule("rendering", "ReockEngine rendering APIs");
