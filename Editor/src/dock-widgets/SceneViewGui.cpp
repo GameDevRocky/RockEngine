@@ -16,6 +16,9 @@
 #include "engine/commands/SubtreeCommand.hpp"
 #include "engine/commands/MacroCommand.hpp"
 #include "engine/serialization/Registry.hpp"
+#include "engine/core/Scene.hpp"
+#include "engine/core/GameObject.hpp"
+#include <yaml-cpp/yaml.h>
 #include <memory>
 #include <vector>
 
@@ -132,6 +135,55 @@ void SceneViewGui::keyPressEvent(QKeyEvent* event) {
             }
 
             selMgr->ClearSelection();
+            return;
+        }
+    }
+
+    // Ctrl+D: duplicate the selection -- same behaviour as the Hierarchy tree
+    // (see SceneTree::DuplicateSelection), so it works while the Scene view is focused.
+    if (event->key() == Qt::Key_D && (event->modifiers() & Qt::ControlModifier)) {
+        auto* selMgr = container->FindSystem<SelectionManager>();
+        auto* registry = container->FindSystem<Registry>();
+        if (selMgr && registry && selMgr->HasSelection()) {
+            // Roots only: duplicating a parent already clones its children, so a
+            // selected child would otherwise produce a stray second copy.
+            std::vector<std::string> roots = selMgr->GetSelectedRoots();
+            auto* undoSystem = container->FindSystem<UndoSystem>();
+
+            std::vector<std::unique_ptr<Command>> commands;
+            std::vector<std::string> cloneIds;
+            commands.reserve(roots.size());
+            for (const std::string& id : roots) {
+                GameObject* source = registry->Find<GameObject>(id);
+                if (!source) continue;
+                Scene* scene = source->GetScene();
+                if (!scene) continue;
+                // Capture the post-remap YAML so redo rebuilds this same clone
+                // instead of minting fresh ids.
+                YAML::Node snapshot;
+                GameObject* clone = scene->DuplicateGameObject(source, &snapshot);
+                if (!clone) continue;
+                cloneIds.push_back(clone->GetID());
+                if (undoSystem)
+                    commands.push_back(SubtreeCommand::RecordCreated(
+                        clone, snapshot, "Duplicate " + source->GetName()));
+            }
+            if (cloneIds.empty()) return;
+
+            selMgr->SelectMany(cloneIds);
+
+            if (undoSystem && !commands.empty()) {
+                auto macro = MacroCommand::Wrap(
+                    std::move(commands),
+                    cloneIds.size() == 1
+                        ? "Duplicate Object"
+                        : "Duplicate " + std::to_string(cloneIds.size()) + " Objects");
+                if (auto* m = dynamic_cast<MacroCommand*>(macro.get())) {
+                    m->SetSelectionAfterUndo(roots);      // undo removes the clones
+                    m->SetSelectionAfterRedo(cloneIds);   // redo brings them back
+                }
+                undoSystem->Push(std::move(macro));
+            }
             return;
         }
     }
