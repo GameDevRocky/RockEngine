@@ -12,10 +12,13 @@ class PlayerController(ScriptableComponent):
     Components on this GameObject: RigidBody (Dynamic, lock rotation on, gravity on),
       a Collider, SpriteRenderer, and an Animator.
     Animator PARAMETERS (the default scene uses these):
-      yvel      (Float) -- vertical velocity; rising -> Jump, falling -> Fall
-      grounded  (Bool)  -- on the ground? -> back to Idle
-      Speed     (Float) -- horizontal speed; Idle <-> Run
-    Input: A/D (or Left/Right) to move, Space or W to jump.
+      yvel      (Float)   -- vertical velocity; rising -> Jump, falling -> Fall
+      grounded  (Bool)    -- on the ground? -> back to Idle
+      Speed     (Float)   -- horizontal speed; Idle <-> Run
+      Jump      (Trigger) -- fired on the ground jump
+      DoubleJump(Trigger) -- fired on an air (double) jump; wire a DoubleJump clip
+                             in the Animator editor and add a transition on it
+    Input: A/D (or Left/Right) to move, Space or W to jump (again in the air to double-jump).
     Tune the numeric fields below in the inspector to match your world scale.
     """
 
@@ -29,6 +32,7 @@ class PlayerController(ScriptableComponent):
 
     # ── Jump tuning ──────────────────────────────────────────────────────────
     jump_velocity: float = 500.0        # upward speed applied on jump
+    max_jumps: int = 2                  # 1 = single jump, 2 = double jump, etc.
     jump_cut_multiplier: float = 0.5    # velocity kept if the jump key is released early
     max_fall_speed: float = 700.0       # terminal downward speed
     coyote_time: float = 0.10           # grace to still jump just after leaving a ledge
@@ -62,12 +66,13 @@ class PlayerController(ScriptableComponent):
         self.coyote_timer = 0.0
         self.jump_buffer_timer = 0.0
         self.is_jumping = False    # currently in the rising part of a jump (for jump-cut)
+        self.jumps_left = self.max_jumps   # air jumps remaining until we touch ground again
 
     # ── per-frame: buffer edge-triggered input + animation + camera ──────────
     def update(self):
         # is_key_pressed is a one-frame edge; read it here (per render frame), not
         # in fixed_update which can run zero or many times per frame and miss it.
-        if Input.is_key_pressed(Keys.SPACE) or Input.is_key_pressed(Keys.W):
+        if Input.is_key_pressed(Keys.UP) or Input.is_key_pressed(Keys.SPACE) or Input.is_key_pressed(Keys.W):
             self.jump_buffer_timer = self.jump_buffer_time
         self._update_animation()
         self._follow_camera()
@@ -122,27 +127,41 @@ class PlayerController(ScriptableComponent):
         if self.grounded:
             self.coyote_timer = self.coyote_time
             self.is_jumping = False
+            self.jumps_left = self.max_jumps   # refill air jumps on landing
         else:
+            was_in_coyote = self.coyote_timer > 0.0
             self.coyote_timer = max(0.0, self.coyote_timer - dt)
+            # Walked off a ledge without jumping: once the coyote grace lapses we
+            # forfeit the ground-jump slot, so you only get the air jumps (no free
+            # extra jump for stepping off an edge).
+            if was_in_coyote and self.coyote_timer == 0.0:
+                self.jumps_left = min(self.jumps_left, self.max_jumps - 1)
 
         Debug.draw_line(origin, origin + down)
 
     def _handle_jump(self, dt):
         self.jump_buffer_timer = max(0.0, self.jump_buffer_timer - dt)
 
-        # Jump if one was buffered and we're grounded (or within coyote time).
-        if self.jump_buffer_timer > 0.0 and self.coyote_timer > 0.0:
+        can_ground_jump = self.coyote_timer > 0.0
+        # An air (double) jump is available once we've left the ground and still
+        # have jumps banked. Coyote-jumping counts as the ground jump, so it
+        # doesn't also burn a double jump.
+        can_air_jump = not can_ground_jump and self.jumps_left > 0
+
+        if self.jump_buffer_timer > 0.0 and (can_ground_jump or can_air_jump):
             vel = self.rb.velocity
-            vel.y = self.jump_velocity
+            vel.y = self.jump_velocity          # crisp double jump: reset, don't add
             self.rb.velocity = vel
             self.jump_buffer_timer = 0.0
             self.coyote_timer = 0.0
             self.is_jumping = True
+            self.jumps_left -= 1
             if self.animator:
-                self.animator.set_trigger('Jump')
+                # Ground jump -> Jump clip; air jump -> DoubleJump clip.
+                self.animator.set_trigger('Jump' if can_ground_jump else 'DoubleJump')
 
         # Variable jump height: releasing the jump key while rising cuts the ascent.
-        jump_held = Input.is_key_down(Keys.SPACE) or Input.is_key_down(Keys.W)
+        jump_held = Input.is_key_down(Keys.UP) or Input.is_key_down(Keys.SPACE) or Input.is_key_down(Keys.W)
         if self.is_jumping and not jump_held:
             vel = self.rb.velocity
             if vel.y > 0.0:

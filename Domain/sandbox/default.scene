@@ -5,7 +5,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 27d025e08ff0501fbf199080ce91f924
-    localPosition: [48.325584, 130.14565]
+    localPosition: [-67.330765, -82.94651]
     localRotation: 0
     localScale: [150, 150]
     parent_id: ~
@@ -14,7 +14,7 @@ components:
     type: SpriteRenderer
     gameobject: 27d025e08ff0501fbf199080ce91f924
     material_id: m1
-    sprite_id: c76439ede36b18ec5dc6680f4e6fcebb
+    sprite_id: 39b7487aa383d7beb6bb395094722e00
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
     uvScale: [1, 1]
@@ -43,6 +43,7 @@ components:
       deceleration: 500
       air_control: 0.7
       jump_velocity: 600
+      max_jumps: 2
       jump_cut_multiplier: 0.5
       max_fall_speed: 700
       coyote_time: 0.1
@@ -69,7 +70,7 @@ components:
         frameRate: 12
         speed: 1
         loop: true
-        pos: [288, -275]
+        pos: [250.94331, -289.46536]
       - name: Fall
         frames: [c76439ede36b18ec5dc6680f4e6fcebb]
         frameRate: 12
@@ -82,6 +83,12 @@ components:
         speed: 0.5
         loop: true
         pos: [28, -430]
+      - name: Double Jump
+        frames: [43be0e5fddc8e188460adbb5878d45b4, 73bba91eb486c5647ebfb279a91610c4, 6b67511aa2a79c2a144e648fa6b47797, dc682b8b4db5702e40e159d26f5c8096, d12d7cf3a3fe3e5275a00064f55e743e, 85fcc629c0531e0555fbda206579fcba]
+        frameRate: 12
+        speed: 1
+        loop: true
+        pos: [448.52402, -254.6118]
     transitions:
       - id: f955069893fad5f5897e8a4982ff3849
         from: ""
@@ -179,6 +186,34 @@ components:
           - parameter: Speed
             mode: 1
             threshold: 5
+      - id: 662d36e5cc43aa15b8ad5105c1231757
+        from: Fall
+        fromAny: false
+        to: Double Jump
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          - parameter: DoubleJump
+            mode: 4
+            threshold: 0
+      - id: 581167842673f67654ffc2f2a7c0f7e9
+        from: Double Jump
+        fromAny: false
+        to: Fall
+        hasExitTime: true
+        exitTime: 1
+        conditions:
+          []
+      - id: 16e4f9c7a148400df486f2dedec81682
+        from: Jump
+        fromAny: false
+        to: Double Jump
+        hasExitTime: false
+        exitTime: 0.9
+        conditions:
+          - parameter: DoubleJump
+            mode: 4
+            threshold: 0
     parameters:
       - name: yvel
         type: 0
@@ -188,6 +223,9 @@ components:
         default: 0
       - name: Speed
         type: 0
+        default: 0
+      - name: DoubleJump
+        type: 3
         default: 0
   - id: c303c455117224d384f33744cd565b88
     enabled: true
@@ -205,7 +243,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 9a30149c1af0006e3edb419555007c18
-    localPosition: [1.3113022e-06, -0.38194177]
+    localPosition: [5.2154064e-06, -0.3624248]
     localRotation: 0
     localScale: [0.42376906, 0.4056495]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
@@ -495,9 +533,9 @@ components:
     enabled: true
     type: Transform
     gameobject: eecb99e31bb6eadce76124461315e4dd
-    localPosition: [2.1999664, 8.457718]
-    localRotation: -2.594456e-06
-    localScale: [1.3163047, 1.1904355]
+    localPosition: [2.1999588, 8.457672]
+    localRotation: -1.8161192e-05
+    localScale: [1.3163047, 1.190435]
     parent_id: cad61599a81c709395ecd86f77c05422
   - id: fc753010b6625ad6a410fa45b8535587
     enabled: true
@@ -561,7 +599,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 983d4dc0871048db88c0abb372766b89
-    localPosition: [48.027767, 85.57868]
+    localPosition: [-66.44249, -71.42679]
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
