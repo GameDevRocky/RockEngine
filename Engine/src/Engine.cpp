@@ -97,6 +97,17 @@ void Engine::EnterPlayMode(){
 }
 
 void Engine::ExitPlayMode(){
+    // Clear the runtime selection BEFORE tearing the container down. Otherwise
+    // Registry::Shutdown deletes objects one by one, and each dying object's
+    // SHUTDOWN_EVENT drives SelectionManager::RemoveFromSelection ->
+    // SELECTION_CHANGED -> the editor Inspector rebuild, which walks its stored
+    // Observable* handles — some already freed earlier in that same delete loop
+    // (use-after-free). Clearing here fires that one SELECTION_CHANGED while every
+    // object is still alive (so the Inspector unsubscribes cleanly) and drops the
+    // per-object shutdown-subs, so the teardown loop raises no selection cascade.
+    if (auto* selection = runtimeContainer->FindSystem<SelectionManager>())
+        selection->ClearSelection();
+
     runtimeContainer->Shutdown();
     delete runtimeContainer;
     runtimeContainer = nullptr;
