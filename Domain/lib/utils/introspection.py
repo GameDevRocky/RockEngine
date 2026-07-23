@@ -50,6 +50,18 @@ def make_component_ref(gameobject_id, type_name):
     return cls(gameobject_id) if cls else None
 
 
+def make_gameobject_ref(gameobject_id):
+    """Build a GameObject handler bound to `gameobject_id`, for a script's
+    ``field : GameObject`` reference. Empty/falsy id → None (an unassigned
+    reference). Called from the C++ ScriptComponent when applying a stored value
+    to the live instance — the gameobject analogue of ``make_component_ref``.
+    """
+    if not gameobject_id:
+        return None
+    from Domain.lib.api.core.gameobject_handler import get_gameobject
+    return get_gameobject(gameobject_id)
+
+
 def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls,
               ComponentCls=None, ScriptableComponentCls=None):
     """Map a single Python type to (type_name, ref_type_name).

@@ -53,6 +53,7 @@ components:
       ground_check_distance: 20
       camera: 983d4dc0871048db88c0abb372766b89
       camera_smoothing: 0.01
+      clone_ball: e518611c7c18303ff0ea008f9a9e30dc
   - id: 453452e197bd49681846836930760cac
     enabled: true
     type: Animator
@@ -255,64 +256,24 @@ components:
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
-  - id: a09cb53577a7032e87781c0adc7a3c71
+  - id: 628ca3505efcbdbd1e769e8a9fced9d7
     enabled: true
     type: Transform
-    gameobject: 8469c612ac06a40f3930511ee5621374
-    localPosition: [69.63122, -92.302605]
+    gameobject: 8d18f33b2e3760bbb4dfdbc208099001
+    localPosition: [205.83713, -1.7048187]
     localRotation: 0
-    localScale: [12.45, 12.57]
+    localScale: [15.655266, 15.651137]
     parent_id: c0e695f36d91b9e90514bac0d88af299
-  - id: ee59e3b09f4d97a3b473c629c121d416
+  - id: 0f70c92c3baa4a5b85212feb432b0fc6
     enabled: true
     type: SpriteRenderer
-    gameobject: 8469c612ac06a40f3930511ee5621374
+    gameobject: 8d18f33b2e3760bbb4dfdbc208099001
     material_id: m1
-    sprite_id: 633693f365aa1b67c156801b8b9c1422
+    sprite_id: cbb7bd481c9e8472e265f4221576bf26
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
     uvScale: [1, 1]
     sortingOrder: 0
-    sortingLayer: Default
-    flipX: false
-    flipY: false
-    visible: true
-  - id: eb879301a4b7986ee156557475d5b2d7
-    enabled: true
-    type: BoxCollider
-    gameobject: 8469c612ac06a40f3930511ee5621374
-    center: [2.861023e-06, 0.5082307]
-    isSensor: false
-    density: 1
-    friction: 0.5
-    bounciness: 0
-    rollingResistance: 0
-    size: [58.153908, 9.358916]
-  - id: 09de5cef742ea23f8a93fd28d912378a
-    enabled: true
-    type: RigidBody
-    gameobject: 8469c612ac06a40f3930511ee5621374
-    bodyType: Kinematic
-    useGravity: true
-    lockRotation: false
-  - id: 8864f0aa3c719ed861b651e5421738a3
-    enabled: true
-    type: Transform
-    gameobject: 4c9f7168a61f4545bcbde40bcd0bd816
-    localPosition: [40.169365, 45.90574]
-    localRotation: 0
-    localScale: [22.173609, 20.370268]
-    parent_id: c0e695f36d91b9e90514bac0d88af299
-  - id: 14f15377d4ef4466eac057ba8c1c501a
-    enabled: true
-    type: SpriteRenderer
-    gameobject: 4c9f7168a61f4545bcbde40bcd0bd816
-    material_id: m1
-    sprite_id: 0e152ac8ed0e77ae8039d5f3947bfad9
-    color: [1, 1, 1, 1]
-    uvOffset: [0, 0]
-    uvScale: [1, 1]
-    sortingOrder: -1
     sortingLayer: Default
     flipX: false
     flipY: false
@@ -357,20 +318,42 @@ components:
     bodyType: Kinematic
     useGravity: true
     lockRotation: false
-  - id: 628ca3505efcbdbd1e769e8a9fced9d7
+  - id: 8864f0aa3c719ed861b651e5421738a3
     enabled: true
     type: Transform
-    gameobject: 8d18f33b2e3760bbb4dfdbc208099001
-    localPosition: [205.83713, -1.7048187]
+    gameobject: 4c9f7168a61f4545bcbde40bcd0bd816
+    localPosition: [40.169365, 45.90574]
     localRotation: 0
-    localScale: [15.655266, 15.651137]
+    localScale: [22.173609, 20.370268]
     parent_id: c0e695f36d91b9e90514bac0d88af299
-  - id: 0f70c92c3baa4a5b85212feb432b0fc6
+  - id: 14f15377d4ef4466eac057ba8c1c501a
     enabled: true
     type: SpriteRenderer
-    gameobject: 8d18f33b2e3760bbb4dfdbc208099001
+    gameobject: 4c9f7168a61f4545bcbde40bcd0bd816
     material_id: m1
-    sprite_id: cbb7bd481c9e8472e265f4221576bf26
+    sprite_id: 0e152ac8ed0e77ae8039d5f3947bfad9
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: -1
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: a09cb53577a7032e87781c0adc7a3c71
+    enabled: true
+    type: Transform
+    gameobject: 8469c612ac06a40f3930511ee5621374
+    localPosition: [69.63122, -92.302605]
+    localRotation: 0
+    localScale: [12.45, 12.57]
+    parent_id: c0e695f36d91b9e90514bac0d88af299
+  - id: ee59e3b09f4d97a3b473c629c121d416
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 8469c612ac06a40f3930511ee5621374
+    material_id: m1
+    sprite_id: 633693f365aa1b67c156801b8b9c1422
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
     uvScale: [1, 1]
@@ -379,6 +362,24 @@ components:
     flipX: false
     flipY: false
     visible: true
+  - id: eb879301a4b7986ee156557475d5b2d7
+    enabled: true
+    type: BoxCollider
+    gameobject: 8469c612ac06a40f3930511ee5621374
+    center: [2.861023e-06, 0.5082307]
+    isSensor: false
+    density: 1
+    friction: 0.5
+    bounciness: 0
+    rollingResistance: 0
+    size: [58.153908, 9.358916]
+  - id: 09de5cef742ea23f8a93fd28d912378a
+    enabled: true
+    type: RigidBody
+    gameobject: 8469c612ac06a40f3930511ee5621374
+    bodyType: Kinematic
+    useGravity: true
+    lockRotation: false
   - id: 43efb254de82833447fb2426e6955dfc
     enabled: true
     type: Transform
@@ -533,9 +534,9 @@ components:
     enabled: true
     type: Transform
     gameobject: eecb99e31bb6eadce76124461315e4dd
-    localPosition: [2.1999588, 8.457672]
+    localPosition: [2.1999588, 8.4576645]
     localRotation: -1.8161192e-05
-    localScale: [1.3163047, 1.190435]
+    localScale: [1.3163047, 1.1904349]
     parent_id: cad61599a81c709395ecd86f77c05422
   - id: fc753010b6625ad6a410fa45b8535587
     enabled: true
@@ -616,6 +617,46 @@ components:
     viewportRect: [0, 0, 1, 1]
     cullingLayers: []
     targetTextureId: ""
+  - id: 0467ccef027f21f0990da0ed9f14090a
+    enabled: true
+    type: Transform
+    gameobject: e518611c7c18303ff0ea008f9a9e30dc
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 3863ac66f3651960893656a022b87b02
+    enabled: true
+    type: SpriteRenderer
+    gameobject: e518611c7c18303ff0ea008f9a9e30dc
+    material_id: m1
+    sprite_id: db336ead34f031478855ea9059a70c75
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: f88b80d16dc7f1438f6c98ce6ea44ea8
+    enabled: true
+    type: CircleCollider
+    gameobject: e518611c7c18303ff0ea008f9a9e30dc
+    center: [0, 0]
+    isSensor: false
+    density: 1
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+    radius: 18.75
+  - id: 239ab54070cb12ec89e52b6cf626491c
+    enabled: true
+    type: RigidBody
+    gameobject: e518611c7c18303ff0ea008f9a9e30dc
+    bodyType: Dynamic
+    useGravity: true
+    lockRotation: false
 gameobjects:
   - id: 27d025e08ff0501fbf199080ce91f924
     type: GameObject
@@ -640,22 +681,13 @@ gameobjects:
     tag: Untagged
     component_ids:
       - c0e695f36d91b9e90514bac0d88af299
-  - id: 8469c612ac06a40f3930511ee5621374
+  - id: 8d18f33b2e3760bbb4dfdbc208099001
     type: GameObject
     name: GameObject
     tag: Untagged
     component_ids:
-      - a09cb53577a7032e87781c0adc7a3c71
-      - ee59e3b09f4d97a3b473c629c121d416
-      - eb879301a4b7986ee156557475d5b2d7
-      - 09de5cef742ea23f8a93fd28d912378a
-  - id: 4c9f7168a61f4545bcbde40bcd0bd816
-    type: GameObject
-    name: GameObject
-    tag: Untagged
-    component_ids:
-      - 8864f0aa3c719ed861b651e5421738a3
-      - 14f15377d4ef4466eac057ba8c1c501a
+      - 628ca3505efcbdbd1e769e8a9fced9d7
+      - 0f70c92c3baa4a5b85212feb432b0fc6
   - id: 31d7a2f3fe37efa1781b6275caed3926
     type: GameObject
     name: GameObject
@@ -665,13 +697,22 @@ gameobjects:
       - 4111908962e4219c0b39cdcf2c0f78f4
       - 8396700152471893f8a16c1e42749c58
       - b203d082695de367cf207c122fefd747
-  - id: 8d18f33b2e3760bbb4dfdbc208099001
+  - id: 4c9f7168a61f4545bcbde40bcd0bd816
     type: GameObject
     name: GameObject
     tag: Untagged
     component_ids:
-      - 628ca3505efcbdbd1e769e8a9fced9d7
-      - 0f70c92c3baa4a5b85212feb432b0fc6
+      - 8864f0aa3c719ed861b651e5421738a3
+      - 14f15377d4ef4466eac057ba8c1c501a
+  - id: 8469c612ac06a40f3930511ee5621374
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    component_ids:
+      - a09cb53577a7032e87781c0adc7a3c71
+      - ee59e3b09f4d97a3b473c629c121d416
+      - eb879301a4b7986ee156557475d5b2d7
+      - 09de5cef742ea23f8a93fd28d912378a
   - id: 571b7bd1957ce8221f2e8e0e647a2081
     type: GameObject
     name: Pivot (1)
@@ -740,3 +781,12 @@ gameobjects:
     component_ids:
       - c557d15402229f902111d454d6003197
       - ab6a535aa7c8097d435069a2364202c5
+  - id: e518611c7c18303ff0ea008f9a9e30dc
+    type: GameObject
+    name: Ball
+    tag: Untagged
+    component_ids:
+      - 0467ccef027f21f0990da0ed9f14090a
+      - 3863ac66f3651960893656a022b87b02
+      - f88b80d16dc7f1438f6c98ce6ea44ea8
+      - 239ab54070cb12ec89e52b6cf626491c

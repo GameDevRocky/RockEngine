@@ -57,6 +57,11 @@ class SceneTree : public QTreeView{
         // an object whose ancestor is also selected is already covered by it.
         void DuplicateSelection();
         void DeleteSelection();
+        // Reparents every selected root under newParentId (empty = scene root) as one
+        // undo entry. insertRow < 0 appends (drop ONTO a row); insertRow >= 0 places
+        // the roots contiguously from that sibling index (drop BETWEEN rows). Roots
+        // only, for the same reason as the two above.
+        void ReparentSelection(const std::string& newParentId, int insertRow);
         // Pushes the engine's current selection into this tree's highlight. Reads
         // the manager directly rather than taking the event payload, since the
         // payload only carries the primary id.
@@ -68,6 +73,12 @@ class SceneTree : public QTreeView{
         // Move a single row to match the data-side sibling order (driven by
         // Scene::ORDER_CHANGED_EVENT). Any reparent has already happened via ReparentItem.
         void ReorderItem(const std::string& id);
+        // Re-highlight a row after a data-driven move (ReparentItem / ReorderItem):
+        // takeRow drops the QItemSelectionModel entry, and only a live drag reapplies
+        // it via Qt's own internal move. Undo/redo and programmatic reparents move rows
+        // the same way but have no such drag, so without this the object stays selected
+        // in the engine while the tree shows nothing highlighted.
+        void ReselectIfSelected(const std::string& id);
 
         std::string scene_id;
         QStandardItemModel* model = nullptr;

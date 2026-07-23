@@ -1,3 +1,5 @@
+import random
+
 from Domain import *
 
 
@@ -47,10 +49,26 @@ class PlayerController(ScriptableComponent):
     camera: Camera = None
     camera_smoothing: float = 0.1
 
+    clone_ball : GameObject = None     # optional: a ball prefab to clone on click
+
     def awake(self):
         self.rb = self.get_component(Rigidbody)
         self.sr = self.get_component(SpriteRenderer)
         self.animator = self.get_component(Animator)
+
+        # Core runtime state FIRST, before any optional setup that can fail: an
+        # exception below must never leave fixed_update reading an unset timer/flag.
+        self.facing = 1            # 1 = right, -1 = left
+        self.grounded = False
+        self.ground_normal = Vector2(0, 1)   # surface normal under the feet (flat by default)
+        self.coyote_timer = 0.0
+        self.jump_buffer_timer = 0.0
+        self.is_jumping = False    # currently in the rising part of a jump (for jump-cut)
+        self.jumps_left = self.max_jumps   # air jumps remaining until we touch ground again
+
+        # Optional clone source: only wired in some scenes, so guard the access.
+        if self.clone_ball:
+            self.clone_ball.active = False
 
         # A child at the feet is the ground-ray origin. Only spawn one if the
         # designer didn't wire an explicit ground_check in the inspector.
@@ -59,14 +77,6 @@ class PlayerController(ScriptableComponent):
             check.transform.parent = self.transform
             check.transform.position = Vector2(0, -self.ground_check_offset)  # local, at the feet
             self.ground_check = check.transform
-
-        self.facing = 1            # 1 = right, -1 = left
-        self.grounded = False
-        self.ground_normal = Vector2(0, 1)   # surface normal under the feet (flat by default)
-        self.coyote_timer = 0.0
-        self.jump_buffer_timer = 0.0
-        self.is_jumping = False    # currently in the rising part of a jump (for jump-cut)
-        self.jumps_left = self.max_jumps   # air jumps remaining until we touch ground again
 
     # ── per-frame: buffer edge-triggered input + animation + camera ──────────
     def update(self):
@@ -85,6 +95,15 @@ class PlayerController(ScriptableComponent):
         self._move_horizontal(dt)
         self._handle_jump(dt)
         self._clamp_fall()
+    
+    def late_update(self):
+        if self.clone_ball and Input.mouse_down(MouseButton.LEFT):
+            obj = self.duplicate(self.clone_ball)
+            obj.transform.position = Input.get_mouse_pos()
+            if obj:
+                rb = obj.get_component(Rigidbody)
+                rb.apply_impulse((random.randint(-500, 500), 500))
+                obj.active = True
 
     # ── movement ─────────────────────────────────────────────────────────────
     def _move_horizontal(self, dt):

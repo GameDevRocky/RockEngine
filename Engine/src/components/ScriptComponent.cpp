@@ -55,6 +55,15 @@ namespace {
             py::module_ m = py::module_::import("Domain.lib.api.rendering.material_handler");
             return m.attr("Material")(s);
         }
+        if (elementRefType.rfind("gameobject:", 0) == 0) {
+            py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+            return intro.attr("make_gameobject_ref")(s);   // empty id → None
+        }
+        if (elementRefType.rfind("component:", 0) == 0) {
+            std::string typeName = elementRefType.substr(std::string("component:").size());
+            py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+            return intro.attr("make_component_ref")(s, typeName);   // empty id → None
+        }
         return py::str(s);
     }
 
@@ -483,7 +492,8 @@ void ScriptComponent::IntrospectFields()
                     // guards behave correctly).
                     const bool isRef = info.refTypeName == "sprite"
                                     || info.refTypeName == "material"
-                                    || info.refTypeName.rfind("component:", 0) == 0;
+                                    || info.refTypeName.rfind("component:", 0) == 0
+                                    || info.refTypeName.rfind("gameobject:", 0) == 0;
                     if (isRef
                         && py::isinstance<py::str>(defaultVal)
                         && defaultVal.cast<std::string>().empty()) {
@@ -586,6 +596,13 @@ void ScriptComponent::ApplyPendingFields()
                     py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
                     py::setattr(scriptInstance, field.name.c_str(),
                                 intro.attr("make_component_ref")(strVal, typeName));
+                } else if (field.refTypeName.rfind("gameobject:", 0) == 0) {
+                    // GameObject ref: strVal is the object's id; wrap it in a
+                    // GameObject handler (empty → None). The ":<ClassName>" suffix
+                    // only filters the editor picker, so it is ignored here.
+                    py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+                    py::setattr(scriptInstance, field.name.c_str(),
+                                intro.attr("make_gameobject_ref")(strVal));
                 } else {
                     py::setattr(scriptInstance, field.name.c_str(), py::str(strVal));
                 }
@@ -787,6 +804,12 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
                     py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
                     py::setattr(scriptInstance, name.c_str(),
                                 intro.attr("make_component_ref")(v, typeName));
+                } else if (refTypeName.rfind("gameobject:", 0) == 0) {
+                    // GameObject ref: `v` is the object's id; wrap it in a GameObject
+                    // handler (empty → None). See introspection.make_gameobject_ref.
+                    py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+                    py::setattr(scriptInstance, name.c_str(),
+                                intro.attr("make_gameobject_ref")(v));
                 } else {
                     py::setattr(scriptInstance, name.c_str(), py::str(v));
                 }

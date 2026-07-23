@@ -126,6 +126,15 @@ void Collider::OnEnabled(){
     if (b2Shape_IsValid(shapeId)) {
         b2Shape_SetFilter(shapeId, filter);
         b2Shape_SetDensity(shapeId, density, true);
+    } else if (rigidBody && b2Body_IsValid(rigidBody->GetBodyId())) {
+        // No shape yet: the collider was disabled when its GameObject Awoke, so
+        // Awake -> CreateShape was skipped (GameObject::Awake skips disabled
+        // components). This happens to anything created/duplicated while inactive
+        // and activated later — e.g. an object cloned from a deactivated prefab.
+        // Build the shape now on first enable instead of waiting for some later
+        // edit (size/sensor/...) to rebuild it, which is why physics otherwise
+        // stayed dead until a property was changed by hand.
+        CreateShape();
     }
     Component::OnEnabled();
 }

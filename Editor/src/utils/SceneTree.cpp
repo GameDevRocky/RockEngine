@@ -451,6 +451,73 @@ void SceneTree::DeleteSelection() {
     selectionManager->ClearSelection();
 }
 
+void SceneTree::ReparentSelection(const std::string& newParentId, int insertRow) {
+    Registry* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+    if (!registry) return;
+    Scene* scene = registry->Find<Scene>(scene_id);
+    if (!scene) return;
+
+    // Roots only: reparenting a selected parent already carries its selected children
+    // with it, and moving a child independently would tear it back out of that parent.
+    std::vector<std::string> roots = selectionManager->GetSelectedRoots();
+    if (roots.empty()) return;
+
+    GameObject* newParentObj = newParentId.empty()
+        ? nullptr : registry->Find<GameObject>(newParentId);
+    Transform* newParentTransform = newParentObj ? newParentObj->GetTransform() : nullptr;
+
+    std::vector<std::unique_ptr<Command>> commands;
+    commands.reserve(roots.size());
+
+    // The Qt rows are never touched here: each SetParent / ReorderObject fires
+    // PARENT_CHANGED_EVENT (and ORDER_CHANGED_EVENT) which moves the row to match the
+    // data — the same data-driven path an undo takes, so one mechanism covers both.
+    int nextRow = insertRow;
+    for (const std::string& id : roots) {
+        GameObject* childObj = registry->Find<GameObject>(id);
+        if (!childObj) continue;
+        Transform* childTransform = childObj->GetTransform();
+        if (!childTransform) continue;
+
+        // Refuse to parent an object under itself or its own descendant — e.g. when
+        // the drop target is one of the selected objects.
+        if (WouldCreateCycle(childTransform, newParentTransform)) continue;
+
+        auto command = ReparentCommand::Capture(childObj);
+
+        handlingDrop = true;
+        if (insertRow < 0) {
+            // Drop ONTO a row: append under the new parent, but only when it is an
+            // actual move — SetParent(keepWorld) onto the current parent drifts locals.
+            if (childTransform->GetParent() != newParentTransform)
+                childTransform->SetParent(newParentTransform, true);
+        } else {
+            // Drop BETWEEN rows: place the roots contiguously from the drop point,
+            // preserving selection order. Each insert shifts the next slot down by one.
+            scene->ReorderObject(id, newParentId, nextRow);
+            ++nextRow;
+        }
+        handlingDrop = false;
+
+        // Commit returns false when nothing actually moved, so a no-op drop (already
+        // in place) contributes no history entry.
+        if (command && command->Commit(childObj))
+            commands.push_back(std::move(command));
+    }
+
+    if (commands.empty()) return;
+
+    if (undoSystem) {
+        undoSystem->Push(MacroCommand::Wrap(
+            std::move(commands),
+            "Move " + std::to_string(commands.size()) + " Objects"));
+    }
+
+    // The engine selection did not change, but taking and re-inserting the moved rows
+    // drops Qt's highlight on them — re-apply it from the manager.
+    OnSelectionChanged();
+}
+
 SceneTree::~SceneTree() {
     UnsubscribeFromContainer(Engine::Get()->GetEditorContainer(), scene_id,
         selectionSubscriptionId, sceneNameSubscriptionId, sceneAddedSubscriptionId, sceneOrderSubscriptionId);
@@ -538,29 +605,19 @@ void SceneTree::RebuildFromScene(Scene* scene) {
 }
 
 void SceneTree::dropEvent(QDropEvent* event) {
-    // Multi-object reparent is not implemented: GameObjectDragModel::mimeData
-    // encodes a single id (and its consumer RefDropFilter is a single-valued sink),
-    // so a multi-row drag would silently move only currentIndex()'s object and
-    // leave the rest behind. Refuse the drop rather than half-perform it.
-    if (selectionModel()->selectedRows().size() > 1) {
-        event->ignore();
-        return;
-    }
-
     DropIndicatorPosition pos = dropIndicatorPosition();
+
+    // A multi-row drag reparents the whole selection as one grouped edit; single-row
+    // keeps the original per-object paths below.
+    const bool multiSelect = selectionModel()->selectedRows().size() > 1;
 
     // Sibling reorder (drop between items). We ignore Qt's internal move entirely and
     // drive the model from the data side via Scene::ORDER_CHANGED_EVENT.
     if (pos == AboveItem || pos == BelowItem) {
         event->ignore();
 
-        const QModelIndex draggedIndex = currentIndex();
-        const QString childIdQt = draggedIndex.data(GAMEOBJECT_ID_ROLE).toString();
         const QModelIndex dropIndex = indexAt(event->position().toPoint());
-        if (childIdQt.isEmpty() || scene_id.empty() || !dropIndex.isValid()) return;
-
-        const QString targetIdQt = dropIndex.data(GAMEOBJECT_ID_ROLE).toString();
-        if (targetIdQt == childIdQt) return; // dropped onto itself
+        if (scene_id.empty() || !dropIndex.isValid()) return;
 
         // New parent = the drop target's parent; target row = its sibling position.
         const QModelIndex targetParentIndex = dropIndex.parent();
@@ -568,6 +625,18 @@ void SceneTree::dropEvent(QDropEvent* event) {
             ? targetParentIndex.data(GAMEOBJECT_ID_ROLE).toString() : QString();
         int targetRow = dropIndex.row();
         if (pos == BelowItem) targetRow += 1;
+
+        if (multiSelect) {
+            ReparentSelection(newParentIdQt.toStdString(), targetRow);
+            return;
+        }
+
+        const QModelIndex draggedIndex = currentIndex();
+        const QString childIdQt = draggedIndex.data(GAMEOBJECT_ID_ROLE).toString();
+        if (childIdQt.isEmpty()) return;
+
+        const QString targetIdQt = dropIndex.data(GAMEOBJECT_ID_ROLE).toString();
+        if (targetIdQt == childIdQt) return; // dropped onto itself
 
         Registry* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
         if (!registry) return;
@@ -586,6 +655,18 @@ void SceneTree::dropEvent(QDropEvent* event) {
         scene->ReorderObject(childIdQt.toStdString(), newParentIdQt.toStdString(), targetRow);
         if (command && command->Commit(childObj) && undoSystem)
             undoSystem->Push(std::move(command));
+        return;
+    }
+
+    // Reparent (drop ONTO a row -> that row becomes the parent; onto empty space ->
+    // scene root).
+    const QModelIndex dropIndex = indexAt(event->position().toPoint());
+
+    if (multiSelect) {
+        event->ignore();
+        const QString parentIdQt = dropIndex.isValid()
+            ? dropIndex.data(GAMEOBJECT_ID_ROLE).toString() : QString();
+        ReparentSelection(parentIdQt.toStdString(), -1);
         return;
     }
 
@@ -615,7 +696,6 @@ void SceneTree::dropEvent(QDropEvent* event) {
         return;
     }
 
-    const QModelIndex dropIndex = indexAt(event->position().toPoint());
     Transform* parentTransform = nullptr;
 
     if (dropIndex.isValid()) {
@@ -725,7 +805,25 @@ void SceneTree::ReorderItem(const std::string& id) {
     QList<QStandardItem*> taken = curParent->takeRow(item->row());
     if (targetIndex > parentItem->rowCount()) targetIndex = parentItem->rowCount();
     parentItem->insertRow(targetIndex, taken);
+    ReselectIfSelected(id);
     UpdateHeight();
+}
+
+void SceneTree::ReselectIfSelected(const std::string& id) {
+    if (!selectionManager || !selectionManager->IsSelected(id)) return;
+
+    QModelIndex idx = FindItemById(id);
+    if (!idx.isValid()) return;
+
+    // Guard the round trip: select() re-enters selectionChanged, whose handler would
+    // otherwise push this back into the engine mid-move. Save/restore rather than
+    // hard-set false, since a caller may already be inside a sync.
+    const bool wasSyncing = m_syncingSelection;
+    m_syncingSelection = true;
+    selectionModel()->select(idx, QItemSelectionModel::Select | QItemSelectionModel::Rows);
+    if (id == selectionManager->GetPrimaryId())
+        selectionModel()->setCurrentIndex(idx, QItemSelectionModel::NoUpdate);
+    m_syncingSelection = wasSyncing;
 }
 
 void SceneTree::OnSelectionChanged() {
@@ -860,6 +958,7 @@ void SceneTree::ReparentItem(const std::string& childId, const std::string& newP
     int row = childItem->row();
     QList<QStandardItem*> taken = oldParent->takeRow(row);
     newParent->appendRow(taken);
+    ReselectIfSelected(childId);
     UpdateHeight();
 }
 

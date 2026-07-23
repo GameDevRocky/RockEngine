@@ -27,6 +27,7 @@ void MainWindow::Init()
     FolderViewGui* folder_view = FolderViewGui::Get();
     RuntimeBar* runtime_bar = RuntimeBar::Get();
     MenuBar* menu_bar = MenuBar::Get();
+    AnimatorGui* animator_gui = AnimatorGui::Get();
 
     console_widget->Init();
     game_view->Init();
@@ -37,11 +38,7 @@ void MainWindow::Init()
     folder_view->Init();
     runtime_bar->Init();
     menu_bar->Init();
-
-    // Created and wired up now (so its selection subscription is set up in edit
-    // mode, like the other panels), but not docked until ShowAnimator() is first
-    // called from the Animator inspector.
-    AnimatorGui::Get()->Init();
+    animator_gui->Init();
 
     setMenuBar(menu_bar);
 
@@ -50,24 +47,16 @@ void MainWindow::Init()
     connect(file_explorer, &FileExplorerGui::RaiseFolderView, this, [this]() {
         folderViewDock->raise();
     });
-    
 
-    // The Scene/Game viewports live as dock widgets inside an inner QMainWindow
-    // that is this window's central widget. Because that inner window has no
-    // central widget, the two docks fill its entire area -- so they can be
-    // tabbed together (the default, mimicking the old QTabWidget), dragged out
-    // to float, split side-by-side, and re-docked in the center. Hierarchy /
-    // Inspector / Console etc. remain docks of the OUTER window and surround it.
     viewportArea = new QMainWindow(this);
-    viewportArea->setWindowFlags(Qt::Widget);          // embed, don't behave as a top-level window
-    viewportArea->setDockNestingEnabled(true);          // allow splitting Scene | Game in the center
+    viewportArea->setWindowFlags(Qt::Widget);
+    viewportArea->setDockNestingEnabled(true);
     viewportArea->setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::AllowNestedDocks);
 
     sceneviewDock = new QDockWidget("Scene", viewportArea);
     sceneviewDock->setObjectName("SceneViewDock");
     sceneviewDock->setWidget(scene_view);
-    // Movable + floatable, but not closable: closing would hide a viewport with
-    // no menu path to bring it back. Undock via drag/double-click instead.
+   
     sceneviewDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     viewportArea->addDockWidget(Qt::LeftDockWidgetArea, sceneviewDock);
 
@@ -77,18 +66,11 @@ void MainWindow::Init()
     gameviewDock->setFeatures(QDockWidget::DockWidgetMovable | QDockWidget::DockWidgetFloatable);
     viewportArea->addDockWidget(Qt::LeftDockWidgetArea, gameviewDock);
 
-    // Start tabbed with Scene in front, matching the previous QTabWidget layout.
     viewportArea->tabifyDockWidget(sceneviewDock, gameviewDock);
     sceneviewDock->raise();
 
     setCentralWidget(viewportArea);
 
-    // Keep the frame-loop driver in sync with whichever viewport is actually
-    // visible (tab switch, float, or RuntimeBar raising the Game view on play)
-    // -- see Editor::SetFrameDriver. QDockWidget::visibilityChanged fires when a
-    // dock is raised to the front of a tab group, hidden behind one, floated, or
-    // shown/hidden. Each handler falls back to the other viewport so we always
-    // drive something that's on screen.
     connect(sceneviewDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
         if (visible)                         Editor::Get()->SetFrameDriver(SceneViewGui::Get());
         else if (gameviewDock->isVisible())  Editor::Get()->SetFrameDriver(GameViewGui::Get());
@@ -100,26 +82,27 @@ void MainWindow::Init()
 
     hierarchyDock = new QDockWidget("Hierarchy", this);
     hierarchyDock->setWidget(hierarchy);
-    hierarchyDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::BottomDockWidgetArea);
+    hierarchyDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     addDockWidget(Qt::LeftDockWidgetArea, hierarchyDock);
-  
+    hierarchyDock->setObjectName("HierarchyDock");
+
 
     inspectorDock = new QDockWidget("Inspector", this);
     inspectorDock->setWidget(inspector);
-    inspectorDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+    inspectorDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     addDockWidget(Qt::RightDockWidgetArea, inspectorDock);
     inspectorDock->setObjectName("InspectorDock");
 
 
     fileExplorerDock = new QDockWidget("File Explorer", this);
     fileExplorerDock->setWidget(file_explorer);
-    fileExplorerDock->setAllowedAreas(Qt::BottomDockWidgetArea);
+    fileExplorerDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     addDockWidget(Qt::BottomDockWidgetArea, fileExplorerDock);
     fileExplorerDock->setObjectName("FileExplorerDock");
 
     folderViewDock = new QDockWidget("Folder View", this);
     folderViewDock->setWidget(folder_view);
-    folderViewDock->setAllowedAreas(Qt::BottomDockWidgetArea);
+    folderViewDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     addDockWidget(Qt::BottomDockWidgetArea, folderViewDock);
     folderViewDock->setObjectName("FolderViewDock");
 
@@ -129,11 +112,12 @@ void MainWindow::Init()
     runtimeBarDock->setContentsMargins(0, 0, 0, 0);
     runtimeBarDock->setTitleBarWidget(new QWidget());
     addDockWidget(Qt::TopDockWidgetArea, runtimeBarDock);
+    runtimeBarDock->setObjectName("RuntimeBarDock");
     runtimeBarDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     consoleDock = new QDockWidget("Console", this);
     consoleDock->setWidget(console_widget);
-    consoleDock->setAllowedAreas(Qt::BottomDockWidgetArea);
+    consoleDock->setAllowedAreas(Qt::AllDockWidgetAreas);
     addDockWidget(Qt::BottomDockWidgetArea, consoleDock);
     consoleDock->setObjectName("Console");
 
@@ -143,8 +127,9 @@ void MainWindow::Init()
 
     setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
     setCorner(Qt::TopRightCorner, Qt::TopDockWidgetArea);
-    setDockNestingEnabled(false);
-    setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::ForceTabbedDocks);
+   
+    setDockNestingEnabled(true);
+    setDockOptions(QMainWindow::AllowTabbedDocks | QMainWindow::AllowNestedDocks);
     LoadLayout();
     //ClearLayout();
     std::cout << "Main Window Initialized " << std::endl;
@@ -159,8 +144,7 @@ void MainWindow::PostInit(){
 }
 
 void MainWindow::ShowAnimator(){
-    // Lazily create the dock the first time it's opened, tabbed into the central
-    // viewport area beside Scene/Game. Closable, since it's opened on demand.
+   
     if (!animatorDock) {
         animatorDock = new QDockWidget("Animator", viewportArea);
         animatorDock->setObjectName("AnimatorDock");
@@ -171,8 +155,8 @@ void MainWindow::ShowAnimator(){
         viewportArea->addDockWidget(Qt::LeftDockWidgetArea, animatorDock);
         viewportArea->tabifyDockWidget(sceneviewDock, animatorDock);
     }
-    animatorDock->show();     // re-show if the user had closed it
-    animatorDock->raise();    // bring the tab to the front (focus)
+    animatorDock->show(); 
+    animatorDock->raise();    
 }
 
 void MainWindow::SaveLayout()
@@ -181,8 +165,7 @@ void MainWindow::SaveLayout()
 
     settings.setValue("geometry", saveGeometry());
     settings.setValue("windowState", saveState());
-    // saveState() only serializes THIS window's docks; the Scene/Game docks
-    // belong to the inner viewportArea, so persist its arrangement separately.
+  
     if (viewportArea) settings.setValue("viewportState", viewportArea->saveState());
 }
 
