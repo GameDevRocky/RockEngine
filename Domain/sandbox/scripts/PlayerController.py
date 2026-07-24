@@ -96,6 +96,7 @@ class PlayerController(ScriptableComponent):
         self._move_horizontal(dt)
         self._handle_jump(dt)
         self._clamp_fall()
+        self.sr.set_uniform("uTime", Time.elapsed_time)
     
     def late_update(self):
         if self.clone_ball and Input.mouse_down(MouseButton.LEFT):

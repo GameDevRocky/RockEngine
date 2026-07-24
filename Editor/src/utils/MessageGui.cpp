@@ -105,7 +105,6 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     text->setTextInteractionFlags(Qt::TextSelectableByMouse);
 
     type->setAlignment(Qt::AlignCenter);
-    type->setMinimumWidth(65);
     type->setStyleSheet("font-weight: bold;");
 
     count->setAlignment(Qt::AlignRight);

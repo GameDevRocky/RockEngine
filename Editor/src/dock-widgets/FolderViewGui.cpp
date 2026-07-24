@@ -130,7 +130,6 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
 }
 
 void FolderViewGui::Init() {
-    setMinimumWidth(400);
     std::cout << "FolderViewGui Initialized" << std::endl;
     this->SetProjectDirectory(EngineUtils::GetAssetPath("Domain/sandbox"));
 }

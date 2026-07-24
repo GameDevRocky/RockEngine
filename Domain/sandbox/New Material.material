@@ -1,18 +1,24 @@
 type: Material
 name: New Material
 id: 7c1bb616e86d43a0cd830557bda07f25
-shader_id: s1
+shader_id: s10
 uniforms:
   textures:
     uTexture: ""
   floats:
-    {}
+    uTime: 0
+    uWaveSpeed: 2
+    uWaveFrequency: 6
+    uDistortStrength: 0.02
+    uWaveAmplitude: 0.05
+    uDistortFrequency: 8
   vec2:
     uUVScale: [1, 1]
     uUVOffset: [0, 0]
-    uSize: [3.5, 1]
-    uPivot: [3.6, 0.5]
+    uSize: [1, 1]
+    uPivot: [0.5, 0.5]
   vec3:
     {}
   vec4:
     uColor: [1, 1, 1, 1]
+    uWaterColor: [0.2, 0.55, 0.85, 0.6]

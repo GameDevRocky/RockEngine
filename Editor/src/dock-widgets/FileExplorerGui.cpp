@@ -60,8 +60,6 @@ void FileExplorerGui::mousePressEvent(QMouseEvent *event)
 }
 
 void FileExplorerGui::Init(){
-    setMinimumWidth(200);   
-    setMaximumWidth(300);
     std::cout << "FileExplorerGui Initialized" << std::endl;
 
 }

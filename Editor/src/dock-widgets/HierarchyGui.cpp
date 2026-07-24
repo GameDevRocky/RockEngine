@@ -26,8 +26,6 @@
 // every row regardless of how the object got there.
 
 HierarchyGui::HierarchyGui(QWidget* parent) : QWidget(parent){
-    setMinimumWidth(200);
-    setMaximumWidth(400);
 
     // Inner widget that holds the scene trees
     scrollWidget = new QWidget();

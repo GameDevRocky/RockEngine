@@ -51,7 +51,6 @@ namespace {
 
 InspectorGui::InspectorGui(QWidget* parent) : QWidget(parent)
 {
-    setMinimumWidth(200);
 
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(8, 8, 8, 8);
