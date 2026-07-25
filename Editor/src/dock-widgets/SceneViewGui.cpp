@@ -7,7 +7,18 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
+#include "engine/components/Transform.hpp"
+#include "engine/components/SpriteRenderer.hpp"
+#include "engine/rendering/core/Sprite.hpp"
+#include "engine/utils/EngineUtils.hpp"
+#include "engine/core/SceneManager.hpp"
+#include "engine/debug/Console.hpp"
 #include "Engine.hpp"
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QUrl>
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "engine/core/TimeManager.hpp"
@@ -22,6 +33,8 @@
 #include <QGuiApplication>
 #include <memory>
 #include <vector>
+#include <cfloat>
+#include <algorithm>
 
 namespace {
     void DrawFPS(){
@@ -49,6 +62,51 @@ namespace {
         }
     }
 
+    // Grow the world-space AABB [mn, mx] to include this object's renderable/collider
+    // extent and every descendant. Rotation is ignored (axis-aligned approximation),
+    // which is fine for framing. `any` becomes true once a real extent was added.
+    void ExpandBounds(GameObject* obj, glm::vec2& mn, glm::vec2& mx, bool& any) {
+        if (!obj) return;
+        Transform* t = obj->GetTransform();
+        if (!t) return;
+
+        const glm::vec2 center = t->GetWorldPosition();
+        const glm::vec2 scale  = glm::abs(t->GetWorldScale());
+        glm::vec2 halfExtent(0.0f);
+        bool found = false;
+
+        if (SpriteRenderer* sr = obj->GetComponent<SpriteRenderer>()) {
+            if (Sprite* sp = sr->GetSprite()) {
+                glm::vec2 ws = EngineUtils::RenderUtils::PixelsToWorld(sp->GetPixelSize());
+                halfExtent = glm::max(halfExtent, 0.5f * ws * scale);
+                found = true;
+            }
+        }
+        if (BoxCollider* bc = obj->GetComponent<BoxCollider>()) {
+            halfExtent = glm::max(halfExtent, 0.5f * glm::abs(bc->GetSize()) * scale);
+            found = true;
+        }
+        if (CircleCollider* cc = obj->GetComponent<CircleCollider>()) {
+            float r = cc->GetRadius() * std::max(scale.x, scale.y);
+            halfExtent = glm::max(halfExtent, glm::vec2(r));
+            found = true;
+        }
+
+        if (found) {
+            mn = glm::min(mn, center - halfExtent);
+            mx = glm::max(mx, center + halfExtent);
+            any = true;
+        } else {
+            // No renderable extent -- still include the object's origin so an empty
+            // object at least contributes its position to the framing.
+            mn = glm::min(mn, center);
+            mx = glm::max(mx, center);
+        }
+
+        for (Transform* child : t->GetChildren())
+            if (child) ExpandBounds(child->GetGameObject(), mn, mx, any);
+    }
+
 
 
 
@@ -57,6 +115,7 @@ SceneViewGui::SceneViewGui(QWidget* parent)
 {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
+    setAcceptDrops(true);   // accept .scene files dropped from the Folder view
 }
 
 RenderView* SceneViewGui::CreateView(int pixelW, int pixelH)
@@ -189,13 +248,106 @@ void SceneViewGui::keyPressEvent(QKeyEvent* event) {
         }
     }
 
+    // Ctrl+F: frame the selection -- centre the editor camera on the selected
+    // object(s) and adjust zoom so they fill the view regardless of current zoom.
+    if (event->key() == Qt::Key_F && (event->modifiers() & Qt::ControlModifier)) {
+        FrameSelection();
+        return;
+    }
+
     inputManager->SetKeyState(event->key(), true);
+}
+
+void SceneViewGui::FrameSelection() {
+    if (!editorView) return;
+    auto* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+    auto* selMgr = container->FindSystem<SelectionManager>();
+    auto* registry = container->FindSystem<Registry>();
+    if (!selMgr || !registry || !selMgr->HasSelection()) return;
+
+    glm::vec2 mn(FLT_MAX), mx(-FLT_MAX);
+    bool any = false;
+    for (const std::string& id : selMgr->GetSelectedRoots())
+        if (GameObject* go = registry->Find<GameObject>(id))
+            ExpandBounds(go, mn, mx, any);
+
+    if (mx.x < mn.x) return;   // nothing captured
+
+    const glm::vec2 center = 0.5f * (mn + mx);
+    // Floor the framed size so empty/point objects don't zoom to infinity.
+    const float kMinSpan = 2.0f * EngineUtils::RenderUtils::GridCellPixels;
+    const glm::vec2 size = glm::max(mx - mn, glm::vec2(kMinSpan));
+
+    EditorCamera* cam = editorView->GetEditorCamera();
+    const float fill  = 0.6f;   // fraction of the view the object should fill
+    const float aspect = static_cast<float>(cam->GetPixelWidth())
+                       / std::max(1, cam->GetPixelHeight());
+    // Half-view-height (world) needed to fit each axis with padding.
+    const float reqHalfH = std::max((0.5f * size.y) / fill,
+                                    (0.5f * size.x) / (fill * aspect));
+    // orthoSize/zoom == half-view-height, so zoom = orthoSize / reqHalfH.
+    float zoom = cam->GetOrthoSize() / std::max(reqHalfH, 1e-3f);
+    zoom = glm::clamp(zoom, cam->GetMinZoom(), cam->GetMaxZoom());
+
+    cam->SetPosition(center);
+    cam->SetZoom(zoom);
+    update();   // request a repaint in case this view isn't the frame driver
 }
 
 void SceneViewGui::keyReleaseEvent(QKeyEvent* event) {
     Engine* engine = Engine::Get();
     InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
     inputManager->SetKeyState(event->key(), false);
+}
+
+// ── Scene-file drag & drop ───────────────────────────────────────────────────
+// A .scene dragged from the Folder view onto the viewport loads it, same as
+// dropping it on the Hierarchy panel (HierarchyGui::dropEvent).
+namespace {
+    bool DragHasSceneFile(const QMimeData* mime) {
+        if (!mime || !mime->hasUrls()) return false;
+        for (const QUrl& url : mime->urls()) {
+            if (!url.isLocalFile()) continue;
+            const QString p = url.toLocalFile();
+            if (p.endsWith(".scene", Qt::CaseInsensitive) ||
+                p.endsWith(".yml", Qt::CaseInsensitive))
+                return true;
+        }
+        return false;
+    }
+}
+
+void SceneViewGui::dragEnterEvent(QDragEnterEvent* event) {
+    if (DragHasSceneFile(event->mimeData())) event->acceptProposedAction();
+    else event->ignore();
+}
+
+void SceneViewGui::dragMoveEvent(QDragMoveEvent* event) {
+    if (DragHasSceneFile(event->mimeData())) event->acceptProposedAction();
+    else event->ignore();
+}
+
+void SceneViewGui::dropEvent(QDropEvent* event) {
+    if (!event->mimeData()->hasUrls()) { event->ignore(); return; }
+
+    SceneManager* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
+    if (!sceneManager) { event->ignore(); return; }
+
+    for (const QUrl& url : event->mimeData()->urls()) {
+        if (!url.isLocalFile()) continue;
+        const QString filePath = url.toLocalFile();
+        if (!filePath.endsWith(".scene", Qt::CaseInsensitive) &&
+            !filePath.endsWith(".yml", Qt::CaseInsensitive))
+            continue;
+
+        const std::string sceneFilePath = filePath.toStdString();
+        Console::Comment("Loading scene from: " + sceneFilePath);
+        sceneManager->LoadScene(sceneFilePath);
+        event->acceptProposedAction();
+        return;
+    }
+    event->ignore();
 }
 
 

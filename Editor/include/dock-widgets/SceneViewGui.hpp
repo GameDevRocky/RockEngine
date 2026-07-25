@@ -21,6 +21,11 @@ public:
 
     void Init();
 
+    // Centre the editor camera on the current selection and adjust zoom so it fills
+    // the view. Public so other panels (e.g. the Hierarchy) can trigger "frame
+    // selected" via SceneViewGui::Get()->FrameSelection().
+    void FrameSelection();
+
 protected:
     void DrawGizmos();
     void DrawToolBar();
@@ -29,6 +34,12 @@ protected:
     void OnViewInitialized() override;
     void OnResized(int logicalW, int logicalH) override;
     void OnAfterPresent() override;
+
+    // Accept .scene files dragged from the Folder view and load them, mirroring
+    // HierarchyGui's drop handling so a scene can be loaded onto either panel.
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dragMoveEvent(QDragMoveEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
 
     void keyPressEvent(QKeyEvent* e) override;
     void keyReleaseEvent(QKeyEvent* event) override;

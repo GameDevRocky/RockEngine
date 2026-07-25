@@ -29,6 +29,8 @@ public:
     void PanByPixels(const glm::vec2& pixelDelta);
 
     void SetZoomLimits(float minZ, float maxZ) { minZoom = minZ; maxZoom = maxZ; }
+    float GetMinZoom() const { return minZoom; }
+    float GetMaxZoom() const { return maxZoom; }
 
 private:
     float minZoom = 0.05f;

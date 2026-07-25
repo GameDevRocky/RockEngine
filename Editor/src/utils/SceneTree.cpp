@@ -14,6 +14,7 @@
 #include "engine/commands/SubtreeCommand.hpp"
 #include "engine/commands/ReparentCommand.hpp"
 #include "engine/commands/MacroCommand.hpp"
+#include "dock-widgets/SceneViewGui.hpp"
 #include <algorithm>
 #include <vector>
 
@@ -1014,6 +1015,11 @@ void SceneTree::keyPressEvent(QKeyEvent* event) {
     }
     if (event->key() == Qt::Key_Delete) {
         DeleteSelection();
+        return;
+    }
+    // Ctrl+F: frame the selection in the Scene view (same as pressing it there).
+    if (event->key() == Qt::Key_F && (event->modifiers() & Qt::ControlModifier)) {
+        SceneViewGui::Get()->FrameSelection();
         return;
     }
     QTreeView::keyPressEvent(event);
