@@ -13,14 +13,18 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/core/SceneManager.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
+#include "engine/rendering/core/Material.hpp"
+#include "engine/commands/PropertyCommand.hpp"
 #include "engine/debug/Console.hpp"
 #include "utils/DragDropMime.hpp"
 #include "Engine.hpp"
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
+#include <QDragLeaveEvent>
 #include <QDropEvent>
 #include <QMimeData>
 #include <QUrl>
+#include <QFileInfo>
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "engine/core/TimeManager.hpp"
@@ -318,21 +322,83 @@ namespace {
         }
         return false;
     }
+
+    // Material id from a dragged .material/.mat file, or "" if the drag carries no
+    // (loaded) material. Materials come from the Folder view as file URLs.
+    std::string MaterialIdFromMime(const QMimeData* mime) {
+        if (!mime || !mime->hasUrls()) return {};
+        for (const QUrl& url : mime->urls()) {
+            if (!url.isLocalFile()) continue;
+            const QString p = url.toLocalFile();
+            if (!p.endsWith(".material", Qt::CaseInsensitive) &&
+                !p.endsWith(".mat", Qt::CaseInsensitive))
+                continue;
+            try {
+                YAML::Node node = YAML::LoadFile(p.toStdString());
+                if (node["id"]) {
+                    const std::string id = node["id"].as<std::string>();
+                    if (AssetManager::Get().GetMaterial(id)) return id;
+                }
+            } catch (...) {}
+        }
+        return {};
+    }
 }
 
 void SceneViewGui::dragEnterEvent(QDragEnterEvent* event) {
+    m_matDragId = MaterialIdFromMime(event->mimeData());
+    if (!m_matDragId.empty()) { event->acceptProposedAction(); return; }
+
     if (event->mimeData()->hasFormat(kSpriteMimeType) || DragHasSceneFile(event->mimeData()))
         event->acceptProposedAction();
     else event->ignore();
 }
 
 void SceneViewGui::dragMoveEvent(QDragMoveEvent* event) {
+    if (!m_matDragId.empty()) {
+        UpdateMaterialPreview(event->position());   // live-preview under the cursor
+        event->acceptProposedAction();
+        return;
+    }
     if (event->mimeData()->hasFormat(kSpriteMimeType) || DragHasSceneFile(event->mimeData()))
         event->acceptProposedAction();
     else event->ignore();
 }
 
+void SceneViewGui::dragLeaveEvent(QDragLeaveEvent* event) {
+    // Drag cancelled / left the view: undo the preview.
+    RestoreMaterialPreview();
+    m_matDragId.clear();
+    event->accept();
+}
+
 void SceneViewGui::dropEvent(QDropEvent* event) {
+    // A material dropped onto an object keeps the previewed assignment (with undo).
+    if (!m_matDragId.empty()) {
+        Container* container = Engine::Get()->GetActiveContainer();
+        Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+        GameObject* go = (registry && !m_matPreviewObjId.empty())
+                       ? registry->Find<GameObject>(m_matPreviewObjId) : nullptr;
+        SpriteRenderer* sr = go ? go->GetComponent<SpriteRenderer>() : nullptr;
+
+        if (sr && m_matPreviewOrigId != m_matDragId) {
+            if (auto* undo = container->FindSystem<UndoSystem>())
+                undo->Push(std::make_unique<PropertyCommand<SpriteRenderer, std::string>>(
+                    sr->GetID(), "material_id", m_matPreviewOrigId, m_matDragId,
+                    [](SpriteRenderer* r, const std::string& v) { std::string id = v; r->SetMaterial(id); },
+                    "Assign Material"));
+        }
+
+        // Keep the preview applied; just drop the tracking (no restore).
+        const bool applied = sr != nullptr;
+        m_matPreviewObjId.clear();
+        m_matPreviewOrigId.clear();
+        m_matDragId.clear();
+        if (applied) event->acceptProposedAction();
+        else         event->ignore();
+        return;
+    }
+
     // A sprite dragged from the Folder view's hover column spawns an object.
     if (event->mimeData()->hasFormat(kSpriteMimeType)) {
         const std::string spriteId =
@@ -407,6 +473,49 @@ bool SceneViewGui::SpawnSpriteObject(const std::string& spriteId, const QPointF&
             obj, scene->SnapshotSubtree(obj), "Create Sprite Object"));
 
     return true;
+}
+
+std::string SceneViewGui::PickObjectAt(const QPointF& viewPos) {
+    makeCurrent();   // Pick reads the picking-pass buffer via GL
+    const float dpi = devicePixelRatioF();
+    const int fbX = static_cast<int>(viewPos.x() * dpi);
+    const int fbY = static_cast<int>((height() - viewPos.y()) * dpi);   // GL flips Y
+    return editorView->Pick(fbX, fbY);
+}
+
+void SceneViewGui::UpdateMaterialPreview(const QPointF& viewPos) {
+    const std::string picked = PickObjectAt(viewPos);
+    if (picked == m_matPreviewObjId) return;   // still over the same target
+
+    RestoreMaterialPreview();   // revert whatever we were previewing before
+
+    if (picked.empty()) return;
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    GameObject* go = registry ? registry->Find<GameObject>(picked) : nullptr;
+    SpriteRenderer* sr = go ? go->GetComponent<SpriteRenderer>() : nullptr;
+    if (!sr) return;   // only objects with a SpriteRenderer take a material
+
+    Material* orig = sr->GetMaterial();
+    m_matPreviewObjId = picked;
+    m_matPreviewOrigId = orig ? orig->GetID() : "";
+    std::string id = m_matDragId;
+    sr->SetMaterial(id);
+}
+
+void SceneViewGui::RestoreMaterialPreview() {
+    if (m_matPreviewObjId.empty()) return;
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    if (registry && !m_matPreviewOrigId.empty()) {
+        if (GameObject* go = registry->Find<GameObject>(m_matPreviewObjId))
+            if (SpriteRenderer* sr = go->GetComponent<SpriteRenderer>()) {
+                std::string id = m_matPreviewOrigId;
+                sr->SetMaterial(id);
+            }
+    }
+    m_matPreviewObjId.clear();
+    m_matPreviewOrigId.clear();
 }
 
 

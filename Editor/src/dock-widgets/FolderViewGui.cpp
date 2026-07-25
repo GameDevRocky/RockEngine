@@ -17,6 +17,7 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/Sprite.hpp"
+#include "engine/rendering/core/Resource.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/SceneManager.hpp"
 #include "engine/core/Container.hpp"
@@ -200,6 +201,39 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
             RepaintCell(cleared);
         }
     });
+
+    // Keep the sprite hover-column in sync with in-memory sprite changes: adding or
+    // removing a sprite invalidates its texture's cached previews.
+    m_assetAddedSub = AssetManager::Get().Subscribe([this](std::any data) -> bool {
+        if (data.has_value()) {
+            try {
+                if (auto* sprite = dynamic_cast<Sprite*>(std::any_cast<Resource*>(data)))
+                    InvalidateSpriteCache(sprite->GetTextureID());
+            } catch (const std::bad_any_cast&) {}
+        }
+        return true;
+    }, AssetManager::ASSET_ADDED_EVENT);
+
+    // A removed asset id can't be mapped back to its texture (the sprite is gone),
+    // so clear everything; the next hover rebuilds what it needs.
+    m_assetRemovedSub = AssetManager::Get().Subscribe([this](std::any) -> bool {
+        m_spriteCache.clear();
+        return true;
+    }, AssetManager::ASSET_REMOVED_EVENT);
+}
+
+FolderViewGui::~FolderViewGui() {
+    if (m_assetAddedSub   >= 0) AssetManager::Get().Unsubscribe(m_assetAddedSub);
+    if (m_assetRemovedSub >= 0) AssetManager::Get().Unsubscribe(m_assetRemovedSub);
+}
+
+void FolderViewGui::InvalidateSpriteCache(const std::string& textureId) {
+    m_spriteCache.erase(textureId);
+    // If the column is currently showing this texture, refresh its contents in place.
+    if (m_spriteColumn && m_spriteColumn->isVisible() && m_pendingTextureId == textureId) {
+        const TextureSprites& e = SpritesForTexture(textureId);   // rebuilds the cache
+        m_spriteColumn->SetSprites(e.thumbs, e.names, e.ids);
+    }
 }
 
 void FolderViewGui::Init() {

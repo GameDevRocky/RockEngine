@@ -98,7 +98,6 @@ class PlayerController(ScriptableComponent):
         self.sr.set_uniform("uTime", Time.elapsed_time)
     
     def late_update(self):
-        return
         if self.clone_ball and Input.mouse_down(MouseButton.LEFT):
             obj = self.duplicate(self.clone_ball)
             obj.transform.position = Input.get_mouse_pos()

@@ -1,0 +1,24 @@
+type: Material
+name: New Material 1
+id: 05847b950a313927712107e9af88f911
+shader_id: s11
+uniforms:
+  textures:
+    uTexture: ""
+  floats:
+    uBleedScale: 6
+    uEdgeDarken: 1.5
+    uBleedStrength: 0.015
+    uTime: 0.5
+    uGrainScale: 200
+    uBleedDrift: -2.35
+    uGrainStrength: 0.06
+  vec2:
+    uUVScale: [1, 1]
+    uUVOffset: [0, 0]
+    uSize: [1, 1]
+    uPivot: [0.5, 0.5]
+  vec3:
+    {}
+  vec4:
+    uColor: [1, 1, 1, 1]

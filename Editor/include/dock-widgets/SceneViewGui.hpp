@@ -37,8 +37,10 @@ protected:
 
     // Accept .scene files dragged from the Folder view and load them, mirroring
     // HierarchyGui's drop handling so a scene can be loaded onto either panel.
+    // Also: sprites (spawn an object) and materials (live-preview + assign on drop).
     void dragEnterEvent(QDragEnterEvent* event) override;
     void dragMoveEvent(QDragMoveEvent* event) override;
+    void dragLeaveEvent(QDragLeaveEvent* event) override;
     void dropEvent(QDropEvent* event) override;
 
     void keyPressEvent(QKeyEvent* e) override;
@@ -59,6 +61,18 @@ private:
     // Spawn a GameObject with a SpriteRenderer (set to spriteId) in the first loaded
     // scene at the given view position. Returns false if no scene is loaded.
     bool SpawnSpriteObject(const std::string& spriteId, const QPointF& viewPos);
+
+    // ── Material drag preview ────────────────────────────────────────────────
+    // While a material is dragged over the view, live-preview it on the object
+    // under the cursor (Unity-style), restoring the previous one when the cursor
+    // moves off. The drop commits it (with undo); a cancel restores it.
+    std::string PickObjectAt(const QPointF& viewPos);
+    void UpdateMaterialPreview(const QPointF& viewPos);
+    void RestoreMaterialPreview();
+
+    std::string m_matDragId;        // material id currently being dragged ("" = none)
+    std::string m_matPreviewObjId;  // GameObject showing the preview
+    std::string m_matPreviewOrigId; // that object's material before the preview
 
     EditorRenderView* editorView = nullptr;   // borrowed; same object as ViewportWidget::view
     ImGuiInstance* imGuiInstance = nullptr;

@@ -43,7 +43,7 @@ public:
 
 private:
     explicit FolderViewGui(QWidget* parent = nullptr);
-    ~FolderViewGui() override = default;
+    ~FolderViewGui() override;
     void GoBack();
     void RefreshBreadcrumbs();
     void NavigateToPath(const QString& path, bool recordHistory = true);
@@ -85,6 +85,9 @@ private:
         std::vector<std::string> ids;
     };
     const TextureSprites& SpritesForTexture(const std::string& textureId);
+    // Drop a texture's cached sprite previews (after an in-memory sprite add/remove)
+    // so the next hover rebuilds them; refresh the column live if it's showing it.
+    void InvalidateSpriteCache(const std::string& textureId);
 
     // Fade the given texture cell out (while its column is up) / back in, and
     // repaint the cell whose source file is `filePath`.
@@ -103,6 +106,8 @@ private:
     QString              m_pendingFilePath;           // its source file path
     QRect                m_pendingCellRect;           // global rect of the hovered cell
     std::unordered_map<std::string, TextureSprites> m_spriteCache;
+    int m_assetAddedSub   = -1;   // AssetManager ASSET_ADDED_EVENT subscription
+    int m_assetRemovedSub = -1;   // AssetManager ASSET_REMOVED_EVENT subscription
 
     QListView*              gridView          = nullptr;
     QFileSystemModel*       model             = nullptr;
