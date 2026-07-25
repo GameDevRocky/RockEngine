@@ -922,9 +922,15 @@ void GizmosManager::DrawCircleColliderGizmo(const glm::mat4& view, const glm::ma
     glm::vec2 worldCenter = glm::vec2(worldMat * glm::vec4(center, 0.0f, 1.0f));
     ImVec2 screenCenter = WorldToScreen(worldCenter, vp, viewWidth, viewHeight);
 
-    // Project a local-space edge point through worldMat to get screen radius
-    glm::vec2 localEdge = center + glm::vec2(radius, 0.0f);
-    glm::vec2 worldEdge = glm::vec2(worldMat * glm::vec4(localEdge, 0.0f, 1.0f));
+    // Physics (CircleCollider::CreateShape) and the debug renderer both scale a
+    // circle's radius uniformly by the LARGEST axis, since a circle can't skew.
+    // The gizmo must use the same scale — deriving it from the X axis alone made
+    // the ring wrong under non-uniform object scale.
+    glm::vec2 worldScale = transform->GetWorldScale();
+    float uniformScale = std::max(std::abs(worldScale.x), std::abs(worldScale.y));
+    float worldRadius = radius * uniformScale;
+
+    glm::vec2 worldEdge = worldCenter + glm::vec2(worldRadius, 0.0f);
     ImVec2 screenEdge = WorldToScreen(worldEdge, vp, viewWidth, viewHeight);
 
     float screenRadius = std::sqrt(
@@ -970,14 +976,15 @@ void GizmosManager::DrawCircleColliderGizmo(const glm::mat4& view, const glm::ma
         m_dragStartCenter = center;
     }
 
-    // Process drag — only the owning collider. Distance from mouse to center in local space.
+    // Process drag — only the owning collider. Measure the mouse distance from the
+    // center in WORLD space and divide by the same uniform scale used to draw and
+    // simulate the circle, so a handle dragged to a screen point yields the local
+    // radius that lands the ring exactly there (matches physics/debug, unlike the
+    // old per-axis inverse-transform which drifted under non-uniform scale).
     if (m_dragHandle >= 0 && m_dragColliderId == circleCollider->GetID() && io.MouseDown[0]) {
         glm::vec2 currentMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
-        glm::mat4 invWorld = glm::inverse(worldMat);
-        glm::vec4 localMouse4 = invWorld * glm::vec4(currentMouseWorld, 0.0f, 1.0f);
-        glm::vec2 localMouse(localMouse4.x, localMouse4.y);
-
-        float newRadius = glm::length(localMouse - center);
+        float worldDist = glm::length(currentMouseWorld - worldCenter);
+        float newRadius = (uniformScale > 1e-6f) ? worldDist / uniformScale : worldDist;
         if (newRadius >= 0.01f) {
             circleCollider->SetRadius(newRadius);
         }

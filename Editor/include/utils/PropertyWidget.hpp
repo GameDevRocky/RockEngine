@@ -8,12 +8,16 @@
 #include <QPushButton>
 #include <QColorDialog>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QComboBox>
 #include <QStyle>
 #include <QApplication>
 #include <QMouseEvent>
+#include <QPropertyAnimation>
+#include <QCursor>
+#include <QEvent>
 #include <glm/glm.hpp>
 #include "engine/utils/Properties.hpp"
 #include "utils/AssetPickerWidget.hpp"
@@ -411,6 +415,90 @@ protected:
     }
 };
 
+// A frameless, click-through popup that fades in above a ref field and shows the
+// referenced asset's thumbnail — a hover preview replacing the old always-visible
+// collapsible thumbnail. Width follows the anchor field; height is fixed.
+class AssetPreviewPopup : public QWidget {
+public:
+    static constexpr int kHeight = 96;   // matches the old inline thumbnail height
+
+    explicit AssetPreviewPopup(QWidget* parent = nullptr)
+        : QWidget(parent, Qt::ToolTip | Qt::FramelessWindowHint)
+    {
+        setAttribute(Qt::WA_TransparentForMouseEvents);  // never steal the hover
+        setAttribute(Qt::WA_ShowWithoutActivating);
+        auto* layout = new QVBoxLayout(this);
+        layout->setContentsMargins(0, 0, 0, 0);
+        m_label = new QLabel(this);
+        m_label->setAlignment(Qt::AlignCenter);
+        m_label->setStyleSheet("background-color: #1a1a1a; border: 1px solid #3a3a3a;");
+        layout->addWidget(m_label);
+
+        m_fade = new QPropertyAnimation(this, "windowOpacity", this);
+        m_fade->setDuration(130);
+        QObject::connect(m_fade, &QPropertyAnimation::finished, this, [this]() {
+            if (windowOpacity() <= 0.01) hide();   // only a completed fade-out hides
+        });
+    }
+
+    void showAbove(QWidget* anchor, const QPixmap& px) {
+        if (!anchor || px.isNull()) return;
+        const int w = anchor->width();
+        resize(w, kHeight);
+        m_label->setPixmap(px.scaled(w, kHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        const QPoint tl = anchor->mapToGlobal(QPoint(0, 0));
+        move(tl.x(), tl.y() - kHeight - 4);   // float just above the field
+        if (!isVisible()) setWindowOpacity(0.0);
+        show();
+        raise();
+        m_fade->stop();
+        m_fade->setStartValue(windowOpacity());
+        m_fade->setEndValue(1.0);
+        m_fade->start();
+    }
+
+    void fadeOut() {
+        if (!isVisible()) return;
+        m_fade->stop();
+        m_fade->setStartValue(windowOpacity());
+        m_fade->setEndValue(0.0);
+        m_fade->start();
+    }
+
+private:
+    QLabel* m_label = nullptr;
+    QPropertyAnimation* m_fade = nullptr;
+};
+
+// Event filter that drives an AssetPreviewPopup from hover over a ref field (and
+// its child edit/button). Leaving to a child of the anchor keeps the preview up;
+// leaving the anchor's rect entirely fades it out.
+class AssetHoverFilter : public QObject {
+public:
+    AssetHoverFilter(QWidget* anchor, AssetPreviewPopup* popup,
+                     std::function<QPixmap()> thumb, QObject* parent)
+        : QObject(parent), m_anchor(anchor), m_popup(popup), m_thumb(std::move(thumb)) {}
+
+protected:
+    bool eventFilter(QObject* obj, QEvent* event) override {
+        if (event->type() == QEvent::Enter) {
+            if (m_popup && m_anchor) m_popup->showAbove(m_anchor, m_thumb ? m_thumb() : QPixmap());
+        } else if (event->type() == QEvent::Leave) {
+            // Moving onto a child of the field still counts as hovering it.
+            if (m_anchor && m_popup) {
+                const QPoint local = m_anchor->mapFromGlobal(QCursor::pos());
+                if (!m_anchor->rect().contains(local)) m_popup->fadeOut();
+            }
+        }
+        return QObject::eventFilter(obj, event);
+    }
+
+private:
+    QWidget* m_anchor;
+    AssetPreviewPopup* m_popup;
+    std::function<QPixmap()> m_thumb;
+};
+
 class ObjectRefPropertyWidget : public PropertyWidget<std::string> {
 public:
     explicit ObjectRefPropertyWidget(const Properties::PropDesc& desc) : m_desc(desc) {
@@ -444,6 +532,24 @@ public:
             SetValue(id);
             if (onChanged) onChanged(id);
         }, m_container));
+
+        // Ref fields with a previewable thumbnail get a hover preview: a popup that
+        // fades in above the field (replacing the old always-on collapsible
+        // thumbnail). Installed on the field and its children so moving between them
+        // doesn't drop the hover. GameObject refs preview their sprite when present;
+        // currentThumbnail() returns empty otherwise, so those simply show nothing.
+        if (m_desc.tag == Properties::Tags::TEXTURE    ||
+            m_desc.tag == Properties::Tags::SPRITE     ||
+            m_desc.tag == Properties::Tags::MATERIAL   ||
+            m_desc.tag == Properties::Tags::OBJECT_REF) {
+            m_previewPopup = new AssetPreviewPopup(m_container);
+            auto* hover = new AssetHoverFilter(
+                m_container, m_previewPopup,
+                [this]() { return currentThumbnail(); }, m_container);
+            m_container->installEventFilter(hover);
+            m_edit->installEventFilter(hover);
+            m_btn->installEventFilter(hover);
+        }
     }
 
     QWidget* GetWidget() override { return m_container; }
@@ -564,6 +670,25 @@ private:
         }
     }
 
+    // Thumbnail for the current value's hover preview. Empty (→ no preview) for
+    // non-previewable tags, no value, or a GameObject with no sprite to show.
+    QPixmap currentThumbnail() const {
+        if (m_currentId.empty()) return {};
+        if (m_desc.tag == Properties::Tags::TEXTURE)  return AssetThumbnails::forTexture(m_currentId);
+        if (m_desc.tag == Properties::Tags::SPRITE)   return AssetThumbnails::forSprite(m_currentId);
+        if (m_desc.tag == Properties::Tags::MATERIAL) return AssetThumbnails::forMaterial(m_currentId);
+        if (m_desc.tag == Properties::Tags::OBJECT_REF) {
+            // Preview a referenced GameObject via its SpriteRenderer's sprite, when
+            // it has one (same source the picker uses for object thumbnails).
+            auto* go = findGameObject(m_currentId);
+            if (!go) return {};
+            auto* sr = go->GetComponent<SpriteRenderer>();
+            if (!sr || sr->GetSpriteID().empty()) return {};
+            return AssetThumbnails::forSprite(sr->GetSpriteID());
+        }
+        return {};
+    }
+
     // Looks up a GameObject by ID across all loaded scenes; nullptr if not found.
     GameObject* findGameObject(const std::string& id) const {
         if (id.empty()) return nullptr;
@@ -638,6 +763,7 @@ private:
     QWidget* m_container = nullptr;
     QPointer<ClickableLineEdit> m_edit;
     QPointer<QPushButton> m_btn;
+    AssetPreviewPopup* m_previewPopup = nullptr;   // hover preview (asset tags only)
 };
 
 // Container that keeps a name-overlay label (and collapse button) pinned to its
@@ -687,7 +813,7 @@ public:
         m_nameLabel->setStyleSheet(
             "QLabel { background-color: rgb(30, 30, 30); color: rgb(220, 220, 220);"
             " border: 1px solid rgb(51, 51, 51); border-left: none;"
-            " font-size: 16px; padding: 0 2px; }"
+            " font-size: padding: 0 2px; }"
             "QLabel:hover { background-color: rgb(52, 52, 52); color: white; }");
         m_nameLabel->raise();
         tc->overlay = m_nameLabel;

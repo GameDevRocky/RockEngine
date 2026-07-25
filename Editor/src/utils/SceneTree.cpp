@@ -302,31 +302,14 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
 
     // Driven off the selection model rather than QTreeView::clicked: clicked fires
     // per-index, ignores modifiers entirely, and never fires for keyboard navigation.
+    // While the mouse is held (m_mouseDown) the engine sync is deferred: a plain
+    // click commits it on release, a press that becomes a drag discards it — so
+    // dragging a row to reparent/reorder no longer selects the dragged object.
     connect(selectionModel(), &QItemSelectionModel::selectionChanged, this,
             [this](const QItemSelection&, const QItemSelection&) {
         if (m_syncingSelection) return;
-
-        std::vector<std::string> ids;
-        for (const QModelIndex& index : selectionModel()->selectedRows()) {
-            QString idQt = index.data(GAMEOBJECT_ID_ROLE).toString();
-            if (!idQt.isEmpty()) ids.push_back(idQt.toStdString());
-        }
-
-        // selectedRows() comes back in MODEL order, not click order. Rotate the
-        // current index to the back so the last-clicked row becomes the primary —
-        // otherwise the inspector and gizmo pivot jump to whatever sits lowest in
-        // the tree rather than what the user just clicked.
-        QString currentIdQt = currentIndex().data(GAMEOBJECT_ID_ROLE).toString();
-        if (!currentIdQt.isEmpty()) {
-            const std::string currentId = currentIdQt.toStdString();
-            auto it = std::find(ids.begin(), ids.end(), currentId);
-            if (it != ids.end() && it + 1 != ids.end())
-                std::rotate(it, it + 1, ids.end());
-        }
-
-        m_syncingSelection = true;
-        selectionManager->SelectMany(ids);
-        m_syncingSelection = false;
+        if (m_mouseDown) return;         // defer to mouseReleaseEvent / startDrag
+        PushSelectionToEngine();
     });
 
     // Per-item context menu. Separate from the header menu above, which is
@@ -868,6 +851,61 @@ void SceneTree::OnSelectionChanged() {
     }
 
     m_syncingSelection = false;
+}
+
+void SceneTree::PushSelectionToEngine() {
+    if (m_syncingSelection) return;
+
+    std::vector<std::string> ids;
+    for (const QModelIndex& index : selectionModel()->selectedRows()) {
+        QString idQt = index.data(GAMEOBJECT_ID_ROLE).toString();
+        if (!idQt.isEmpty()) ids.push_back(idQt.toStdString());
+    }
+
+    // selectedRows() comes back in MODEL order, not click order. Rotate the
+    // current index to the back so the last-clicked row becomes the primary —
+    // otherwise the inspector and gizmo pivot jump to whatever sits lowest in
+    // the tree rather than what the user just clicked.
+    QString currentIdQt = currentIndex().data(GAMEOBJECT_ID_ROLE).toString();
+    if (!currentIdQt.isEmpty()) {
+        const std::string currentId = currentIdQt.toStdString();
+        auto it = std::find(ids.begin(), ids.end(), currentId);
+        if (it != ids.end() && it + 1 != ids.end())
+            std::rotate(it, it + 1, ids.end());
+    }
+
+    m_syncingSelection = true;
+    selectionManager->SelectMany(ids);
+    m_syncingSelection = false;
+}
+
+void SceneTree::mousePressEvent(QMouseEvent* event) {
+    // Start of a potential click OR drag. Defer the tree->engine selection sync
+    // (see the selectionChanged handler) until we know which it is.
+    m_mouseDown = true;
+    m_draggingItems = false;
+    QTreeView::mousePressEvent(event);
+}
+
+void SceneTree::startDrag(Qt::DropActions supportedActions) {
+    // The press became a drag. QDrag::exec below runs a nested loop that consumes
+    // the mouse release and performs the drop; no mouseReleaseEvent follows.
+    m_draggingItems = true;
+    QTreeView::startDrag(supportedActions);
+    // A drag must never change the engine selection. Clear the pressed state and
+    // restore the tree highlight to the engine's (unchanged) selection, so the
+    // dragged row isn't left highlighted as if it had been selected.
+    m_mouseDown = false;
+    OnSelectionChanged();
+}
+
+void SceneTree::mouseReleaseEvent(QMouseEvent* event) {
+    QTreeView::mouseReleaseEvent(event);   // may finalize selection for a click on an already-selected row
+    // A plain click (no drag started): commit the current highlight to the engine.
+    if (m_mouseDown && !m_draggingItems)
+        PushSelectionToEngine();
+    m_mouseDown = false;
+    m_draggingItems = false;
 }
 
 QModelIndex SceneTree::FindItemById(const std::string& id) const {

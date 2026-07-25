@@ -44,6 +44,11 @@ class SceneTree : public QTreeView{
         void dropEvent(QDropEvent* event) override;
         bool eventFilter(QObject* obj, QEvent* event) override;
         void keyPressEvent(QKeyEvent* event) override;
+        // Selection is committed to the engine on click-release, not on press, so
+        // press-and-drag (reparent/reorder) no longer selects the dragged object.
+        void mousePressEvent(QMouseEvent* event) override;
+        void mouseReleaseEvent(QMouseEvent* event) override;
+        void startDrag(Qt::DropActions supportedActions) override;
 
     private:
         QModelIndex FindItemById(const std::string& id) const;
@@ -66,6 +71,9 @@ class SceneTree : public QTreeView{
         // the manager directly rather than taking the event payload, since the
         // payload only carries the primary id.
         void OnSelectionChanged();
+        // Push the tree's current highlight into the engine's SelectionManager.
+        // Called on a click-release (and keyboard nav), never mid-press/drag.
+        void PushSelectionToEngine();
         void OnItemEntered(const QModelIndex& index);
         // Resize the view to fit its visible rows (scrollbars are off; the outer
         // scroll area handles overflow). Call after any content/expansion change.
@@ -83,6 +91,11 @@ class SceneTree : public QTreeView{
         std::string scene_id;
         QStandardItemModel* model = nullptr;
         bool handlingDrop = false;
+        // Set between mouse press and release; while true the tree->engine
+        // selection sync is deferred so a press that turns into a drag doesn't
+        // select. m_draggingItems records that the press became an item drag.
+        bool m_mouseDown = false;
+        bool m_draggingItems = false;
         // Guards the selection round trip in BOTH directions: tree -> engine (so the
         // engine's notify doesn't bounce back and rewrite the tree mid-signal) and
         // engine -> tree (so Qt's selectionChanged doesn't bounce back into the engine).

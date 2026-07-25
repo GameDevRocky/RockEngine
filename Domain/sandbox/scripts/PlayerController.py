@@ -24,7 +24,7 @@ class PlayerController(ScriptableComponent):
     Tune the numeric fields below in the inspector to match your world scale.
     """
 
-    test_ : int
+    test_ : GameObject
 
     # ── Movement tuning ──────────────────────────────────────────────────────
     move_speed: float = 200.0           # target horizontal speed
@@ -56,6 +56,7 @@ class PlayerController(ScriptableComponent):
         self.sr = self.get_component(SpriteRenderer)
         self.animator = self.get_component(Animator)
         self.balls = []
+        
 
         # Core runtime state FIRST, before any optional setup that can fail: an
         # exception below must never leave fixed_update reading an unset timer/flag.
