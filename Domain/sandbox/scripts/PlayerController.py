@@ -55,6 +55,7 @@ class PlayerController(ScriptableComponent):
         self.rb = self.get_component(Rigidbody)
         self.sr = self.get_component(SpriteRenderer)
         self.animator = self.get_component(Animator)
+        self.balls = []
 
         # Core runtime state FIRST, before any optional setup that can fail: an
         # exception below must never leave fixed_update reading an unset timer/flag.
@@ -98,13 +99,15 @@ class PlayerController(ScriptableComponent):
         self.sr.set_uniform("uTime", Time.elapsed_time)
     
     def late_update(self):
+        if Input.is_key_pressed(Keys.SPACE):
+            Console.comment(len(self.balls))
         if self.clone_ball and Input.mouse_down(MouseButton.LEFT):
             obj = self.duplicate(self.clone_ball)
             obj.transform.position = Input.get_mouse_pos()
-            if obj:
-                rb = obj.get_component(Rigidbody)
-                rb.apply_impulse((random.randint(-500, 500), 500))
-                obj.active = True
+            rb = obj.get_component(Rigidbody)
+            rb.apply_impulse((random.randint(-500, 500), 500))
+            obj.active = True
+            self.balls.append(obj)
 
     # ── movement ─────────────────────────────────────────────────────────────
     def _move_horizontal(self, dt):
