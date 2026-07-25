@@ -184,6 +184,14 @@ void SceneManager::LoadScene(const std::string& file_path){
 
 
 void SceneManager::SaveScene(const std::string& scene_id) {
+    // Saving is only meaningful against the edit-time world. In play mode the
+    // active container is a throwaway deep copy, so persisting it would write the
+    // simulated (moved/spawned) state back over the authored scene.
+    if (container->GetMode() != Container::Mode::Editor) {
+        Console::Warn("Only able to save scene in Editor mode");
+        return;
+    }
+
     Scene* scene = registry->Find<Scene>(scene_id);
     if (!scene) return;
 

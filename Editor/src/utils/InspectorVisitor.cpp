@@ -330,43 +330,30 @@ void InspectorVisitor::Visit(RigidBody* rb){
 
 void InspectorVisitor::Visit(ScriptComponent* sc){
     // Script selector — always the first row, so an unassigned ScriptComponent
-    // still shows a way to pick a class. Opens a searchable popup listing every
-    // ScriptableComponent subclass; picking one reassigns the script live.
+    // still shows a way to pick a class. Uses the same asset-picker widget as
+    // Sprite/Material/GameObject refs: a "…" picker listing every
+    // ScriptableComponent subclass, plus drag-and-drop of a .py script file from
+    // the Folder view. The value is carried as "module:class" (see the SCRIPT tag
+    // handling in ObjectRefPropertyWidget / RefDropFilter).
     {
-        std::string current = sc->GetScriptClassName();
-        auto* scriptButton = new QPushButton(
-            QString::fromStdString(current.empty() ? "(none)" : current));
-        scriptButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        auto* pw = new ObjectRefPropertyWidget(
+            Properties::PropDesc().Tag(Properties::Tags::SCRIPT));
 
-        QObject::connect(scriptButton, &QPushButton::clicked, scriptButton, [sc, scriptButton]() {
-            // Build display names, disambiguating a class shared across modules
-            // as "Class (module)". Map each back to its module/class pair.
-            auto available = ScriptComponent::GetAvailableScripts();
-            std::map<std::string, int> classCounts;
-            for (const auto& s : available) classCounts[s.className]++;
+        std::string current;
+        if (!sc->GetScriptClassName().empty())
+            current = sc->GetScriptModuleName() + ":" + sc->GetScriptClassName();
+        pw->SetValue(current);
 
-            std::vector<std::string> display;
-            std::map<std::string, ScriptClassInfo> byDisplay;
-            for (const auto& s : available) {
-                std::string name = (classCounts[s.className] > 1)
-                    ? s.className + " (" + s.moduleName + ")"
-                    : s.className;
-                display.push_back(name);
-                byDisplay[name] = s;
-            }
+        pw->onChanged = [sc](const std::string& ref) {
+            // ref is "module:class"; split and reassign the script live. SetScript
+            // fires SCRIPT_RELOADED_EVENT, which rebuilds this inspector (queued),
+            // so it's safe to run from the widget's own callback.
+            const auto colon = ref.find(':');
+            if (colon == std::string::npos) return;
+            sc->SetScript(ref.substr(0, colon), ref.substr(colon + 1));
+        };
 
-            auto* picker = new ComponentPickerWidget(std::move(display), scriptButton);
-            picker->setFixedWidth(scriptButton->width());
-            picker->onSelected = [sc, byDisplay](const std::string& chosen) {
-                auto it = byDisplay.find(chosen);
-                if (it != byDisplay.end())
-                    sc->SetScript(it->second.moduleName, it->second.className);
-            };
-            picker->move(scriptButton->mapToGlobal(QPoint(0, scriptButton->height())));
-            picker->show();
-        });
-
-        AddRow("Script", scriptButton);
+        AddRow("Script", pw->GetWidget());
     }
 
     const auto& fields = sc->GetFields();

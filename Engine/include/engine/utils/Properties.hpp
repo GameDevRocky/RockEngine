@@ -27,6 +27,7 @@ namespace Properties {
         SHADER,
         STRING,
         OBJECT_REF,
+        SCRIPT,
         DROPDOWN,
         LIST
     };

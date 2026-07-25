@@ -13,6 +13,8 @@
 #include <QIcon>
 #include <QScreen>
 #include <QGuiApplication>
+#include <QTimer>
+#include <QAbstractItemView>
 
 class AssetPickerWidget : public QWidget {
     Q_OBJECT
@@ -72,6 +74,12 @@ public:
 
     std::function<void(const std::string&)> onSelected;
 
+    // Preselect the item with this id when the popup opens: it becomes the current
+    // (highlighted) item and is scrolled into view, so a field that already has a
+    // value doesn't make the user hunt for it. No match / empty = leave the default
+    // (first item). Call before showAt().
+    void setSelectedId(std::string id) { m_selectedId = std::move(id); }
+
     // Show the popup with its top-left at the given global position, nudged so the
     // whole widget stays within the available area of the screen it lands on — it is
     // never clipped by a physical screen edge (or the taskbar). Use this instead of
@@ -90,6 +98,11 @@ public:
         }
         move(globalTopLeft);
         show();
+        // Apply now and again next event-loop turn: right after show() the list's
+        // viewport may not be laid out yet, so scrollToItem could no-op. The
+        // deferred pass guarantees the item ends up visible.
+        applySelection();
+        QTimer::singleShot(0, this, [this]() { applySelection(); });
     }
 
 protected:
@@ -130,6 +143,20 @@ private slots:
     }
 
 private:
+    // Make the item whose id matches m_selectedId the current one and scroll it
+    // into view. No-op if unset or not found.
+    void applySelection() {
+        if (m_selectedId.empty() || !m_list) return;
+        for (int i = 0; i < m_list->count(); ++i) {
+            QListWidgetItem* item = m_list->item(i);
+            if (item->data(Qt::UserRole).toString().toStdString() == m_selectedId) {
+                m_list->setCurrentItem(item);
+                m_list->scrollToItem(item, QAbstractItemView::PositionAtCenter);
+                return;
+            }
+        }
+    }
+
     void buildAllItems() {
         for (const auto& [name, id] : m_allItems) {
             auto* item = new QListWidgetItem(QString::fromStdString(name));
@@ -168,4 +195,5 @@ private:
     std::vector<std::pair<std::string, std::string>> m_allItems;
     std::function<QPixmap(const std::string& id)>    m_thumbnailGen;
     std::function<QIcon(const std::string& id)>      m_fallbackIconGen;
+    std::string m_selectedId;
 };

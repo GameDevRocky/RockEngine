@@ -52,6 +52,32 @@ namespace {
         return scriptsPath;
     }
 
+    // True if `cur`'s runtime type is usable as a field of declared type
+    // `typeName`. Used after a hot-reload to decide whether a value carried over
+    // from the previous instance survives, or is reset to the new default when
+    // the field's type annotation changed (e.g. list[float] -> int). Keeps the
+    // stored value castable to the declared type so the inspector never casts a
+    // list to an int (which threw an uncaught pybind cast_error and crashed).
+    bool ValueMatchesFieldType(const py::object& cur, const std::string& typeName) {
+        if (typeName == "bool")  return py::isinstance<py::bool_>(cur);
+        // bool subclasses int in Python, so exclude it from int/float.
+        if (typeName == "int")   return py::isinstance<py::int_>(cur) && !py::isinstance<py::bool_>(cur);
+        if (typeName == "float") return !py::isinstance<py::bool_>(cur) &&
+                                         (py::isinstance<py::float_>(cur) || py::isinstance<py::int_>(cur));
+        // "str" covers plain strings and ref fields, whose value is None (unassigned)
+        // or a handler object carrying an .id — all valid, so none are reset.
+        if (typeName == "str")   return cur.is_none() || py::isinstance<py::str>(cur) || py::hasattr(cur, "id");
+        if (typeName == "list")  return py::isinstance<py::list>(cur);
+        if (typeName == "vec2" || typeName == "vec3" || typeName == "vec4") {
+            if (cur.is_none()) return false;
+            std::string qual;
+            try { qual = cur.attr("__class__").attr("__qualname__").cast<std::string>(); } catch (...) {}
+            const char* want = typeName == "vec4" ? "Vector4" : typeName == "vec3" ? "Vector3" : "Vector2";
+            return qual.find(want) != std::string::npos;
+        }
+        return true; // unknown type — don't second-guess it
+    }
+
     // Wrap a single list element ID into its Python handler object. Plain string
     // elements pass through as py::str; sprite/material refs become Sprite(id)/
     // Material(id) (empty id → None). Mirrors the scalar str-ref path.
@@ -530,8 +556,21 @@ void ScriptComponent::IntrospectFields()
             if (d.contains("element_ref_type_name"))
                 info.elementRefTypeName = d["element_ref_type_name"].cast<std::string>();
 
-            // If the instance doesn't have this attribute yet, apply the default
-            if (!py::hasattr(scriptInstance, info.name.c_str())) {
+            // Apply the annotated default when the instance has no value for this
+            // field yet, OR when it holds a value whose type is incompatible with
+            // the annotated type. The latter happens when a field's type
+            // annotation was edited and the old value was carried across a
+            // hot-reload: the annotation wins, so the field takes on the newly
+            // declared type and resets to its default. (Previously the stale value
+            // "won" and silently changed the field's displayed type — and a
+            // list-valued field left annotated as a scalar made the inspector cast
+            // a list to an int, throwing an uncaught pybind error that crashed.)
+            bool applyDefault = !py::hasattr(scriptInstance, info.name.c_str());
+            if (!applyDefault) {
+                py::object cur = py::getattr(scriptInstance, info.name.c_str());
+                applyDefault = !ValueMatchesFieldType(cur, info.typeName);
+            }
+            if (applyDefault) {
                 py::object defaultVal = d["default"];
                 if (!defaultVal.is_none()) {
                     // For unassigned sprite/material/component refs, set None so
@@ -549,36 +588,6 @@ void ScriptComponent::IntrospectFields()
                     } else {
                         py::setattr(scriptInstance, info.name.c_str(), defaultVal);
                     }
-                }
-            } else {
-                // The instance already holds a value (e.g. after hot-reload
-                // transferred old data). If the runtime value's type doesn't
-                // match the annotated type, the value wins — re-derive the
-                // displayed typeName from the live object so the inspector
-                // shows the correct widget instead of throwing cast errors.
-                py::object cur = py::getattr(scriptInstance, info.name.c_str());
-                std::string runtimeType;
-                if (py::isinstance<py::bool_>(cur)) {
-                    runtimeType = "bool";
-                } else if (py::isinstance<py::int_>(cur)) {
-                    runtimeType = "int";
-                } else if (py::isinstance<py::float_>(cur)) {
-                    runtimeType = "float";
-                } else if (py::isinstance<py::str>(cur)) {
-                    runtimeType = "str";
-                } else if (!cur.is_none()) {
-                    std::string qual;
-                    try { qual = cur.attr("__class__").attr("__qualname__").cast<std::string>(); }
-                    catch (...) {}
-                    if (qual.find("Vector4") != std::string::npos)      runtimeType = "vec4";
-                    else if (qual.find("Vector3") != std::string::npos) runtimeType = "vec3";
-                    else if (qual.find("Vector2") != std::string::npos) runtimeType = "vec2";
-                }
-                if (!runtimeType.empty() && runtimeType != info.typeName) {
-                    info.typeName = runtimeType;
-                    // refTypeName only applies to the annotated Sprite/Material
-                    // path; if the runtime type no longer matches, clear it.
-                    info.refTypeName.clear();
                 }
             }
 
@@ -752,6 +761,13 @@ ScriptFieldValue ScriptComponent::GetFieldValue(const std::string& name)
         std::cerr << "[ScriptComponent] Error getting field '" << name
                   << "': " << e.what() << std::endl;
     }
+    catch (const std::exception& e) {
+        // See GetAllFieldValues: a type-mismatched value throws a pybind
+        // cast_error (a std::exception, not error_already_set). Degrade to the
+        // default rather than letting it crash the app.
+        std::cerr << "[ScriptComponent] Type mismatch getting field '" << name
+                  << "': " << e.what() << std::endl;
+    }
     return 0.0f;
 }
 
@@ -801,6 +817,14 @@ std::map<std::string, ScriptFieldValue> ScriptComponent::GetAllFieldValues()
         }
         catch (const py::error_already_set& e) {
             std::cerr << "[ScriptComponent] Error in GetAllFieldValues for '" << field.name
+                      << "': " << e.what() << std::endl;
+        }
+        catch (const std::exception& e) {
+            // A value whose type doesn't match the declared field type (e.g. a
+            // stale hot-reload value) makes .cast<T>() throw a pybind cast_error,
+            // which is NOT a py::error_already_set. Swallow it per-field so the
+            // inspector rebuild continues instead of terminating the app.
+            std::cerr << "[ScriptComponent] Type mismatch reading field '" << field.name
                       << "': " << e.what() << std::endl;
         }
     }

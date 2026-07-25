@@ -472,6 +472,9 @@ private:
             thumbGen = [](const std::string& id) { return AssetThumbnails::forSprite(id); };
         else if (m_desc.tag == Properties::Tags::TEXTURE)
             thumbGen = [](const std::string& id) { return AssetThumbnails::forTexture(id); };
+        else if (m_desc.tag == Properties::Tags::SCRIPT)
+            // Scripts have no visual thumbnail — the fallback file icon is used.
+            thumbGen = nullptr;
         else
             // Generic OBJECT_REF (game objects): preview the object's SpriteRenderer sprite.
             thumbGen = [this](const std::string& id) -> QPixmap {
@@ -511,6 +514,14 @@ private:
                 auto* a = AssetManager::Get().GetShader(id);
                 return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
             };
+        else if (m_desc.tag == Properties::Tags::SCRIPT)
+            fallbackIconGen = [iconFromFilePath](const std::string& id) -> QIcon {
+                // id is "module:class" — icon the module's .py file.
+                const std::string module = id.substr(0, id.find(':'));
+                if (module.empty()) return {};
+                return iconFromFilePath(
+                    EngineUtils::GetAssetPath("Domain/sandbox/scripts/" + module + ".py"));
+            };
         else
             // Game objects have no file path (and may have no sprite) — fall back
             // to the generic game-object (cube) icon.
@@ -524,6 +535,7 @@ private:
             SetValue(id);
             if (onChanged) onChanged(id);
         };
+        picker->setSelectedId(m_currentId);   // highlight + scroll to the current value
         auto pos = m_container->rect().topLeft();
         pos.setX(pos.x() - picker->width());
         picker->showAt(m_container->mapToGlobal(pos));
@@ -542,6 +554,10 @@ private:
             auto* a = am.GetTexture(id);  return a ? a->GetName() : id;
         } else if (m_desc.tag == Properties::Tags::SHADER) {
             auto* a = am.GetShader(id);   return a ? a->GetName() : id;
+        } else if (m_desc.tag == Properties::Tags::SCRIPT) {
+            // id is "module:class" — show the class name (what the user picked).
+            const auto colon = id.find(':');
+            return colon == std::string::npos ? id : id.substr(colon + 1);
         } else {
             auto* go = findGameObject(id);
             return go ? go->GetName() : id;
@@ -577,6 +593,18 @@ private:
         } else if (m_desc.tag == Properties::Tags::SHADER) {
             for (const auto& [id, sh] : am.GetAllShaders())
                 items.push_back({sh->GetName(), id});
+        } else if (m_desc.tag == Properties::Tags::SCRIPT) {
+            // Every ScriptableComponent subclass, keyed by "module:class".
+            // Disambiguate a class name shared across modules as "Class (module)".
+            auto available = ScriptComponent::GetAvailableScripts();
+            std::map<std::string, int> classCounts;
+            for (const auto& s : available) classCounts[s.className]++;
+            for (const auto& s : available) {
+                std::string display = classCounts[s.className] > 1
+                    ? s.className + " (" + s.moduleName + ")"
+                    : s.className;
+                items.push_back({display, s.moduleName + ":" + s.className});
+            }
         } else {
             // Generic OBJECT_REF — enumerate all GameObjects, optionally filtered
             // by script class (gameobject:<Class>) or native component type
@@ -812,6 +840,7 @@ private:
             SetValue(id);
             if (onChanged) onChanged(id);
         };
+        picker->setSelectedId(m_currentId);   // highlight + scroll to the current value
         auto pos = m_container->rect().topLeft();
         pos.setX(pos.x() - picker->width());
         pos.setY(pos.y() - picker->height()/2);

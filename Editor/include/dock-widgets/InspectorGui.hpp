@@ -38,6 +38,10 @@ public:
 private:
     void SubscribeToSelector();
     void OnObjectSelected(const std::string& id);
+    // Add a ScriptComponent running the given "module:class" script to the
+    // currently-selected GameObject (drag-drop of a .py from the Folder view onto
+    // the inspector). No-op unless the selection is a GameObject.
+    void AddScriptToSelectedObject(const std::string& scriptRef);
     // Flush any property widgets flagged dirty by an engine change event since the
     // last tick. Driven by m_pollTimer so live values (e.g. a moving object's
     // position) refresh at ~20 Hz instead of every engine frame. Runs in all modes.
@@ -70,6 +74,10 @@ private:
     // firing the deselect that triggers teardown — then deletes), and assets live
     // for the whole session.
     std::vector<std::pair<Observable*, int>> m_inspectorSubs;
+    // Id currently shown in the inspector. When OnObjectSelected rebuilds for the
+    // SAME id (add/remove component, script hot-reload), the scroll position is
+    // preserved so the rebuild isn't jarring; a different id resets to the top.
+    std::string m_currentInspectedId;
     // Deferred value-refresh closures collected from the property visitors for the
     // current selection, flushed by RefreshDirtyValues on the m_pollTimer tick.
     // Cleared/rebuilt in OnObjectSelected alongside m_inspectorSubs.

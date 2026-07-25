@@ -33,10 +33,15 @@
 //     (gameobject:<Class>) or native-component (component:<Type>) constraint.
 class RefDropFilter : public QObject {
 public:
+    // `gate` (optional): an extra accept condition evaluated on every drag/drop —
+    // when it returns false the drop is rejected (used to restrict the inspector's
+    // script-drop target to GameObject selections). No gate = always eligible.
     RefDropFilter(Properties::PropDesc desc,
                   std::function<void(const std::string&)> onDropped,
-                  QObject* parent = nullptr)
-        : QObject(parent), m_desc(std::move(desc)), m_onDropped(std::move(onDropped)) {}
+                  QObject* parent = nullptr,
+                  std::function<bool()> gate = nullptr)
+        : QObject(parent), m_desc(std::move(desc)),
+          m_onDropped(std::move(onDropped)), m_gate(std::move(gate)) {}
 
 protected:
     bool eventFilter(QObject* obj, QEvent* event) override {
@@ -78,6 +83,8 @@ private:
     bool Resolve(const QMimeData* mime, std::string& outId) const {
         using Properties::Tags;
 
+        if (m_gate && !m_gate()) return false;   // extra caller-supplied gate
+
         // ── GameObject drag from the Hierarchy ────────────────────────────────
         if (mime->hasFormat(kGameObjectMimeType)) {
             if (m_desc.tag != Tags::OBJECT_REF) return false;   // asset fields reject objects
@@ -109,6 +116,17 @@ private:
             return true;
         }
 
+        // ── Script .py file drag from the Folder view ─────────────────────────
+        if (mime->hasUrls() && m_desc.tag == Tags::SCRIPT) {
+            for (const QUrl& url : mime->urls()) {
+                const QString path = url.toLocalFile();
+                if (QFileInfo(path).suffix().toLower() != "py") continue;
+                const std::string ref = ScriptRefForFile(path);
+                if (!ref.empty()) { outId = ref; return true; }   // first .py script wins
+            }
+            return false;
+        }
+
         // ── Asset file drag from the Folder view ──────────────────────────────
         if (mime->hasUrls()) {
             if (m_desc.tag != Tags::MATERIAL && m_desc.tag != Tags::SPRITE &&
@@ -128,6 +146,21 @@ private:
         }
 
         return false;
+    }
+
+    // Resolves a dropped .py file to a "module:class" script reference by matching
+    // the file stem against the discovered ScriptableComponent subclasses. Prefers
+    // the class named after the file (the common one-class-per-file convention),
+    // else the first script class defined in that module. Empty if none.
+    static std::string ScriptRefForFile(const QString& path) {
+        const std::string stem = QFileInfo(path).completeBaseName().toStdString();
+        std::string firstMatch;
+        for (const auto& s : ScriptComponent::GetAvailableScripts()) {
+            if (s.moduleName != stem) continue;
+            if (s.className == stem) return s.moduleName + ":" + s.className;
+            if (firstMatch.empty()) firstMatch = s.moduleName + ":" + s.className;
+        }
+        return firstMatch;
     }
 
     // Reads the asset id ("id:" field) out of a dropped asset file. Definition/
@@ -174,4 +207,5 @@ private:
 
     Properties::PropDesc m_desc;
     std::function<void(const std::string&)> m_onDropped;
+    std::function<bool()> m_gate;
 };

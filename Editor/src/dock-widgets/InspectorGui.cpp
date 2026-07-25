@@ -17,11 +17,13 @@
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/components/Component.hpp"
 #include "utils/ComponentPickerWidget.hpp"
+#include "utils/RefDropFilter.hpp"
 #include "engine/core/UndoSystem.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/commands/ComponentCommand.hpp"
 #include <QPushButton>
 #include <QSizePolicy>
+#include <QScrollBar>
 
 namespace {
     void clearLayout(QLayout* layout)
@@ -62,6 +64,55 @@ InspectorGui::InspectorGui(QWidget* parent) : QWidget(parent)
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainLayout->addWidget(scrollArea);
+
+    // Inspector-wide script drop target: dragging a .py script from the Folder
+    // view onto a GameObject's inspector adds a ScriptComponent running it. The
+    // filter lives on the scroll viewport (persists across inspector rebuilds);
+    // a drop onto the existing script field is handled by that field's own
+    // RefDropFilter instead. Gated so only GameObject selections accept the drop.
+    QWidget* viewport = scrollArea->viewport();
+    viewport->setAcceptDrops(true);
+    viewport->installEventFilter(new RefDropFilter(
+        Properties::PropDesc().Tag(Properties::Tags::SCRIPT),
+        [this](const std::string& ref) { AddScriptToSelectedObject(ref); },
+        viewport,
+        []() {
+            auto* c = Engine::Get()->GetActiveContainer();
+            auto* sm = c ? c->FindSystem<SelectionManager>() : nullptr;
+            return sm && dynamic_cast<GameObject*>(sm->GetSerializable()) != nullptr;
+        }));
+}
+
+void InspectorGui::AddScriptToSelectedObject(const std::string& scriptRef)
+{
+    // scriptRef is "module:class" (see RefDropFilter's SCRIPT resolution).
+    const auto colon = scriptRef.find(':');
+    if (colon == std::string::npos) return;
+    const std::string module    = scriptRef.substr(0, colon);
+    const std::string className = scriptRef.substr(colon + 1);
+    if (module.empty() || className.empty()) return;
+
+    auto* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+    auto* selMgr = container->FindSystem<SelectionManager>();
+    auto* obj = selMgr ? dynamic_cast<GameObject*>(selMgr->GetSerializable()) : nullptr;
+    if (!obj) return;   // GameObjects only
+
+    auto* created = SerializableFactory::Create("ScriptComponent");
+    auto* comp = dynamic_cast<ScriptComponent*>(created);
+    if (!comp) { delete created; return; }
+
+    // AddComponent attaches + registers the component and fires ADD_COMPONENT_EVENT
+    // (which rebuilds this inspector). Assign the script and record undo AFTER, so
+    // the snapshot RecordAdded takes carries the chosen module/class.
+    obj->AddComponent(comp);
+    auto* registry = container->FindSystem<Registry>();
+    if (!registry || !registry->Find<Component>(comp->GetID())) return;   // add rejected
+
+    comp->SetScript(module, className);
+
+    if (auto* undoSystem = container->FindSystem<UndoSystem>())
+        undoSystem->Push(ComponentCommand::RecordAdded(obj, comp));
 }
 
 void InspectorGui::Init(){ 
@@ -133,6 +184,13 @@ void InspectorGui::SubscribeToSelector(){
 
 void InspectorGui::OnObjectSelected(const std::string& id)
 {
+    // Preserve the scroll position across a rebuild of the SAME object (add/remove
+    // component, script hot-reload) so the view doesn't snap back to the top. A
+    // rebuild for a DIFFERENT selection intentionally resets to the top.
+    const bool sameObject = (!id.empty() && id == m_currentInspectedId);
+    const int savedScroll = sameObject ? scrollArea->verticalScrollBar()->value() : 0;
+    m_currentInspectedId = id;
+
     // Rebuilding the inspector ends any in-progress coalescing gesture: the
     // widgets that were accumulating into the current undo entry are about to be
     // destroyed, so the next edit must start a fresh entry.
@@ -316,5 +374,13 @@ void InspectorGui::OnObjectSelected(const std::string& id)
     }
 
     scrollArea->setWidget(contentWidget);
-    
+
+    // Restore the scroll position after the new content lays out. The scrollbar's
+    // range is 0 until the layout is computed, so setting it now would clamp to 0;
+    // defer to the next event-loop turn when the range is valid.
+    if (sameObject && savedScroll > 0) {
+        QTimer::singleShot(0, this, [this, savedScroll]() {
+            if (scrollArea) scrollArea->verticalScrollBar()->setValue(savedScroll);
+        });
+    }
 }
