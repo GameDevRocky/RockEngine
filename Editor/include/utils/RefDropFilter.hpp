@@ -100,6 +100,15 @@ private:
             return true;
         }
 
+        // ── Sprite drag from the Folder view's texture hover column ───────────
+        if (mime->hasFormat(kSpriteMimeType)) {
+            if (m_desc.tag != Tags::SPRITE) return false;   // only sprite fields
+            std::string spriteId = QString::fromUtf8(mime->data(kSpriteMimeType)).toStdString();
+            if (spriteId.empty() || !AssetManager::Get().GetSprite(spriteId)) return false;
+            outId = spriteId;
+            return true;
+        }
+
         // ── Asset file drag from the Folder view ──────────────────────────────
         if (mime->hasUrls()) {
             if (m_desc.tag != Tags::MATERIAL && m_desc.tag != Tags::SPRITE &&

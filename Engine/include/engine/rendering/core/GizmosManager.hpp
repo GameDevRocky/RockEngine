@@ -57,6 +57,10 @@ public:
     // unusable here -- no ImGui keyboard backend feeds it, so NewFrame clears it).
     void SetSnapRequested(bool v) { m_snapRequested = v; }
 
+    // Whether scaling (transform gizmo and collider resize) should stay uniform.
+    // Set from the editor's Alt-key state, same rationale as SetSnapRequested.
+    void SetUniformScaleRequested(bool v) { m_uniformScale = v; }
+
     bool IsHandleHovered() const { return m_hoveredHandle >= 0 || m_hoveredCameraCorner >= 0; }
     bool IsDraggingHandle() const { return m_dragHandle >= 0 || m_dragCameraCorner >= 0; }
     bool WantsCaptureMouse() const {
@@ -107,6 +111,7 @@ private:
     ImGuizmo::OPERATION m_currentOperation = ImGuizmo::UNIVERSAL;
     EditMode m_editMode = EditMode::Transform;
     bool m_snapRequested = false;   // grid snap held this frame (set by editor)
+    bool m_uniformScale  = false;   // Alt held: constrain scaling to uniform
 
     // Single-object rotation snap needs a raw (unsnapped) accumulator: the pivot is
     // rebuilt from the object every frame and ImGuizmo applies rotation per-frame

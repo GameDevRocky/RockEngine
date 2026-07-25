@@ -12,7 +12,9 @@
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/core/SceneManager.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/debug/Console.hpp"
+#include "utils/DragDropMime.hpp"
 #include "Engine.hpp"
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
@@ -319,16 +321,27 @@ namespace {
 }
 
 void SceneViewGui::dragEnterEvent(QDragEnterEvent* event) {
-    if (DragHasSceneFile(event->mimeData())) event->acceptProposedAction();
+    if (event->mimeData()->hasFormat(kSpriteMimeType) || DragHasSceneFile(event->mimeData()))
+        event->acceptProposedAction();
     else event->ignore();
 }
 
 void SceneViewGui::dragMoveEvent(QDragMoveEvent* event) {
-    if (DragHasSceneFile(event->mimeData())) event->acceptProposedAction();
+    if (event->mimeData()->hasFormat(kSpriteMimeType) || DragHasSceneFile(event->mimeData()))
+        event->acceptProposedAction();
     else event->ignore();
 }
 
 void SceneViewGui::dropEvent(QDropEvent* event) {
+    // A sprite dragged from the Folder view's hover column spawns an object.
+    if (event->mimeData()->hasFormat(kSpriteMimeType)) {
+        const std::string spriteId =
+            QString::fromUtf8(event->mimeData()->data(kSpriteMimeType)).toStdString();
+        if (SpawnSpriteObject(spriteId, event->position())) event->acceptProposedAction();
+        else event->ignore();
+        return;
+    }
+
     if (!event->mimeData()->hasUrls()) { event->ignore(); return; }
 
     SceneManager* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
@@ -348,6 +361,52 @@ void SceneViewGui::dropEvent(QDropEvent* event) {
         return;
     }
     event->ignore();
+}
+
+// Create a GameObject (with a SpriteRenderer set to `spriteId`) in the first
+// loaded scene, positioned at the drop point. No-op (returns false) when no scene
+// is loaded or the sprite id is unknown.
+bool SceneViewGui::SpawnSpriteObject(const std::string& spriteId, const QPointF& viewPos) {
+    if (spriteId.empty()) return false;
+
+    Sprite* sprite = AssetManager::Get().GetSprite(spriteId);
+    if (!sprite) return false;
+
+    Container* container = Engine::Get()->GetActiveContainer();
+    if (!container) return false;
+    SceneManager* sceneManager = container->FindSystem<SceneManager>();
+    if (!sceneManager) return false;
+
+    // Only when a scene is loaded; use the first one.
+    Scene* scene = nullptr;
+    for (Scene* s : sceneManager->GetScenes()) { scene = s; break; }
+    if (!scene) return false;
+
+    auto* obj = new GameObject();
+    obj->SetName(sprite->GetName().empty() ? "Sprite" : sprite->GetName());
+    scene->AddGameObject(obj);   // synthesises the Transform
+
+    // Place it under the cursor in world space.
+    if (Transform* t = obj->GetTransform()) {
+        const glm::vec2 fbPos(viewPos.x() * devicePixelRatioF(),
+                              viewPos.y() * devicePixelRatioF());
+        t->SetPosition(editorView->ScreenToWorld(fbPos));
+    }
+
+    // Add the SpriteRenderer (AddComponent runs Init/PostInit) and assign the sprite.
+    auto* renderer = new SpriteRenderer();
+    obj->AddComponent(renderer);
+    std::string idCopy = spriteId;
+    renderer->SetSprite(idCopy);
+
+    if (auto* selMgr = container->FindSystem<SelectionManager>())
+        selMgr->Select(obj->GetID());
+
+    if (auto* undoSystem = container->FindSystem<UndoSystem>())
+        undoSystem->Push(SubtreeCommand::RecordCreated(
+            obj, scene->SnapshotSubtree(obj), "Create Sprite Object"));
+
+    return true;
 }
 
 
@@ -412,8 +471,12 @@ bool SceneViewGui::IsPanGesture(Qt::MouseButton button, Qt::KeyboardModifiers mo
     // navigate is the Unity/Blender/Maya convention. Middle-mouse pan is unchanged.
     //
     // Hoisted because three handlers read this and they must not drift apart.
-    return button == Qt::MiddleButton
-        || (button == Qt::LeftButton && (modifiers & Qt::AltModifier));
+    //
+    // Alt+Left pan is disabled for now: Alt is used as the uniform-scale modifier
+    // for the gizmos, so it must not also start a camera pan. Middle-mouse pans.
+    (void)modifiers;
+    return button == Qt::MiddleButton;
+    //  || (button == Qt::LeftButton && (modifiers & Qt::AltModifier));
 }
 
 void SceneViewGui::mousePressEvent(QMouseEvent* event)
@@ -474,7 +537,8 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
 
     // Mirrors IsPanGesture, but tested against held buttons rather than the one
     // button that triggered the event.
-    bool leftDragPan = (e->buttons() & Qt::LeftButton) && (e->modifiers() & Qt::AltModifier);
+    // Alt+Left pan disabled for now (Alt = uniform-scale modifier); middle-mouse pans.
+    bool leftDragPan = false;  // (e->buttons() & Qt::LeftButton) && (e->modifiers() & Qt::AltModifier);
     bool midDragPan  = (e->buttons() & Qt::MiddleButton);
 
     glm::vec2 fbPos(e->pos().x() * devicePixelRatioF(), e->pos().y() * devicePixelRatioF());
@@ -502,8 +566,9 @@ void SceneViewGui::DrawGizmos(){
     RenderCamera* camera = editorView->GetCamera();
     // Feed the real keyboard state (ImGui's io.KeyCtrl is cleared every NewFrame
     // because no ImGui keyboard backend is wired up). Ctrl held == snap to grid.
-    GizmosManager::Get()->SetSnapRequested(
-        QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ControlModifier));
+    const Qt::KeyboardModifiers mods = QGuiApplication::queryKeyboardModifiers();
+    GizmosManager::Get()->SetSnapRequested(mods.testFlag(Qt::ControlModifier));
+    GizmosManager::Get()->SetUniformScaleRequested(mods.testFlag(Qt::AltModifier));
     GizmosManager::Get()->DrawGizmos(
         camera->GetViewMatrix(),
         camera->GetProjectionMatrix(),

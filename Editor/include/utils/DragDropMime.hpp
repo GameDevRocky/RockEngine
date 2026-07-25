@@ -6,3 +6,9 @@
 // component reference field. Assets from the Folder view instead arrive as the
 // standard "text/uri-list" (file paths), so they need no custom type.
 inline constexpr const char* kGameObjectMimeType = "application/x-rockengine-gameobject-id";
+
+// Custom MIME type used when dragging a Sprite out of the Folder view's texture
+// hover column. The payload is the Sprite's id (UTF-8). A Sprite is a sub-asset of
+// a texture with no file of its own, so it can't ride "text/uri-list" like other
+// assets — SPRITE reference fields accept this type instead (see RefDropFilter).
+inline constexpr const char* kSpriteMimeType = "application/x-rockengine-sprite-id";

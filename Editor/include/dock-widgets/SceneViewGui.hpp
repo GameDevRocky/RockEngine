@@ -56,6 +56,10 @@ protected:
 private:
     explicit SceneViewGui(QWidget* parent = nullptr);
 
+    // Spawn a GameObject with a SpriteRenderer (set to spriteId) in the first loaded
+    // scene at the given view position. Returns false if no scene is loaded.
+    bool SpawnSpriteObject(const std::string& spriteId, const QPointF& viewPos);
+
     EditorRenderView* editorView = nullptr;   // borrowed; same object as ViewportWidget::view
     ImGuiInstance* imGuiInstance = nullptr;
 

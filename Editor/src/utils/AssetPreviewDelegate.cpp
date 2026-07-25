@@ -150,7 +150,27 @@ void AssetPreviewDelegate::paint(QPainter* painter,
 
     QString label = QFileInfo(filePath).fileName();
 
-    drawCell(painter, option, px, label);
+    // Fade this cell out while its sprite hover-column is shown (Folder view).
+    const bool faded = !m_fadeFilePath.isEmpty() && filePath == m_fadeFilePath
+                       && m_fadeOpacity < 1.0;
+    if (faded) {
+        painter->save();
+        painter->setOpacity(m_fadeOpacity);
+        drawCell(painter, option, px, label);
+        painter->restore();
+    } else {
+        drawCell(painter, option, px, label);
+    }
+}
+
+void AssetPreviewDelegate::SetCellFade(const QString& filePath, double opacity) {
+    m_fadeFilePath = filePath;
+    m_fadeOpacity  = opacity;
+}
+
+void AssetPreviewDelegate::ClearCellFade() {
+    m_fadeFilePath.clear();
+    m_fadeOpacity = 1.0;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────

@@ -23,6 +23,11 @@ public:
     QSize sizeHint(const QStyleOptionViewItem& option,
                    const QModelIndex& index) const override;
 
+    // Draw the cell for `filePath` at `opacity` (0..1). Used by the Folder view to
+    // fade a texture out while its sprite hover-column is shown. Empty path clears.
+    void SetCellFade(const QString& filePath, double opacity);
+    void ClearCellFade();
+
 private:
     // Returns the absolute path for a (possibly proxy-wrapped) index.
     QString filePathForIndex(const QModelIndex& index) const;
@@ -50,6 +55,10 @@ private:
 
     std::unordered_map<Resource*, std::vector<int>> m_subscriptions;
     int m_managerSubId = -1;
+
+    // The single cell currently faded (its source file path) and its opacity.
+    QString m_fadeFilePath;
+    double  m_fadeOpacity = 1.0;
 
     static constexpr int kThumbSize = 64;
 };

@@ -186,11 +186,12 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
         m_transformGizmoActive = true;
 
         if (!multi) {
-            if (m_snapRequested && !m_dragRecords.empty()) {
-                // Free-manipulation result, then snap whichever component this drag
-                // exercises. The active op is latched from the per-frame delta matrix
-                // (one handle drives one op), and rotation uses a raw accumulator
-                // because ImGuizmo rotates the reset pivot incrementally.
+            if ((m_snapRequested || m_uniformScale) && !m_dragRecords.empty()) {
+                // Free-manipulation result, then adjust whichever component this drag
+                // exercises: snap (Ctrl) and/or force uniform scale (Alt). The active
+                // op is latched from the per-frame delta matrix (one handle drives one
+                // op), and rotation uses a raw accumulator because ImGuizmo rotates the
+                // reset pivot incrementally.
                 const TransformDragRecord& rec = m_dragRecords.front();
                 float cT[3], cR[3], cS[3];
                 ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(pivotMatrix), cT, cR, cS);
@@ -211,19 +212,28 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
                     else if (glm::length(glm::vec2(dT[0], dT[1])) > 1e-2f)               m_dragAxis = 1;
                 }
 
-                if (m_dragAxis == 1) {
-                    pos = SnapTo(pos, EngineUtils::RenderUtils::GridCellPixels);
-                } else if (m_dragAxis == 2) {
-                    rot = SnapTo(rec.startWorldRot + m_dragRawRotDelta, kRotateSnapDeg);
-                } else if (m_dragAxis == 3) {
-                    // Snap the ratio vs. drag start, not the absolute scale, and never
-                    // below one step so it can't collapse to zero.
+                if (m_dragAxis == 1) {           // translate
+                    if (m_snapRequested) pos = SnapTo(pos, EngineUtils::RenderUtils::GridCellPixels);
+                } else if (m_dragAxis == 2) {    // rotate (Alt has no effect)
+                    if (m_snapRequested) rot = SnapTo(rec.startWorldRot + m_dragRawRotDelta, kRotateSnapDeg);
+                } else if (m_dragAxis == 3) {    // scale
+                    // Work in the ratio vs. drag start, not the absolute scale.
                     glm::vec2 safeStart = rec.startWorldScale;
                     if (std::abs(safeStart.x) < 1e-4f) safeStart.x = (safeStart.x < 0 ? -1e-4f : 1e-4f);
                     if (std::abs(safeStart.y) < 1e-4f) safeStart.y = (safeStart.y < 0 ? -1e-4f : 1e-4f);
                     glm::vec2 ratio = scl / safeStart;   // keeps sign
-                    ratio.x = std::max(SnapTo(std::abs(ratio.x), kScaleSnapStep), kScaleSnapStep) * (ratio.x < 0 ? -1.f : 1.f);
-                    ratio.y = std::max(SnapTo(std::abs(ratio.y), kScaleSnapStep), kScaleSnapStep) * (ratio.y < 0 ? -1.f : 1.f);
+
+                    if (m_uniformScale) {
+                        // Drive both axes by the one the user is actually changing.
+                        const float f = (std::abs(ratio.x - 1.f) >= std::abs(ratio.y - 1.f))
+                                            ? ratio.x : ratio.y;
+                        ratio = glm::vec2(f, f);
+                    }
+                    if (m_snapRequested) {
+                        // Snap the ratio, never below one step so it can't collapse.
+                        ratio.x = std::max(SnapTo(std::abs(ratio.x), kScaleSnapStep), kScaleSnapStep) * (ratio.x < 0 ? -1.f : 1.f);
+                        ratio.y = std::max(SnapTo(std::abs(ratio.y), kScaleSnapStep), kScaleSnapStep) * (ratio.y < 0 ? -1.f : 1.f);
+                    }
                     scl = rec.startWorldScale * ratio;
                 }
 
@@ -255,15 +265,23 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
             float     deltaRot   = pivotR[2];                       // start was 0
             glm::vec2 deltaScale = glm::vec2(pivotS[0], pivotS[1]); // start was 1
 
-            if (m_snapRequested) {
-                // Snap the one active op's delta (see single-object path).
+            if (m_snapRequested || m_uniformScale) {
+                // Adjust the one active op's delta (see single-object path).
                 if (glm::length(deltaPos) > kPosActiveEps) {
-                    deltaPos = SnapTo(startCentroid + deltaPos, EngineUtils::RenderUtils::GridCellPixels) - startCentroid;
+                    if (m_snapRequested)
+                        deltaPos = SnapTo(startCentroid + deltaPos, EngineUtils::RenderUtils::GridCellPixels) - startCentroid;
                 } else if (std::abs(deltaRot) > kRotActiveEps) {
-                    deltaRot = SnapTo(deltaRot, kRotateSnapDeg);
+                    if (m_snapRequested) deltaRot = SnapTo(deltaRot, kRotateSnapDeg);
                 } else {
-                    deltaScale.x = std::max(SnapTo(deltaScale.x, kScaleSnapStep), kScaleSnapStep);
-                    deltaScale.y = std::max(SnapTo(deltaScale.y, kScaleSnapStep), kScaleSnapStep);
+                    if (m_uniformScale) {
+                        const float f = (std::abs(deltaScale.x - 1.f) >= std::abs(deltaScale.y - 1.f))
+                                            ? deltaScale.x : deltaScale.y;
+                        deltaScale = glm::vec2(f, f);
+                    }
+                    if (m_snapRequested) {
+                        deltaScale.x = std::max(SnapTo(deltaScale.x, kScaleSnapStep), kScaleSnapStep);
+                        deltaScale.y = std::max(SnapTo(deltaScale.y, kScaleSnapStep), kScaleSnapStep);
+                    }
                 }
             }
 
@@ -819,6 +837,34 @@ void GizmosManager::DrawBoxColliderGizmo(const glm::mat4& view, const glm::mat4&
                 break;
         }
 
+        // Alt: constrain to a uniform (aspect-preserving) resize. Drive both axes by
+        // the factor of the axis being changed, anchored so the handle opposite the
+        // dragged one stays fixed (corners keep the opposite corner; edges keep the
+        // opposite edge and stay centred on the perpendicular axis).
+        if (m_uniformScale) {
+            const float startMinX = m_dragStartCenter.x - startHalfSize.x;
+            const float startMaxX = m_dragStartCenter.x + startHalfSize.x;
+            const float startMinY = m_dragStartCenter.y - startHalfSize.y;
+            const float startMaxY = m_dragStartCenter.y + startHalfSize.y;
+
+            const float fx = (m_dragStartSize.x > 1e-4f) ? (maxX - minX) / m_dragStartSize.x : 1.0f;
+            const float fy = (m_dragStartSize.y > 1e-4f) ? (maxY - minY) / m_dragStartSize.y : 1.0f;
+            float f = (std::abs(fx - 1.0f) >= std::abs(fy - 1.0f)) ? fx : fy;
+            f = std::max(f, 0.001f);
+            const glm::vec2 uni = m_dragStartSize * f;
+
+            switch (m_dragHandle) {
+                case 0: maxX = startMaxX; minX = startMaxX - uni.x; maxY = startMaxY; minY = startMaxY - uni.y; break; // BL, anchor TR
+                case 1: minX = startMinX; maxX = startMinX + uni.x; maxY = startMaxY; minY = startMaxY - uni.y; break; // BR, anchor TL
+                case 2: minX = startMinX; maxX = startMinX + uni.x; minY = startMinY; maxY = startMinY + uni.y; break; // TR, anchor BL
+                case 3: maxX = startMaxX; minX = startMaxX - uni.x; minY = startMinY; maxY = startMinY + uni.y; break; // TL, anchor BR
+                case 4: maxY = startMaxY; minY = startMaxY - uni.y; minX = m_dragStartCenter.x - uni.x * 0.5f; maxX = m_dragStartCenter.x + uni.x * 0.5f; break; // bottom, anchor top
+                case 5: minX = startMinX; maxX = startMinX + uni.x; minY = m_dragStartCenter.y - uni.y * 0.5f; maxY = m_dragStartCenter.y + uni.y * 0.5f; break; // right, anchor left
+                case 6: minY = startMinY; maxY = startMinY + uni.y; minX = m_dragStartCenter.x - uni.x * 0.5f; maxX = m_dragStartCenter.x + uni.x * 0.5f; break; // top, anchor bottom
+                case 7: maxX = startMaxX; minX = startMaxX - uni.x; minY = m_dragStartCenter.y - uni.y * 0.5f; maxY = m_dragStartCenter.y + uni.y * 0.5f; break; // left, anchor right
+            }
+        }
+
         newSize = glm::vec2(maxX - minX, maxY - minY);
         newCenter = glm::vec2((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
 
@@ -1094,14 +1140,28 @@ void GizmosManager::DrawCapsuleColliderGizmo(const glm::mat4& view, const glm::m
             // Radius handles (left/right): distance from center along X
             float newRadius = std::abs(localMouse.x - center.x);
             if (newRadius >= 0.01f) {
-                capsuleCollider->SetRadius(newRadius * 2.0f);
+                const float full = newRadius * 2.0f;
+                // Alt: scale height by the same factor to keep the capsule uniform.
+                if (m_uniformScale && m_dragStartRadius > 1e-4f) {
+                    const float f = full / m_dragStartRadius;
+                    capsuleCollider->SetRadius(m_dragStartRadius * f);
+                    capsuleCollider->SetHeight(std::max(0.01f, m_dragStartHeight * f));
+                } else {
+                    capsuleCollider->SetRadius(full);
+                }
             }
         } else {
             // Height handles (top/bottom): distance from center along Y, minus radius
             float distY = std::abs(localMouse.y - center.y);
             float newHalfH = distY - actualRadius;
             float newHeight = std::max(0.01f, newHalfH * 2.0f);
-            capsuleCollider->SetHeight(newHeight);
+            if (m_uniformScale && m_dragStartHeight > 1e-4f) {
+                const float f = newHeight / m_dragStartHeight;
+                capsuleCollider->SetHeight(newHeight);
+                capsuleCollider->SetRadius(std::max(0.01f, m_dragStartRadius * f));
+            } else {
+                capsuleCollider->SetHeight(newHeight);
+            }
         }
     }
 
