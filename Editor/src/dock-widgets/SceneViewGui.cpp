@@ -19,6 +19,7 @@
 #include "engine/core/Scene.hpp"
 #include "engine/core/GameObject.hpp"
 #include <yaml-cpp/yaml.h>
+#include <QGuiApplication>
 #include <memory>
 #include <vector>
 
@@ -347,6 +348,10 @@ void SceneViewGui::Init(){
 
 void SceneViewGui::DrawGizmos(){
     RenderCamera* camera = editorView->GetCamera();
+    // Feed the real keyboard state (ImGui's io.KeyCtrl is cleared every NewFrame
+    // because no ImGui keyboard backend is wired up). Ctrl held == snap to grid.
+    GizmosManager::Get()->SetSnapRequested(
+        QGuiApplication::queryKeyboardModifiers().testFlag(Qt::ControlModifier));
     GizmosManager::Get()->DrawGizmos(
         camera->GetViewMatrix(),
         camera->GetProjectionMatrix(),

@@ -99,7 +99,7 @@ void BoxCollider::CreateShape(){
     definition.isSensor = isSensor;
     glm::vec2 worldScale = transform->GetWorldScale();
     glm::vec2 scaledSize = size * glm::abs(worldScale);  // Use absolute scale for physics shapes
-    b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit, center.y * worldScale.y / PixelsPerUnit};
+    b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerMeter, center.y * worldScale.y / PixelsPerMeter};
 
     Transform* bodyTransform = rigidBody->GetTransform();
     if (bodyTransform && bodyTransform != transform) {
@@ -112,12 +112,12 @@ void BoxCollider::CreateShape(){
             delta.x * s + delta.y * c
         };
 
-        physicsCenter.x += localDelta.x / PixelsPerUnit;
-        physicsCenter.y += localDelta.y / PixelsPerUnit;
+        physicsCenter.x += localDelta.x / PixelsPerMeter;
+        physicsCenter.y += localDelta.y / PixelsPerMeter;
     }
     
-    float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerUnit);
-    float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerUnit);
+    float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerMeter);
+    float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerMeter);
 
     b2Polygon box = b2MakeOffsetBox(physicsHalfWidth, physicsHalfHeight, physicsCenter, b2Rot_identity);
 

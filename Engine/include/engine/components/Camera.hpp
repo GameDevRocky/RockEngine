@@ -81,7 +81,10 @@ public:
 
 private:
     RenderCamera::Projection projection = RenderCamera::Projection::Orthographic;
-    float orthoSize = 360.0f;   // same units as Transform::localPosition
+    // Pixels (world units == pixels), same space as Transform::localPosition. A
+    // game camera authors a FIXED visible height (letterboxed to targetAspect),
+    // so it defaults to a reference-resolution half-height, not the live panel size.
+    float orthoSize = EngineUtils::RenderUtils::ReferenceHeight / 2.0f;
     RenderCamera::ClearFlags clearFlags = RenderCamera::ClearFlags::SolidColor;
     glm::vec4 clearColor = { 30.0f / 255.0f, 30.0f / 255.0f, 30.0f / 255.0f, 1.0f };
     int priority = 0;

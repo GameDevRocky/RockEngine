@@ -12,6 +12,12 @@ public:
     // Zoom-to-cursor. screenPos: FRAMEBUFFER-scale (DPI-scaled) pixel
     // position -- i.e. mousePos * devicePixelRatioF() -- matching this
     // camera's own GetPixelWidth()/GetPixelHeight() (set via Resize(fbw,fbh)).
+    // Keeps orthoSize = pixelHeight / 2 so the editor view is 1 world unit = 1
+    // screen pixel at zoom 1 (pixel-perfect), and stays that way across window
+    // resizes -- content holds its pixel size rather than rescaling. Scroll zoom
+    // multiplies on top via the base's `zoom`.
+    void Resize(int w, int h) override;
+
     void ZoomAt(const glm::vec2& screenPos, float scrollDelta);
 
     // pixelDelta: mouse delta in LOGICAL pixels (Qt's QMouseEvent::pos() is

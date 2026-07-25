@@ -95,7 +95,7 @@ void CapsuleCollider::CreateShape(){
 
     glm::vec2 worldScale = transform->GetWorldScale();
     glm::vec2 scaledSize = glm::vec2(radius, height) * glm::abs(worldScale);  // Use absolute scale for physics
-    b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerUnit, center.y * worldScale.y / PixelsPerUnit};
+    b2Vec2 physicsCenter = {center.x * worldScale.x / PixelsPerMeter, center.y * worldScale.y / PixelsPerMeter};
 
     Transform* bodyTransform = rigidBody->GetTransform();
     if (bodyTransform && bodyTransform != transform) {
@@ -108,12 +108,12 @@ void CapsuleCollider::CreateShape(){
             delta.x * s + delta.y * c
         };
 
-        physicsCenter.x += localDelta.x / PixelsPerUnit;
-        physicsCenter.y += localDelta.y / PixelsPerUnit;
+        physicsCenter.x += localDelta.x / PixelsPerMeter;
+        physicsCenter.y += localDelta.y / PixelsPerMeter;
     }
     
-    float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerUnit);
-    float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerUnit);
+    float physicsHalfWidth = scaledSize.x / (2.0f * PixelsPerMeter);
+    float physicsHalfHeight = scaledSize.y / (2.0f * PixelsPerMeter);
 
     b2Capsule capsule = b2Capsule();
     capsule.center1 = {physicsCenter.x, physicsCenter.y + physicsHalfHeight};

@@ -22,23 +22,32 @@ void main()
 in vec2 WorldPos;
 out vec4 FragColor;
 
-uniform float uPixelsPerWorldUnit;  // Screen pixels per world unit at current zoom
-uniform float uTime;      
-const int MAX_LEVELS = 13; 
+uniform float uPixelsPerWorldUnit;  // True screen pixels per world unit at current zoom
+uniform float uBaseSpacing;         // Base (major) cell size in world units == GridCellPixels
+uniform float uTime;
 
-const float BASE_SPACING = 64.0f;  // 1 world unit = 32 pixels (PixelsPerUnit)
-const int MAJOR_SKIP = 2;        
+// Levels finer (negative k) and coarser (positive k) than the base cell. The base
+// cell is level 0; every MAJOR_SKIP-th level from it is a "major" line.
+const int K_MIN = -4;
+const int K_MAX =  8;
+const int MAJOR_SKIP = 4;
 const vec3 uMinorColor = vec3(0.25f);
-const vec3 uMajorColor = vec3(0.5f);
+const vec3 uMajorColor = vec3(0.75f);
 
-const float FADE_IN_PIXELS  = 1.5;   
-const float HIDE_PIXELS     = 15.0; 
-const float FADE_OUT_PIXELS = 10.0; 
+// A level fades IN as its on-screen cell size grows past FADE_MIN..FADE_FULL px.
+// There is deliberately NO high-end fade-out: coarse levels persist as sparse
+// major lines. Zooming in therefore reveals finer subdivisions while coarser
+// lines remain -- the base cell reads as ~uBaseSpacing px at zoom 1.
+const float FADE_MIN_PX  = 32.0;   // lines stay hidden until cells are a bit larger
+const float FADE_FULL_PX = 64.0;   // wider band -> a longer, more visible fade ramp
+// Nonlinear falloff (>1): partially-faded levels are pushed dimmer, so a fine grid
+// dissolves harder as you zoom out instead of lingering as a faint smear.
+const float FADE_POWER   = 2.2;
 
 
 float distanceToNearestLine(float p, float spacing)
 {
-    float wrapped = mod(p + 0.5 * spacing, spacing); 
+    float wrapped = mod(p + 0.5 * spacing, spacing);
     float centered = wrapped - 0.5 * spacing;
     return abs(centered);
 }
@@ -46,33 +55,31 @@ float distanceToNearestLine(float p, float spacing)
 
 void main()
 {
-    vec2 dd = fwidth(WorldPos); 
+    vec2 dd = fwidth(WorldPos);
 
-    float minorIntensity = 0.0; 
-    float majorIntensity = 0.0; 
+    float minorIntensity = 0.0;
+    float majorIntensity = 0.0;
 
-    for (int i = 0; i < MAX_LEVELS; i++)
+    for (int k = K_MIN; k <= K_MAX; k++)
     {
-        float spacing = BASE_SPACING * pow(2.0, float(i));
+        float spacing = uBaseSpacing * exp2(float(k));
         float pixelsPerCell = spacing * uPixelsPerWorldUnit;
 
-        if (pixelsPerCell > HIDE_PIXELS) break;
-
-        float fadeIn  = smoothstep(1.0, FADE_IN_PIXELS, pixelsPerCell);
-        float fadeOut = 1.0 - smoothstep(FADE_OUT_PIXELS, HIDE_PIXELS, pixelsPerCell);
-        float fade = fadeIn * fadeOut;
-
+        float fade = pow(smoothstep(FADE_MIN_PX, FADE_FULL_PX, pixelsPerCell), FADE_POWER);
         if (fade < 0.001) continue;
 
         float distX = distanceToNearestLine(WorldPos.x, spacing);
         float distY = distanceToNearestLine(WorldPos.y, spacing);
-        float dist = min(distX, distY); 
+        float dist = min(distX, distY);
 
-        float lineAA = max(dd.x, dd.y) * 1.0; 
+        float lineAA = max(dd.x, dd.y);
         float intensity = 1.0 - smoothstep(0.0, lineAA, dist);
 
         float currentIntensity = intensity * fade;
-        bool isMajor = (i % MAJOR_SKIP) == 0;
+
+        // Anchor "major" to the base cell (k == 0) regardless of K_MIN's parity.
+        bool isMajor = (k >= 0) ? (k % MAJOR_SKIP == 0)
+                                : ((-k) % MAJOR_SKIP == 0);
 
         if (isMajor) {
             majorIntensity = max(majorIntensity, currentIntensity);

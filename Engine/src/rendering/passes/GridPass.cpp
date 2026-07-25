@@ -1,4 +1,5 @@
 #include "engine/rendering/passes/GridPass.hpp"
+#include "engine/utils/EngineUtils.hpp"
 
 void GridPass::Init(){
     float vertices[] = {
@@ -37,8 +38,12 @@ void GridPass::Execute(RenderCamera* camera, Scene* scene){
         shader->SetFloat("uTime", timeManager->ElapsedTime());
         float zoom = camera->GetZoom();
         float orthoSize = camera->GetOrthoSize();
-        float pixelsPerWorldUnit = (camera->GetPixelHeight() * zoom / (2.0f * orthoSize)) * 0.01f;
+        // True screen pixels per world unit: the view spans 2*orthoSize/zoom world
+        // units over pixelHeight pixels. No fudge factor -- the shader's LOD fades
+        // handle density from here.
+        float pixelsPerWorldUnit = camera->GetPixelHeight() * zoom / (2.0f * orthoSize);
         shader->SetFloat("uPixelsPerWorldUnit", pixelsPerWorldUnit);
+        shader->SetFloat("uBaseSpacing", EngineUtils::RenderUtils::GridCellPixels);
 
         glad_glDrawArrays(GL_TRIANGLES, 0, 3);
         glad_glBindVertexArray(0);

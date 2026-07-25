@@ -19,6 +19,20 @@
 
 GizmosManager* GizmosManager::instance = nullptr;
 
+namespace {
+    // Grid-snap increments. Translation uses GridCellPixels (world units == pixels)
+    // so objects land on grid lines; rotation snaps to a fixed angle; scale snaps
+    // the drag RATIO (1.0-relative), never the absolute scale, so it can't collapse.
+    constexpr float kRotateSnapDeg = 15.0f;
+    constexpr float kScaleSnapStep = 0.25f;
+    // Thresholds that decide which single operation a drag frame is exercising.
+    constexpr float kPosActiveEps = 0.25f;   // world units
+    constexpr float kRotActiveEps = 0.05f;   // degrees
+
+    float SnapTo(float v, float step) { return std::round(v / step) * step; }
+    glm::vec2 SnapTo(const glm::vec2& v, float step) { return { SnapTo(v.x, step), SnapTo(v.y, step) }; }
+}
+
 void GizmosManager::Init(){
 }
 
@@ -116,7 +130,10 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
         return;
     }
 
-    float* snapPtr = nullptr;
+    // Snapping is applied AFTER Manipulate rather than via ImGuizmo's snap arg: a
+    // single Manipulate() call takes one snap array but each op reads it with
+    // different units/meaning, and IsOver() can't disambiguate mid-drag. Manipulate
+    // runs free; then the one component this frame changed is snapped below.
 
     // Capture the pre-drag state *before* Manipulate(): it mutates pivotMatrix on
     // the very frame the drag starts, so by the time IsUsing() is true the original
@@ -131,7 +148,23 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
                                      t->GetWorldPosition(), t->GetWorldRotation(),
                                      t->GetWorldScale()});
         m_dragStartPivotWorld = pivotMatrix;
+        m_dragRawRotDelta = 0.0f;
+        m_dragAxis = 0;
     }
+
+    // The pivot's rotation *before* Manipulate -- for the single-object rotation
+    // accumulator (ImGuizmo adds only the per-frame delta onto this).
+    float pivotRotBefore = 0.0f;
+    {
+        float t0[3], r0[3], s0[3];
+        ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(pivotMatrix), t0, r0, s0);
+        pivotRotBefore = r0[2];
+    }
+
+    // deltaMatrix is captured only to detect which operation a snap drag is
+    // exercising (its per-frame translation/rotation/scale); it is NOT used to
+    // apply the transform (see the note below on why it can't be).
+    glm::mat4 deltaMatrix(1.0f);
 
     ImGuizmo::Manipulate(
         glm::value_ptr(view),
@@ -144,16 +177,64 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
         // deltaMatrix stays null: ImGuizmo writes it in the pivot's LOCAL frame for
         // rotation (mModelInverse * delta * mModel) and as a bare origin-centered
         // scale, so it cannot be pre-multiplied onto another object's world matrix.
-        // The group delta below is derived from drag-start matrices instead.
-        nullptr,
-        snapPtr);
+        // The group delta below is derived from drag-start matrices instead --
+        // deltaMatrix here is read only for op detection, never applied.
+        glm::value_ptr(deltaMatrix),
+        nullptr);
 
     if (ImGuizmo::IsUsing()) {
         m_transformGizmoActive = true;
 
         if (!multi) {
-            // Unchanged single-object path.
-            ApplyWorld(targets.front(), pivotMatrix);
+            if (m_snapRequested && !m_dragRecords.empty()) {
+                // Free-manipulation result, then snap whichever component this drag
+                // exercises. The active op is latched from the per-frame delta matrix
+                // (one handle drives one op), and rotation uses a raw accumulator
+                // because ImGuizmo rotates the reset pivot incrementally.
+                const TransformDragRecord& rec = m_dragRecords.front();
+                float cT[3], cR[3], cS[3];
+                ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(pivotMatrix), cT, cR, cS);
+                glm::vec2 pos(cT[0], cT[1]);
+                float     rot = cR[2];
+                glm::vec2 scl(cS[0], cS[1]);
+
+                float perFrameRot = rot - pivotRotBefore;
+                if (perFrameRot >  180.0f) perFrameRot -= 360.0f;
+                if (perFrameRot < -180.0f) perFrameRot += 360.0f;
+                m_dragRawRotDelta += perFrameRot;
+
+                if (m_dragAxis == 0) {
+                    float dT[3], dR[3], dS[3];
+                    ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(deltaMatrix), dT, dR, dS);
+                    if      (std::abs(dS[0]-1.f) > 1e-3f || std::abs(dS[1]-1.f) > 1e-3f) m_dragAxis = 3;
+                    else if (std::abs(dR[2]) > 1e-2f)                                    m_dragAxis = 2;
+                    else if (glm::length(glm::vec2(dT[0], dT[1])) > 1e-2f)               m_dragAxis = 1;
+                }
+
+                if (m_dragAxis == 1) {
+                    pos = SnapTo(pos, EngineUtils::RenderUtils::GridCellPixels);
+                } else if (m_dragAxis == 2) {
+                    rot = SnapTo(rec.startWorldRot + m_dragRawRotDelta, kRotateSnapDeg);
+                } else if (m_dragAxis == 3) {
+                    // Snap the ratio vs. drag start, not the absolute scale, and never
+                    // below one step so it can't collapse to zero.
+                    glm::vec2 safeStart = rec.startWorldScale;
+                    if (std::abs(safeStart.x) < 1e-4f) safeStart.x = (safeStart.x < 0 ? -1e-4f : 1e-4f);
+                    if (std::abs(safeStart.y) < 1e-4f) safeStart.y = (safeStart.y < 0 ? -1e-4f : 1e-4f);
+                    glm::vec2 ratio = scl / safeStart;   // keeps sign
+                    ratio.x = std::max(SnapTo(std::abs(ratio.x), kScaleSnapStep), kScaleSnapStep) * (ratio.x < 0 ? -1.f : 1.f);
+                    ratio.y = std::max(SnapTo(std::abs(ratio.y), kScaleSnapStep), kScaleSnapStep) * (ratio.y < 0 ? -1.f : 1.f);
+                    scl = rec.startWorldScale * ratio;
+                }
+
+                Transform* t = targets.front();
+                t->SetWorldPosition(pos);
+                t->SetWorldRotation(rot);
+                t->SetWorldScale(scl);
+            } else {
+                // Unchanged single-object path (no snap).
+                ApplyWorld(targets.front(), pivotMatrix);
+            }
         } else if (m_dragRecords.size() == targets.size()) {
             // Apply the gesture per-property rather than as one matrix product.
             //
@@ -170,9 +251,21 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
                 glm::value_ptr(pivotMatrix), pivotT, pivotR, pivotS);
 
             const glm::vec2 startCentroid(m_dragStartPivotWorld[3]);
-            const glm::vec2 deltaPos   = glm::vec2(pivotT[0], pivotT[1]) - startCentroid;
-            const float     deltaRot   = pivotR[2];                       // start was 0
-            const glm::vec2 deltaScale = glm::vec2(pivotS[0], pivotS[1]); // start was 1
+            glm::vec2 deltaPos   = glm::vec2(pivotT[0], pivotT[1]) - startCentroid;
+            float     deltaRot   = pivotR[2];                       // start was 0
+            glm::vec2 deltaScale = glm::vec2(pivotS[0], pivotS[1]); // start was 1
+
+            if (m_snapRequested) {
+                // Snap the one active op's delta (see single-object path).
+                if (glm::length(deltaPos) > kPosActiveEps) {
+                    deltaPos = SnapTo(startCentroid + deltaPos, EngineUtils::RenderUtils::GridCellPixels) - startCentroid;
+                } else if (std::abs(deltaRot) > kRotActiveEps) {
+                    deltaRot = SnapTo(deltaRot, kRotateSnapDeg);
+                } else {
+                    deltaScale.x = std::max(SnapTo(deltaScale.x, kScaleSnapStep), kScaleSnapStep);
+                    deltaScale.y = std::max(SnapTo(deltaScale.y, kScaleSnapStep), kScaleSnapStep);
+                }
+            }
 
             for (std::size_t i = 0; i < targets.size(); ++i) {
                 const TransformDragRecord& record = m_dragRecords[i];

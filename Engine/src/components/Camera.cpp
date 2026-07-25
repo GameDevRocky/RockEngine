@@ -162,7 +162,7 @@ void Camera::Deserialize(const YAML::Node& node)
     Component::Deserialize(node);
     projection = static_cast<RenderCamera::Projection>(
         node["projection"].as<int>(static_cast<int>(RenderCamera::Projection::Orthographic)));
-    orthoSize = node["orthoSize"].as<float>(360.0f);
+    orthoSize = node["orthoSize"].as<float>(540.0f);
     clearFlags = static_cast<RenderCamera::ClearFlags>(
         node["clearFlags"].as<int>(static_cast<int>(RenderCamera::ClearFlags::SolidColor)));
     if (node["clearColor"] && node["clearColor"].IsSequence() && node["clearColor"].size() == 4) {

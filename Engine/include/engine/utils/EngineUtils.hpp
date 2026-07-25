@@ -32,12 +32,30 @@ namespace EngineUtils {
     std::string ToAssetRelative(const std::string& absPath);
 
     namespace RenderUtils {
-        constexpr float PixelsPerUnit = 32.0f;
+        // 1 world unit == 1 pixel. A texture/sprite's pixel size IS its world-unit
+        // size, so these render conversions are identity. They're kept (rather than
+        // deleted) so call sites still read as an explicit pixel<->world crossing.
+        inline float     PixelsToWorld(float pixels)             { return pixels; }
+        inline glm::vec2 PixelsToWorld(const glm::vec2& pixels)  { return pixels; }
+        inline float     WorldToPixels(float units)              { return units; }
+        inline glm::vec2 WorldToPixels(const glm::vec2& units)   { return units; }
 
-        inline float PixelsToWorld(float pixels) { return pixels / PixelsPerUnit; }
-        inline glm::vec2 PixelsToWorld(const glm::vec2& pixels) { return pixels / PixelsPerUnit; }
-        inline float WorldToPixels(float units) { return units * PixelsPerUnit; }
-        inline glm::vec2 WorldToPixels(const glm::vec2& units) { return units * PixelsPerUnit; }
+        // Physics ONLY. Box2D solves in meters; world units (pixels) / PixelsPerMeter
+        // = meters. This is the single home of the physics scale -- anything crossing
+        // the Box2D boundary goes through these, everything visual stays 1:1 pixels.
+        constexpr float  PixelsPerMeter = 32.0f;
+        inline float     PixelsToMeters(float pixels)            { return pixels / PixelsPerMeter; }
+        inline glm::vec2 PixelsToMeters(const glm::vec2& pixels) { return pixels / PixelsPerMeter; }
+        inline float     MetersToPixels(float meters)            { return meters * PixelsPerMeter; }
+        inline glm::vec2 MetersToPixels(const glm::vec2& meters) { return meters * PixelsPerMeter; }
+
+        // Grid display cell size AND gizmo snap increment, in world units (pixels).
+        // The grid pass and the transform gizmo both read this, so they can't drift.
+        constexpr float  GridCellPixels = 32.0f;
+
+        // Reference vertical resolution a new game Camera's default orthoSize is
+        // derived from (orthoSize default = ReferenceHeight / 2).
+        constexpr float  ReferenceHeight = 1080.0f;
     }
 
     namespace MathUtils {

@@ -52,6 +52,11 @@ public:
     void SetEditMode(EditMode mode) { m_editMode = mode; }
     EditMode GetEditMode() const { return m_editMode; }
 
+    // Whether the transform gizmo should snap to the grid during a drag. Set by
+    // the editor from the real keyboard state each frame (ImGui's io.KeyCtrl is
+    // unusable here -- no ImGui keyboard backend feeds it, so NewFrame clears it).
+    void SetSnapRequested(bool v) { m_snapRequested = v; }
+
     bool IsHandleHovered() const { return m_hoveredHandle >= 0 || m_hoveredCameraCorner >= 0; }
     bool IsDraggingHandle() const { return m_dragHandle >= 0 || m_dragCameraCorner >= 0; }
     bool WantsCaptureMouse() const {
@@ -101,6 +106,15 @@ private:
     static GizmosManager* instance;
     ImGuizmo::OPERATION m_currentOperation = ImGuizmo::UNIVERSAL;
     EditMode m_editMode = EditMode::Transform;
+    bool m_snapRequested = false;   // grid snap held this frame (set by editor)
+
+    // Single-object rotation snap needs a raw (unsnapped) accumulator: the pivot is
+    // rebuilt from the object every frame and ImGuizmo applies rotation per-frame
+    // (unlike translate/scale which it writes absolutely), so snapping the tiny
+    // per-frame increment would round it back to zero and never turn. Reset at drag
+    // start; final angle = startWorldRot + accumulator, then snapped.
+    float m_dragRawRotDelta = 0.0f;
+    int   m_dragAxis = 0;   // latched active op during a snap drag: 0 none,1 T,2 R,3 S
 
     // Component-type icon table (see ComponentIcon above). Registered on first
     // draw so it doesn't depend on Init() ordering vs. AssetManager load.

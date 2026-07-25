@@ -1,6 +1,14 @@
 #include "engine/rendering/cameras/EditorCamera.hpp"
 #include <glm/glm.hpp>
 
+void EditorCamera::Resize(int w, int h)
+{
+    RenderCamera::Resize(w, h);
+    // 1 world unit == 1 pixel at zoom 1: halfHeight = orthoSize/zoom must equal
+    // pixelHeight/2, so orthoSize = pixelHeight/2.
+    SetOrthoSize(static_cast<float>(h) / 2.0f);
+}
+
 void EditorCamera::ZoomAt(const glm::vec2& screenPos, float scrollDelta)
 {
     const int vw = GetPixelWidth();

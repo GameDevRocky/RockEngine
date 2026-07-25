@@ -63,7 +63,7 @@ void RigidBody::UpdateTransform(){
     Transform* transform = this->GetTransform();
     glm::vec2 worldPos = transform->GetWorldPosition();
     float worldRot = transform->GetWorldRotation();
-    b2Vec2 pos = {worldPos.x / PixelsPerUnit, worldPos.y / PixelsPerUnit};
+    b2Vec2 pos = {worldPos.x / PixelsPerMeter, worldPos.y / PixelsPerMeter};
     b2Rot rot = b2MakeRot(worldRot * DEG_2_RAD);
     b2Body_SetTransform(bodyId, pos, rot);
 }
@@ -142,7 +142,7 @@ void RigidBody::FixedUpdate() {
     Transform* transform = GetTransform();
 
     glm::vec2 targetWorldPos = transform->GetWorldPosition();
-    b2Vec2 targetPos = { targetWorldPos.x / PixelsPerUnit, targetWorldPos.y / PixelsPerUnit };
+    b2Vec2 targetPos = { targetWorldPos.x / PixelsPerMeter, targetWorldPos.y / PixelsPerMeter };
     b2Vec2 currentPos = b2Body_GetPosition(bodyId);   
     b2Vec2 velocity = {
         (targetPos.x - currentPos.x) / timeManager->FixedDeltaTime(),
@@ -167,8 +167,8 @@ void RigidBody::LateUpdate() {
     b2Vec2 physicsPos = b2Body_GetPosition(bodyId);
     b2Rot physicsRot = b2Body_GetRotation(bodyId);
 
-    float renderX = physicsPos.x * PixelsPerUnit;
-    float renderY = physicsPos.y * PixelsPerUnit;
+    float renderX = physicsPos.x * PixelsPerMeter;
+    float renderY = physicsPos.y * PixelsPerMeter;
     float renderAngle = b2Rot_GetAngle(physicsRot) * RAD_2_DEG;
 
     writingToTransform = true;
@@ -189,14 +189,14 @@ void RigidBody::OnDisabled(){
 
 void RigidBody::SetLinearVelocity(const glm::vec2& vel) {
     if (b2Body_IsValid(bodyId)) {
-        b2Body_SetLinearVelocity(bodyId, {vel.x / PixelsPerUnit, vel.y / PixelsPerUnit});
+        b2Body_SetLinearVelocity(bodyId, {vel.x / PixelsPerMeter, vel.y / PixelsPerMeter});
     }
 }
 
 glm::vec2 RigidBody::GetLinearVelocity() const {
     if (b2Body_IsValid(bodyId)) {
         b2Vec2 vel = b2Body_GetLinearVelocity(bodyId);
-        return {vel.x * PixelsPerUnit, vel.y * PixelsPerUnit};
+        return {vel.x * PixelsPerMeter, vel.y * PixelsPerMeter};
     }
     return {0.0f, 0.0f};
 }
@@ -216,30 +216,30 @@ float RigidBody::GetAngularVelocity() const {
 
 void RigidBody::ApplyForce(const glm::vec2& force, const glm::vec2& point) {
     if (b2Body_IsValid(bodyId)) {
-        b2Vec2 f = {force.x / PixelsPerUnit, force.y / PixelsPerUnit};
-        b2Vec2 p = {point.x / PixelsPerUnit, point.y / PixelsPerUnit};
+        b2Vec2 f = {force.x / PixelsPerMeter, force.y / PixelsPerMeter};
+        b2Vec2 p = {point.x / PixelsPerMeter, point.y / PixelsPerMeter};
         b2Body_ApplyForce(bodyId, f, p, true);
     }
 }
 
 void RigidBody::ApplyForceToCenter(const glm::vec2& force) {
     if (b2Body_IsValid(bodyId)) {
-        b2Vec2 f = {force.x / PixelsPerUnit, force.y / PixelsPerUnit};
+        b2Vec2 f = {force.x / PixelsPerMeter, force.y / PixelsPerMeter};
         b2Body_ApplyForceToCenter(bodyId, f, true);
     }
 }
 
 void RigidBody::ApplyImpulse(const glm::vec2& impulse, const glm::vec2& point) {
     if (b2Body_IsValid(bodyId)) {
-        b2Vec2 i = {impulse.x / PixelsPerUnit, impulse.y / PixelsPerUnit};
-        b2Vec2 p = {point.x / PixelsPerUnit, point.y / PixelsPerUnit};
+        b2Vec2 i = {impulse.x / PixelsPerMeter, impulse.y / PixelsPerMeter};
+        b2Vec2 p = {point.x / PixelsPerMeter, point.y / PixelsPerMeter};
         b2Body_ApplyLinearImpulse(bodyId, i, p, true);
     }
 }
 
 void RigidBody::ApplyLinearImpulse(const glm::vec2& impulse) {
     if (b2Body_IsValid(bodyId)) {
-        b2Vec2 i = {impulse.x / PixelsPerUnit, impulse.y / PixelsPerUnit};
+        b2Vec2 i = {impulse.x / PixelsPerMeter, impulse.y / PixelsPerMeter};
         b2Body_ApplyLinearImpulseToCenter(bodyId, i, true);
     }
 }
