@@ -11,8 +11,9 @@
 #include <iostream>
 #include "Engine.hpp"
 #include "engine/core/RuntimeObject.hpp"
-#include <algorithm> 
+#include <algorithm>
 #include <atomic>
+#include <cstdint>
 
 
 class Component;
@@ -62,12 +63,13 @@ class GameObject : public RuntimeObject {
 
     // Returns the first attached component castable to T (insertion order), or
     // nullptr. With multiple components of the same type this yields the oldest.
+    // Iterates the resolved-pointer cache (rebuilt only when the registry
+    // generation moves), so the per-frame cost is a few dynamic_casts rather
+    // than a string-hash + Find per component id.
     template<typename T>
     T* GetComponent() {
-        Registry* registry = container->FindSystem<Registry>();
-        if (!registry) return nullptr;
-        for (const auto& comp_id : component_ids) {
-            if (T* comp = registry->Find<T>(comp_id)) return comp;
+        for (Component* comp : ResolvedComponents()) {
+            if (T* c = dynamic_cast<T*>(comp)) return c;
         }
         return nullptr;
     }
@@ -76,10 +78,8 @@ class GameObject : public RuntimeObject {
     template<typename T>
     std::vector<T*> GetComponents() {
         std::vector<T*> result;
-        Registry* registry = container->FindSystem<Registry>();
-        if (!registry) return result;
-        for (const auto& comp_id : component_ids) {
-            if (T* comp = registry->Find<T>(comp_id)) result.push_back(comp);
+        for (Component* comp : ResolvedComponents()) {
+            if (T* c = dynamic_cast<T*>(comp)) result.push_back(c);
         }
         return result;
     }
@@ -107,18 +107,19 @@ class GameObject : public RuntimeObject {
     Scene* GetScene();
     
     template<typename T>
-    void recurseTopDown(T callback) {
+    void recurseTopDown(const T& callback) {
         callback(this);
-        for (auto& child : GetTransform()->GetChildren()) {
-            child->GetGameObject()->recurseTopDown(callback);
-        }
+        // ChildObjects() (defined in the .cpp, where Transform is complete)
+        // keeps this header free of Transform's members — otherwise the
+        // non-dependent Transform access would need the full type at parse time.
+        for (GameObject* child : ChildObjects())
+            child->recurseTopDown(callback);
     }
 
     template<typename T>
-    void recurseBottomUp(T callback) {
-        for (auto& child : GetTransform()->GetChildren()) {
-            child->GetGameObject()->recurseBottomUp(callback);
-        }
+    void recurseBottomUp(const T& callback) {
+        for (GameObject* child : ChildObjects())
+            child->recurseBottomUp(callback);
         callback(this);
     }
 
@@ -127,9 +128,27 @@ class GameObject : public RuntimeObject {
     bool HasComponentByName(const std::string& type_name) const;
 
     private:
+    // Resolved component pointers for the current registry generation, in
+    // component_ids order. The per-frame update loops and every GetComponent<T>
+    // walk this instead of re-resolving ids through the registry each call.
+    const std::vector<Component*>& ResolvedComponents();
+    // Resolved child GameObjects (this transform's children -> their owners),
+    // generation-cached. Defined in the .cpp so the recurse templates above
+    // never touch Transform's incomplete type in this header.
+    const std::vector<GameObject*>& ChildObjects();
+
     bool active = true;
     std::string tag = "Untagged";
     std::vector<std::string> component_ids;   // component ids in insertion order
     std::string transform_id;
-    std::string scene_id;    
+    std::string scene_id;
+
+    // Runtime caches — never serialize, never copy. Rebuilt lazily when the
+    // registry generation moves (or component_ids is mutated directly).
+    std::vector<Component*> resolvedComponents;
+    std::uint64_t resolvedComponentsGen = 0;
+    Transform* cachedTransform = nullptr;
+    std::uint64_t cachedTransformGen = 0;
+    std::vector<GameObject*> cachedChildObjects;
+    std::uint64_t cachedChildObjectsGen = 0;
 };

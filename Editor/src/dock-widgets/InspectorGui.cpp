@@ -95,10 +95,20 @@ void InspectorGui::Init(){
     // currently-selected object's fields, and only while in play mode.
     m_pollTimer = new QTimer(this);
     m_pollTimer->setInterval(50);
-    connect(m_pollTimer, &QTimer::timeout, this, &InspectorGui::PollScriptFields);
+    connect(m_pollTimer, &QTimer::timeout, this, [this]() {
+        // Value refresh runs in every mode (physics in play, gizmo drags/undo in
+        // editor); the script-field poll is runtime-only and self-gates.
+        RefreshDirtyValues();
+        PollScriptFields();
+    });
     m_pollTimer->start();
 
     std::cout << "InspectorGui Initialized" << std::endl;
+}
+
+void InspectorGui::RefreshDirtyValues(){
+    for (auto& refresh : m_valueRefreshers)
+        refresh();
 }
 
 void InspectorGui::PollScriptFields(){
@@ -149,6 +159,8 @@ void InspectorGui::OnObjectSelected(const std::string& id)
     for (auto& [obs, subId] : m_inspectorSubs)
         obs->Unsubscribe(subId);
     m_inspectorSubs.clear();
+    // Deferred value refreshers belong to the widgets we're about to destroy.
+    m_valueRefreshers.clear();
 
     if (contentWidget) {
         // Detach the old content from the scroll area before scheduling its deletion.
@@ -184,6 +196,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         objectHeader->Bind(obj->GetID());
         for (auto& s : visitor.GetSubscriptions())       m_inspectorSubs.push_back(s);
         for (auto& s : objectHeader->GetSubscriptions())  m_inspectorSubs.push_back(s);
+        for (auto& r : visitor.GetRefreshers())           m_valueRefreshers.push_back(r);
         auto* content = visitor.GetContent();
         if (content) objectHeader->AddWidget(content);
         contentLayout->addWidget(objectHeader);
@@ -215,6 +228,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
             compWidget->Bind(comp->GetID());
             for (auto& s : compVisitor.GetSubscriptions()) m_inspectorSubs.push_back(s);
             for (auto& s : compWidget->GetSubscriptions())  m_inspectorSubs.push_back(s);
+            for (auto& r : compVisitor.GetRefreshers())     m_valueRefreshers.push_back(r);
             compWidget->AddWidget(content);
             contentLayout->addWidget(compWidget);
 
@@ -282,6 +296,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         InspectorVisitor visitor;
         selectable->Accept(&visitor);
         for (auto& s : visitor.GetSubscriptions()) m_inspectorSubs.push_back(s);
+        for (auto& r : visitor.GetRefreshers())    m_valueRefreshers.push_back(r);
         ComponentHeader* header = new ComponentHeader(selectable->GetTypeName());
         // Do NOT call header->Bind() — it looks up a Component in the Registry and
         // self-destructs if not found. Assets live in AssetManager, not the Registry.

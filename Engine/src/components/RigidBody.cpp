@@ -3,6 +3,7 @@
 #include "engine/components/Transform.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/core/TimeManager.hpp"
+#include <cmath>
 #include <iostream>
 
 using namespace EngineUtils::RenderUtils;
@@ -161,20 +162,39 @@ void RigidBody::LateUpdate() {
     if (container->GetMode() == Container::Mode::Editor) return;
     if (bodyType != b2_dynamicBody) return;
     if (!b2Body_IsValid(bodyId)) return;
+    // A sleeping body cannot have moved since the solver put it to rest.
+    if (!b2Body_IsAwake(bodyId)) return;
+
+    b2Vec2 physicsPos = b2Body_GetPosition(bodyId);
+    float physicsAngle = b2Rot_GetAngle(b2Body_GetRotation(bodyId));
+
+    // Unchanged pose → skip the transform writeback entirely. The SetWorld*
+    // calls below are expensive even when values match: each recomputes the
+    // world matrix to compare, marks the subtree dirty, and fires two notifies.
+    constexpr float kPosEpsilon = 1e-6f;   // meters
+    constexpr float kAngleEpsilon = 1e-6f; // radians
+    if (hasSyncedPose &&
+        std::abs(physicsPos.x - lastSyncedPos.x) < kPosEpsilon &&
+        std::abs(physicsPos.y - lastSyncedPos.y) < kPosEpsilon &&
+        std::abs(physicsAngle - lastSyncedAngle) < kAngleEpsilon) {
+        return;
+    }
+
     Transform* transform = GetTransform();
     if (!transform) return;
-    
-    b2Vec2 physicsPos = b2Body_GetPosition(bodyId);
-    b2Rot physicsRot = b2Body_GetRotation(bodyId);
 
     float renderX = physicsPos.x * PixelsPerMeter;
     float renderY = physicsPos.y * PixelsPerMeter;
-    float renderAngle = b2Rot_GetAngle(physicsRot) * RAD_2_DEG;
+    float renderAngle = physicsAngle * RAD_2_DEG;
 
     writingToTransform = true;
     transform->SetWorldPosition({renderX, renderY});
     transform->SetWorldRotation(renderAngle);
     writingToTransform = false;
+
+    lastSyncedPos = physicsPos;
+    lastSyncedAngle = physicsAngle;
+    hasSyncedPose = true;
 }
 
 void RigidBody::OnEnabled(){

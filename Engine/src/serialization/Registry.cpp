@@ -19,6 +19,7 @@ void Registry::Register(RuntimeObject* obj) {
     if (!obj) return;
     std::string id = obj->GetID();
     auto result = runtimeObjects.insert({id, obj});
+    BumpGeneration();
     obj->Subscribe([id](std::any data){
         auto* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
         if (!registry) return true;
@@ -26,6 +27,9 @@ void Registry::Register(RuntimeObject* obj) {
         if (it == registry->runtimeObjects.end()) return true;
         registry->pendingDeletes.push_back(it->second);
         registry->runtimeObjects.erase(it);
+        // Bump BEFORE the object is deleted (delete happens on the next flush),
+        // so any cache holding this now-dangling pointer re-resolves first.
+        BumpGeneration();
         return true;
     }, RuntimeObject::SHUTDOWN_EVENT);
 
@@ -37,8 +41,10 @@ void Registry::Unregister(RuntimeObject* obj) {
     if (!obj) return;
     auto it = std::find_if(runtimeObjects.begin(), runtimeObjects.end(),
         [&](auto& pair) { return pair.second == obj; });
-    if (it != runtimeObjects.end())
+    if (it != runtimeObjects.end()) {
         runtimeObjects.erase(it);
+        BumpGeneration();
+    }
 }
 
 void Registry::Update() {
@@ -69,6 +75,7 @@ void Registry::FlushPendingShutdowns() {
     for (auto* obj : pendingDeletes)
         delete obj;
     pendingDeletes.clear();
+    BumpGeneration();
 }
 
 void Registry::Shutdown(){
@@ -81,6 +88,7 @@ void Registry::Shutdown(){
     // (avoids erase-during-iteration and double-delete).
     auto objects = runtimeObjects;
     runtimeObjects.clear();
+    BumpGeneration();
     for (auto& [key, obj] : objects){
         obj->Shutdown();
         delete obj;

@@ -8,6 +8,8 @@
 #include <vector>
 #include <utility>
 #include <type_traits>
+#include <functional>
+#include <memory>
 #include "utils/ProperyFactory.hpp"
 #include "engine/core/Observable.hpp"
 #include "engine/core/UndoSystem.hpp"
@@ -53,6 +55,15 @@ class InspectorVisitor : public IVisitor{
             return m_subscriptions;
         }
 
+        // Deferred value-refresh closures, one per bound property. A property's
+        // change-event subscription only flags it dirty (near-zero cost); the
+        // owner (InspectorGui) calls these on a timer to actually push the new
+        // value into the widget, so the inspector refresh rate is decoupled from
+        // the engine frame rate. Cleared/rebuilt with the inspector.
+        const std::vector<std::function<void()>>& GetRefreshers() const {
+            return m_refreshers;
+        }
+
     protected:
 
         // Builds one labelled property row and wires it in both directions:
@@ -84,6 +95,7 @@ class InspectorVisitor : public IVisitor{
         int gridRow = 0;
         QWidget* content = nullptr;
         std::vector<std::pair<Observable*, int>> m_subscriptions;
+        std::vector<std::function<void()>> m_refreshers;
 };
 
 template<typename T, typename TargetT>
@@ -143,12 +155,24 @@ void InspectorVisitor::BindProperty(TargetT* instance, const std::string& label,
         pw->SetValue(getter());
     }
 
-    int subId = instance->Subscribe([pw, getter]() {
-        if (!pw->IsValid()) return false;
-        pw->SetValue(getter());
+    // The change event only flags the widget dirty (cheap); the actual
+    // pw->SetValue(getter()) is deferred to a timer flush in InspectorGui (see
+    // GetRefreshers). This keeps a per-frame engine change — e.g. a physics body's
+    // position streaming through Transform notifies — from forcing a styled
+    // QDoubleSpinBox repaint every frame, which otherwise halves the framerate
+    // while a moving object is selected.
+    auto dirty = std::make_shared<bool>(false);
+    int subId = instance->Subscribe([dirty]() {
+        *dirty = true;
         return true;
     }, event_id);
     m_subscriptions.emplace_back(instance, subId);
+
+    m_refreshers.emplace_back([pw, getter, dirty]() {
+        if (!*dirty) return;
+        *dirty = false;
+        if (pw->IsValid()) pw->SetValue(getter());
+    });
 
     AddRow(label, pw->GetWidget());
 }

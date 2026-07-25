@@ -66,4 +66,11 @@ private:
     bool lockRotation = false;
     bool writingToTransform = false;
 
+    // Last pose written back to the Transform in LateUpdate — runtime cache,
+    // never serialize, never copy. Lets a body that hasn't moved skip the
+    // SetWorld* calls (and the MarkDirty walk + change notifies they trigger).
+    b2Vec2 lastSyncedPos = { 0.0f, 0.0f };
+    float lastSyncedAngle = 0.0f;
+    bool hasSyncedPose = false;
+
 };

@@ -1,5 +1,6 @@
 #include "Engine.hpp"
 #include "engine/core/TimeManager.hpp"
+#include "engine/debug/FrameProfiler.hpp"
 #include <iostream>
 #include "engine/debug/Console.hpp"
 #include "engine/components/ComponentRegistrars.hpp"
@@ -78,8 +79,9 @@ void Engine::PostInit(){
 }
 
 void Engine::Update(){
+    ROCK_PROFILE_FRAME();
+    ROCK_PROFILE_SCOPE("Engine::Update");
     activeContainer->Update();
-       
 }
 
 

@@ -12,6 +12,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <functional>
 #include "component-widgets/ObjectHeader.hpp"
 #include "Engine.hpp"
 #include "engine/core/SelectionManager.hpp"
@@ -37,6 +38,10 @@ public:
 private:
     void SubscribeToSelector();
     void OnObjectSelected(const std::string& id);
+    // Flush any property widgets flagged dirty by an engine change event since the
+    // last tick. Driven by m_pollTimer so live values (e.g. a moving object's
+    // position) refresh at ~20 Hz instead of every engine frame. Runs in all modes.
+    void RefreshDirtyValues();
     // Poll the currently-inspected ScriptComponent(s) for Python-side field
     // mutations. Python scripts change fields by plain attribute assignment, which
     // fires no change event, so without this the inspector widgets go stale during
@@ -65,4 +70,8 @@ private:
     // firing the deselect that triggers teardown — then deletes), and assets live
     // for the whole session.
     std::vector<std::pair<Observable*, int>> m_inspectorSubs;
+    // Deferred value-refresh closures collected from the property visitors for the
+    // current selection, flushed by RefreshDirtyValues on the m_pollTimer tick.
+    // Cleared/rebuilt in OnObjectSelected alongside m_inspectorSubs.
+    std::vector<std::function<void()>> m_valueRefreshers;
 };

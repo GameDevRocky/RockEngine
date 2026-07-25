@@ -9,6 +9,7 @@
 #include "engine/debug/Console.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "Engine.hpp"
+#include "engine/debug/FrameProfiler.hpp"
 #include <iostream>
 
 void PickingPass::Init()
@@ -130,8 +131,18 @@ void PickingPass::Resize(int width, int height)
     glad_glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 }
 
-void PickingPass::Execute(RenderCamera* camera, Scene* /*scene*/)
+void PickingPass::Execute(RenderCamera* /*camera*/, Scene* /*scene*/)
 {
+    // Deliberately empty. Re-rendering the whole scene into the pick buffer every
+    // frame just to service the occasional mouse click doubled the editor's scene
+    // draw cost. Picking now renders on demand via RenderPickBuffer(), called from
+    // EditorRenderView::Pick() right before ReadPixel.
+}
+
+void PickingPass::RenderPickBuffer(RenderCamera* camera)
+{
+    ROCK_PROFILE_SCOPE("PickingPass");
+    if (!camera) return;
     pickIdToObjectId.clear();
     SceneManager* sceneManager = Engine::Get()->GetActiveContainer()->FindSystem<SceneManager>();
     if (!sceneManager) return;

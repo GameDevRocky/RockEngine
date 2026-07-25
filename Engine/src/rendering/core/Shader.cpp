@@ -79,33 +79,44 @@ GLuint Shader::LinkProgram(GLuint vertexShader, GLuint fragmentShader)
 void Shader::Bind() const { glad_glUseProgram(program_id); }
 void Shader::Unbind() const { glad_glUseProgram(0); }
 
+GLint Shader::GetLocation(const std::string& name) const
+{
+    auto it = active_uniforms.find(name);
+    if (it != active_uniforms.end()) return it->second.location;
+    // Not reflected (e.g. optimizer-stripped or queried before ReflectUniforms):
+    // resolve once and remember the answer, including -1 misses.
+    const GLint loc = glad_glGetUniformLocation(program_id, name.c_str());
+    active_uniforms.emplace(name, UniformInfo{ 0, loc });
+    return loc;
+}
+
 void Shader::SetInt(const std::string& name, int value) const
 {
-    glad_glUniform1i(glad_glGetUniformLocation(program_id, name.c_str()), value);
+    glad_glUniform1i(GetLocation(name), value);
 }
 void Shader::SetFloat(const std::string& name, float value) const
 {
-    glad_glUniform1f(glad_glGetUniformLocation(program_id, name.c_str()), value);
+    glad_glUniform1f(GetLocation(name), value);
 }
 void Shader::SetVec2(const std::string& name, const glm::vec2& value) const
 {
-    glad_glUniform2fv(glad_glGetUniformLocation(program_id, name.c_str()), 1, &value[0]);
+    glad_glUniform2fv(GetLocation(name), 1, &value[0]);
 }
 void Shader::SetVec3(const std::string& name, const glm::vec3& value) const
 {
-    glad_glUniform3fv(glad_glGetUniformLocation(program_id, name.c_str()), 1, &value[0]);
+    glad_glUniform3fv(GetLocation(name), 1, &value[0]);
 }
 void Shader::SetVec4(const std::string& name, const glm::vec4& value) const
 {
-    glad_glUniform4fv(glad_glGetUniformLocation(program_id, name.c_str()), 1, &value[0]);
+    glad_glUniform4fv(GetLocation(name), 1, &value[0]);
 }
 void Shader::SetMat4(const std::string& name, const glm::mat4& value) const
 {
-    glad_glUniformMatrix4fv(glad_glGetUniformLocation(program_id, name.c_str()), 1, GL_FALSE, &value[0][0]);
+    glad_glUniformMatrix4fv(GetLocation(name), 1, GL_FALSE, &value[0][0]);
 }
 void Shader::SetTexture(const std::string& name, const GLint tex) const
 {
-    glad_glUniform1i(glad_glGetUniformLocation(program_id, name.c_str()), tex);
+    glad_glUniform1i(GetLocation(name), tex);
 }
 void Shader::ReflectUniforms() {
     active_uniforms.clear();

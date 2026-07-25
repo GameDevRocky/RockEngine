@@ -1,5 +1,6 @@
 #include "engine/rendering/views/RenderView.hpp"
 #include "engine/rendering/Renderer.hpp"
+#include "engine/debug/FrameProfiler.hpp"
 #include <glad/glad.h>
 
 namespace {
@@ -31,6 +32,7 @@ void RenderView::Resize(int panelPixelW, int panelPixelH)
 
 void RenderView::Render()
 {
+    ROCK_PROFILE_SCOPE("RenderView::Render");
     UpdateCamera();
     ApplyTargetSizing();
     if (!sceneManager) return;

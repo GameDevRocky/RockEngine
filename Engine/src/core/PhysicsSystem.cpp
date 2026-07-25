@@ -9,7 +9,10 @@ void PhysicsSystem::Init(){
     
     b2WorldDef worldDef = b2DefaultWorldDef();
 	worldDef.enableContinuous = true;
-    worldDef.enableSleep = false;
+    // Sleep lets settled bodies drop out of the solver (and out of our
+    // transform writeback) entirely; Box2D auto-wakes them on contact or when
+    // a script sets a velocity/impulse.
+    worldDef.enableSleep = true;
     worldDef.gravity = {0.0f, -9.8f};
     worldDef.gravity *= 2.0f; 
     worldId = b2CreateWorld(&worldDef);

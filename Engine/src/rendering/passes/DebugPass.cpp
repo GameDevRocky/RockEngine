@@ -1,4 +1,5 @@
 #include "engine/rendering/passes/DebugPass.hpp"
+#include "engine/debug/FrameProfiler.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/BoxCollider.hpp"
@@ -124,6 +125,7 @@ void DebugPass::DrawInstanced(unsigned int vao, int vertexCount, GLenum mode,
 
 void DebugPass::Execute(RenderCamera* camera, Scene* scene)
 {
+    ROCK_PROFILE_SCOPE("DebugPass");
     if (!debugShader) return;
 
     debugShader->Bind();

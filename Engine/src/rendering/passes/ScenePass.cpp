@@ -1,4 +1,5 @@
 #include "engine/rendering/passes/ScenePass.hpp"
+#include "engine/debug/FrameProfiler.hpp"
 #include <algorithm>
 #include <vector>
 
@@ -36,6 +37,7 @@ void ScenePass::Init(){
 
 void ScenePass::Execute(RenderCamera* camera, Scene* scene)
 {
+    ROCK_PROFILE_SCOPE("ScenePass");
     if (!scene) return;
     const auto& objects = scene->GetAllGameObjects();
 
@@ -61,7 +63,8 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
 
         if (!transform)
         {
-            Console::Alert("No Loaded Transform");
+            if (warnedObjects.insert(obj).second)
+                Console::Alert("No Loaded Transform");
             continue;
         }
         if (!renderer) continue;
@@ -71,8 +74,11 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
         Material* mat = renderer->GetMaterial();
         if (!mat)
         {
-            mat = AssetManager::Get().GetMaterialByName("default");
-            Console::Alert("Assigning Default Material to " + transform->GetGameObject()->GetName());
+            if (!defaultMaterial)
+                defaultMaterial = AssetManager::Get().GetMaterialByName("default");
+            mat = defaultMaterial;
+            if (warnedObjects.insert(obj).second)
+                Console::Alert("Assigning Default Material to " + transform->GetGameObject()->GetName());
         }
         if (!mat || !mat->GetShader()) continue;
 

@@ -28,10 +28,13 @@ void Component::SetGameObject(GameObject* obj){
 
 GameObject* Component::GetGameObject(){
     if (gameobject_id.empty()) return nullptr;
+    const std::uint64_t gen = Registry::Generation();
+    if (cachedGameObjectGen == gen && cachedGameObject) return cachedGameObject;
     Registry* registry = container->FindSystem<Registry>();
-    GameObject* gameobject = registry->Find<GameObject>(gameobject_id);
-    if (!gameobject) return nullptr;
-    return gameobject;
+    if (!registry) return nullptr;
+    cachedGameObject = registry->Find<GameObject>(gameobject_id);
+    if (cachedGameObject) cachedGameObjectGen = gen; // stamp only on success
+    return cachedGameObject;
 }
 
 void Component::SetEnabled(bool e) {

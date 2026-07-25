@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <unordered_set>
 #include "Engine.hpp"
 #include "engine/utils/EngineUtils.hpp"
 
@@ -31,4 +32,11 @@ private:
 
     unsigned int vao = 0;
     unsigned int vbo = 0;
+
+    // Resolved once on first use; the material map only grows via asset loads,
+    // so the pointer stays valid for the pass's lifetime (borrowed, not owned).
+    Material* defaultMaterial = nullptr;
+    // Objects already warned about (missing transform/material) — warn once per
+    // object instead of flooding the console every frame.
+    std::unordered_set<const void*> warnedObjects;
 };

@@ -1,12 +1,19 @@
 from .component_handler import Component
 from .collider_handler import Collider
+from ..systems.time_system import Time
 from rock_engine.core import gameobject_module
+
+_TICK_METHODS = ('update', 'fixed_update', 'late_update')
+
+
+def _coroutine_only_update(self):
+    self._tick_coroutines()
 
 
 class ScriptableComponent(Component):
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
-        for method_name in ('update', 'fixed_update', 'late_update'):
+        for method_name in _TICK_METHODS:
             if method_name in cls.__dict__:
                 original = cls.__dict__[method_name]
                 def _make_wrapper(orig, mn=method_name):
@@ -16,6 +23,18 @@ class ScriptableComponent(Component):
                     _wrapper.__name__ = mn
                     return _wrapper
                 setattr(cls, method_name, _make_wrapper(original))
+        # A subclass with no tick method anywhere in its hierarchy still needs
+        # its coroutines ticked. Inject the minimal update at class-definition
+        # time (not lazily in start_coroutine): the engine caches each script's
+        # lifecycle methods when it instantiates it, so a method that appears
+        # later would never be called.
+        if not any(
+            m in klass.__dict__
+            for klass in cls.__mro__
+            if klass is not ScriptableComponent and klass is not object
+            for m in _TICK_METHODS
+        ):
+            cls.update = _coroutine_only_update
 
     def __init__(self, obj_id=None):
         super().__init__(obj_id)
@@ -28,21 +47,16 @@ class ScriptableComponent(Component):
             self._coroutines.append([gen, instruction])
         except StopIteration:
             pass
-        # If the subclass has no update/fixed_update/late_update, _tick_coroutines
-        # was never injected — patch in a minimal update so coroutines get ticked.
-        cls = type(self)
-        tick_methods = ('update', 'fixed_update', 'late_update')
-        if not any(m in cls.__dict__ for m in tick_methods):
-            def _coroutine_only_update(self):
-                self._tick_coroutines()
-            cls.update = _coroutine_only_update
+        # Coroutine-only classes get their minimal update injected at class
+        # definition time (see __init_subclass__) — nothing to patch here.
 
     def stop_all_coroutines(self):
         """Cancel all running coroutines on this component."""
         self._coroutines.clear()
 
     def _tick_coroutines(self):
-        from ..systems.time_system import Time
+        if not self._coroutines:
+            return  # nothing to tick — skip the Time.delta_time engine call
         dt = Time.delta_time
         still_running = []
         for gen, instruction in self._coroutines:

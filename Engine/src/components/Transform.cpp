@@ -222,6 +222,11 @@ void Transform::SetParent(Transform* newParent, bool keepWorld) {
                                glm::length(glm::vec2(newLocal[1])));
     }
 
+    // Reparenting shuffles two transforms' child lists / this transform's
+    // parent without touching the registry map, so invalidate every pointer
+    // cache explicitly.
+    Registry::BumpGeneration();
+
     MarkDirty();
     Notify(PARENT_CHANGED_EVENT, this->parent_id);
     Notify(CHANGED_EVENT);
@@ -236,41 +241,50 @@ void Transform::MoveChild(const std::string& childId, int targetIndex) {
     if (oldIndex < targetIndex) targetIndex--;
     targetIndex = std::max(0, std::min(targetIndex, (int)children_ids.size()));
     children_ids.insert(children_ids.begin() + targetIndex, childId);
+    Registry::BumpGeneration(); // child order changed — refresh cached children
 }
 
-std::vector<Transform*> Transform::GetChildren() {
-    std::vector<Transform*> result;
+const std::vector<Transform*>& Transform::GetChildren() {
+    const std::uint64_t gen = Registry::Generation();
+    if (cachedChildrenGen == gen) return cachedChildren;
 
+    cachedChildren.clear();
     if (!registry) {
-        Console::Alert("Transform::GetChildren called but registry is null (not initialized?)");
-        return result;
+        // Not yet initialized — leave the cache empty and unstamped so it
+        // re-resolves once Init() wires up the registry. (No Alert: this is a
+        // normal transient state during load, and it must not spam per frame.)
+        return cachedChildren;
     }
 
+    cachedChildren.reserve(children_ids.size());
     for (const std::string& id : children_ids) {
-        Transform* child = registry->Find<Transform>(id);
-        if (child) result.push_back(child);
+        if (Transform* child = registry->Find<Transform>(id))
+            cachedChildren.push_back(child);
     }
-
-    return result;
+    cachedChildrenGen = gen;
+    return cachedChildren;
 }
 
 
 Transform* Transform::GetParent() {
     if (parent_id.empty())
         return nullptr;
-    
+
+    const std::uint64_t gen = Registry::Generation();
+    if (cachedParentGen == gen && cachedParent) return cachedParent;
+
     if (!registry) {
         Console::Alert("Transform::GetParent called but registry is null (not initialized?)");
         return nullptr;
     }
-    
-    Transform* transform = registry->Find<Transform>(parent_id);
 
-    if (!transform) {
+    cachedParent = registry->Find<Transform>(parent_id);
+    if (!cachedParent) {
         Console::Alert("Transform parent_id exists but is not a Transform");
         return nullptr;
     }
-    return transform;
+    cachedParentGen = gen;
+    return cachedParent;
 }
 
 

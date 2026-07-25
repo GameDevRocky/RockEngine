@@ -32,4 +32,14 @@ protected:
 
 private:
     static std::atomic<Event> next_event_id;
+
+    // Notify dispatches in place (no per-notify copy of the subscriber list).
+    // std::unordered_map keeps references to its mapped vectors stable across
+    // rehash, and vectors are indexed by position, so a handler may safely
+    // Subscribe mid-dispatch. Removals (a handler returning false, or an
+    // Unsubscribe call) are deferred until dispatch fully unwinds so they never
+    // shift the vector out from under an active loop.
+    int dispatchDepth = 0;
+    std::vector<int> pendingUnsub;
+    void FlushPendingUnsub();
 };

@@ -10,9 +10,13 @@ class GameObject;
 class PickingPass : public RenderPass {
 public:
     void Init() override;
-    void Execute(RenderCamera* camera, Scene* scene) override;
+    void Execute(RenderCamera* camera, Scene* scene) override; // no-op; see .cpp
     void Resize(int width, int height) override;
     void Shutdown() override;
+
+    // Render the pick id buffer for one frame on demand (called from Pick()
+    // just before ReadPixel), instead of every frame in the pipeline.
+    void RenderPickBuffer(RenderCamera* camera);
 
     uint32_t ReadPixel(int x, int y);
     std::string GetPickedObjectId(uint32_t pickId) const;

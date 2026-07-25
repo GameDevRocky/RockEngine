@@ -53,7 +53,11 @@ private:
     GLuint program_id = 0;
     GLuint CompileShader(GLenum type, const std::string& source);
     GLuint LinkProgram(GLuint vertexShader, GLuint fragmentShader);
-    std::unordered_map<std::string, UniformInfo> active_uniforms;
+    // Uniform locations are stable for a linked program; ReflectUniforms()
+    // rebuilds active_uniforms on every (re)link, so lazy inserts made here
+    // never outlive the program they belong to.
+    GLint GetLocation(const std::string& name) const;
+    mutable std::unordered_map<std::string, UniformInfo> active_uniforms;
     std::unordered_map<std::string, float>       m_floatDefaults;
     std::unordered_map<std::string, glm::vec2>   m_vec2Defaults;
     std::unordered_map<std::string, glm::vec3>   m_vec3Defaults;

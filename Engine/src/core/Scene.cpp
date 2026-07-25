@@ -167,11 +167,12 @@ void Scene::ReorderObject(const std::string& id, const std::string& parentId, in
             if (oldIndex < targetIndex) targetIndex--;
             targetIndex = std::max(0, std::min(targetIndex, (int)rootobject_ids.size()));
             rootobject_ids.insert(rootobject_ids.begin() + targetIndex, id);
+            Registry::BumpGeneration(); // root order changed
         }
     } else {
         if (GameObject* pObj = registry->Find<GameObject>(parentId)) {
             if (Transform* pt = pObj->GetTransform())
-                pt->MoveChild(id, targetIndex);
+                pt->MoveChild(id, targetIndex); // MoveChild bumps the generation
         }
     }
 
@@ -224,7 +225,10 @@ void Scene::SyncRootObjects(const std::string& child_id, const std::string& pare
             changed = true;
         }
     }
-    if (changed) Notify(HIERARCHY_CHANGED_EVENT, child_id);
+    if (changed) {
+        Registry::BumpGeneration(); // rootobject_ids order changed
+        Notify(HIERARCHY_CHANGED_EVENT, child_id);
+    }
 }
 
 void Scene::SyncAllObjects(const std::string& id){
@@ -232,11 +236,12 @@ void Scene::SyncAllObjects(const std::string& id){
     if (it != gameobject_ids.end()){
         gameobject_ids.erase(it);
     }
-    
+
     auto root_it = std::find(rootobject_ids.begin(), rootobject_ids.end(), id);
     if (root_it != rootobject_ids.end()){
         rootobject_ids.erase(root_it);
     }
+    Registry::BumpGeneration(); // object/root id lists changed
 }
 
 void Scene::AddGameObject(GameObject *obj)
@@ -265,6 +270,7 @@ void Scene::AddGameObject(GameObject *obj)
     if (transform && !transform->GetParent()) {
         rootobject_ids.push_back(obj->GetID());
     }
+    Registry::BumpGeneration(); // id lists finalized — refresh object caches
     Notify(GAMEOBJECT_ADDED_EVENT, obj->GetID());
 }
 
@@ -372,6 +378,7 @@ GameObject* Scene::InstantiateSubtree(const YAML::Node& gameobjects, const YAML:
             rootobject_ids.push_back(newId);
     }
 
+    Registry::BumpGeneration(); // id lists finalized — refresh object caches
     Notify(GAMEOBJECT_ADDED_EVENT, newRoot->GetID());
     return newRoot;
 }
@@ -477,32 +484,38 @@ void Scene::Sync(GameObject* obj){
 
 }
 
-std::vector<GameObject*> Scene::GetRootObjects()
+const std::vector<GameObject*>& Scene::GetRootObjects()
 {
-    
-    std::vector<GameObject*> result;
-    for (auto& id : rootobject_ids)
-    {   
-        GameObject* obj = this->registry->Find<GameObject>(id);
-        if (obj)
-        {
-            result.push_back(obj);
-        }
+    const std::uint64_t gen = Registry::Generation();
+    if (cachedRootsGen == gen) return cachedRoots;
+
+    cachedRoots.clear();
+    Registry* reg = registry ? registry : (container ? container->FindSystem<Registry>() : nullptr);
+    if (!reg) return cachedRoots; // pre-Init: leave unstamped so it re-resolves
+    cachedRoots.reserve(rootobject_ids.size());
+    for (const auto& id : rootobject_ids) {
+        if (GameObject* obj = reg->Find<GameObject>(id))
+            cachedRoots.push_back(obj);
     }
-    return result;
+    cachedRootsGen = gen;
+    return cachedRoots;
 }
 
-std::vector<GameObject*> Scene::GetAllGameObjects()
+const std::vector<GameObject*>& Scene::GetAllGameObjects()
 {
-    std::vector<GameObject*> result;
-    if (!container) return result;
-    Registry* registry = container->FindSystem<Registry>();
-    for (auto& id : gameobject_ids){
-        GameObject* obj = registry->Find<GameObject>(id);
-        if (obj) result.push_back(obj);
+    const std::uint64_t gen = Registry::Generation();
+    if (cachedAllGen == gen) return cachedAll;
 
+    cachedAll.clear();
+    Registry* reg = registry ? registry : (container ? container->FindSystem<Registry>() : nullptr);
+    if (!reg) return cachedAll;
+    cachedAll.reserve(gameobject_ids.size());
+    for (const auto& id : gameobject_ids) {
+        if (GameObject* obj = reg->Find<GameObject>(id))
+            cachedAll.push_back(obj);
     }
-    return result;
+    cachedAllGen = gen;
+    return cachedAll;
 }
 
 void Scene::SetName(const std::string& name){

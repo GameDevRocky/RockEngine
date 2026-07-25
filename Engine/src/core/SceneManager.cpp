@@ -9,6 +9,7 @@
 #include <filesystem>
 #include <fstream>
 #include "engine/debug/Console.hpp"
+#include "engine/debug/FrameProfiler.hpp"
 
 using namespace EngineUtils;
 void SceneManager::Init(){
@@ -61,29 +62,50 @@ void SceneManager::Update() {
 
     accumulator += frameTime;
 
+    // Clamp the time debt (Unity's maximumDeltaTime): a slow frame otherwise
+    // queues more substeps, making the next frame slower — a death spiral
+    // (observed: 43 substeps in one frame at 200 objects). Under overload the
+    // simulation runs briefly in slow-motion instead of compounding.
+    constexpr int kMaxSubstepsPerFrame = 4;
+    const float maxDebt = kMaxSubstepsPerFrame * fixedDeltaTime;
+    if (accumulator > maxDebt) accumulator = maxDebt;
+
     while (accumulator >= fixedDeltaTime) {
+        ROCK_PROFILE_COUNT("fixed substeps", 1);
+        {
+            ROCK_PROFILE_SCOPE("Scene::FixedUpdate");
+            for (auto& scene_id : scene_ids) {
+                Scene* scene = registry->Find<Scene>(scene_id);
+                if (!scene){
+                    std::cout << "Error in Scene Manager, scene is null" << std::endl;
+                    continue;
+                }
+                scene->FixedUpdate();
+            }
+        }
+        {
+            ROCK_PROFILE_SCOPE("PhysicsSystem::Step");
+            physicsSystem->Step();
+        }
+        accumulator -= fixedDeltaTime;
+    }
+
+    {
+        ROCK_PROFILE_SCOPE("Scene::Update");
         for (auto& scene_id : scene_ids) {
             Scene* scene = registry->Find<Scene>(scene_id);
-            if (!scene){
-                std::cout << "Error in Scene Manager, scene is null" << std::endl;
-                continue;
-            }
-            scene->FixedUpdate();
+            if (!scene) continue;
+            scene->Update();
         }
-        physicsSystem->Step();
-        accumulator -= fixedDeltaTime; 
     }
 
-    for (auto& scene_id : scene_ids) {
-        Scene* scene = registry->Find<Scene>(scene_id);
-        if (!scene) continue;
-        scene->Update();
-    }
-
-    for (auto& scene_id : scene_ids) {
-        Scene* scene = registry->Find<Scene>(scene_id);
-        if (!scene) continue;
-        scene->LateUpdate();
+    {
+        ROCK_PROFILE_SCOPE("Scene::LateUpdate");
+        for (auto& scene_id : scene_ids) {
+            Scene* scene = registry->Find<Scene>(scene_id);
+            if (!scene) continue;
+            scene->LateUpdate();
+        }
     }
 
     registry->FlushPendingShutdowns();

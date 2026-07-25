@@ -32,6 +32,11 @@ void EditorRenderView::Init()
 std::string EditorRenderView::Pick(int fbPixelX, int fbPixelY)
 {
     if (!pickingPass) return "";
+    // Render the pick buffer just-in-time for this query rather than every
+    // frame. UpdateCamera() first so the ids line up with what the user sees
+    // (the editor camera may have panned/zoomed since the last frame render).
+    UpdateCamera();
+    pickingPass->RenderPickBuffer(camera);
     uint32_t pickId = pickingPass->ReadPixel(fbPixelX, fbPixelY);
     if (pickId == 0) return "";
     return pickingPass->GetPickedObjectId(pickId);

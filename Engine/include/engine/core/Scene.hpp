@@ -2,6 +2,7 @@
 #include <vector>
 #include <iostream>
 #include <string>
+#include <cstdint>
 #include <unordered_set>
 #include "yaml-cpp/yaml.h"
 #include "engine/serialization/Serializable.hpp"
@@ -77,8 +78,11 @@ public:
     // targetIndex counts positions in the sibling list that still contains the object.
     void ReorderObject(const std::string& id, const std::string& parentId, int targetIndex);
     
-    std::vector<GameObject*> GetRootObjects();
-    std::vector<GameObject*> GetAllGameObjects();
+    // Both return references into runtime caches (rebuilt when the registry
+    // generation moves; the id-list mutators bump it). Don't hold the reference
+    // across a structural change.
+    const std::vector<GameObject*>& GetRootObjects();
+    const std::vector<GameObject*>& GetAllGameObjects();
     
     const std::string& GetName() const { return name; }
     void SetName(const std::string& newName);
@@ -119,5 +123,10 @@ private:
     std::vector<std::string> rootobject_ids;
     std::vector<std::string> gameobject_ids;
 
-
+    // Runtime caches — never serialize, never copy. Rebuilt when the registry
+    // generation moves (object add/remove and the id-list mutators all bump it).
+    std::vector<GameObject*> cachedRoots;
+    std::uint64_t cachedRootsGen = 0;
+    std::vector<GameObject*> cachedAll;
+    std::uint64_t cachedAllGen = 0;
 };

@@ -1,6 +1,11 @@
 import math
 
 class Vector2:
+    # No per-instance __dict__: Vector2 is constructed constantly (every
+    # rigidbody/transform property read crosses the boundary and builds one), so
+    # dropping the dict cuts allocation cost and speeds x/y access.
+    __slots__ = ('x', 'y')
+
     def __init__(self, x=None, y=None):
         # Case: Vector2() -> (0.0, 0.0)
         if x is None:

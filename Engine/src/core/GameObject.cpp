@@ -11,6 +11,25 @@ void GameObject::Accept(IVisitor* v) {
     v->Visit(this);
 }
 
+const std::vector<Component*>& GameObject::ResolvedComponents() {
+    const std::uint64_t gen = Registry::Generation();
+    if (resolvedComponentsGen == gen) return resolvedComponents;
+
+    resolvedComponents.clear();
+    resolvedComponents.reserve(component_ids.size());
+    Registry* reg = registry ? registry : (container ? container->FindSystem<Registry>() : nullptr);
+    if (reg) {
+        for (const auto& id : component_ids) {
+            if (Component* comp = reg->Find<Component>(id))
+                resolvedComponents.push_back(comp);
+        }
+        // Only stamp once the registry exists; before that the cache is empty
+        // and must keep re-resolving until components are actually registered.
+        resolvedComponentsGen = gen;
+    }
+    return resolvedComponents;
+}
+
 void GameObject::AddComponent(Component* comp) {
     if(!comp) return;
     // Single-instance components (Transform, RigidBody) may only be attached once.
@@ -22,8 +41,10 @@ void GameObject::AddComponent(Component* comp) {
     }
     Registry* registry = container->FindSystem<Registry>();
     comp->Attach(this->container);
-    registry->Register(comp);
+    registry->Register(comp);            // bumps the registry generation
     component_ids.push_back(comp->GetID());
+    resolvedComponentsGen = 0;           // force the cache to re-resolve
+    cachedTransformGen = 0;
     comp->SetGameObject(this);
     comp->Init();
     comp->PostInit();
@@ -43,6 +64,8 @@ void GameObject::RemoveComponent(Component* comp) {
     const std::string compId = comp->GetID();
     auto it = std::find(component_ids.begin(), component_ids.end(), compId);
     if (it != component_ids.end()) component_ids.erase(it);
+    resolvedComponentsGen = 0;   // drop the removed component from the cache
+    cachedTransformGen = 0;
 
     // Deferred Shutdown()+delete via the registry — same path GameObject deletion
     // uses, so component-specific cleanup (physics bodies, etc.) still runs safely.
@@ -82,10 +105,10 @@ void GameObject::Deserialize(const YAML::Node& node) {
 
 bool GameObject::HasComponentByName(const std::string& type_name) const {
     if (!container) return false;
-    Registry* registry = container->FindSystem<Registry>();
-    if (!registry) return false;
+    Registry* reg = container->FindSystem<Registry>();
+    if (!reg) return false;
     for (const auto& id : component_ids) {
-        Component* comp = registry->Find<Component>(id);
+        Component* comp = reg->Find<Component>(id);
         if (comp && comp->GetTypeName() == type_name) return true;
     }
     return false;
@@ -106,123 +129,120 @@ Scene* GameObject::GetScene(){
 }
 
 Transform* GameObject::GetTransform(){
-    return GetComponent<Transform>();
+    const std::uint64_t gen = Registry::Generation();
+    if (cachedTransformGen == gen && cachedTransform) return cachedTransform;
+    cachedTransform = GetComponent<Transform>();
+    if (cachedTransform) cachedTransformGen = gen; // only stamp once actually found
+    return cachedTransform;
 }
 
 std::vector<Component*> GameObject::GetAllComponents(){
-    std::vector<Component*> result;
-    result.reserve(component_ids.size());
-    Registry* registry = container->FindSystem<Registry>();
-    for (auto& id : component_ids ){
-        auto* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        result.push_back(comp);
+    // Copy the resolved cache so callers can safely mutate structure while
+    // holding the result (the cache itself must not be handed out by reference).
+    return ResolvedComponents();
+}
+
+const std::vector<GameObject*>& GameObject::ChildObjects() {
+    const std::uint64_t gen = Registry::Generation();
+    if (cachedChildObjectsGen == gen) return cachedChildObjects;
+
+    cachedChildObjects.clear();
+    Transform* t = GetTransform();
+    if (t) {
+        const auto& children = t->GetChildren();
+        cachedChildObjects.reserve(children.size());
+        for (Transform* child : children) {
+            if (GameObject* go = child->GetGameObject())
+                cachedChildObjects.push_back(go);
+        }
     }
-    return result;
+    cachedChildObjectsGen = gen;
+    return cachedChildObjects;
 }
 
 void GameObject::Init(){
     registry = container->FindSystem<Registry>();
-    for (auto& id : component_ids){
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        comp->Init();
-    }
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i)
+        comps[i]->Init();
 }
 
 void GameObject::PostInit(){
     registry = container->FindSystem<Registry>();
-    for (auto& id : component_ids){
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        comp->PostInit();
-    }
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i)
+        comps[i]->PostInit();
 }
 
 void GameObject::Awake(){
-
-    for (auto& id : component_ids){
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) {
-            continue;
-        }
-        if (!comp->GetEnabled()) continue;
-        comp->Awake();
-    } 
+    // Index-based over the live cache: a component's Awake() may add/remove
+    // components (which re-resolves the cache), so re-read size()/[i] each pass
+    // rather than holding iterators into a possibly-reallocated buffer.
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->Awake();
+    }
 }
 
 void GameObject::Start(){
-
-    for (auto& id : component_ids){
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) {
-            continue;
-        }
-        if (!comp->GetEnabled()) continue;
-        comp->Start();
-    } 
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->Start();
+    }
 }
 
 void GameObject::Update() {
-
-    for (auto& id : component_ids){
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        
-        if (!comp->GetEnabled()) continue;
-        comp->Update();
-
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->Update();
     }
 }
 void GameObject::FixedUpdate() {
-    for (auto& id : component_ids){
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        if (!comp->GetEnabled()) continue;
-        comp->FixedUpdate();
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->FixedUpdate();
     }
 }
 
 void GameObject::LateUpdate() {
-    for (auto& id : component_ids) {
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        if (!comp->GetEnabled()) continue;
-        comp->LateUpdate();
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->LateUpdate();
     }
 }
 
 void GameObject::OnCollisionEnter(GameObject* other){
-    for (auto& id : component_ids){
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        if (!comp->GetEnabled()) continue;
-        comp->OnCollisionEnter(other);
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->OnCollisionEnter(other);
     }
 }
 void GameObject::OnCollisionExit(GameObject* other) {
-    for (auto& id : component_ids) {
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        if (!comp->GetEnabled()) continue;
-        comp->OnCollisionExit(other);
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->OnCollisionExit(other);
     }
 }
 
 void GameObject::OnTriggerEnter(GameObject* other) {
-    for (auto& id : component_ids) {
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        if (!comp->GetEnabled()) continue;
-        comp->OnTriggerEnter(other);
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->OnTriggerEnter(other);
     }
 }
 void GameObject::OnTriggerExit(GameObject* other) {
-    for (auto& id : component_ids) {
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        if (!comp->GetEnabled()) continue;
-        comp->OnTriggerExit(other);
+    const auto& comps = ResolvedComponents();
+    for (std::size_t i = 0; i < comps.size(); ++i) {
+        Component* comp = comps[i];
+        if (comp->GetEnabled()) comp->OnTriggerExit(other);
     }
 }
 
@@ -232,10 +252,10 @@ void GameObject::SetActive(bool active){
         notify = true;
     }
     this->active = active;
-    for (auto& id : component_ids) {
-        Component* comp = registry->Find<Component>(id);
-        if (!comp) continue;
-        comp->SetEnabled(active);
+    {
+        const auto& comps = ResolvedComponents();
+        for (std::size_t i = 0; i < comps.size(); ++i)
+            comps[i]->SetEnabled(active);
     }
 
     Transform* t = GetTransform();

@@ -57,6 +57,10 @@ private:
 
     QOpenGLWidget* frameDriver = nullptr;
     QMetaObject::Connection frameDriverConn;
+    // True while the watchdog is pacing the loop because a visible driver went
+    // silent (e.g. occluded); cleared by the next real frameSwapped. Keeps a
+    // merely *slow* vsync loop from being double-driven by the watchdog.
+    bool watchdogTicking = false;
 
     // Every viewport in the editor. Update() repaints the visible ones each
     // tick; the frameDriver above is just whichever one is pacing the vsync loop.

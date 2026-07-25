@@ -104,9 +104,11 @@ void Editor::UnregisterViewport(QOpenGLWidget* w) {
 }
 
 void Editor::FrameTick(){
-    lastTickTime = std::chrono::steady_clock::now();
     Engine::Get()->Update();
     Update(); // schedule the next repaint; the driver's swap re-arms this loop
+    // Stamped at the END so a long frame doesn't eat into the watchdog's stall
+    // threshold: the clock measures silence between ticks, not frame duration.
+    lastTickTime = std::chrono::steady_clock::now();
 }
 
 void Editor::SetFrameDriver(QOpenGLWidget* w) {
@@ -115,6 +117,7 @@ void Editor::SetFrameDriver(QOpenGLWidget* w) {
     frameDriver = w;
     if (!w) return;
     frameDriverConn = QObject::connect(w, &QOpenGLWidget::frameSwapped, [this]() {
+        watchdogTicking = false; // a real swap: the vsync loop is alive again
         FrameTick();
     });
     w->update(); // re-arm: the previous driver's vsync loop has already stopped
@@ -144,12 +147,24 @@ void Editor::PostInit() {
     // when the vsync loop has clearly stalled, so it never double-drives a
     // healthy 60Hz+ loop.
     constexpr int kWatchdogIntervalMs = 16; // how often to check for a stall
-    constexpr int kStallThresholdMs   = 32; // ~2 frames at 60Hz without a swap
+    constexpr int kStallThresholdMs   = 250; // driver presenting but silent this long = stalled
     timer->setTimerType(Qt::PreciseTimer);
     QObject::connect(timer, &QTimer::timeout, [this]() {
+        // A *slow* loop is not a *stalled* loop: while the driver is visible a
+        // swap is coming, and an extra FrameTick here would pile a second full
+        // Engine::Update onto exactly the frames that are already over budget.
+        // Only step when no viewport can present (hidden/minimized/occluded) or
+        // the visible driver has been silent for far longer than any real frame.
         const auto sinceLastTick = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now() - lastTickTime).count();
-        if (sinceLastTick >= kStallThresholdMs) {
+        const bool driverPresenting = frameDriver && frameDriver->isVisible() &&
+                                      !frameDriver->window()->isMinimized() && !watchdogTicking;
+        const int threshold = driverPresenting ? kStallThresholdMs : 2 * kWatchdogIntervalMs;
+        if (sinceLastTick >= threshold) {
+            // Once a presenting driver has been silent past the stall threshold
+            // it is genuinely stuck (e.g. occluded, so Qt skips its paints);
+            // latch into watchdog pacing until a real swap clears the latch.
+            watchdogTicking = true;
             FrameTick();
         }
     });

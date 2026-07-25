@@ -105,6 +105,7 @@ public:
 
 private:
     void InstantiateScript();
+    void RefreshMethodCache(); // re-resolve cached lifecycle methods; caller holds the GIL
     void IntrospectFields();
     void ApplyPendingFields();
     void SubscribeFileWatch();   // (re)subscribe hot-reload watch for m_scriptFilePath

@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <cstdint>
 #include "engine/serialization/Serializable.hpp"
 #include "engine/core/RuntimeObject.hpp"
 #include "engine/core/GameObject.hpp"
@@ -74,7 +75,11 @@ protected:
     bool enabled = true;
 
 private:
-
-
+    // Resolved owning GameObject for the current registry generation — runtime
+    // cache, never serialize, never copy. GetGameObject() is called indirectly
+    // by every GetComponent()/GetTransform() a component makes, so caching it
+    // removes one registry hash lookup from each of those.
+    GameObject* cachedGameObject = nullptr;
+    std::uint64_t cachedGameObjectGen = 0;
 
 };

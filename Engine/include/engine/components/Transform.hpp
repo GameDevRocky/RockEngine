@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
+#include <cstdint>
 #include <yaml-cpp/yaml.h>
 
 class Registry;
@@ -58,7 +59,10 @@ public:
     // counts positions in the list that still contains the child (see Scene::ReorderObject).
     void MoveChild(const std::string& childId, int targetIndex);
     Transform* GetParent();
-    std::vector<Transform*> GetChildren();
+    // Resolved child transforms for the current registry generation. Returns a
+    // reference into a runtime cache — do not hold it across a structural change
+    // (reparent/reorder/destroy all bump the generation and rebuild it).
+    const std::vector<Transform*>& GetChildren();
     void Accept(IVisitor* v) override;
    
     glm::mat4 GetLocalMatrix() const;
@@ -69,4 +73,11 @@ private:
     std::string parent_id;
     std::vector<std::string> children_ids;
     Registry* registry = nullptr;
+
+    // Runtime caches — never serialize, never copy. Reparent/reorder bump the
+    // registry generation (see SetParent/MoveChild), so these re-resolve then.
+    std::vector<Transform*> cachedChildren;
+    std::uint64_t cachedChildrenGen = 0;
+    Transform* cachedParent = nullptr;
+    std::uint64_t cachedParentGen = 0;
 };

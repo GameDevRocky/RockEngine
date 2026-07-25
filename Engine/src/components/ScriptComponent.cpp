@@ -2,6 +2,7 @@
 #include <pybind11/embed.h>
 #include "engine/components/ScriptComponent.hpp"
 #include "engine/core/FileWatcherSystem.hpp"
+#include "engine/debug/FrameProfiler.hpp"
 #include <iostream>
 #include <filesystem>
 #include "engine/utils/EngineUtils.hpp"
@@ -12,6 +13,16 @@ namespace py = pybind11;
 
 struct ScriptInstanceData {
     py::object scriptInstance;
+    // Bound per-frame lifecycle methods, resolved once per instance (and again
+    // on hot-reload) so the frame loop skips the GIL + two string MRO lookups
+    // that py::hasattr + attr() cost per call. Cleared whenever scriptInstance
+    // is reset; must be released under the GIL like scriptInstance itself.
+    py::object updateFn;
+    py::object fixedUpdateFn;
+    py::object lateUpdateFn;
+    bool hasUpdate = false;
+    bool hasFixedUpdate = false;
+    bool hasLateUpdate = false;
 };
 
 namespace {
@@ -106,6 +117,7 @@ ScriptComponent::ScriptComponent()
 
 void ScriptComponent::CallMethod(const char* funcName)
 {
+    ROCK_PROFILE_SCOPE("Scripts");
     py::gil_scoped_acquire gil;
     auto& inst = m_pyData->scriptInstance;
     if (!inst || inst.is_none()) return;
@@ -257,9 +269,25 @@ void ScriptComponent::Start(){
     } 
     state = State::Started;
 }
-void ScriptComponent::Update()      { if (container->GetMode() == Container::Mode::Runtime) CallMethod("update"); }
-void ScriptComponent::FixedUpdate() { if (container->GetMode() == Container::Mode::Runtime) CallMethod("fixed_update"); }
-void ScriptComponent::LateUpdate()  { if (container->GetMode() == Container::Mode::Runtime) CallMethod("late_update"); }
+namespace {
+    // Fast path for the cached lifecycle methods: the has-flag is checked
+    // before taking the GIL, so scripts without a given phase cost nothing.
+    void CallBound(const py::object& fn, const char* name)
+    {
+        ROCK_PROFILE_SCOPE("Scripts");
+        py::gil_scoped_acquire gil;
+        try {
+            fn();
+        } catch (const py::error_already_set& e) {
+            std::cerr << "[ScriptComponent] Python error in " << name << "():\n"
+                      << e.what() << std::endl;
+        }
+    }
+}
+
+void ScriptComponent::Update()      { if (container->GetMode() == Container::Mode::Runtime && m_pyData->hasUpdate)      CallBound(m_pyData->updateFn, "update"); }
+void ScriptComponent::FixedUpdate() { if (container->GetMode() == Container::Mode::Runtime && m_pyData->hasFixedUpdate) CallBound(m_pyData->fixedUpdateFn, "fixed_update"); }
+void ScriptComponent::LateUpdate()  { if (container->GetMode() == Container::Mode::Runtime && m_pyData->hasLateUpdate)  CallBound(m_pyData->lateUpdateFn, "late_update"); }
  
 void ScriptComponent::OnCollisionEnter(GameObject* other) { if (container->GetMode() == Container::Mode::Runtime) CallMethodStr("handle_collision_enter", other->GetID().c_str());
 }
@@ -284,8 +312,24 @@ void ScriptComponent::Shutdown() {
     if (Py_IsInitialized() && m_pyData) {
         py::gil_scoped_acquire gil;
         m_pyData->scriptInstance = py::object();
+        RefreshMethodCache();
     }
     Component::Shutdown();
+}
+
+void ScriptComponent::RefreshMethodCache()
+{
+    auto& d = *m_pyData;
+    d.updateFn = py::object();
+    d.fixedUpdateFn = py::object();
+    d.lateUpdateFn = py::object();
+    d.hasUpdate = d.hasFixedUpdate = d.hasLateUpdate = false;
+
+    auto& inst = d.scriptInstance;
+    if (!inst || inst.is_none()) return;
+    if (py::hasattr(inst, "update"))       { d.updateFn      = inst.attr("update");       d.hasUpdate      = true; }
+    if (py::hasattr(inst, "fixed_update")) { d.fixedUpdateFn = inst.attr("fixed_update"); d.hasFixedUpdate = true; }
+    if (py::hasattr(inst, "late_update"))  { d.lateUpdateFn  = inst.attr("late_update");  d.hasLateUpdate  = true; }
 }
 
 void ScriptComponent::InstantiateScript()
@@ -295,6 +339,7 @@ void ScriptComponent::InstantiateScript()
     if (moduleName.empty() || className.empty()) {
         std::cerr << "[ScriptComponent] Module or class empty\n";
         m_pyData->scriptInstance = py::none();
+        RefreshMethodCache();
         return;
     }
 
@@ -343,6 +388,7 @@ void ScriptComponent::InstantiateScript()
             << e.what() << std::endl;
         m_pyData->scriptInstance = py::none();
     }
+    RefreshMethodCache();
 }
 
 
@@ -371,6 +417,7 @@ void ScriptComponent::ApplyHotReload()
             m_pyData->scriptInstance.attr("_component_id") = GetID();
             GameObject* go = GetGameObject();
             if (go) m_pyData->scriptInstance.attr("_gameobject_id") = go->GetID();
+            RefreshMethodCache();
             reloadSucceeded = true;
         } catch (const py::error_already_set& e) {
             std::cerr << "[ScriptComponent] Hard stop in ApplyHotReload() — old instance preserved:\n"
@@ -425,6 +472,7 @@ void ScriptComponent::SetScript(const std::string& module, const std::string& cl
     if (Py_IsInitialized() && m_pyData) {
         py::gil_scoped_acquire gil;
         m_pyData->scriptInstance = py::object();
+        RefreshMethodCache();
     }
     m_fields.clear();
     m_pendingFieldValues.clear();
@@ -898,6 +946,7 @@ ScriptComponent::~ScriptComponent() {
     if (Py_IsInitialized() && m_pyData) {
         py::gil_scoped_acquire gil;
         m_pyData->scriptInstance = py::object();
+        RefreshMethodCache();
     }
 }
 
