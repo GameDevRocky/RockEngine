@@ -25,6 +25,7 @@ void TimeManager::Update() {
     deltaTime = unscaledDeltaTime * timeScale;
     elapsedTime += deltaTime;
     lastFrameTime = now;
+    ++frameCount;
 }
 
 void TimeManager::Shutdown() {

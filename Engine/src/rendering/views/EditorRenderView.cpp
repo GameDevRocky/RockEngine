@@ -3,6 +3,7 @@
 #include "engine/rendering/passes/ClearPass.hpp"
 #include "engine/rendering/passes/GridPass.hpp"
 #include "engine/rendering/passes/ScenePass.hpp"
+#include "engine/rendering/passes/ParticlePass.hpp"
 #include "engine/rendering/passes/DebugPass.hpp"
 #include "engine/rendering/passes/PickingPass.hpp"
 
@@ -23,6 +24,7 @@ void EditorRenderView::Init()
     pipeline->AddSetupPass(clearPass);
     pipeline->AddSetupPass(gridPass);
     pipeline->AddScenePass(scenePass);
+    pipeline->AddScenePass(new ParticlePass());
     pipeline->AddScenePass(debugPass);
     pipeline->AddFinalizePass(pickingPass);
 

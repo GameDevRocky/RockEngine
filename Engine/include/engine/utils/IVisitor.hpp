@@ -21,6 +21,7 @@ class Texture2D;
 class Shader;
 class Camera;
 class Animator;
+class ParticleComponent;
 
 class IVisitor {
 public:
@@ -41,4 +42,5 @@ public:
     virtual void Visit(Shader* s) {}
     virtual void Visit(Camera* c) {}
     virtual void Visit(Animator* a) {}
+    virtual void Visit(ParticleComponent* p) {}
 };

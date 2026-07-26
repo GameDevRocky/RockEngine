@@ -1,6 +1,47 @@
 name: New Scene
 id: 270788eb2b47eb0e5bd0a6a26aa0263c
-gameobjects:
-  []
 components:
-  []
+  - id: 948c660a3869607ecb1496fc5875676b
+    enabled: true
+    type: Transform
+    gameobject: 5296a2bef11bd287cccb8a9f9155978c
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1.297888, 1]
+    parent_id: ~
+  - id: 25f3857dac814076789c6a578bb91e88
+    enabled: true
+    type: ParticleComponent
+    gameobject: 5296a2bef11bd287cccb8a9f9155978c
+    emissionRate: 12
+    maxParticles: 1000
+    duration: 5
+    looping: true
+    startBurst: 0
+    lifetimeMin: 10
+    lifetimeMax: 10
+    startSpeedMin: 100
+    startSpeedMax: 100
+    directionAngle: 180
+    spreadDegrees: 61
+    gravity: [0, -9]
+    damping: 0.2
+    space: 1
+    shape: 2
+    shapeSize: [2000, 2000]
+    coneAngle: 31
+    sprite_id: 80e3df6482971224026ba8d3c6779d3f
+    startColor: [0.43137255, 1, 0.42352942, 1]
+    endColor: [0.0627451, 0.078431375, 0.15294118, 0.46666667]
+    startSize: 30
+    endSize: 0
+    blendMode: 1
+    sortingOrder: 0
+gameobjects:
+  - id: 5296a2bef11bd287cccb8a9f9155978c
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    component_ids:
+      - 948c660a3869607ecb1496fc5875676b
+      - 25f3857dac814076789c6a578bb91e88

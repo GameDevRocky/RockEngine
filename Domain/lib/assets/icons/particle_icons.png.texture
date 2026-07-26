@@ -1,0 +1,8 @@
+type: Texture2D
+id: a4a6bd749b117e29a9696ec36f10a425
+name: particle_icons
+path: Domain/lib/assets/icons/particle_icons.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

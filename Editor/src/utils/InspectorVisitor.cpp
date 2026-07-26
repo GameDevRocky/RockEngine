@@ -10,6 +10,7 @@
 #include "engine/components/ScriptComponent.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/Animator.hpp"
+#include "engine/components/ParticleComponent.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/rendering/core/Sprite.hpp"
@@ -548,6 +549,144 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
     }
 }
 
+
+void InspectorVisitor::Visit(ParticleComponent* p) {
+    using PC = ParticleComponent;
+
+    // ── Emission ──
+    BindProperty<float>(p, "Emission Rate: ",
+        [=]() { return p->GetEmissionRate(); },
+        [](PC* e, const float& v) { e->SetEmissionRate(v); },
+        p->EMISSION_RATE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10000).Step(1));
+
+    BindProperty<float>(p, "Max Particles: ",
+        [=]() { return static_cast<float>(p->GetMaxParticles()); },
+        [](PC* e, const float& v) { e->SetMaxParticles(static_cast<int>(v)); },
+        p->MAX_PARTICLES_CHANGED_EVENT, PropDesc().Tag(Tags::INT).Range(1, 1000000).Step(1));
+
+    BindProperty<float>(p, "Duration: ",
+        [=]() { return p->GetDuration(); },
+        [](PC* e, const float& v) { e->SetDuration(v); },
+        p->DURATION_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 100000).Step(0.1f));
+
+    BindProperty<bool>(p, "Looping: ",
+        [=]() { return p->GetLooping(); },
+        [](PC* e, const bool& v) { e->SetLooping(v); },
+        p->LOOPING_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+    BindProperty<float>(p, "Start Burst: ",
+        [=]() { return static_cast<float>(p->GetStartBurst()); },
+        [](PC* e, const float& v) { e->SetStartBurst(static_cast<int>(v)); },
+        p->START_BURST_CHANGED_EVENT, PropDesc().Tag(Tags::INT).Range(0, 1000000).Step(1));
+
+    // ── Lifetime / motion ── (vec2 = min,max)
+    BindProperty<glm::vec2>(p, "Lifetime (min,max): ",
+        [=]() { return p->GetLifetime(); },
+        [](PC* e, const glm::vec2& v) { e->SetLifetime(v); },
+        p->LIFETIME_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Range(0, 100000).Step(0.1f));
+
+    BindProperty<glm::vec2>(p, "Speed (min,max): ",
+        [=]() { return p->GetSpeed(); },
+        [](PC* e, const glm::vec2& v) { e->SetSpeed(v); },
+        p->SPEED_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(0.1f));
+
+    BindProperty<float>(p, "Direction: ",
+        [=]() { return p->GetDirection(); },
+        [](PC* e, const float& v) { e->SetDirection(v); },
+        p->DIRECTION_CHANGED_EVENT, PropDesc().Tag(Tags::ANGLE).Step(1));
+
+    BindProperty<float>(p, "Spread: ",
+        [=]() { return p->GetSpread(); },
+        [](PC* e, const float& v) { e->SetSpread(v); },
+        p->SPREAD_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 360).Step(1));
+
+    BindProperty<glm::vec2>(p, "Gravity: ",
+        [=]() { return p->GetGravity(); },
+        [](PC* e, const glm::vec2& v) { e->SetGravity(v); },
+        p->GRAVITY_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(0.1f));
+
+    BindProperty<float>(p, "Damping: ",
+        [=]() { return p->GetDamping(); },
+        [](PC* e, const float& v) { e->SetDamping(v); },
+        p->DAMPING_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 50).Step(0.1f));
+
+    BindProperty<int>(p, "Simulation Space: ",
+        [=]() { return static_cast<int>(p->GetSpace()); },
+        [](PC* e, const int& v) { e->SetSpace(static_cast<PC::SimulationSpace>(v)); },
+        p->SPACE_CHANGED_EVENT, PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Local", static_cast<int>(PC::SimulationSpace::Local)},
+            {"World", static_cast<int>(PC::SimulationSpace::World)}
+        }));
+
+    // ── Shape ──
+    BindProperty<int>(p, "Shape: ",
+        [=]() { return static_cast<int>(p->GetShape()); },
+        [](PC* e, const int& v) { e->SetShape(static_cast<PC::Shape>(v)); },
+        p->SHAPE_CHANGED_EVENT, PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Point",  static_cast<int>(PC::Shape::Point)},
+            {"Circle", static_cast<int>(PC::Shape::Circle)},
+            {"Box",    static_cast<int>(PC::Shape::Box)},
+            {"Cone",   static_cast<int>(PC::Shape::Cone)}
+        }));
+
+    BindProperty<glm::vec2>(p, "Shape Size (px): ",
+        [=]() { return p->GetShapeSize(); },
+        [](PC* e, const glm::vec2& v) { e->SetShapeSize(v); },
+        p->SHAPE_SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
+
+    BindProperty<float>(p, "Cone Angle: ",
+        [=]() { return p->GetConeAngle(); },
+        [](PC* e, const float& v) { e->SetConeAngle(v); },
+        p->CONE_ANGLE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 360).Step(1));
+
+    // ── Appearance ──
+    BindProperty<std::string>(p, "Sprite: ",
+        [=]() { return p->GetSpriteID(); },
+        [](PC* e, const std::string& v) { e->SetSprite(v); },
+        p->SPRITE_CHANGED_EVENT, PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF));
+
+    BindProperty<glm::vec4>(p, "Start Color: ",
+        [=]() { return p->GetStartColor(); },
+        [](PC* e, const glm::vec4& v) { e->SetStartColor(v); },
+        p->START_COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
+
+    BindProperty<glm::vec4>(p, "End Color: ",
+        [=]() { return p->GetEndColor(); },
+        [](PC* e, const glm::vec4& v) { e->SetEndColor(v); },
+        p->END_COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
+
+    BindProperty<float>(p, "Start Size (px): ",
+        [=]() { return p->GetStartSize(); },
+        [](PC* e, const float& v) { e->SetStartSize(v); },
+        p->START_SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 4096).Step(1));
+
+    BindProperty<float>(p, "End Size (px): ",
+        [=]() { return p->GetEndSize(); },
+        [](PC* e, const float& v) { e->SetEndSize(v); },
+        p->END_SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 4096).Step(1));
+
+    BindProperty<int>(p, "Blend Mode: ",
+        [=]() { return static_cast<int>(p->GetBlendMode()); },
+        [](PC* e, const int& v) { e->SetBlendMode(static_cast<PC::BlendMode>(v)); },
+        p->BLEND_MODE_CHANGED_EVENT, PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Alpha",    static_cast<int>(PC::BlendMode::Alpha)},
+            {"Additive", static_cast<int>(PC::BlendMode::Additive)}
+        }));
+
+    BindProperty<float>(p, "Order in Layer: ",
+        [=]() { return static_cast<float>(p->GetSortingOrder()); },
+        [](PC* e, const float& v) { e->SetSortingOrder(static_cast<int>(v)); },
+        p->SORTING_ORDER_CHANGED_EVENT, PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
+
+    // Manual one-shot burst for authoring/testing (explosions, puffs). Not
+    // undoable -- it's a transient emission request, not a state change.
+    auto* burstBtn = new QPushButton("Emit Burst");
+    QObject::connect(burstBtn, &QPushButton::clicked, burstBtn, [p]() {
+        int n = p->GetStartBurst() > 0 ? p->GetStartBurst() : 100;
+        p->EmitBurst(n);
+    });
+    AddFullRow(burstBtn);
+}
 
 void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
     QLabel* label = new QLabel(text.c_str());

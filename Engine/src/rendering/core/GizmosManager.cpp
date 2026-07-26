@@ -7,6 +7,7 @@
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/Camera.hpp"
+#include "engine/components/ParticleComponent.hpp"
 #include "engine/core/SceneManager.hpp"
 #include "engine/core/Scene.hpp"
 #include "engine/rendering/Renderer.hpp"
@@ -611,6 +612,11 @@ void GizmosManager::RegisterComponentIcons() {
     m_componentIcons.push_back({
         "camera_icon",
         [](GameObject* obj) { return obj->GetComponent<Camera>() != nullptr; },
+        nullptr,
+    });
+    m_componentIcons.push_back({
+        "particle_icons",
+        [](GameObject* obj) { return obj->GetComponent<ParticleComponent>() != nullptr; },
         nullptr,
     });
 }

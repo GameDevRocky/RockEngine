@@ -2,6 +2,7 @@
 
 #include "engine/rendering/passes/ClearPass.hpp"
 #include "engine/rendering/passes/ScenePass.hpp"
+#include "engine/rendering/passes/ParticlePass.hpp"
 #include "engine/components/Camera.hpp"
 
 void GameRenderView::Init()
@@ -16,6 +17,7 @@ void GameRenderView::Init()
 
     pipeline->AddSetupPass(clearPass);
     pipeline->AddScenePass(scenePass);
+    pipeline->AddScenePass(new ParticlePass());
 
     pipeline->Init();
 }
