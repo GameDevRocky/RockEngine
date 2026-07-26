@@ -9,34 +9,25 @@ components:
     localRotation: 0
     localScale: [1.297888, 1]
     parent_id: ~
-  - id: 25f3857dac814076789c6a578bb91e88
+  - id: 9344ae4e23eddc1ebabed283f1acca57
     enabled: true
-    type: ParticleComponent
+    type: ScriptComponent
     gameobject: 5296a2bef11bd287cccb8a9f9155978c
-    emissionRate: 12
-    maxParticles: 1000
-    duration: 5
-    looping: true
-    startBurst: 0
-    lifetimeMin: 10
-    lifetimeMax: 10
-    startSpeedMin: 100
-    startSpeedMax: 100
-    directionAngle: 180
-    spreadDegrees: 61
-    gravity: [0, -9]
-    damping: 0.2
-    space: 1
-    shape: 2
-    shapeSize: [2000, 2000]
-    coneAngle: 31
-    sprite_id: 80e3df6482971224026ba8d3c6779d3f
-    startColor: [0.43137255, 1, 0.42352942, 1]
-    endColor: [0.0627451, 0.078431375, 0.15294118, 0.46666667]
-    startSize: 30
-    endSize: 0
-    blendMode: 1
-    sortingOrder: 0
+    module: FireworksSpawner
+    class: FireworksSpawner
+    fields:
+      particle_count: 500
+      lifetime:
+        - 0.6
+        - 3.3
+      speed:
+        - 150
+        - 450
+      start_size: 100
+      end_size: 0
+      gravity: -260
+      damping: 0.6
+      sprite: 80e3df6482971224026ba8d3c6779d3f
 gameobjects:
   - id: 5296a2bef11bd287cccb8a9f9155978c
     type: GameObject
@@ -44,4 +35,4 @@ gameobjects:
     tag: Untagged
     component_ids:
       - 948c660a3869607ecb1496fc5875676b
-      - 25f3857dac814076789c6a578bb91e88
+      - 9344ae4e23eddc1ebabed283f1acca57
