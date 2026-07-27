@@ -22,6 +22,8 @@ class Shader;
 class Camera;
 class Animator;
 class ParticleComponent;
+class Light;
+class ShadowCaster;
 
 class IVisitor {
 public:
@@ -43,4 +45,6 @@ public:
     virtual void Visit(Camera* c) {}
     virtual void Visit(Animator* a) {}
     virtual void Visit(ParticleComponent* p) {}
+    virtual void Visit(Light* l) {}
+    virtual void Visit(ShadowCaster* sc) {}
 };

@@ -58,6 +58,18 @@ namespace EngineUtils {
         constexpr float  ReferenceHeight = 1080.0f;
     }
 
+    // Texture units the ENGINE binds behind the material system's back.
+    //
+    // Material::ApplyUniforms allocates slots from 0 upward over its sampler
+    // uniforms, and SpriteRenderer's per-instance texture overrides continue from
+    // 1 -- both counting up from the bottom. These sit high and fixed so an
+    // engine-managed texture can never be stomped by a material that happens to
+    // declare one more sampler than it did yesterday.
+    namespace TextureSlots {
+        constexpr int NormalMap   = 12;   // generated from the sprite texture's grayscale
+        constexpr int ShadowAtlas = 13;   // per-light polar depth maps
+    }
+
     namespace MathUtils {
         constexpr float RAD_2_DEG = 180.0f / 3.14159265359f;
         constexpr float DEG_2_RAD = 3.14159265359f / 180.0f;

@@ -162,6 +162,16 @@ void InspectorGui::RefreshDirtyValues(){
         refresh();
 }
 
+void InspectorGui::RequestRebuild(){
+    if (m_currentInspectedId.empty()) return;
+    // Queued, not immediate: callers reach this from inside a property widget's
+    // own signal handler, and OnObjectSelected destroys those widgets. Same
+    // rationale as the script-reload rebuild below.
+    QMetaObject::invokeMethod(this, [this]() {
+        OnObjectSelected(m_currentInspectedId);
+    }, Qt::QueuedConnection);
+}
+
 void InspectorGui::PollScriptFields(){
     if (m_polledScriptIds.empty()) return;
     // Python only mutates fields while its update loop runs — i.e. in Runtime mode.

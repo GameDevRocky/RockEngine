@@ -11,6 +11,8 @@
 #include "engine/components/Camera.hpp"
 #include "engine/components/Animator.hpp"
 #include "engine/components/ParticleComponent.hpp"
+#include "engine/components/Light.hpp"
+#include "engine/components/ShadowCaster.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/rendering/core/Sprite.hpp"
@@ -25,6 +27,7 @@
 #include "dock-widgets/SpriteEditorModal.hpp"
 #include "dock-widgets/MainWindowGui.hpp"
 #include "dock-widgets/AnimatorGui.hpp"
+#include "dock-widgets/InspectorGui.hpp"
 #include <QLabel>
 #include <QSizePolicy>
 #include <QPushButton>
@@ -724,6 +727,202 @@ void InspectorVisitor::Visit(ParticleComponent* p) {
     AddFullRow(burstBtn);
 }
 
+void InspectorVisitor::Visit(Light* light) {
+    using LT = Light::LightType;
+    const LT type = light->GetType();
+
+    BindProperty<int>(light, "Type: ",
+        [=]() { return static_cast<int>(light->GetType()); },
+        [](Light* l, const int& v) { l->SetType(static_cast<LT>(v)); },
+        light->TYPE_CHANGED_EVENT,
+        PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Point",       static_cast<int>(LT::Point)},
+            {"Spot",        static_cast<int>(LT::Spot)},
+            {"Directional", static_cast<int>(LT::Directional)},
+            {"Global",      static_cast<int>(LT::Global)}
+        }));
+
+    // Which rows below are meaningful depends on Type, so a type change has to
+    // rebuild the whole section rather than just refresh a value. Subscribed
+    // here (not inside BindProperty) because this is a structural response, not
+    // a value response.
+    {
+        int subId = light->Subscribe([]() {
+            InspectorGui::Get()->RequestRebuild();
+            return true;
+        }, light->TYPE_CHANGED_EVENT);
+        m_subscriptions.emplace_back(light, subId);
+    }
+
+    BindProperty<glm::vec4>(light, "Color: ",
+        [=]() { return light->GetColor(); },
+        [](Light* l, const glm::vec4& v) { l->SetColor(v); },
+        light->COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
+
+    BindProperty<float>(light, "Intensity: ",
+        [=]() { return light->GetIntensity(); },
+        [](Light* l, const float& v) { l->SetIntensity(v); },
+        light->INTENSITY_CHANGED_EVENT,
+        PropDesc().Tag(Tags::FLOAT).Range(0.0f, 100.0f).Step(0.05f));
+
+    // ── Attenuation: Point and Spot only ────────────────────────────────────
+    if (type == LT::Point || type == LT::Spot) {
+        BindProperty<float>(light, "Range: ",
+            [=]() { return light->GetRange(); },
+            [](Light* l, const float& v) { l->SetRange(v); },
+            light->RANGE_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0.001f, 100000.0f).Step(5.0f)
+                .Desc("Reach in world units (world units == pixels)."));
+
+        BindProperty<float>(light, "Inner Radius: ",
+            [=]() { return light->GetInnerRadius(); },
+            [](Light* l, const float& v) { l->SetInnerRadius(v); },
+            light->INNER_RADIUS_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0.0f, 0.99f).Step(0.01f)
+                .Desc("Fraction of Range held at full brightness before falloff starts."));
+
+        BindProperty<float>(light, "Falloff: ",
+            [=]() { return light->GetFalloff(); },
+            [](Light* l, const float& v) { l->SetFalloff(v); },
+            light->FALLOFF_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0.01f, 16.0f).Step(0.1f)
+                .Desc("Attenuation exponent. 1 = soft ramp, higher = tighter hotspot."));
+    }
+
+    // ── Cone: Spot only ─────────────────────────────────────────────────────
+    if (type == LT::Spot) {
+        BindProperty<float>(light, "Inner Angle: ",
+            [=]() { return light->GetInnerAngle(); },
+            [](Light* l, const float& v) { l->SetInnerAngle(v); },
+            light->INNER_ANGLE_CHANGED_EVENT,
+            PropDesc().Tag(Tags::ANGLE).Range(0.0f, 180.0f).Step(1.0f)
+                .Desc("Half-angle of the full-strength core, in degrees."));
+
+        BindProperty<float>(light, "Outer Angle: ",
+            [=]() { return light->GetOuterAngle(); },
+            [](Light* l, const float& v) { l->SetOuterAngle(v); },
+            light->OUTER_ANGLE_CHANGED_EVENT,
+            PropDesc().Tag(Tags::ANGLE).Range(0.0f, 180.0f).Step(1.0f)
+                .Desc("Half-angle where the cone reaches zero. Direction comes from the Transform's rotation."));
+    }
+
+    // ── Normal-map response: everything except the flat ambient fill ────────
+    if (type != LT::Global) {
+        BindProperty<float>(light, "Height: ",
+            [=]() { return light->GetHeight(); },
+            [](Light* l, const float& v) { l->SetHeight(v); },
+            light->HEIGHT_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0.0f, 10000.0f).Step(5.0f)
+                .Desc("Distance above the sprite plane. Sprites are all at z=0, so a "
+                      "height of 0 makes normal maps produce no shading at all."));
+
+        BindProperty<float>(light, "Normal Influence: ",
+            [=]() { return light->GetNormalInfluence(); },
+            [](Light* l, const float& v) { l->SetNormalInfluence(v); },
+            light->NORMAL_INFLUENCE_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0.0f, 1.0f).Step(0.05f)
+                .Desc("0 = flat lighting, 1 = full response to the surface normal."));
+
+    }
+
+    // ── Shadows: Point and Spot only ────────────────────────────────────────
+    // A Directional light has no origin to cast from, and the shadow atlas is a
+    // POLAR depth map around a point -- there is nothing for it to rasterize.
+    // LightingPass skips Directional when handing out atlas rows, so offering
+    // the toggle here would be a control that silently does nothing.
+    if (type == LT::Point || type == LT::Spot) {
+        BindProperty<bool>(light, "Cast Shadows: ",
+            [=]() { return light->GetCastShadows(); },
+            [](Light* l, const bool& v) { l->SetCastShadows(v); },
+            light->CAST_SHADOWS_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE)
+                .Desc("Requires a ShadowCaster component on the objects that should block this light."));
+
+        if (light->GetCastShadows()) {
+            BindProperty<float>(light, "Shadow Strength: ",
+                [=]() { return light->GetShadowStrength(); },
+                [](Light* l, const float& v) { l->SetShadowStrength(v); },
+                light->SHADOW_STRENGTH_CHANGED_EVENT,
+                PropDesc().Tag(Tags::FLOAT).Range(0.0f, 1.0f).Step(0.05f)
+                    .Desc("0 = shadow does nothing, 1 = fully occluded."));
+        }
+
+        // Same structural-rebuild reasoning as Type: toggling shadows on adds
+        // the strength row.
+        int subId = light->Subscribe([]() {
+            InspectorGui::Get()->RequestRebuild();
+            return true;
+        }, light->CAST_SHADOWS_CHANGED_EVENT);
+        m_subscriptions.emplace_back(light, subId);
+    }
+}
+
+void InspectorVisitor::Visit(ShadowCaster* caster) {
+    using CS = ShadowCaster::Shape;
+    const CS shape = caster->GetShape();
+
+    BindProperty<int>(caster, "Shape: ",
+        [=]() { return static_cast<int>(caster->GetShape()); },
+        [](ShadowCaster* c, const int& v) { c->SetShape(static_cast<CS>(v)); },
+        caster->SHAPE_CHANGED_EVENT,
+        PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Sprite Alpha",  static_cast<int>(CS::SpriteAlpha)},
+            {"Sprite Bounds", static_cast<int>(CS::SpriteBounds)},
+            {"Box",           static_cast<int>(CS::Box)},
+            {"Circle",        static_cast<int>(CS::Circle)},
+            {"From Collider", static_cast<int>(CS::FromCollider)}
+        }).Desc("Sprite Alpha traces the opaque pixels so light passes through "
+                "transparent ones. Sprite Bounds is the plain rect -- cheaper, and "
+                "identical for fully-opaque art."));
+
+    {
+        int subId = caster->Subscribe([]() {
+            InspectorGui::Get()->RequestRebuild();
+            return true;
+        }, caster->SHAPE_CHANGED_EVENT);
+        m_subscriptions.emplace_back(caster, subId);
+    }
+
+    BindProperty<glm::vec2>(caster, "Center: ",
+        [=]() { return caster->GetCenter(); },
+        [](ShadowCaster* c, const glm::vec2& v) { c->SetCenter(v); },
+        caster->CENTER_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1.0f));
+
+    if (shape == CS::SpriteAlpha) {
+        BindProperty<float>(caster, "Alpha Threshold: ",
+            [=]() { return caster->GetAlphaThreshold(); },
+            [](ShadowCaster* c, const float& v) { c->SetAlphaThreshold(v); },
+            caster->ALPHA_THRESHOLD_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0.0f, 1.0f).Step(0.05f)
+                .Desc("Pixels at or above this alpha block light. Raise it to stop "
+                      "soft anti-aliased edges from casting."));
+    }
+
+    if (shape == CS::Box) {
+        BindProperty<glm::vec2>(caster, "Size: ",
+            [=]() { return caster->GetSize(); },
+            [](ShadowCaster* c, const glm::vec2& v) { c->SetSize(v); },
+            caster->SIZE_CHANGED_EVENT,
+            PropDesc().Tag(Tags::VECTOR2).Range(0.0f, 100000.0f).Step(1.0f));
+    }
+
+    if (shape == CS::Circle) {
+        BindProperty<float>(caster, "Radius: ",
+            [=]() { return caster->GetRadius(); },
+            [](ShadowCaster* c, const float& v) { c->SetRadius(v); },
+            caster->RADIUS_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0.0f, 100000.0f).Step(1.0f));
+    }
+
+    if (shape == CS::Circle || shape == CS::FromCollider) {
+        BindProperty<float>(caster, "Circle Segments: ",
+            [=]() { return static_cast<float>(caster->GetCircleSegments()); },
+            [](ShadowCaster* c, const float& v) { c->SetCircleSegments(static_cast<int>(v)); },
+            caster->SEGMENTS_CHANGED_EVENT,
+            PropDesc().Tag(Tags::INT).Range(3, 64).Step(1)
+                .Desc("Edges used to approximate a round silhouette."));
+    }
+}
+
 void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
     QLabel* label = new QLabel(text.c_str());
     auto font = label->font();
@@ -869,6 +1068,72 @@ void InspectorVisitor::Visit(Texture2D* tex) {
             {"Repeat", static_cast<int>(TextureWrap::Repeat)},
             {"Clamp",  static_cast<int>(TextureWrap::Clamp)}
         }));
+
+    // ── Apply Normal ────────────────────────────────────────────────────────
+    // Derives a tangent-space normal map from this texture's own grayscale so
+    // lights shade its surface detail. The generated image is IN MEMORY ONLY --
+    // only the settings below are written (into the .texture meta), and the map
+    // is rebuilt from them on load. Every field regenerates it on the next draw.
+    BindProperty<bool>(tex, "Apply Normal: ",
+        [=]() { return tex->GetApplyNormal(); },
+        [](Texture2D* t, const bool& v) { t->SetApplyNormal(v); },
+        tex->NORMAL_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE)
+            .Desc("Generate a normal map from this texture's grayscale. Never written to disk."));
+
+    // Toggling reveals/hides the tuning fields, which is a structural change.
+    {
+        int subId = tex->Subscribe([]() {
+            InspectorGui::Get()->RequestRebuild();
+            return true;
+        }, tex->NORMAL_CHANGED_EVENT);
+        m_subscriptions.emplace_back(tex, subId);
+    }
+
+    if (tex->GetApplyNormal()) {
+        BindProperty<int>(tex, "Height Source: ",
+            [=]() { return static_cast<int>(tex->GetNormalHeightSource()); },
+            [](Texture2D* t, const int& v) { t->SetNormalHeightSource(static_cast<NormalHeightSource>(v)); },
+            tex->NORMAL_CHANGED_EVENT,
+            PropDesc().Tag(Tags::DROPDOWN).DropVals({
+                {"Luminance", static_cast<int>(NormalHeightSource::Luminance)},
+                {"Alpha",     static_cast<int>(NormalHeightSource::Alpha)}
+            }).Desc("Which channel is read as height. Alpha suits flat-coloured sprites."));
+
+        BindProperty<int>(tex, "Edge Filter: ",
+            [=]() { return static_cast<int>(tex->GetNormalEdgeFilter()); },
+            [](Texture2D* t, const int& v) { t->SetNormalEdgeFilter(static_cast<NormalEdgeFilter>(v)); },
+            tex->NORMAL_CHANGED_EVENT,
+            PropDesc().Tag(Tags::DROPDOWN).DropVals({
+                {"Sobel",  static_cast<int>(NormalEdgeFilter::Sobel)},
+                {"Scharr", static_cast<int>(NormalEdgeFilter::Scharr)}
+            }).Desc("Gradient operator. Scharr gives smoother diagonals, Sobel is crisper."));
+
+        BindProperty<float>(tex, "Strength: ",
+            [=]() { return tex->GetNormalStrength(); },
+            [](Texture2D* t, const float& v) { t->SetNormalStrength(v); },
+            tex->NORMAL_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0.0f, 100.0f).Step(0.1f)
+                .Desc("Slope scale. Higher = deeper apparent relief."));
+
+        BindProperty<float>(tex, "Blur: ",
+            [=]() { return static_cast<float>(tex->GetNormalBlur()); },
+            [](Texture2D* t, const float& v) { t->SetNormalBlur(static_cast<int>(v)); },
+            tex->NORMAL_CHANGED_EVENT,
+            PropDesc().Tag(Tags::INT).Range(0, 8).Step(1)
+                .Desc("Box-blur radius on the height field. Smooths pixel noise into soft relief."));
+
+        BindProperty<bool>(tex, "Invert X: ",
+            [=]() { return tex->GetNormalInvertX(); },
+            [](Texture2D* t, const bool& v) { t->SetNormalInvertX(v); },
+            tex->NORMAL_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+        BindProperty<bool>(tex, "Invert Y: ",
+            [=]() { return tex->GetNormalInvertY(); },
+            [](Texture2D* t, const bool& v) { t->SetNormalInvertY(v); },
+            tex->NORMAL_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+        AddFullRow(new TexturePreviewWidget(tex->GetID(), TexturePreviewWidget::Source::NormalMap));
+    }
 }
 
 void InspectorVisitor::Visit(Shader* shader) {

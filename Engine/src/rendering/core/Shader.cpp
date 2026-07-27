@@ -134,6 +134,20 @@ void Shader::ReflectUniforms() {
         GLint size;
         glad_glGetActiveUniform(program_id, i, sizeof(name), nullptr, &size, &type, name);
         GLint loc = glad_glGetUniformLocation(program_id, name);
+
+        // GL_ACTIVE_UNIFORMS also enumerates UNIFORM BLOCK MEMBERS (every
+        // uLights[i].posRange of sprite.glsl's LightBlock, and uAmbient with it).
+        // Those live in a buffer, not in program state: they have no location,
+        // cannot be set with glUniform*, and glGetUniformfv(-1) leaves the
+        // destination untouched -- so capturing a "default" for one reads
+        // uninitialized stack. Left in, Material::Validate() then seeds a
+        // material entry for all ~160 of them, which lands in the .material file
+        // and floods the material inspector with garbage rows.
+        //
+        // Location -1 is exactly the "not settable through this program" test,
+        // and it costs nothing for ordinary uniforms.
+        if (loc < 0) continue;
+
         active_uniforms[name] = { type, loc };
 
         // Read the initializer value from the freshly linked program — this is

@@ -136,7 +136,11 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
         }
     }
 
-    std::sort(drawCalls.begin(), drawCalls.end(), [](const DrawCall& a, const DrawCall& b)
+    // Stable, so a full tie on every key falls back to scene scan order rather
+    // than an unspecified one. PickingPass replays this exact comparison to
+    // decide what a click resolves to, and only a deterministic tiebreak keeps
+    // the two from disagreeing about which of two identical sprites is on top.
+    std::stable_sort(drawCalls.begin(), drawCalls.end(), [](const DrawCall& a, const DrawCall& b)
     {
         if (a.layerPriority != b.layerPriority) return a.layerPriority < b.layerPriority;
         if (a.sortingOrder  != b.sortingOrder)  return a.sortingOrder  < b.sortingOrder;

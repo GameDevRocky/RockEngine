@@ -1,0 +1,8 @@
+type: Texture2D
+id: 8512981756d247350d2b8e22a2189ec7
+name: light_icon
+path: Domain/lib/assets/icons/light_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

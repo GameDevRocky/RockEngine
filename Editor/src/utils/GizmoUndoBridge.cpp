@@ -13,6 +13,8 @@
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/Camera.hpp"
+#include "engine/components/Light.hpp"
+#include "engine/components/ShadowCaster.hpp"
 #include "engine/rendering/core/GizmosManager.hpp"
 
 // Translates a committed gizmo gesture into undo commands.
@@ -95,6 +97,45 @@ std::unique_ptr<Command> MakeGizmoCommand(const GizmoEdit& edit) {
             std::any_cast<float>(edit.after),
             [](Camera* c, const float& v){ c->SetOrthoSize(v); }, "Change Camera Size");
     }
+    if (p == "range") {
+        return std::make_unique<PropertyCommand<Light, float>>(
+            edit.targetId, p, std::any_cast<float>(edit.before),
+            std::any_cast<float>(edit.after),
+            [](Light* l, const float& v){ l->SetRange(v); }, "Change Light Range");
+    }
+    if (p == "innerRadius") {
+        return std::make_unique<PropertyCommand<Light, float>>(
+            edit.targetId, p, std::any_cast<float>(edit.before),
+            std::any_cast<float>(edit.after),
+            [](Light* l, const float& v){ l->SetInnerRadius(v); }, "Change Light Falloff");
+    }
+    if (p == "innerAngle") {
+        return std::make_unique<PropertyCommand<Light, float>>(
+            edit.targetId, p, std::any_cast<float>(edit.before),
+            std::any_cast<float>(edit.after),
+            [](Light* l, const float& v){ l->SetInnerAngle(v); }, "Change Spot Angle");
+    }
+    if (p == "outerAngle") {
+        return std::make_unique<PropertyCommand<Light, float>>(
+            edit.targetId, p, std::any_cast<float>(edit.before),
+            std::any_cast<float>(edit.after),
+            [](Light* l, const float& v){ l->SetOuterAngle(v); }, "Change Spot Angle");
+    }
+    // ShadowCaster's size/radius carry distinct property names: a collider
+    // already owns the plain "size"/"radius" branches above and dispatch here is
+    // by property string alone.
+    if (p == "casterSize") {
+        return std::make_unique<PropertyCommand<ShadowCaster, glm::vec2>>(
+            edit.targetId, p, std::any_cast<glm::vec2>(edit.before),
+            std::any_cast<glm::vec2>(edit.after),
+            [](ShadowCaster* c, const glm::vec2& v){ c->SetSize(v); }, "Resize Shadow Caster");
+    }
+    if (p == "casterRadius") {
+        return std::make_unique<PropertyCommand<ShadowCaster, float>>(
+            edit.targetId, p, std::any_cast<float>(edit.before),
+            std::any_cast<float>(edit.after),
+            [](ShadowCaster* c, const float& v){ c->SetRadius(v); }, "Resize Shadow Caster");
+    }
     return nullptr;
 }
 
@@ -118,6 +159,12 @@ std::string DescribeGesture(const std::vector<GizmoEdit>& edits) {
         else if (p == "localRotation") verb = "Rotate";
         else if (p == "localScale")    verb = "Scale";
         else if (p == "orthoSize")     verb = "Change Camera Size";
+        else if (p == "range")         verb = "Change Light Range";
+        else if (p == "innerRadius")   verb = "Change Light Falloff";
+        else if (p == "innerAngle" ||
+                 p == "outerAngle")    verb = "Change Spot Angle";
+        else if (p == "casterSize" ||
+                 p == "casterRadius")  verb = "Resize Shadow Caster";
         else                           verb = "Resize Collider";
     }
 

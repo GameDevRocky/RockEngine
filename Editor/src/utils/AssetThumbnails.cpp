@@ -135,6 +135,13 @@ static QPixmap renderTextureQuad(int sz, Texture2D* tex, glm::vec2 uvMin,
     if (has("uUVOffset")) shader->SetVec2("uUVOffset", uvMin);
     if (has("uColor"))    shader->SetVec4("uColor",    glm::vec4(1.f));
 
+    // A thumbnail shows the ASSET, not the asset lit by whatever happens to be in
+    // the scene. uLitAmount 0 collapses the shader's light term to 1.0, which is
+    // also what keeps this correct outside a LightingPass: the light UBO is bound
+    // per-context and nothing bound it here.
+    if (has("uLitAmount"))    shader->SetFloat("uLitAmount", 0.f);
+    if (has("uHasNormalMap")) shader->SetFloat("uHasNormalMap", 0.f);
+
     tex->Bind(0);
     if (has("uTexture")) shader->SetTexture("uTexture", 0);
 

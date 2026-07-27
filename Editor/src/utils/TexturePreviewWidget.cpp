@@ -16,23 +16,36 @@ constexpr int kPreviewHeight = 180;
 }
 
 TexturePreviewWidget::TexturePreviewWidget(const std::string& textureId, QWidget* parent)
-    : QOpenGLWidget(parent), m_textureId(textureId)
+    : TexturePreviewWidget(textureId, Source::Albedo, parent)
+{
+}
+
+TexturePreviewWidget::TexturePreviewWidget(const std::string& textureId, Source source, QWidget* parent)
+    : QOpenGLWidget(parent), m_textureId(textureId), m_source(source)
 {
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     setFixedHeight(kPreviewHeight);
+    SubscribeToTexture();
+}
 
+void TexturePreviewWidget::SubscribeToTexture()
+{
     // Repaint when the sampler settings change, so the preview tracks the
     // Filtering/Wrap dropdowns sitting directly beneath it in the inspector.
-    if (Texture2D* tex = AssetManager::Get().GetTexture(m_textureId)) {
-        QPointer<TexturePreviewWidget> self(this);
-        auto refresh = [self]() {
-            if (!self) return false;  // widget destroyed: auto-unsubscribe
-            self->update();
-            return true;
-        };
-        tex->Subscribe(refresh, Texture2D::FILTER_CHANGED_EVENT);
-        tex->Subscribe(refresh, Texture2D::WRAP_CHANGED_EVENT);
-    }
+    Texture2D* tex = AssetManager::Get().GetTexture(m_textureId);
+    if (!tex) return;
+
+    QPointer<TexturePreviewWidget> self(this);
+    auto refresh = [self]() {
+        if (!self) return false;  // widget destroyed: auto-unsubscribe
+        self->update();
+        return true;
+    };
+    tex->Subscribe(refresh, Texture2D::FILTER_CHANGED_EVENT);
+    tex->Subscribe(refresh, Texture2D::WRAP_CHANGED_EVENT);
+    // Normal-map settings changed: the map is regenerated on the next draw, so a
+    // repaint here is what makes the tuning fields feel live.
+    tex->Subscribe(refresh, Texture2D::NORMAL_CHANGED_EVENT);
 }
 
 TexturePreviewWidget::~TexturePreviewWidget()
@@ -118,7 +131,23 @@ void TexturePreviewWidget::paintGL()
     if (has("uUVOffset")) shader->SetVec2("uUVOffset", glm::vec2(0.f));
     if (has("uColor"))    shader->SetVec4("uColor",    glm::vec4(1.f));
 
-    tex->Bind(0);
+    // Show the texture as authored, not as lit by whatever is in the scene.
+    // uLitAmount 0 collapses the shader's light term to 1.0 — which is also what
+    // keeps this correct here at all: the light UBO is bound per-context and this
+    // widget's context never runs a LightingPass.
+    if (has("uLitAmount"))    shader->SetFloat("uLitAmount", 0.f);
+    if (has("uHasNormalMap")) shader->SetFloat("uHasNormalMap", 0.f);
+
+    if (m_source == Source::NormalMap) {
+        // Generation is deferred to a current-context caller; this widget is one.
+        tex->EnsureNormalMap();
+        const GLuint normalTex = tex->GetNormalTextureID();
+        if (!normalTex) return;   // Apply Normal off, or generation failed
+        glad_glActiveTexture(GL_TEXTURE0);
+        glad_glBindTexture(GL_TEXTURE_2D, normalTex);
+    } else {
+        tex->Bind(0);
+    }
     if (has("uTexture")) shader->SetTexture("uTexture", 0);
 
     glad_glBindVertexArray(m_vao);

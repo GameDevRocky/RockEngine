@@ -1,6 +1,8 @@
 #pragma once
 #include "engine/rendering/passes/RenderPass.hpp"
 #include "engine/rendering/core/Shader.hpp"
+#include "engine/core/LayerManager.hpp"
+#include "Engine.hpp"
 #include <glad/glad.h>
 #include <unordered_map>
 #include <string>
@@ -26,7 +28,14 @@ public:
 
 private:
     void DrawDebugOverlay();
-    
+
+    // Picking must resolve to whatever the user SEES on top, so it replays
+    // ScenePass's sort -- which is layer-priority driven, not hierarchy order.
+    // Explicitly qualified: ScenePass.hpp reaches Proxy through a
+    // `using namespace EngineUtils`, but doing that in a header leaks the whole
+    // namespace into every TU that includes it.
+    EngineUtils::Proxy<LayerManager> layerManager;
+
     Shader* shader = nullptr;
     GLuint debugShaderProgram = 0;
     GLuint fbo = 0;

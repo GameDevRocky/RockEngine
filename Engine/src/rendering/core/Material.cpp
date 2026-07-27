@@ -2,6 +2,24 @@
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/serialization/Serializable.hpp"
 #include "engine/debug/Console.hpp"
+#include <unordered_set>
+
+// Uniforms the ENGINE writes every draw, which a material must never own.
+//
+// Validate() otherwise auto-seeds a material entry for every uniform a shader
+// declares. For these that produces a permanently-empty, permanently-ignored row
+// in the material inspector (the engine's per-draw write always lands after
+// ApplyUniforms and wins), which reads as a broken control.
+//
+// uLitAmount is deliberately absent: seeding it IS the feature -- it gives every
+// material a free "how strongly does light affect this" slider.
+static const std::unordered_set<std::string>& EngineReservedUniforms()
+{
+    static const std::unordered_set<std::string> kReserved = {
+        "uNormalMap", "uHasNormalMap", "uShadowAtlas"
+    };
+    return kReserved;
+}
 
 
 YAML::Node Material::Serialize() {
@@ -103,9 +121,14 @@ void Material::Validate() {
 
     auto& shaderUniforms = shader->GetActiveUniforms();
 
+    const auto& reserved = EngineReservedUniforms();
+
     auto prune = [&](auto& map) {
         for (auto it = map.begin(); it != map.end(); ) {
-            if (shaderUniforms.find(it->first) == shaderUniforms.end()) {
+            // Reserved names are dropped even when the shader declares them, so a
+            // material saved before this list existed sheds them on next load.
+            if (reserved.count(it->first) ||
+                shaderUniforms.find(it->first) == shaderUniforms.end()) {
                 Console::Alert("Material: Pruning unused uniform [" + it->first + "]");
                 it = map.erase(it);
             } else {
@@ -129,6 +152,7 @@ void Material::Validate() {
     const auto& vec4Defs  = shader->GetVec4Defaults();
 
     for (const auto& [uname, info] : shaderUniforms) {
+        if (reserved.count(uname)) continue;
         switch (info.type) {
             case GL_FLOAT: {
                 auto it = floatDefs.find(uname);

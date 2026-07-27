@@ -11,6 +11,14 @@ file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
 
 add_library(RockEngineEditor STATIC ${EDITOR_SOURCES})
 
+# InspectorVisitor.cpp instantiates BindProperty<T, TargetT> once per property row
+# across every inspected type, which overruns MSVC's default 65535-section limit
+# per object file (fatal error C1128). /bigobj raises it; it has no effect on the
+# generated code.
+if(MSVC)
+	target_compile_options(RockEngineEditor PRIVATE /bigobj)
+endif()
+
 target_include_directories(RockEngineEditor
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

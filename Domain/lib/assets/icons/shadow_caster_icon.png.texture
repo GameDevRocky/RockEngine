@@ -1,0 +1,8 @@
+type: Texture2D
+id: 89e3b22cd1b121e57e20c10870515d57
+name: shadow_caster_icon
+path: Domain/lib/assets/icons/shadow_caster_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

@@ -735,6 +735,34 @@ void SceneViewGui::DrawToolBar() {
 
         auto* selectionManager = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
         GameObject* obj = selectionManager ? dynamic_cast<GameObject*>(selectionManager->GetSerializable()) : nullptr;
+
+        // Box-edit the sprite rect: drag the handles to scale, drag the body to
+        // move. Only offered when there is a sprite to box, and switched off
+        // again if the selection loses it -- same shape as the collider button.
+        bool hasSprite = obj && obj->GetComponent<SpriteRenderer>() != nullptr;
+        if (hasSprite) {
+            ImGui::Separator();
+            bool is_box = (gizmos->GetEditMode() == GizmosManager::EditMode::SpriteBox);
+            if (is_box) {
+                // Matches the gizmo's light sky blue so the active tool and the
+                // thing it draws read as the same tool.
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.53f, 0.81f, 0.98f, 1.0f));
+                ImGui::PushStyleColor(ImGuiCol_Text,   ImVec4(0.08f, 0.12f, 0.16f, 1.0f));
+            } else {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+                ImGui::PushStyleColor(ImGuiCol_Text,   ImGui::GetStyleColorVec4(ImGuiCol_Text));
+            }
+            if (ImGui::Button(ICON_FA_CROP_SIMPLE, ImVec2(24, 24))) {
+                gizmos->SetEditMode(is_box ? GizmosManager::EditMode::Transform
+                                           : GizmosManager::EditMode::SpriteBox);
+            }
+            ImGui::PopStyleColor(2);
+            if (ImGui::IsItemHovered())
+                ImGui::SetTooltip("Box edit sprite\nDrag handles to scale, drag inside to move");
+        } else if (gizmos->GetEditMode() == GizmosManager::EditMode::SpriteBox) {
+            gizmos->SetEditMode(GizmosManager::EditMode::Transform);
+        }
+
         bool hasCollider = obj && (
             obj->GetComponent<BoxCollider>() ||
             obj->GetComponent<CircleCollider>() ||

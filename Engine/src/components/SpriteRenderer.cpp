@@ -5,6 +5,7 @@
 #include "engine/components/Transform.hpp"
 #include "iostream"
 using namespace EngineUtils::RenderUtils;
+using namespace EngineUtils;
 
 YAML::Node SpriteRenderer::Serialize()
 {
@@ -134,6 +135,26 @@ void SpriteRenderer::OverrideUniforms()
 
     tex->Bind(0);
     shader->SetTexture("uTexture", 0);
+
+    // "Apply Normal" builds its map lazily, here, because this is the first point
+    // in the frame that is guaranteed to have a current GL context -- the
+    // inspector setter that dirtied it runs on the Qt side. No-op when clean.
+    tex->EnsureNormalMap();
+    const GLuint normalTex = tex->GetNormalTextureID();
+    if (normalTex)
+    {
+        glActiveTexture(GL_TEXTURE0 + TextureSlots::NormalMap);
+        glBindTexture(GL_TEXTURE_2D, normalTex);
+        shader->SetTexture("uNormalMap", TextureSlots::NormalMap);
+        shader->SetFloat("uHasNormalMap", 1.0f);
+    }
+    else
+    {
+        shader->SetFloat("uHasNormalMap", 0.0f);
+    }
+    // Bound unconditionally: an unlit shader ignores it, and a lit one would
+    // otherwise sample whatever texture happened to be left on that unit.
+    shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
 
     glm::vec2 uvScale = sprite->GetUVMax() - sprite->GetUVMin();
     glm::vec2 uvOffset = sprite->GetUVMin();

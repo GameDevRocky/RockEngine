@@ -3,6 +3,7 @@
 #include "engine/rendering/passes/ClearPass.hpp"
 #include "engine/rendering/passes/ScenePass.hpp"
 #include "engine/rendering/passes/ParticleSimulationPass.hpp"
+#include "engine/rendering/passes/LightingPass.hpp"
 #include "engine/components/Camera.hpp"
 
 void GameRenderView::Init()
@@ -19,6 +20,9 @@ void GameRenderView::Init()
     // Simulation must precede ScenePass, which draws the particles it advanced
     // (interleaved with sprites by sorting layer).
     pipeline->AddScenePass(new ParticleSimulationPass());
+    // Prepares the light UBO + shadow atlas ScenePass's sprites read from, so it
+    // must precede it. Draws nothing itself.
+    pipeline->AddScenePass(new LightingPass());
     pipeline->AddScenePass(scenePass);
 
     pipeline->Init();

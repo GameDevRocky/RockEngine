@@ -35,6 +35,16 @@ public:
     void Init();
     explicit InspectorGui(QWidget* parent = nullptr);
 
+    // Rebuild the inspector for whatever is currently selected. For components
+    // whose set of visible rows depends on one of their own fields (e.g. a
+    // Light's Type dropdown decides whether the spot-cone rows apply), the
+    // property visitor calls this from the field's change event.
+    //
+    // Always deferred through the event loop: the caller is typically inside a
+    // widget's own signal handler, and rebuilding synchronously would delete
+    // that widget mid-callback.
+    void RequestRebuild();
+
 private:
     void SubscribeToSelector();
     void OnObjectSelected(const std::string& id);

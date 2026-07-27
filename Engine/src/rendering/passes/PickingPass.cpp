@@ -10,6 +10,8 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "Engine.hpp"
 #include "engine/debug/FrameProfiler.hpp"
+#include <algorithm>
+#include <vector>
 #include <iostream>
 
 void PickingPass::Init()
@@ -156,14 +158,30 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
         return;
     }
     glad_glViewport(0, 0, viewportWidth, viewportHeight);
-    
+
     uint32_t clearColor = 0;
-    glad_glClearBufferuiv(GL_COLOR, 0, &clearColor); 
+    glad_glClearBufferuiv(GL_COLOR, 0, &clearColor);
     glad_glClear(GL_DEPTH_BUFFER_BIT);
-    
+
+    // Save what we're about to stomp. RenderPickBuffer runs on demand from
+    // Pick(), OUTSIDE the pipeline, so anything left changed here leaks into the
+    // next frame's rendering -- ScenePass enables GL_BLEND once in Init() and
+    // never re-enables it per frame, so leaving blend off here silently killed
+    // sprite alpha blending until something else happened to turn it back on.
+    const GLboolean prevBlend     = glad_glIsEnabled(GL_BLEND);
+    const GLboolean prevDepthTest = glad_glIsEnabled(GL_DEPTH_TEST);
+
     glad_glDisable(GL_BLEND);
-    glad_glEnable(GL_DEPTH_TEST);
-    
+    // Depth testing is actively WRONG here. Transform::localPosition is a vec2,
+    // so every sprite sits at z=0; with the default GL_LESS an equal-depth
+    // fragment FAILS, which means the first sprite drawn to a pixel wins and
+    // every sprite behind it in draw order is rejected. Picking then resolved to
+    // whatever came first in the hierarchy rather than what the user sees.
+    //
+    // Painter's algorithm instead: no depth test, last write wins, drawn in
+    // ScenePass's exact order -- so the pick buffer's final value at a pixel is
+    // by construction the same sprite that ended up visible there.
+    glad_glDisable(GL_DEPTH_TEST);
 
     shader->Bind();
     shader->SetMat4("uView", camera->GetViewMatrix());
@@ -171,20 +189,63 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
 
     glad_glBindVertexArray(vao);
 
-    uint32_t pickId = 1;  
-    
+    uint32_t pickId = 1;
+
+    // One entry per pickable sprite, sorted per scene exactly like ScenePass.
+    struct PickDraw {
+        GameObject*     obj           = nullptr;
+        SpriteRenderer* renderer      = nullptr;
+        Transform*      transform     = nullptr;
+        int             layerPriority = 0;
+        int             sortingOrder  = 0;
+        GLuint          shaderId      = 0;
+    };
+    std::vector<PickDraw> draws;
+
+    // Scenes stay an OUTER loop and are sorted within, not across: the pipeline
+    // runs ScenePass once per scene, so a later scene always paints over an
+    // earlier one regardless of layer. Sorting globally would break that.
     for (Scene* currentScene : scenes) {
         if (!currentScene) continue;
-        const auto& objects = currentScene->GetAllGameObjects();
-        for(auto* obj : objects) {
-            if(!obj) continue;
-            if(!obj->GetActive()) continue;
-            
+
+        draws.clear();
+        for (auto* obj : currentScene->GetAllGameObjects()) {
+            if (!obj || !obj->GetActive()) continue;
+
             SpriteRenderer* spr = obj->GetComponent<SpriteRenderer>();
-            if(!spr || !spr->GetVisible()) continue;
-            
+            // Match ScenePass's visibility test exactly, including the camera's
+            // culling mask -- a sprite on a layer this camera doesn't render must
+            // not be clickable either.
+            if (!spr || !spr->GetEnabled() || !spr->GetVisible()) continue;
+            if (camera && !camera->PassesCullingMask(spr->GetSortingLayer())) continue;
+
             Transform* transform = obj->GetComponent<Transform>();
-            if(!transform) continue;
+            if (!transform) continue;
+
+            PickDraw d;
+            d.obj           = obj;
+            d.renderer      = spr;
+            d.transform     = transform;
+            d.layerPriority = layerManager ? layerManager->GetPriority(spr->GetSortingLayer()) : 0;
+            d.sortingOrder  = spr->GetSortingOrder();
+            if (Material* mat = spr->GetMaterial())
+                if (Shader* s = mat->GetShader()) d.shaderId = s->GetProgramID();
+            draws.push_back(d);
+        }
+
+        // Same keys as ScenePass, and stable for the same reason: on a full tie
+        // both passes then fall back to scene scan order, which is identical --
+        // so the two can never disagree about which sprite is on top.
+        std::stable_sort(draws.begin(), draws.end(), [](const PickDraw& a, const PickDraw& b) {
+            if (a.layerPriority != b.layerPriority) return a.layerPriority < b.layerPriority;
+            if (a.sortingOrder  != b.sortingOrder)  return a.sortingOrder  < b.sortingOrder;
+            return a.shaderId < b.shaderId;
+        });
+
+        for (const PickDraw& d : draws) {
+            GameObject* obj = d.obj;
+            SpriteRenderer* spr = d.renderer;
+            Transform* transform = d.transform;
             pickIdToObjectId[pickId] = obj->GetID();
             shader->SetInt("uId", pickId);
             shader->SetMat4("uModel", transform->GetWorldMatrix());
@@ -222,7 +283,11 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
     glad_glBindVertexArray(0);
     glad_glBindFramebuffer(GL_FRAMEBUFFER, prevFBO);
     glad_glViewport(0, 0, viewportWidth, viewportHeight);
-    
+
+    // Hand the context back exactly as we found it (see the note at the top).
+    if (prevBlend)     glad_glEnable(GL_BLEND);     else glad_glDisable(GL_BLEND);
+    if (prevDepthTest) glad_glEnable(GL_DEPTH_TEST); else glad_glDisable(GL_DEPTH_TEST);
+
     if (debugDraw) {
         DrawDebugOverlay();
     }

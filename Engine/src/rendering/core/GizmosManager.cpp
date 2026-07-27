@@ -8,6 +8,10 @@
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/ParticleComponent.hpp"
+#include "engine/components/Light.hpp"
+#include "engine/components/ShadowCaster.hpp"
+#include "engine/components/SpriteRenderer.hpp"
+#include "engine/rendering/core/Sprite.hpp"
 #include "engine/core/SceneManager.hpp"
 #include "engine/core/Scene.hpp"
 #include "engine/rendering/Renderer.hpp"
@@ -32,6 +36,23 @@ namespace {
 
     float SnapTo(float v, float step) { return std::round(v / step) * step; }
     glm::vec2 SnapTo(const glm::vec2& v, float step) { return { SnapTo(v.x, step), SnapTo(v.y, step) }; }
+
+    // Is `p` inside the convex quad q0..q3 (screen space, either winding)?
+    // The point is inside when it falls on the same side of all four edges, so
+    // the cross products must not disagree in sign. Accepts either winding, which
+    // matters because a mirrored (negative-scale) sprite reverses it.
+    bool PointInQuad(const ImVec2& p, const ImVec2 q[4]) {
+        bool anyNeg = false, anyPos = false;
+        for (int i = 0; i < 4; ++i) {
+            const ImVec2& a = q[i];
+            const ImVec2& b = q[(i + 1) % 4];
+            const float cross = (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+            if (cross < 0.0f) anyNeg = true;
+            if (cross > 0.0f) anyPos = true;
+            if (anyNeg && anyPos) return false;
+        }
+        return true;
+    }
 }
 
 void GizmosManager::Init(){
@@ -49,11 +70,14 @@ GizmosManager* GizmosManager::Copy(Container* /*container*/) { return nullptr; }
 void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
     m_hoveredHandle = -1;        // reset each frame; DrawBoxColliderGizmo sets it if applicable
     m_hoveredCameraCorner = -1;  // reset each frame; DrawCameraGizmo sets it if applicable
+    m_hoveredLightHandle = -1;   // reset each frame; DrawLightGizmos sets it if applicable
+    m_hoveredScaleHandle = -1;   // reset each frame; DrawSpriteBoxGizmo sets it if applicable
 
-    // Camera view-region rects and component icons are non-interactive and
-    // independent of selection, so draw them first -- before the no-selection
-    // early-return below.
+    // Camera view-region rects, light shapes and component icons are drawn for
+    // every object regardless of selection, so they come first -- before the
+    // no-selection early-return below.
     DrawCameraGizmos(view, proj, viewWidth, viewHeight);
+    DrawLightGizmos(view, proj, viewWidth, viewHeight);
     DrawComponentIcons(view, proj, viewWidth, viewHeight);
 
     Container* container = Engine::Get()->GetActiveContainer();
@@ -66,14 +90,260 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
         m_dragColliderId.clear();
         m_transformGizmoActive = false;
         m_dragRecords.clear();
+        m_dragScaleHandle = -1;
+        m_dragScaleId.clear();
         return;
     }
 
     if (m_editMode == EditMode::Collider) {
         DrawColliderGizmo(view, proj, viewWidth, viewHeight);
+    } else if (m_editMode == EditMode::SpriteBox) {
+        DrawSpriteBoxGizmo(view, proj, viewWidth, viewHeight);
     } else {
         DrawTransformGizmo(view, proj, viewWidth, viewHeight);
     }
+}
+
+// ─── Sprite box-edit gizmo (EditMode::SpriteBox) ────────────────────────────
+//
+// Gives a sprite the same direct box editing a BoxCollider has: eight handles to
+// resize, and a draggable body to move. It writes the TRANSFORM, because a
+// sprite's world size is its pixel size times the transform's scale -- there is
+// no per-sprite size field to edit.
+//
+// The whole drag is solved in the object's "box frame": the frame reached by the
+// parent's world matrix, this object's translation and its rotation, but NOT its
+// scale. Two reasons it has to be that frame and has to be captured once:
+//   * scale is excluded, so the box's extent in it is exactly
+//     localScale * spriteSize -- a plain ratio, with no matrix inversion needed
+//     to recover the new scale;
+//   * a resize writes position too (the opposite edge stays anchored), so
+//     rebuilding the frame each drag frame would feed the edit back into its own
+//     input and the box would slide away under the cursor.
+void GizmosManager::DrawSpriteBoxGizmo(const glm::mat4& view, const glm::mat4& proj,
+                                       float viewWidth, float viewHeight) {
+    Container* container = Engine::Get()->GetActiveContainer();
+    SelectionManager* selectionManager = container ? container->FindSystem<SelectionManager>() : nullptr;
+    GameObject* selectedObj = selectionManager
+        ? dynamic_cast<GameObject*>(selectionManager->GetSerializable()) : nullptr;
+    if (!selectedObj) return;
+
+    Transform* transform = selectedObj->GetComponent<Transform>();
+    SpriteRenderer* renderer = selectedObj->GetComponent<SpriteRenderer>();
+    if (!transform || !renderer) {
+        // Nothing to box-edit -- fall back rather than leaving the viewport bare.
+        DrawTransformGizmo(view, proj, viewWidth, viewHeight);
+        return;
+    }
+    Sprite* sprite = renderer->GetSprite();
+    if (!sprite) { DrawTransformGizmo(view, proj, viewWidth, viewHeight); return; }
+
+    const glm::vec2 spriteSize = EngineUtils::RenderUtils::PixelsToWorld(sprite->GetPixelSize());
+    if (spriteSize.x <= 0.0f || spriteSize.y <= 0.0f) {
+        DrawTransformGizmo(view, proj, viewWidth, viewHeight);
+        return;
+    }
+
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    const glm::mat4 vp = proj * view;
+
+    // Release ends the gesture. Centralised here, like every other gizmo.
+    if (!io.MouseDown[0]) {
+        if (m_dragScaleHandle >= 0 && !m_dragScaleId.empty()) CommitSpriteBoxDrag();
+        m_dragScaleHandle = -1;
+        m_dragScaleId.clear();
+    }
+
+    // The sprite quad in MODEL space, mirroring sprite.glsl's vertex stage:
+    //     scaledPos = aPos * uSize - uSize * uPivot,  aPos in [-0.5, 0.5]
+    // so it is centred at -uSize * pivot with half-extent uSize/2.
+    const glm::vec2 quadHalf   = spriteSize * 0.5f;
+    const glm::vec2 quadCenter = -spriteSize * sprite->GetPivot();
+
+    const glm::mat4 worldMat = transform->GetWorldMatrix();
+    const glm::vec2 localCorners[4] = {
+        quadCenter + glm::vec2(-quadHalf.x, -quadHalf.y),   // 0 BL
+        quadCenter + glm::vec2( quadHalf.x, -quadHalf.y),   // 1 BR
+        quadCenter + glm::vec2( quadHalf.x,  quadHalf.y),   // 2 TR
+        quadCenter + glm::vec2(-quadHalf.x,  quadHalf.y),   // 3 TL
+    };
+
+    ImVec2 screenCorners[4];
+    for (int i = 0; i < 4; ++i)
+        screenCorners[i] = WorldToScreen(
+            glm::vec2(worldMat * glm::vec4(localCorners[i], 0.0f, 1.0f)), vp, viewWidth, viewHeight);
+
+    // Light sky blue (#87CEFA).
+    const ImU32 outlineColor = IM_COL32(135, 206, 250, 220);
+    const ImU32 fillColor    = IM_COL32(135, 206, 250, 28);
+    const ImU32 handleColor  = IM_COL32(135, 206, 250, 255);
+    const ImU32 hotColor     = IM_COL32(225, 245, 255, 255);
+    constexpr float kBoxHandlePx    = 5.0f;
+    constexpr float kBoxHandleHitPx = kBoxHandlePx + 4.0f;
+
+    // Faint fill doubles as the move affordance: it shows the grabbable body.
+    drawList->AddQuadFilled(screenCorners[0], screenCorners[1],
+                            screenCorners[2], screenCorners[3], fillColor);
+    for (int i = 0; i < 4; ++i)
+        drawList->AddLine(screenCorners[i], screenCorners[(i + 1) % 4], outlineColor, 2.0f);
+
+    // 0-3 corners, 4-7 edge midpoints -- same layout as DrawBoxColliderGizmo.
+    ImVec2 handles[8];
+    for (int i = 0; i < 4; ++i) handles[i] = screenCorners[i];
+    for (int i = 0; i < 4; ++i)
+        handles[i + 4] = ImVec2((screenCorners[i].x + screenCorners[(i + 1) % 4].x) * 0.5f,
+                                (screenCorners[i].y + screenCorners[(i + 1) % 4].y) * 0.5f);
+
+    int hovered = -1;
+    if (m_dragScaleHandle < 0) {
+        for (int i = 0; i < 8; ++i) {
+            const float dx = io.MousePos.x - handles[i].x;
+            const float dy = io.MousePos.y - handles[i].y;
+            if (dx * dx + dy * dy < kBoxHandleHitPx * kBoxHandleHitPx) { hovered = i; break; }
+        }
+        // Body = handle 8. Tested only after the handles, so a grip on an edge or
+        // corner always wins over the move.
+        if (hovered < 0 && PointInQuad(io.MousePos, screenCorners)) hovered = 8;
+    }
+    if (hovered >= 0) m_hoveredScaleHandle = hovered;
+
+    if (io.MouseClicked[0] && hovered >= 0 && !ImGuizmo::IsUsing() &&
+        m_dragHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0 && m_dragScaleHandle < 0) {
+        // Box frame = parentWorld * T * R (this object's scale deliberately left out).
+        glm::mat4 parentWorld(1.0f);
+        if (Transform* parent = transform->GetParent()) parentWorld = parent->GetWorldMatrix();
+        const glm::mat4 boxMat =
+            parentWorld
+            * glm::translate(glm::mat4(1.0f), glm::vec3(transform->localPosition, 0.0f))
+            * glm::rotate(glm::mat4(1.0f), glm::radians(transform->localRotation), glm::vec3(0, 0, 1));
+
+        m_dragScaleHandle        = hovered;
+        m_dragScaleId            = transform->GetID();
+        m_scaleDragStartScale    = transform->localScale;
+        m_scaleDragStartLocalPos = transform->localPosition;
+        m_scaleDragInvBox        = glm::inverse(boxMat);
+        m_scaleDragStartBoxMouse = glm::vec2(m_scaleDragInvBox *
+            glm::vec4(ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight), 0.0f, 1.0f));
+    }
+
+    if (m_dragScaleHandle >= 0 && m_dragScaleId == transform->GetID() && io.MouseDown[0]) {
+        const glm::vec2 mouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+        const glm::vec2 boxMouse = glm::vec2(m_scaleDragInvBox * glm::vec4(mouseWorld, 0.0f, 1.0f));
+        const glm::vec2 deltaBox = boxMouse - m_scaleDragStartBoxMouse;
+
+        if (m_dragScaleHandle == 8) {
+            // Body drag: pure translation. deltaBox is a box-frame vector and
+            // localPosition is a parent-frame one, so it only needs the rotation
+            // applied (translation doesn't affect vectors).
+            const float r = glm::radians(transform->localRotation);
+            const float c = std::cos(r), s = std::sin(r);
+            const glm::vec2 deltaLocal(deltaBox.x * c - deltaBox.y * s,
+                                       deltaBox.x * s + deltaBox.y * c);
+            glm::vec2 newPos = m_scaleDragStartLocalPos + deltaLocal;
+            if (m_snapRequested) newPos = SnapTo(newPos, EngineUtils::RenderUtils::GridCellPixels);
+            transform->SetPosition(newPos);
+        } else {
+            // Resize. In the box frame the quad's rect is startScale * (quadCenter
+            // +/- quadHalf), so editing min/max there and dividing by spriteSize
+            // hands back the new localScale directly.
+            const glm::vec2 startCenter = m_scaleDragStartScale * quadCenter;
+            const glm::vec2 startHalf   = glm::abs(m_scaleDragStartScale) * quadHalf;
+            const float startMinX = startCenter.x - startHalf.x;
+            const float startMaxX = startCenter.x + startHalf.x;
+            const float startMinY = startCenter.y - startHalf.y;
+            const float startMaxY = startCenter.y + startHalf.y;
+
+            float minX = startMinX, maxX = startMaxX;
+            float minY = startMinY, maxY = startMaxY;
+
+            // corners: 0=BL 1=BR 2=TR 3=TL | edges: 4=bottom 5=right 6=top 7=left
+            switch (m_dragScaleHandle) {
+                case 0: minX += deltaBox.x; minY += deltaBox.y; break;
+                case 1: maxX += deltaBox.x; minY += deltaBox.y; break;
+                case 2: maxX += deltaBox.x; maxY += deltaBox.y; break;
+                case 3: minX += deltaBox.x; maxY += deltaBox.y; break;
+                case 4: minY += deltaBox.y; break;
+                case 5: maxX += deltaBox.x; break;
+                case 6: maxY += deltaBox.y; break;
+                case 7: minX += deltaBox.x; break;
+            }
+
+            // Alt: aspect-preserving, anchored on the opposite handle -- same rule
+            // and the same anchor table as the box collider gizmo.
+            if (m_uniformScale) {
+                const glm::vec2 startSize = glm::vec2(startMaxX - startMinX, startMaxY - startMinY);
+                const float fx = (startSize.x > 1e-4f) ? (maxX - minX) / startSize.x : 1.0f;
+                const float fy = (startSize.y > 1e-4f) ? (maxY - minY) / startSize.y : 1.0f;
+                float f = (std::abs(fx - 1.0f) >= std::abs(fy - 1.0f)) ? fx : fy;
+                f = std::max(f, 0.001f);
+                const glm::vec2 uni = startSize * f;
+                const glm::vec2 sc((startMinX + startMaxX) * 0.5f, (startMinY + startMaxY) * 0.5f);
+                switch (m_dragScaleHandle) {
+                    case 0: maxX = startMaxX; minX = startMaxX - uni.x; maxY = startMaxY; minY = startMaxY - uni.y; break;
+                    case 1: minX = startMinX; maxX = startMinX + uni.x; maxY = startMaxY; minY = startMaxY - uni.y; break;
+                    case 2: minX = startMinX; maxX = startMinX + uni.x; minY = startMinY; maxY = startMinY + uni.y; break;
+                    case 3: maxX = startMaxX; minX = startMaxX - uni.x; minY = startMinY; maxY = startMinY + uni.y; break;
+                    case 4: maxY = startMaxY; minY = startMaxY - uni.y; minX = sc.x - uni.x * 0.5f; maxX = sc.x + uni.x * 0.5f; break;
+                    case 5: minX = startMinX; maxX = startMinX + uni.x; minY = sc.y - uni.y * 0.5f; maxY = sc.y + uni.y * 0.5f; break;
+                    case 6: minY = startMinY; maxY = startMinY + uni.y; minX = sc.x - uni.x * 0.5f; maxX = sc.x + uni.x * 0.5f; break;
+                    case 7: maxX = startMaxX; minX = startMaxX - uni.x; minY = sc.y - uni.y * 0.5f; maxY = sc.y + uni.y * 0.5f; break;
+                }
+            }
+
+            const glm::vec2 newSize(maxX - minX, maxY - minY);
+            // Below this the sprite is invisible and the scale sign would flip on
+            // the next frame, which reads as the box snapping inside out.
+            if (newSize.x > 0.01f && newSize.y > 0.01f) {
+                const glm::vec2 newScale = newSize / spriteSize;
+                transform->SetScale(newScale);
+
+                // Resizing keeps the opposite edge anchored, so the quad's centre
+                // moves. Its centre is pinned to the transform by the pivot
+                // (newScale * quadCenter), so the transform itself has to shift by
+                // the difference for the anchored edge to actually stay put.
+                const glm::vec2 wantCenter((minX + maxX) * 0.5f, (minY + maxY) * 0.5f);
+                const glm::vec2 deltaCenter = wantCenter - newScale * quadCenter;
+                const float r = glm::radians(transform->localRotation);
+                const float c = std::cos(r), s = std::sin(r);
+                transform->SetPosition(m_scaleDragStartLocalPos +
+                    glm::vec2(deltaCenter.x * c - deltaCenter.y * s,
+                              deltaCenter.x * s + deltaCenter.y * c));
+            }
+        }
+    }
+
+    const bool draggingThis = (m_dragScaleHandle >= 0 && m_dragScaleId == transform->GetID());
+    for (int i = 0; i < 8; ++i) {
+        const bool isHot = (i == hovered) || (draggingThis && i == m_dragScaleHandle);
+        const ImU32 color = isHot ? hotColor : handleColor;
+        if (i < 4)
+            drawList->AddRectFilled(ImVec2(handles[i].x - kBoxHandlePx, handles[i].y - kBoxHandlePx),
+                                    ImVec2(handles[i].x + kBoxHandlePx, handles[i].y + kBoxHandlePx), color);
+        else
+            drawList->AddCircleFilled(handles[i], kBoxHandlePx, color);
+    }
+}
+
+void GizmosManager::CommitSpriteBoxDrag()
+{
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    if (!registry) return;
+
+    auto* transform = registry->Find<Transform>(m_dragScaleId);
+    if (!transform) return;
+
+    // One gesture writes both, and MacroCommand::Wrap collapses them into a
+    // single Ctrl+Z. Both property names already have branches in
+    // GizmoUndoBridge, so nothing new is needed there.
+    std::vector<GizmoEdit> edits;
+    if (transform->localScale != m_scaleDragStartScale)
+        edits.push_back({ m_dragScaleId, "localScale", m_scaleDragStartScale, transform->localScale });
+    if (transform->localPosition != m_scaleDragStartLocalPos)
+        edits.push_back({ m_dragScaleId, "localPosition", m_scaleDragStartLocalPos, transform->localPosition });
+
+    if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
 }
 
 void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
@@ -603,6 +873,468 @@ void GizmosManager::DrawCameraGizmo(const glm::mat4& view, const glm::mat4& proj
     }
 }
 
+// ─── Light + ShadowCaster gizmos ────────────────────────────────────────────
+//
+// Structured exactly like the camera gizmos above: every enabled light in every
+// loaded scene is drawn (dim when unselected, opaque when selected) so a
+// lighting setup reads at a glance, and only the selected object's gizmo carries
+// grab handles.
+//
+// All handle ids -- lights and shadow casters alike -- share one flat space, so
+// a single (m_dragLightHandle, m_dragLightId) pair scopes every drag. The id
+// half is what stops two lights from both claiming the same click.
+namespace {
+    enum LightHandle {
+        // Point: four cardinal grips on the range ring.
+        kPointRangeE = 0, kPointRangeN, kPointRangeW, kPointRangeS,
+        kPointInnerRadius = 4,
+        // Spot: one grip down the cone axis, one on each angle edge.
+        kSpotRange = 5, kSpotInnerAngle = 6, kSpotOuterAngle = 7,
+        // ShadowCaster: four box corners, or four cardinal grips on the circle.
+        kCasterCorner0 = 8,   // .. 11
+        kCasterRadius0 = 12,  // .. 15
+    };
+
+    constexpr float kHandleRadiusPx    = 4.5f;
+    constexpr float kHandleHitRadiusPx = kHandleRadiusPx + 4.0f;
+    // Inner-radius grip never sits closer than this to the light's centre, so it
+    // stays grabbable (and clear of the transform gizmo) even at innerRadius 0.
+    // The drawn inner ring still shows the true value -- only the grip is pushed out.
+    constexpr float kMinInnerHandlePx  = 20.0f;
+    constexpr int   kAlphaUnselected   = 70;
+    constexpr int   kAlphaSelected     = 255;
+
+    glm::vec2 RotateVec(const glm::vec2& v, float radians) {
+        const float c = std::cos(radians), s = std::sin(radians);
+        return { v.x * c - v.y * s, v.x * s + v.y * c };
+    }
+
+    float ScreenDistance(const ImVec2& a, const ImVec2& b) {
+        const float dx = a.x - b.x, dy = a.y - b.y;
+        return std::sqrt(dx * dx + dy * dy);
+    }
+
+    bool HitTest(const ImVec2& mouse, const ImVec2& handle) {
+        const float dx = mouse.x - handle.x, dy = mouse.y - handle.y;
+        return dx * dx + dy * dy < kHandleHitRadiusPx * kHandleHitRadiusPx;
+    }
+
+    // Signed-magnitude angle in degrees between `dir` and `to`.
+    float AngleBetweenDeg(const glm::vec2& dir, const glm::vec2& to) {
+        const float len = glm::length(to);
+        if (len < 1e-6f) return 0.0f;
+        const float d = glm::clamp(glm::dot(dir, to / len), -1.0f, 1.0f);
+        return std::acos(d) * EngineUtils::MathUtils::RAD_2_DEG;
+    }
+}
+
+void GizmosManager::DrawLightGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
+    Container* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+    SceneManager* sceneManager = container->FindSystem<SceneManager>();
+    if (!sceneManager) return;
+
+    // End any active light/caster drag the moment the mouse is released.
+    // Centralised here, before the per-light loop, for the same reason the camera
+    // and collider gizmos do it: several lights each run their own hit-test, and
+    // scattered release logic would race between them.
+    if (!ImGui::GetIO().MouseDown[0]) {
+        if (m_dragLightHandle >= 0 && !m_dragLightId.empty()) CommitLightDrag();
+        m_dragLightHandle = -1;
+        m_dragLightId.clear();
+    }
+
+    SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+    const glm::mat4 vp = proj * view;
+
+    for (Scene* scene : sceneManager->GetScenes()) {
+        if (!scene) continue;
+        for (GameObject* obj : scene->GetAllGameObjects()) {
+            if (!obj || !obj->GetActive()) continue;
+            Transform* transform = obj->GetComponent<Transform>();
+            if (!transform) continue;
+
+            const bool selected = selectionManager && selectionManager->IsSelected(obj->GetID());
+            const int  alpha    = selected ? kAlphaSelected : kAlphaUnselected;
+
+            for (Light* light : obj->GetComponents<Light>()) {
+                if (!light->GetEnabled()) continue;
+                switch (light->GetType()) {
+                    case Light::LightType::Point:
+                        DrawPointLightGizmo(vp, viewWidth, viewHeight, transform, light, alpha, selected);
+                        break;
+                    case Light::LightType::Spot:
+                        DrawSpotLightGizmo(vp, viewWidth, viewHeight, transform, light, alpha, selected);
+                        break;
+                    case Light::LightType::Directional:
+                        DrawDirectionalLightGizmo(vp, viewWidth, viewHeight, transform, light, alpha);
+                        break;
+                    case Light::LightType::Global:
+                        // A flat ambient fill has no position, direction or extent
+                        // to draw. Its component icon is the whole gizmo.
+                        break;
+                }
+            }
+
+            for (ShadowCaster* caster : obj->GetComponents<ShadowCaster>()) {
+                if (!caster->GetEnabled()) continue;
+                DrawShadowCasterGizmo(vp, viewWidth, viewHeight, caster, alpha, selected);
+            }
+        }
+    }
+}
+
+void GizmosManager::DrawPointLightGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                                        Transform* transform, Light* light, int alpha, bool interactive) {
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+    // Range is authored in world units and LightingPass consumes it unscaled, so
+    // the gizmo must ignore the transform's scale too -- same convention as the
+    // camera rect, which follows orthoSize rather than scale.
+    const glm::vec2 worldCenter = transform->GetWorldPosition();
+    const float range = light->GetRange();
+
+    const ImVec2 screenCenter = WorldToScreen(worldCenter, vp, viewWidth, viewHeight);
+    const ImVec2 screenEdge   = WorldToScreen(worldCenter + glm::vec2(range, 0.0f), vp, viewWidth, viewHeight);
+    const float  screenRadius = ScreenDistance(screenEdge, screenCenter);
+
+    // Tinted with the light's own colour so several lights are told apart at a
+    // glance; alpha carries the selection state.
+    const glm::vec4 c = light->GetColor();
+    const ImU32 ringColor = IM_COL32(int(c.r * 255), int(c.g * 255), int(c.b * 255), alpha);
+    const ImU32 innerColor = IM_COL32(int(c.r * 255), int(c.g * 255), int(c.b * 255), alpha / 2);
+
+    drawList->AddCircle(screenCenter, screenRadius, ringColor, 64, 1.5f);
+
+    const float innerRadius = light->GetInnerRadius();
+    if (innerRadius > 0.001f)
+        drawList->AddCircle(screenCenter, screenRadius * innerRadius, innerColor, 48, 1.0f);
+
+    if (!interactive) return;
+
+    ImVec2 handles[5] = {
+        ImVec2(screenCenter.x + screenRadius, screenCenter.y),   // E
+        ImVec2(screenCenter.x, screenCenter.y - screenRadius),   // N
+        ImVec2(screenCenter.x - screenRadius, screenCenter.y),   // W
+        ImVec2(screenCenter.x, screenCenter.y + screenRadius),   // S
+        ImVec2(0, 0),                                            // inner radius (below)
+    };
+    // Diagonal, so it can never sit under one of the cardinal range grips.
+    const float innerPx = std::max(screenRadius * innerRadius, kMinInnerHandlePx);
+    const float diag = 0.70710678f;
+    handles[4] = ImVec2(screenCenter.x + innerPx * diag, screenCenter.y - innerPx * diag);
+
+    const int ids[5] = { kPointRangeE, kPointRangeN, kPointRangeW, kPointRangeS, kPointInnerRadius };
+
+    int hovered = -1;
+    if (m_dragLightHandle < 0) {
+        for (int i = 0; i < 5; ++i)
+            if (HitTest(io.MousePos, handles[i])) { hovered = ids[i]; break; }
+    }
+    if (hovered >= 0) m_hoveredLightHandle = hovered;
+
+    // Only claim the click if nothing else already owns the mouse this frame.
+    if (io.MouseClicked[0] && hovered >= 0 && !ImGuizmo::IsUsing() &&
+        m_dragHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0) {
+        m_dragLightHandle      = hovered;
+        m_dragLightId          = light->GetID();
+        m_dragStartRange       = range;
+        m_dragStartInnerRadius = innerRadius;
+    }
+
+    if (m_dragLightHandle >= 0 && m_dragLightId == light->GetID() && io.MouseDown[0]) {
+        const glm::vec2 mouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+        const float worldDist = glm::length(mouseWorld - worldCenter);
+        if (m_dragLightHandle == kPointInnerRadius) {
+            // Expressed as a fraction of range, which is how the shader reads it.
+            light->SetInnerRadius(range > 1e-6f ? worldDist / range : 0.0f);
+        } else if (m_dragLightHandle <= kPointRangeS) {
+            light->SetRange(worldDist);
+        }
+    }
+
+    const ImU32 handleColor = IM_COL32(255, 235, 150, 255);
+    const ImU32 hotColor    = IM_COL32(255, 255, 255, 255);
+    const bool draggingThis = (m_dragLightHandle >= 0 && m_dragLightId == light->GetID());
+    for (int i = 0; i < 5; ++i) {
+        const bool isHot = (ids[i] == hovered) || (draggingThis && ids[i] == m_dragLightHandle);
+        drawList->AddCircleFilled(handles[i], kHandleRadiusPx, isHot ? hotColor : handleColor);
+    }
+}
+
+void GizmosManager::DrawSpotLightGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                                       Transform* transform, Light* light, int alpha, bool interactive) {
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+    const glm::vec2 worldCenter = transform->GetWorldPosition();
+    const float range = light->GetRange();
+    // Direction is the Transform's world rotation, not an authored field -- the
+    // rotate gizmo is what turns a spotlight.
+    const glm::vec2 dir = light->GetWorldDirection();
+
+    const float innerRad = light->GetInnerAngle() * EngineUtils::MathUtils::DEG_2_RAD;
+    const float outerRad = light->GetOuterAngle() * EngineUtils::MathUtils::DEG_2_RAD;
+
+    const ImVec2 screenCenter = WorldToScreen(worldCenter, vp, viewWidth, viewHeight);
+
+    const glm::vec4 c = light->GetColor();
+    const ImU32 coneColor  = IM_COL32(int(c.r * 255), int(c.g * 255), int(c.b * 255), alpha);
+    const ImU32 innerColor = IM_COL32(int(c.r * 255), int(c.g * 255), int(c.b * 255), alpha / 2);
+
+    // Arc + the two edge rays, for both the outer cone and the inner core.
+    auto drawCone = [&](float halfAngle, float radiusScale, ImU32 color, float thickness) {
+        const float r = range * radiusScale;
+        const ImVec2 edgeA = WorldToScreen(worldCenter + RotateVec(dir, -halfAngle) * r, vp, viewWidth, viewHeight);
+        const ImVec2 edgeB = WorldToScreen(worldCenter + RotateVec(dir,  halfAngle) * r, vp, viewWidth, viewHeight);
+        drawList->AddLine(screenCenter, edgeA, color, thickness);
+        drawList->AddLine(screenCenter, edgeB, color, thickness);
+
+        constexpr int kArcSegments = 32;
+        ImVec2 prev = edgeA;
+        for (int i = 1; i <= kArcSegments; ++i) {
+            const float t = static_cast<float>(i) / kArcSegments;
+            const float a = -halfAngle + (2.0f * halfAngle) * t;
+            const ImVec2 p = WorldToScreen(worldCenter + RotateVec(dir, a) * r, vp, viewWidth, viewHeight);
+            drawList->AddLine(prev, p, color, thickness);
+            prev = p;
+        }
+    };
+
+    drawCone(outerRad, 1.0f, coneColor, 1.5f);
+    if (light->GetInnerAngle() > 0.01f)
+        drawCone(innerRad, 1.0f, innerColor, 1.0f);
+
+    if (!interactive) return;
+
+    // Inner-angle grip is pulled inward so it can't land on top of the
+    // outer-angle grip when the two angles are equal.
+    constexpr float kInnerHandleScale = 0.6f;
+    const ImVec2 handles[3] = {
+        WorldToScreen(worldCenter + dir * range, vp, viewWidth, viewHeight),
+        WorldToScreen(worldCenter + RotateVec(dir, innerRad) * (range * kInnerHandleScale), vp, viewWidth, viewHeight),
+        WorldToScreen(worldCenter + RotateVec(dir, outerRad) * range, vp, viewWidth, viewHeight),
+    };
+    const int ids[3] = { kSpotRange, kSpotInnerAngle, kSpotOuterAngle };
+
+    int hovered = -1;
+    if (m_dragLightHandle < 0) {
+        for (int i = 0; i < 3; ++i)
+            if (HitTest(io.MousePos, handles[i])) { hovered = ids[i]; break; }
+    }
+    if (hovered >= 0) m_hoveredLightHandle = hovered;
+
+    if (io.MouseClicked[0] && hovered >= 0 && !ImGuizmo::IsUsing() &&
+        m_dragHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0) {
+        m_dragLightHandle     = hovered;
+        m_dragLightId         = light->GetID();
+        m_dragStartRange      = range;
+        m_dragStartInnerAngle = light->GetInnerAngle();
+        m_dragStartOuterAngle = light->GetOuterAngle();
+    }
+
+    if (m_dragLightHandle >= 0 && m_dragLightId == light->GetID() && io.MouseDown[0]) {
+        const glm::vec2 mouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+        const glm::vec2 toMouse = mouseWorld - worldCenter;
+        if (m_dragLightHandle == kSpotRange) {
+            light->SetRange(glm::length(toMouse));
+        } else if (m_dragLightHandle == kSpotInnerAngle) {
+            light->SetInnerAngle(AngleBetweenDeg(dir, toMouse));
+        } else if (m_dragLightHandle == kSpotOuterAngle) {
+            light->SetOuterAngle(AngleBetweenDeg(dir, toMouse));
+        }
+    }
+
+    const ImU32 handleColor = IM_COL32(255, 235, 150, 255);
+    const ImU32 hotColor    = IM_COL32(255, 255, 255, 255);
+    const bool draggingThis = (m_dragLightHandle >= 0 && m_dragLightId == light->GetID());
+    for (int i = 0; i < 3; ++i) {
+        const bool isHot = (ids[i] == hovered) || (draggingThis && ids[i] == m_dragLightHandle);
+        drawList->AddCircleFilled(handles[i], kHandleRadiusPx, isHot ? hotColor : handleColor);
+    }
+}
+
+void GizmosManager::DrawDirectionalLightGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                                              Transform* transform, Light* light, int alpha) {
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+    const glm::vec2 worldCenter = transform->GetWorldPosition();
+    const glm::vec2 dir = light->GetWorldDirection();
+    const glm::vec2 perp(-dir.y, dir.x);
+
+    // A directional light has no position or extent that means anything, so this
+    // is purely an orientation readout: parallel rays showing which way the light
+    // travels. Deliberately NON-interactive -- direction comes from the
+    // Transform's rotation, and the rotate gizmo already edits that. A second set
+    // of handles here would be a second source of truth.
+    constexpr float kRayLength  = 160.0f;   // world units
+    constexpr float kRaySpacing = 34.0f;
+    constexpr int   kRayCount   = 3;
+
+    const glm::vec4 c = light->GetColor();
+    const ImU32 color = IM_COL32(int(c.r * 255), int(c.g * 255), int(c.b * 255), alpha);
+
+    for (int i = -(kRayCount / 2); i <= kRayCount / 2; ++i) {
+        const glm::vec2 offset = perp * (static_cast<float>(i) * kRaySpacing);
+        const glm::vec2 start = worldCenter + offset - dir * (kRayLength * 0.5f);
+        const glm::vec2 end   = worldCenter + offset + dir * (kRayLength * 0.5f);
+        const ImVec2 s = WorldToScreen(start, vp, viewWidth, viewHeight);
+        const ImVec2 e = WorldToScreen(end,   vp, viewWidth, viewHeight);
+        drawList->AddLine(s, e, color, 1.5f);
+
+        // Arrowhead: two short barbs swept back from the tip.
+        const glm::vec2 barbA = end - RotateVec(dir, 0.4f) * 18.0f;
+        const glm::vec2 barbB = end - RotateVec(dir, -0.4f) * 18.0f;
+        drawList->AddLine(e, WorldToScreen(barbA, vp, viewWidth, viewHeight), color, 1.5f);
+        drawList->AddLine(e, WorldToScreen(barbB, vp, viewWidth, viewHeight), color, 1.5f);
+    }
+}
+
+void GizmosManager::DrawShadowCasterGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                                          ShadowCaster* caster, int alpha, bool interactive) {
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+    const ImU32 color = IM_COL32(150, 150, 255, alpha);
+    const auto shape = caster->GetShape();
+
+    // Drawn from the same code paths that feed the shadow atlas, so what is shown
+    // here is exactly the silhouette that gets rasterized -- the two can't drift
+    // apart. SpriteAlpha has no single closed loop (a sprite can have holes and
+    // disjoint islands), so it draws its unordered segment list directly.
+    if (shape == ShadowCaster::Shape::SpriteAlpha) {
+        std::vector<glm::vec2> segments;
+        caster->AppendSegments(segments);
+        for (std::size_t i = 0; i + 1 < segments.size(); i += 2) {
+            drawList->AddLine(WorldToScreen(segments[i],     vp, viewWidth, viewHeight),
+                              WorldToScreen(segments[i + 1], vp, viewWidth, viewHeight),
+                              color, 1.5f);
+        }
+        return;   // derived from the sprite's pixels: nothing here is draggable
+    }
+
+    std::vector<glm::vec2> outline;
+    caster->BuildOutline(outline);
+    if (outline.size() < 2) return;
+
+    for (std::size_t i = 0; i < outline.size(); ++i) {
+        const ImVec2 a = WorldToScreen(outline[i], vp, viewWidth, viewHeight);
+        const ImVec2 b = WorldToScreen(outline[(i + 1) % outline.size()], vp, viewWidth, viewHeight);
+        drawList->AddLine(a, b, color, 1.5f);
+    }
+
+    // SpriteBounds and FromCollider are DERIVED from another component, so they
+    // get no handles -- editing them means editing the sprite or the collider.
+    if (!interactive || (shape != ShadowCaster::Shape::Box && shape != ShadowCaster::Shape::Circle))
+        return;
+
+    GameObject* obj = caster->GetGameObject();
+    Transform* transform = obj ? obj->GetTransform() : nullptr;
+    if (!transform) return;
+    const glm::mat4 worldMat = transform->GetWorldMatrix();
+    const glm::mat4 invWorld = glm::inverse(worldMat);
+
+    const glm::vec2 localCenter = caster->GetCenter();
+    const glm::vec2 worldCenter = glm::vec2(worldMat * glm::vec4(localCenter, 0.0f, 1.0f));
+
+    ImVec2 handles[4];
+    int ids[4];
+    if (shape == ShadowCaster::Shape::Box) {
+        const glm::vec2 h = caster->GetSize() * 0.5f;
+        const glm::vec2 corners[4] = {
+            localCenter + glm::vec2(-h.x, -h.y), localCenter + glm::vec2(h.x, -h.y),
+            localCenter + glm::vec2( h.x,  h.y), localCenter + glm::vec2(-h.x, h.y),
+        };
+        for (int i = 0; i < 4; ++i) {
+            handles[i] = WorldToScreen(glm::vec2(worldMat * glm::vec4(corners[i], 0.0f, 1.0f)),
+                                       vp, viewWidth, viewHeight);
+            ids[i] = kCasterCorner0 + i;
+        }
+    } else {
+        const float r = caster->GetRadius();
+        const glm::vec2 dirs[4] = { {1,0}, {0,1}, {-1,0}, {0,-1} };
+        for (int i = 0; i < 4; ++i) {
+            handles[i] = WorldToScreen(glm::vec2(worldMat * glm::vec4(localCenter + dirs[i] * r, 0.0f, 1.0f)),
+                                       vp, viewWidth, viewHeight);
+            ids[i] = kCasterRadius0 + i;
+        }
+    }
+
+    int hovered = -1;
+    if (m_dragLightHandle < 0) {
+        for (int i = 0; i < 4; ++i)
+            if (HitTest(io.MousePos, handles[i])) { hovered = ids[i]; break; }
+    }
+    if (hovered >= 0) m_hoveredLightHandle = hovered;
+
+    if (io.MouseClicked[0] && hovered >= 0 && !ImGuizmo::IsUsing() &&
+        m_dragHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0) {
+        m_dragLightHandle       = hovered;
+        m_dragLightId           = caster->GetID();
+        m_dragStartCasterSize   = caster->GetSize();
+        m_dragStartCasterRadius = caster->GetRadius();
+    }
+
+    if (m_dragLightHandle >= 0 && m_dragLightId == caster->GetID() && io.MouseDown[0]) {
+        const glm::vec2 mouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+        // Solve in LOCAL space so the drag stays correct under a rotated or
+        // non-uniformly scaled parent.
+        const glm::vec2 localMouse = glm::vec2(invWorld * glm::vec4(mouseWorld, 0.0f, 1.0f));
+        if (shape == ShadowCaster::Shape::Box) {
+            // Symmetric about the caster's centre: dragging one corner moves all
+            // four, which keeps `center` meaning "the middle of the box".
+            const glm::vec2 half = glm::abs(localMouse - localCenter);
+            caster->SetSize(half * 2.0f);
+        } else {
+            caster->SetRadius(glm::length(localMouse - localCenter));
+        }
+    }
+
+    const ImU32 handleColor = IM_COL32(190, 190, 255, 255);
+    const ImU32 hotColor    = IM_COL32(255, 255, 255, 255);
+    const bool draggingThis = (m_dragLightHandle >= 0 && m_dragLightId == caster->GetID());
+    for (int i = 0; i < 4; ++i) {
+        const bool isHot = (ids[i] == hovered) || (draggingThis && ids[i] == m_dragLightHandle);
+        drawList->AddCircleFilled(handles[i], kHandleRadiusPx, isHot ? hotColor : handleColor);
+    }
+
+    // Centre crosshair, matching the collider gizmos.
+    const ImVec2 sc = WorldToScreen(worldCenter, vp, viewWidth, viewHeight);
+    drawList->AddLine(ImVec2(sc.x - 5, sc.y), ImVec2(sc.x + 5, sc.y), color, 1.0f);
+    drawList->AddLine(ImVec2(sc.x, sc.y - 5), ImVec2(sc.x, sc.y + 5), color, 1.0f);
+}
+
+void GizmosManager::CommitLightDrag()
+{
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    if (!registry) return;
+
+    std::vector<GizmoEdit> edits;
+    const std::string& id = m_dragLightId;
+
+    if (auto* light = registry->Find<Light>(id)) {
+        if (light->GetRange() != m_dragStartRange)
+            edits.push_back({ id, "range", m_dragStartRange, light->GetRange() });
+        if (light->GetInnerRadius() != m_dragStartInnerRadius)
+            edits.push_back({ id, "innerRadius", m_dragStartInnerRadius, light->GetInnerRadius() });
+        // Inner and outer clamp against each other, so a drag on one can move the
+        // other. Diffing both means the undo entry restores the pair.
+        if (light->GetInnerAngle() != m_dragStartInnerAngle)
+            edits.push_back({ id, "innerAngle", m_dragStartInnerAngle, light->GetInnerAngle() });
+        if (light->GetOuterAngle() != m_dragStartOuterAngle)
+            edits.push_back({ id, "outerAngle", m_dragStartOuterAngle, light->GetOuterAngle() });
+    } else if (auto* caster = registry->Find<ShadowCaster>(id)) {
+        if (caster->GetSize() != m_dragStartCasterSize)
+            edits.push_back({ id, "casterSize", m_dragStartCasterSize, caster->GetSize() });
+        if (caster->GetRadius() != m_dragStartCasterRadius)
+            edits.push_back({ id, "casterRadius", m_dragStartCasterRadius, caster->GetRadius() });
+    }
+
+    if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
+}
+
 // ─── Component-type icons ────────────────────────────────────────────────────
 // To add an icon for a new component type: drop its PNG in Domain's icons
 // folder (registered by AssetManager under the file stem) and add one entry
@@ -617,6 +1349,16 @@ void GizmosManager::RegisterComponentIcons() {
     m_componentIcons.push_back({
         "particle_icons",
         [](GameObject* obj) { return obj->GetComponent<ParticleComponent>() != nullptr; },
+        nullptr,
+    });
+    m_componentIcons.push_back({
+        "light_icon",
+        [](GameObject* obj) { return obj->GetComponent<Light>() != nullptr; },
+        nullptr,
+    });
+    m_componentIcons.push_back({
+        "shadow_caster_icon",
+        [](GameObject* obj) { return obj->GetComponent<ShadowCaster>() != nullptr; },
         nullptr,
     });
 }
