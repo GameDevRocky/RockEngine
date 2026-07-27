@@ -94,4 +94,11 @@ class Transform(Component):
 
         transform_module.set_parent(self._gameobject_id, value._gameobject_id, True)
 
+    @property
+    def children(self):
+        """Direct child Transforms, in hierarchy order."""
+        from ..core.gameobject_handler import get_gameobject
+        ids = transform_module.get_children(self._gameobject_id)
+        return [get_gameobject(cid).transform for cid in ids]
+
     

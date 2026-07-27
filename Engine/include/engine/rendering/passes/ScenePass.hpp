@@ -16,8 +16,14 @@
 
 using namespace EngineUtils;
 
+// Draws every 2D renderable in the scene -- SpriteRenderers *and*
+// ParticleComponents -- in ONE list sorted by (sorting layer priority, order in
+// layer). Particles share the sprite sorting model rather than compositing on top
+// as a separate pass, which is the only way an emitter can sit behind or between
+// sprite layers. Particle simulation is not done here; see
+// ParticleSimulationPass, which must run before this pass.
 class ScenePass : public RenderPass
-{ 
+{
 public:
     ScenePass() = default;
 
@@ -32,6 +38,12 @@ private:
 
     unsigned int vao = 0;
     unsigned int vbo = 0;
+    // Second VAO for the instanced particle draw, over ParticleManager's shared
+    // quad VBO. The vertex data happens to be identical to this pass's own quad,
+    // but binding the manager's buffer keeps the two independent -- a future edit
+    // to either quad can't silently break the other. VAOs are per-context and so
+    // cannot come from ParticleManager itself.
+    unsigned int particleVao = 0;
 
     // Resolved once on first use; the material map only grows via asset loads,
     // so the pointer stays valid for the pass's lifetime (borrowed, not owned).

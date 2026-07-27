@@ -645,6 +645,16 @@ void InspectorVisitor::Visit(ParticleComponent* p) {
         [](PC* e, const std::string& v) { e->SetSprite(v); },
         p->SPRITE_CHANGED_EVENT, PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF));
 
+    BindProperty<bool>(p, "Flip X: ",
+        [=]() { return p->GetFlipX(); },
+        [](PC* e, const bool& v) { e->SetFlipX(v); },
+        p->FLIP_X_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+    BindProperty<bool>(p, "Flip Y: ",
+        [=]() { return p->GetFlipY(); },
+        [](PC* e, const bool& v) { e->SetFlipY(v); },
+        p->FLIP_Y_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
     BindProperty<glm::vec4>(p, "Start Color: ",
         [=]() { return p->GetStartColor(); },
         [](PC* e, const glm::vec4& v) { e->SetStartColor(v); },
@@ -672,6 +682,32 @@ void InspectorVisitor::Visit(ParticleComponent* p) {
             {"Alpha",    static_cast<int>(PC::BlendMode::Alpha)},
             {"Additive", static_cast<int>(PC::BlendMode::Additive)}
         }));
+
+    // Same layer model as SpriteRenderer -- emitters sort against sprites in one
+    // list (see ScenePass), so this places the effect among the sprite layers.
+    if (LayerManager* particleLayers = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>())
+    {
+        std::vector<std::pair<std::string, std::any>> layerOptions;
+        for (const auto& layer : particleLayers->GetLayers())
+            layerOptions.push_back({ layer.name, layer.priority });
+
+        auto layer_get = [=]() -> int { return particleLayers->GetPriority(p->GetSortingLayer()); };
+        // Captures the priority->name pairs by value so the setter is pointer-free.
+        auto layer_set = [layers = layerOptions](PC* e, const int& priority) {
+            for (const auto& [name, prio] : layers)
+            {
+                if (std::any_cast<int>(prio) == priority)
+                {
+                    e->SetSortingLayer(name);
+                    return;
+                }
+            }
+        };
+
+        BindProperty<int>(p, "Sorting Layer: ", layer_get, layer_set,
+            p->SORTING_LAYER_CHANGED_EVENT,
+            PropDesc().Tag(Tags::DROPDOWN).DropVals(layerOptions));
+    }
 
     BindProperty<float>(p, "Order in Layer: ",
         [=]() { return static_cast<float>(p->GetSortingOrder()); },

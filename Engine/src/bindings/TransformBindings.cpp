@@ -1,5 +1,6 @@
 #include "engine/bindings/PythonBindings.hpp"
 
+#include <pybind11/stl.h>
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/GameObject.hpp"
 #include "Engine.hpp"
@@ -182,7 +183,7 @@ void BindTransform(pybind11::module_& m) {
     });
 
     transform_module.def("get_world_scale", [](const std::string& id) {
-        
+
         GameObject* go = registry->Find<GameObject>(id);
         if (go) {
             if (auto* t = go->GetComponent<Transform>()) {
@@ -191,5 +192,24 @@ void BindTransform(pybind11::module_& m) {
             }
         }
         return std::make_tuple(1.0f, 1.0f);
+    });
+
+    // Owning-GameObject ids of this transform's direct children, for scripts
+    // that need to rebuild runtime-side state (e.g. an autotiler re-scanning
+    // previously placed tiles) after a scene load.
+    transform_module.def("get_children", [](const std::string& id) {
+        std::vector<std::string> ids;
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* t = go->GetComponent<Transform>()) {
+                for (Transform* child : t->GetChildren()) {
+                    if (!child) continue;
+                    if (GameObject* childGo = child->GetGameObject()) {
+                        ids.push_back(childGo->GetID());
+                    }
+                }
+            }
+        }
+        return ids;
     });
 }

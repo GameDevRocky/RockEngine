@@ -11,6 +11,7 @@ Proxy<Registry> registry;
 Proxy<InputManager> inputManager;
 Proxy<TimeManager> timeManager;
 Proxy<TagManager> tagManager;
+Proxy<SceneManager> sceneManager;
 
 namespace py = pybind11;
 
@@ -19,6 +20,7 @@ void BindInputManager(py::module_& m);
 void BindConsoleManager(py::module_& m);
 void BindPhysics(py::module_& m);
 void BindDebugDraw(py::module_& m);
+void BindScene(py::module_& m);
 
 // CORE
 void BindGameObject(py::module_& m);
@@ -57,6 +59,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindPhysics(systems);
     BindDebugDraw(systems);
     BindTime(systems);
+    BindScene(systems);
 
     // COMPONENTS
     py::module_ components = m.def_submodule("components", " RockEngine components APIs");

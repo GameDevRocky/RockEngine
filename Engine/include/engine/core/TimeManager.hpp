@@ -30,7 +30,7 @@ public:
     float GetFPS() const { return currentFps; }
 
     // Monotonic frame index, bumped once per Update(). Used by render-side
-    // consumers (e.g. ParticlePass) to run a per-frame step exactly once even
+    // consumers (e.g. ParticleSimulationPass) to run a per-frame step exactly once even
     // when multiple viewports draw the same frame.
     std::uint64_t FrameCount() const { return frameCount; }
 

@@ -1,5 +1,5 @@
 #include "engine/serialization/Registry.hpp"
-#include "engine/serialization/Serializable.hpp" 
+#include "engine/serialization/Serializable.hpp"
 #include <algorithm>
 #include "engine/debug/Console.hpp"
 #include "engine/core/RuntimeObject.hpp"
@@ -70,6 +70,20 @@ void Registry::FlushPendingShutdowns() {
         if (it != pendingDeletes.end()) pendingDeletes.erase(it);
         delete obj;
     }
+
+    // A Shutdown() above can call Destroy() on a *different* object (e.g. a
+    // component detached as a side effect of the bottom-up cascade). That queues
+    // it in pendingShutdowns for the next flush, but its SHUTDOWN_EVENT already
+    // put it in pendingDeletes — so the drain below frees it and the next flush
+    // would dereference freed memory. Drop those stale entries first.
+    pendingShutdowns.erase(
+        std::remove_if(pendingShutdowns.begin(), pendingShutdowns.end(),
+            [this](RuntimeObject* queued) {
+                return std::find(pendingDeletes.begin(), pendingDeletes.end(), queued)
+                       != pendingDeletes.end();
+            }),
+        pendingShutdowns.end());
+
     // Delete components (and any other children) that were shut down as a
     // side-effect of the above GameObject::Shutdown() bottom-up recursion.
     for (auto* obj : pendingDeletes)

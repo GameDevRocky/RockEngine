@@ -147,6 +147,14 @@ void BindParticleComponent(pybind11::module_& m) {
         if (auto* p = Resolve(id)) p->SetSprite(spriteId);
     });
 
+    pm.def("get_flip", [](const std::string& id) {
+        if (auto* p = Resolve(id)) return std::make_tuple(p->GetFlipX(), p->GetFlipY());
+        return std::make_tuple(false, false);
+    });
+    pm.def("set_flip", [](const std::string& id, bool x, bool y) {
+        if (auto* p = Resolve(id)) { p->SetFlipX(x); p->SetFlipY(y); }
+    });
+
     pm.def("get_start_color", [](const std::string& id) {
         if (auto* p = Resolve(id)) { auto c = p->GetStartColor(); return std::make_tuple(c.r, c.g, c.b, c.a); }
         return std::make_tuple(1.0f, 1.0f, 1.0f, 1.0f);
@@ -185,6 +193,14 @@ void BindParticleComponent(pybind11::module_& m) {
     });
     pm.def("set_blend_mode", [](const std::string& id, int v) {
         if (auto* p = Resolve(id)) p->SetBlendMode(static_cast<ParticleComponent::BlendMode>(v));
+    });
+
+    pm.def("get_sorting_layer", [](const std::string& id) -> std::string {
+        if (auto* p = Resolve(id)) return p->GetSortingLayer();
+        return {};
+    });
+    pm.def("set_sorting_layer", [](const std::string& id, const std::string& layer) {
+        if (auto* p = Resolve(id)) p->SetSortingLayer(layer);
     });
 
     pm.def("get_sorting_order", [](const std::string& id) {

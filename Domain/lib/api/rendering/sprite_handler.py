@@ -33,3 +33,9 @@ class Sprite:
     def pivot(self, value : Vector2):
         value = Vector2(value)
         return sprite_module.set_pivot(self.id, value.x, value.y)
+
+    @property
+    def pixel_size(self) -> Vector2:
+        """Native sprite size in pixels (world units -- a rendered sprite is
+        this size before the GameObject's transform.scale is applied)."""
+        return Vector2(sprite_module.get_pixel_size(self.id))

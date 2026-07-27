@@ -2,7 +2,7 @@
 
 #include "engine/rendering/passes/ClearPass.hpp"
 #include "engine/rendering/passes/ScenePass.hpp"
-#include "engine/rendering/passes/ParticlePass.hpp"
+#include "engine/rendering/passes/ParticleSimulationPass.hpp"
 #include "engine/components/Camera.hpp"
 
 void GameRenderView::Init()
@@ -16,8 +16,10 @@ void GameRenderView::Init()
     ScenePass* scenePass = new ScenePass();
 
     pipeline->AddSetupPass(clearPass);
+    // Simulation must precede ScenePass, which draws the particles it advanced
+    // (interleaved with sprites by sorting layer).
+    pipeline->AddScenePass(new ParticleSimulationPass());
     pipeline->AddScenePass(scenePass);
-    pipeline->AddScenePass(new ParticlePass());
 
     pipeline->Init();
 }

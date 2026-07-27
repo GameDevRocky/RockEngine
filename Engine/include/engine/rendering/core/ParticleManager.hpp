@@ -34,11 +34,19 @@ public:
                   float emitterRot, float dt, std::uint64_t frameId);
 
     // Draw an emitter's particles. Simulate() must have run this frame. The
-    // caller owns the VAO (per-context) and the blend state. `model` is identity
-    // for World space or the emitter's world matrix for Local space. `textureId`
-    // == 0 draws untextured (tinted quads).
+    // caller owns the VAO (per-context) and the blend/depth state. `model` is
+    // identity for World space or the emitter's world matrix for Local space.
+    // `textureId` == 0 draws untextured (tinted quads).
+    //
+    // `uvScale`/`uvOffset` map the quad's [0,1] UVs onto the sprite's sub-rect
+    // within its texture, so an atlas sprite shows only its own region rather
+    // than the whole sheet; a negative scale component flips that axis. The
+    // caller resolves them from the Sprite (see ScenePass) -- pass (1,1)/(0,0)
+    // for a whole-texture, unflipped draw. This is per-emitter, so re-pointing an
+    // emitter's sprite restyles its live particles too.
     void Draw(ParticleComponent* emitter, const glm::mat4& view, const glm::mat4& proj,
-              const glm::mat4& model, unsigned int textureId, unsigned int vao);
+              const glm::mat4& model, unsigned int textureId,
+              const glm::vec2& uvScale, const glm::vec2& uvOffset, unsigned int vao);
 
     // Free GPU state for emitters not touched since `frameId` (deleted
     // components, unloaded scenes). Context must be current.

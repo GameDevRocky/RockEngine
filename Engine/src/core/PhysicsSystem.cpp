@@ -14,7 +14,7 @@ void PhysicsSystem::Init(){
     // a script sets a velocity/impulse.
     worldDef.enableSleep = true;
     worldDef.gravity = {0.0f, -9.8f};
-    worldDef.gravity *= 2.0f; 
+    worldDef.gravity *= 1.0f; 
     worldId = b2CreateWorld(&worldDef);
     std::cout << "PhysicsSystem: World created, valid=" << B2_IS_NON_NULL(worldId) << std::endl;
 }

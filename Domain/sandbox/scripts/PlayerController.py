@@ -39,22 +39,26 @@ class PlayerController(ScriptableComponent):
     max_fall_speed: float = 700.0       # terminal downward speed
     coyote_time: float = 0.10           # grace to still jump just after leaving a ledge
     jump_buffer_time: float = 0.12      # grace to buffer a jump pressed just before landing
+    # After jumping we rise only jump_velocity*fixed_dt per step (~5px at 300 and
+    # 1/60), which is not necessarily further than the ground ray reaches -- so the
+    # ray can still report the floor for a step or two while genuinely airborne.
+    # Ignore the ground for this long after a jump; see _check_ground.
+    jump_lockout_time: float = 0.08
 
     # ── Ground check ─────────────────────────────────────────────────────────
     ground_check: Transform = None      # optional: assign a child at the feet; auto-created if empty
     ground_check_offset: float = 40.0   # how far below the origin to place the auto-created check
     ground_check_distance: float = 20.0 # length of the downward ground ray
-
+    particle_gen : ParticleComponent
     # ── Camera follow (optional) ─────────────────────────────────────────────
     camera: Camera = None
     camera_smoothing: float = 0.1
-
-    clone_ball : GameObject = None     # optional: a ball prefab to clone on click
 
     def awake(self):
         self.rb = self.get_component(Rigidbody)
         self.sr = self.get_component(SpriteRenderer)
         self.animator = self.get_component(Animator)
+        
         self.balls = []
         
 
@@ -66,12 +70,10 @@ class PlayerController(ScriptableComponent):
         self.coyote_timer = 0.0
         self.jump_buffer_timer = 0.0
         self.is_jumping = False    # currently in the rising part of a jump (for jump-cut)
+        self.jump_lockout_timer = 0.0       # >0 = ignore the ground ray (just jumped)
         self.jumps_left = self.max_jumps   # air jumps remaining until we touch ground again
 
-        # Optional clone source: only wired in some scenes, so guard the access.
-        if self.clone_ball:
-            self.clone_ball.active = False
-
+        
         # A child at the feet is the ground-ray origin. Only spawn one if the
         # designer didn't wire an explicit ground_check in the inspector.
         if not self.ground_check:
@@ -88,6 +90,8 @@ class PlayerController(ScriptableComponent):
             self.jump_buffer_timer = self.jump_buffer_time
         self._update_animation()
         self._follow_camera()
+        self.particle_gen.sprite = self.sr.sprite
+        self.particle_gen.flipX = self.sr.flipX
     # ── fixed step: physics ──────────────────────────────────────────────────
     def fixed_update(self):
         dt = Time.fixed_delta_time
@@ -98,17 +102,6 @@ class PlayerController(ScriptableComponent):
         self._handle_jump(dt)
         self._clamp_fall()
         self.sr.set_uniform("uTime", Time.elapsed_time)
-    
-    def late_update(self):
-        if Input.is_key_pressed(Keys.SPACE):
-            Console.comment(len(self.balls))
-        if self.clone_ball and Input.mouse_down(MouseButton.LEFT):
-            obj = self.duplicate(self.clone_ball)
-            obj.transform.position = Input.get_mouse_pos()
-            rb = obj.get_component(Rigidbody)
-            rb.apply_impulse((random.randint(-500, 500), 500))
-            obj.active = True
-            self.balls.append(obj)
 
     # ── movement ─────────────────────────────────────────────────────────────
     def _move_horizontal(self, dt):
@@ -125,6 +118,13 @@ class PlayerController(ScriptableComponent):
             n = self.ground_normal
             tangent = Vector2(n.y, -n.x)                    # perpendicular to the normal, +x-ish
             along = self._move_toward(vel.dot(tangent), target, rate * dt)
+            # NB: this rebuilds the whole vector, so vel.y is discarded (on flat
+            # ground tangent is (1,0)). That is what pins us to the ground -- and
+            # why nothing upward may be in flight while grounded. jump_lockout_time
+            # guarantees that for jumps; an external upward impulse (jump pad,
+            # explosion) would need the same treatment. It can't be guarded by
+            # "preserve positive vel.y" here, because slope-following produces a
+            # positive vel.y legitimately and stopping on a hill would drift up.
             vel = tangent * along
         else:
             # Airborne: steer x only; gravity owns y for a normal jump arc.
@@ -139,11 +139,23 @@ class PlayerController(ScriptableComponent):
                 self.sr.flipX = self.facing < 0
 
     def _check_ground(self, dt):
+        self.jump_lockout_timer = max(0.0, self.jump_lockout_timer - dt)
+
         origin = self.ground_check.world_position
         down = Vector2(0, -self.ground_check_distance)
         result = Physics.cast_ray(origin, down)
         # Ignore a hit on ourselves (ray starting inside our own collider).
         hit = bool(result and result.gameobject.id != self._gameobject_id)
+        # Having just jumped, we are airborne by definition even though the ray may
+        # still touch the floor we left (we only climb jump_velocity*dt per step).
+        # Without this the next step counts as grounded, and _move_horizontal's
+        # ground-follow branch rebuilds velocity from the surface tangent -- wiping
+        # the upward velocity and pinning us to the floor. It also re-armed
+        # is_jumping/jumps_left below, breaking jump-cut and granting a free jump.
+        # (Note: "airborne while rising" can't be detected from vel.y instead --
+        # walking up a slope legitimately has vel.y > 0.)
+        if self.jump_lockout_timer > 0.0:
+            hit = False
         self.grounded = hit
         # Remember the surface normal so movement can follow the slope.
         self.ground_normal = result.normal if hit else Vector2(0, 1)
@@ -179,6 +191,10 @@ class PlayerController(ScriptableComponent):
             self.jump_buffer_timer = 0.0
             self.coyote_timer = 0.0
             self.is_jumping = True
+            # Stop the ground ray from re-latching before we've physically cleared
+            # it. coyote_timer is already zeroed, so _check_ground's ledge branch
+            # won't also dock a jump for going airborne here.
+            self.jump_lockout_timer = self.jump_lockout_time
             self.jumps_left -= 1
             if self.animator:
                 # Ground jump -> Jump clip; air jump -> DoubleJump clip.

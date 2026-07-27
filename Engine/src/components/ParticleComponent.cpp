@@ -41,6 +41,8 @@ YAML::Node ParticleComponent::Serialize()
     node["coneAngle"] = coneAngle;
 
     node["sprite_id"] = sprite_id;
+    node["flipX"] = flipX;
+    node["flipY"] = flipY;
 
     node["startColor"][0] = startColor.r;
     node["startColor"][1] = startColor.g;
@@ -57,6 +59,7 @@ YAML::Node ParticleComponent::Serialize()
     node["startSize"]   = startSize;
     node["endSize"]     = endSize;
     node["blendMode"]   = static_cast<int>(blendMode);
+    node["sortingLayer"] = sortingLayer;
     node["sortingOrder"] = sortingOrder;
 
     return node;
@@ -90,6 +93,8 @@ void ParticleComponent::Deserialize(const YAML::Node& node)
     coneAngle = node["coneAngle"].as<float>(25.0f);
 
     sprite_id = node["sprite_id"].as<std::string>("");
+    flipX = node["flipX"].as<bool>(false);
+    flipY = node["flipY"].as<bool>(false);
 
     if (node["startColor"])
         startColor = glm::vec4(node["startColor"][0].as<float>(), node["startColor"][1].as<float>(),
@@ -101,6 +106,7 @@ void ParticleComponent::Deserialize(const YAML::Node& node)
     startSize    = node["startSize"].as<float>(0.3f);
     endSize      = node["endSize"].as<float>(0.0f);
     blendMode    = static_cast<BlendMode>(node["blendMode"].as<int>(static_cast<int>(BlendMode::Additive)));
+    sortingLayer = node["sortingLayer"].as<std::string>("Default");
     sortingOrder = node["sortingOrder"].as<int>(0);
 
     state = State::Loaded;
@@ -139,11 +145,14 @@ ParticleComponent* ParticleComponent::Copy()
     copy->coneAngle = coneAngle;
 
     copy->sprite_id  = sprite_id;
+    copy->flipX      = flipX;
+    copy->flipY      = flipY;
     copy->startColor = startColor;
     copy->endColor   = endColor;
     copy->startSize  = startSize;
     copy->endSize    = endSize;
     copy->blendMode  = blendMode;
+    copy->sortingLayer = sortingLayer;
     copy->sortingOrder = sortingOrder;
 
     // pendingBurst intentionally not copied -- it's a transient request.

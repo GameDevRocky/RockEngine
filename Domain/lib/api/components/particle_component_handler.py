@@ -161,6 +161,26 @@ class ParticleComponent(Component):
             particle_module.set_sprite_id(self._gameobject_id, value.id)
 
     @property
+    def flipX(self) -> bool:
+        x, _ = particle_module.get_flip(self._gameobject_id)
+        return x
+
+    @flipX.setter
+    def flipX(self, val: bool):
+        _, y = particle_module.get_flip(self._gameobject_id)
+        particle_module.set_flip(self._gameobject_id, bool(val), y)
+
+    @property
+    def flipY(self) -> bool:
+        _, y = particle_module.get_flip(self._gameobject_id)
+        return y
+
+    @flipY.setter
+    def flipY(self, val: bool):
+        x, _ = particle_module.get_flip(self._gameobject_id)
+        particle_module.set_flip(self._gameobject_id, x, bool(val))
+
+    @property
     def start_color(self) -> Vector4:
         return Vector4(particle_module.get_start_color(self._gameobject_id))
 
@@ -201,6 +221,16 @@ class ParticleComponent(Component):
     @blend_mode.setter
     def blend_mode(self, v):
         particle_module.set_blend_mode(self._gameobject_id, int(v))
+
+    @property
+    def sorting_layer(self) -> str:
+        """Sorting layer name. Emitters share the sprite sorting model, so this
+        places the effect among the sprite layers rather than always on top."""
+        return particle_module.get_sorting_layer(self._gameobject_id)
+
+    @sorting_layer.setter
+    def sorting_layer(self, v):
+        particle_module.set_sorting_layer(self._gameobject_id, str(v))
 
     @property
     def sorting_order(self) -> int:

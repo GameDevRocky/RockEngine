@@ -105,4 +105,11 @@ void BindGameObject(pybind11::module_& m) {
         registry->Destroy(obj);
     });
 
+    gameobject_module.def("get_scene_id", [](const std::string& id) -> std::string {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) return {};
+        Scene* scene = go->GetScene();
+        return scene ? scene->GetID() : std::string{};
+    });
+
 }

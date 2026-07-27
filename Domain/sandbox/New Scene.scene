@@ -1,38 +1,131 @@
 name: New Scene
 id: 270788eb2b47eb0e5bd0a6a26aa0263c
 components:
-  - id: 948c660a3869607ecb1496fc5875676b
+  - id: e96299db13471d4f4f74cdf9394132bf
     enabled: true
     type: Transform
-    gameobject: 5296a2bef11bd287cccb8a9f9155978c
+    gameobject: 6e106c16e6531f98ef776c0784c70ef4
+    localPosition: [0, 40.857983]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 44c40aba48692d6c972f3355a869aaa7
+    enabled: true
+    type: Camera
+    gameobject: 6e106c16e6531f98ef776c0784c70ef4
+    projection: 0
+    orthoSize: 101.745544
+    clearFlags: 0
+    clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
+    priority: 0
+    targetAspect: 1.7777778
+    viewportRect: [0, 0, 1, 1]
+    cullingLayers: []
+    targetTextureId: ""
+  - id: a41e3eb837c1819065e3d522a124a504
+    enabled: true
+    type: Transform
+    gameobject: 31f44ca76bcfb0d0d309d7cb304383ed
     localPosition: [0, 0]
     localRotation: 0
-    localScale: [1.297888, 1]
+    localScale: [5.0438437, 5.0438437]
     parent_id: ~
-  - id: 9344ae4e23eddc1ebabed283f1acca57
+  - id: 9ca454a484a62e894955547adedcf9db
     enabled: true
-    type: ScriptComponent
-    gameobject: 5296a2bef11bd287cccb8a9f9155978c
-    module: FireworksSpawner
-    class: FireworksSpawner
-    fields:
-      particle_count: 500
-      lifetime:
-        - 0.6
-        - 3.3
-      speed:
-        - 150
-        - 450
-      start_size: 100
-      end_size: 0
-      gravity: -260
-      damping: 0.6
-      sprite: 80e3df6482971224026ba8d3c6779d3f
+    type: SpriteRenderer
+    gameobject: 31f44ca76bcfb0d0d309d7cb304383ed
+    material_id: m1
+    sprite_id: 96f4e41ef0cfeda7869f914be935f2d6
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 104d1ba00e010bf93cb3236c31c4205e
+    enabled: true
+    type: Animator
+    gameobject: 31f44ca76bcfb0d0d309d7cb304383ed
+    defaultState: On
+    states:
+      - name: On
+        frames: [7e5e798bb47b859f04f8f53c17a94046, 0160c4e42077e7427d811930ce5b302f, 3af7aff5f81d6284f9b720f44b557230]
+        frameRate: 12
+        speed: 1
+        loop: true
+        pos: [101, -190]
+    transitions:
+      - id: cb2598f79c3b171fde1f1068c9b8f07b
+        from: ""
+        fromAny: true
+        to: On
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          []
+    parameters:
+      []
+  - id: 5d6e3d00182bdef78aee41f633ce7c1d
+    enabled: true
+    type: Transform
+    gameobject: 3af8053275cbeed354f1126a0e38e0e2
+    localPosition: [0, 5.67]
+    localRotation: 0
+    localScale: [0.19826148, 0.19826148]
+    parent_id: a41e3eb837c1819065e3d522a124a504
+  - id: b573e5f0c294d25853ad401f8fd09a32
+    enabled: true
+    type: ParticleComponent
+    gameobject: 3af8053275cbeed354f1126a0e38e0e2
+    emissionRate: 26
+    maxParticles: 10000
+    duration: 5
+    looping: true
+    startBurst: 5
+    lifetimeMin: 1
+    lifetimeMax: 1
+    startSpeedMin: 0
+    startSpeedMax: 100
+    directionAngle: 90
+    spreadDegrees: 60
+    gravity: [0, 0]
+    damping: 0.2
+    space: 1
+    shape: 0
+    shapeSize: [32, 32]
+    coneAngle: 105
+    sprite_id: 80e3df6482971224026ba8d3c6779d3f
+    flipX: false
+    flipY: false
+    startColor: [1, 0.9, 0.4, 1]
+    endColor: [0.8156863, 0.13725491, 0, 0]
+    startSize: 32
+    endSize: 64
+    blendMode: 0
+    sortingLayer: Default
+    sortingOrder: -1
 gameobjects:
-  - id: 5296a2bef11bd287cccb8a9f9155978c
+  - id: 6e106c16e6531f98ef776c0784c70ef4
     type: GameObject
     name: GameObject
     tag: Untagged
     component_ids:
-      - 948c660a3869607ecb1496fc5875676b
-      - 9344ae4e23eddc1ebabed283f1acca57
+      - e96299db13471d4f4f74cdf9394132bf
+      - 44c40aba48692d6c972f3355a869aaa7
+  - id: 31f44ca76bcfb0d0d309d7cb304383ed
+    type: GameObject
+    name: Fire
+    tag: Untagged
+    component_ids:
+      - a41e3eb837c1819065e3d522a124a504
+      - 9ca454a484a62e894955547adedcf9db
+      - 104d1ba00e010bf93cb3236c31c4205e
+  - id: 3af8053275cbeed354f1126a0e38e0e2
+    type: GameObject
+    name: Particles
+    tag: Untagged
+    component_ids:
+      - 5d6e3d00182bdef78aee41f633ce7c1d
+      - b573e5f0c294d25853ad401f8fd09a32

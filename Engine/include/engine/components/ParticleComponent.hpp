@@ -7,7 +7,8 @@
 
 // A GPU-simulated particle emitter. This component holds ONLY authored config +
 // identity -- no GL handles and no live particle array. All simulation happens
-// on the GPU inside ParticlePass/ParticleManager, keyed by this component's id.
+// on the GPU inside ParticleSimulationPass/ParticleManager, keyed by this id
+// (ScenePass does the drawing).
 // That keeps Copy() trivial (config only) and lets play mode deep-copy an
 // emitter like any other component. See Engine/CLAUDE.md "Rendering" and the
 // particle plan for why simulation lives in the render pass, not here.
@@ -36,11 +37,14 @@ public:
     static inline const Event SHAPE_SIZE_CHANGED_EVENT     = ParticleComponent::CreateEvent();
     static inline const Event CONE_ANGLE_CHANGED_EVENT     = ParticleComponent::CreateEvent();
     static inline const Event SPRITE_CHANGED_EVENT         = ParticleComponent::CreateEvent();
+    static inline const Event FLIP_X_CHANGED_EVENT         = ParticleComponent::CreateEvent();
+    static inline const Event FLIP_Y_CHANGED_EVENT         = ParticleComponent::CreateEvent();
     static inline const Event START_COLOR_CHANGED_EVENT    = ParticleComponent::CreateEvent();
     static inline const Event END_COLOR_CHANGED_EVENT      = ParticleComponent::CreateEvent();
     static inline const Event START_SIZE_CHANGED_EVENT     = ParticleComponent::CreateEvent();
     static inline const Event END_SIZE_CHANGED_EVENT       = ParticleComponent::CreateEvent();
     static inline const Event BLEND_MODE_CHANGED_EVENT     = ParticleComponent::CreateEvent();
+    static inline const Event SORTING_LAYER_CHANGED_EVENT  = ParticleComponent::CreateEvent();
     static inline const Event SORTING_ORDER_CHANGED_EVENT  = ParticleComponent::CreateEvent();
 
     ParticleComponent* Copy() override;
@@ -101,6 +105,15 @@ public:
     const std::string& GetSpriteID() const { return sprite_id; }
     void SetSprite(const std::string& id) { sprite_id = id; Notify(SPRITE_CHANGED_EVENT); }
 
+    // Mirror the sprite on every particle. Applied as a negated UV scale about the
+    // sprite's own sub-rect (see ScenePass), so flipping an atlas sprite stays
+    // inside its own region instead of sampling a neighbour.
+    bool GetFlipX() const { return flipX; }
+    void SetFlipX(bool v) { flipX = v; Notify(FLIP_X_CHANGED_EVENT); }
+
+    bool GetFlipY() const { return flipY; }
+    void SetFlipY(bool v) { flipY = v; Notify(FLIP_Y_CHANGED_EVENT); }
+
     glm::vec4 GetStartColor() const { return startColor; }
     void  SetStartColor(const glm::vec4& v) { startColor = v; Notify(START_COLOR_CHANGED_EVENT); }
 
@@ -115,6 +128,13 @@ public:
 
     BlendMode GetBlendMode() const { return blendMode; }
     void SetBlendMode(BlendMode v) { blendMode = v; Notify(BLEND_MODE_CHANGED_EVENT); }
+
+    // Same sorting model as SpriteRenderer: emitters are ordered against SPRITES
+    // by (layer priority, order in layer) in one combined list, so a particle
+    // system can sit behind or between sprite layers instead of always on top.
+    // See ScenePass, which draws both.
+    const std::string& GetSortingLayer() const { return sortingLayer; }
+    void SetSortingLayer(const std::string& v) { if (sortingLayer == v) return; sortingLayer = v; Notify(SORTING_LAYER_CHANGED_EVENT); }
 
     int  GetSortingOrder() const { return sortingOrder; }
     void SetSortingOrder(int v) { sortingOrder = v; Notify(SORTING_ORDER_CHANGED_EVENT); }
@@ -152,11 +172,14 @@ private:
 
     // Appearance (sizes in pixels)
     std::string sprite_id = "";
+    bool flipX = false;
+    bool flipY = false;
     glm::vec4 startColor = { 1.0f, 0.9f, 0.4f, 1.0f };
     glm::vec4 endColor   = { 1.0f, 0.2f, 0.0f, 0.0f };
     float startSize = 24.0f;
     float endSize   = 0.0f;
     BlendMode blendMode = BlendMode::Additive;
+    std::string sortingLayer = "Default";
     int   sortingOrder  = 0;
 
     int pendingBurst = 0;  // transient

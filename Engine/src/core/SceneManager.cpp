@@ -183,32 +183,35 @@ void SceneManager::LoadScene(const std::string& file_path){
 }
 
 
-void SceneManager::SaveScene(const std::string& scene_id) {
-    // Saving is only meaningful against the edit-time world. In play mode the
-    // active container is a throwaway deep copy, so persisting it would write the
-    // simulated (moved/spawned) state back over the authored scene.
-    if (container->GetMode() != Container::Mode::Editor) {
+bool SceneManager::SaveScene(const std::string& scene_id, bool allowRuntimeSave) {
+    // Saving is only meaningful against the edit-time world by default. In play
+    // mode the active container is a throwaway deep copy, so persisting it would
+    // write the simulated (moved/spawned) state back over the authored scene.
+    // allowRuntimeSave is the explicit, scripted opt-out of that guard (see the
+    // header comment) — the editor's own Save Scene menu never sets it.
+    if (!allowRuntimeSave && container->GetMode() != Container::Mode::Editor) {
         Console::Warn("Only able to save scene in Editor mode");
-        return;
+        return false;
     }
 
     Scene* scene = registry->Find<Scene>(scene_id);
-    if (!scene) return;
+    if (!scene) return false;
 
     const std::string& path = scene->GetPath();
     if (path.empty()) {
         std::cout << "Scene has no path; cannot save: " + scene_id << std::endl;
-        return;
+        return false;
     }
 
     YAML::Node node = scene->Serialize();
     std::ofstream fout(path);
     if (!fout.is_open()) {
         std::cout << "Failed to open scene file for saving: " + path << std::endl;
-        return;
+        return false;
     }
     fout << node;
     std::cout << "Saved scene to: " + path << std::endl;
+    return true;
 }
 
 void SceneManager::RemoveScene(const std::string& scene_id) {

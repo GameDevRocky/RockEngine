@@ -47,4 +47,14 @@ void BindSprite(pybind11::module_& m) {
         auto pivot = sprite->GetPivot();
         return std::make_tuple(pivot.x, pivot.y);
     });
+
+    // The sprite's native size in pixels (world units, since 1 world unit == 1
+    // pixel here) -- lets scripts rescale a GameObject to make its rendered
+    // sprite exactly fit a target size (e.g. a tilemap's grid cell).
+    sprite_module.def("get_pixel_size", [](const std::string& id) {
+        Sprite* sprite = AssetManager::Get().GetSprite(id);
+        if (!sprite) return std::make_tuple(0.0f, 0.0f);
+        auto size = sprite->GetPixelSize();
+        return std::make_tuple(size.x, size.y);
+    });
 }

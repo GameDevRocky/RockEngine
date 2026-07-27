@@ -122,6 +122,10 @@ uniform vec4 uStartColor;
 uniform vec4 uEndColor;
 uniform float uStartSize;
 uniform float uEndSize;
+// Sprite sub-rect within its texture (atlas region), with flip folded into the
+// scale's sign -- identical convention to sprite.glsl / SpriteRenderer.
+uniform vec2 uUVScale;
+uniform vec2 uUVOffset;
 out vec2 vUV;
 out vec4 vColor;
 void main(){
@@ -136,7 +140,7 @@ void main(){
     vColor = mix(uStartColor, uEndColor, t);
     vec2 local = p.position + aPos * size;
     gl_Position = uProj * uView * uModel * vec4(local, 0.0, 1.0);
-    vUV = aUV;
+    vUV = aUV * uUVScale + uUVOffset;
 }
 )";
 
@@ -374,7 +378,8 @@ void ParticleManager::Simulate(ParticleComponent* emitter, const glm::vec2& emit
 
 void ParticleManager::Draw(ParticleComponent* emitter, const glm::mat4& view,
                            const glm::mat4& proj, const glm::mat4& model,
-                           unsigned int textureId, unsigned int vao)
+                           unsigned int textureId, const glm::vec2& uvScale,
+                           const glm::vec2& uvOffset, unsigned int vao)
 {
     auto it = states.find(emitter->GetID());
     if (it == states.end() || it->second.particleSSBO == 0) return;
@@ -393,6 +398,9 @@ void ParticleManager::Draw(ParticleComponent* emitter, const glm::mat4& view,
     // sprite scale (a 24px particle is 24 world units, not 24px of a tiny quad).
     SetU1f  (drawProgram, "uStartSize",  EngineUtils::RenderUtils::PixelsToWorld(emitter->GetStartSize()));
     SetU1f  (drawProgram, "uEndSize",    EngineUtils::RenderUtils::PixelsToWorld(emitter->GetEndSize()));
+
+    SetU2f(drawProgram, "uUVScale",  uvScale);
+    SetU2f(drawProgram, "uUVOffset", uvOffset);
 
     if (textureId != 0) {
         glad_glActiveTexture(GL_TEXTURE0);
