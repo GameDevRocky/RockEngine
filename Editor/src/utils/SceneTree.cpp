@@ -89,8 +89,7 @@ GameObjectItem* CreateGameObjectItem(SceneTree* tree, GameObject* gameObject) {
     item->SetGameObjectId(id);
     item->setFlags(item->flags() | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
     item->setIcon(QIcon(EngineUtils::GetAssetPath("Domain/lib/assets/icons/cube.png").c_str()));
-    if (!gameObject->GetActive())
-        item->setFlags(item->flags() & ~Qt::ItemIsEnabled);
+    item->SetActive(gameObject->GetActive());
 
     QPointer<QStandardItemModel> weakModel = model;
     gameObject->Subscribe([weakModel, id](){
@@ -129,12 +128,9 @@ GameObjectItem* CreateGameObjectItem(SceneTree* tree, GameObject* gameObject) {
         auto* obj = Registry::FindInRuntime<GameObject>(id);
         if (!obj) return false;
 
-        auto* liveItem = weakModel->itemFromIndex(matches.front());
+        auto* liveItem = static_cast<GameObjectItem*>(weakModel->itemFromIndex(matches.front()));
         if (!liveItem) return false;
-        if (obj->GetActive())
-            liveItem->setFlags(liveItem->flags() | Qt::ItemIsEnabled);
-        else
-            liveItem->setFlags(liveItem->flags() & ~Qt::ItemIsEnabled);
+        liveItem->SetActive(obj->GetActive());
         return true;
     }, GameObject::ACTIVE_CHANGED_EVENT);
 

@@ -126,9 +126,18 @@ class GameObjectItem : public QStandardItem {
         explicit GameObjectItem(const QString& text) : QStandardItem(text) {}
         int type() const override { return Type; }
 
+        // Whether the underlying GameObject is active. Drives dimmed rendering in
+        // SceneTreeItemDelegate; deliberately NOT Qt::ItemIsEnabled, which would also
+        // make the row unselectable (see CreateGameObjectItem in SceneTree.cpp).
+        static constexpr int ActiveRole = Qt::UserRole + 2;
+
         void SetGameObjectId(const std::string& id) {
             gameobject_id = id;
             setData(QString::fromStdString(id), Qt::UserRole + 1);
+        }
+
+        void SetActive(bool active) {
+            setData(active, ActiveRole);
         }
 
         int GetSubId() {return subId;}
