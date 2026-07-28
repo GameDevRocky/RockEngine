@@ -2,8 +2,10 @@
 #include "dock-widgets/AnimatorGraphCanvas.hpp"
 #include "utils/AssetPickerWidget.hpp"
 #include "utils/AssetThumbnails.hpp"
+#include "utils/FrameListWidget.hpp"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QGridLayout>
 #include <QSplitter>
 #include <QScrollArea>
 #include <QStackedWidget>
@@ -13,7 +15,6 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QPushButton>
-#include <QListWidget>
 #include <QMenu>
 #include <iostream>
 #include "engine/core/Container.hpp"
@@ -33,6 +34,12 @@ namespace {
             else if (QLayout* cl = item->layout()) clearLayout(cl);
             delete item;
         }
+        // Row stretches are a property of the grid, not of the items, so they
+        // survive removal — a stale trailing stretch would otherwise keep pushing
+        // the next panel's rows around after a rebuild.
+        if (auto* grid = qobject_cast<QGridLayout*>(layout))
+            for (int r = 0; r < grid->rowCount(); ++r)
+                grid->setRowStretch(r, 0);
     }
 }
 
@@ -70,14 +77,18 @@ void AnimatorGui::BuildEditPage() {
 
     auto* splitter = new QSplitter(Qt::Horizontal, m_editPage);
 
-    // Left: parameters.
+    // Left: parameters. Grid, not a box, so a parameter's name and its value line
+    // up in the same two columns the object Inspector uses.
     auto* paramsScroll = new QScrollArea();
     paramsScroll->setWidgetResizable(true);
     paramsScroll->setMinimumWidth(170);
     auto* paramsContainer = new QWidget();
-    m_paramsLayout = new QVBoxLayout(paramsContainer);
-    m_paramsLayout->setContentsMargins(4, 4, 4, 4);
-    m_paramsLayout->setAlignment(Qt::AlignTop);
+    m_paramsLayout = new QGridLayout(paramsContainer);
+    m_paramsLayout->setContentsMargins(6, 6, 6, 6);
+    m_paramsLayout->setHorizontalSpacing(6);
+    m_paramsLayout->setVerticalSpacing(4);
+    m_paramsLayout->setColumnStretch(0, 1);
+    m_paramsLayout->setColumnStretch(1, 1);
     paramsScroll->setWidget(paramsContainer);
     splitter->addWidget(paramsScroll);
 
@@ -88,24 +99,59 @@ void AnimatorGui::BuildEditPage() {
     connect(m_canvas, &AnimatorGraphCanvas::selectionCleared, this, [this](){ ClearInspector(); });
     splitter->addWidget(m_canvas);
 
-    // Right: selection inspector.
+    // Right: selection inspector. Same two-column grid as the object Inspector.
     auto* inspScroll = new QScrollArea();
     inspScroll->setWidgetResizable(true);
-    inspScroll->setMinimumWidth(210);
+    inspScroll->setMinimumWidth(240);
     auto* inspContainer = new QWidget();
-    m_inspectorLayout = new QVBoxLayout(inspContainer);
-    m_inspectorLayout->setContentsMargins(4, 4, 4, 4);
-    m_inspectorLayout->setAlignment(Qt::AlignTop);
+    m_inspectorLayout = new QGridLayout(inspContainer);
+    m_inspectorLayout->setContentsMargins(6, 6, 6, 6);
+    m_inspectorLayout->setHorizontalSpacing(6);
+    m_inspectorLayout->setVerticalSpacing(4);
+    m_inspectorLayout->setColumnStretch(0, 1);
+    m_inspectorLayout->setColumnStretch(1, 1);
     inspScroll->setWidget(inspContainer);
     splitter->addWidget(inspScroll);
 
     splitter->setStretchFactor(0, 0);
     splitter->setStretchFactor(1, 1);
     splitter->setStretchFactor(2, 0);
-    splitter->setSizes({190, 600, 250});
+    splitter->setSizes({190, 600, 280});
     v->addWidget(splitter, 1);
 
     ClearInspector();
+}
+
+// ─── row helpers (match the object Inspector's grid) ──────────────────────────
+
+void AnimatorGui::AddRow(QGridLayout* grid, int& row, const std::string& label, QWidget* widget) {
+    auto* lbl = new QLabel(QString::fromStdString(label));
+    auto font = lbl->font();
+    font.setBold(true);
+    lbl->setFont(font);
+    lbl->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    grid->addWidget(lbl, row, 0, Qt::AlignLeft);
+    grid->addWidget(widget, row, 1);
+    ++row;
+}
+
+void AnimatorGui::AddFullRow(QGridLayout* grid, int& row, QWidget* widget) {
+    grid->addWidget(widget, row, 0, 1, 2);
+    ++row;
+}
+
+void AnimatorGui::AddSectionTitle(QGridLayout* grid, int& row, const QString& text, bool spaceAbove) {
+    auto* title = new QLabel(text);
+    title->setStyleSheet(QString("font-weight:bold; color:#d0d0d0; padding-top:%1px;")
+                             .arg(spaceAbove ? 6 : 0));
+    AddFullRow(grid, row, title);
+}
+
+void AnimatorGui::AddTrailingStretch(QGridLayout* grid, int& row) {
+    // A zero-height spacer row that owns all the slack: without it the grid shares
+    // extra height between every row and the panel looks loosely spaced.
+    grid->setRowStretch(row, 1);
+    ++row;
 }
 
 // ─── lifecycle / selection following ──────────────────────────────────────────
@@ -191,22 +237,19 @@ void AnimatorGui::UpdateForSelection() {
 void AnimatorGui::RebuildParametersPanel() {
     if (!m_paramsLayout) return;
     clearLayout(m_paramsLayout);
+    m_paramsRow = 0;
     if (!m_animator) return;
 
-    auto* title = new QLabel("Parameters");
-    title->setStyleSheet("font-weight:bold; padding:2px;");
-    m_paramsLayout->addWidget(title);
+    AddSectionTitle(m_paramsLayout, m_paramsRow, "Parameters", false);
 
     for (const auto& p : m_animator->GetParameters()) {
         const std::string name = p.name;
         const AnimatorParameter::Type type = p.type;
         const float def = p.defaultValue;
 
-        auto* row = new QWidget();
-        auto* rl = new QHBoxLayout(row);
-        rl->setContentsMargins(0, 0, 0, 0);
-        rl->setSpacing(3);
-
+        // A parameter's name is itself editable, so the left column is a line edit
+        // rather than a static label — the columns still line up with every other
+        // row in the panel.
         auto* nameEdit = new QLineEdit(QString::fromStdString(name));
         nameEdit->setToolTip(type == AnimatorParameter::Type::Float   ? "Float"
                            : type == AnimatorParameter::Type::Int     ? "Int"
@@ -215,25 +258,29 @@ void AnimatorGui::RebuildParametersPanel() {
             const std::string nn = nameEdit->text().toStdString();
             if (m_animator && !nn.empty() && nn != name) m_animator->RenameParameter(name, nn);
         });
-        rl->addWidget(nameEdit, 1);
+
+        auto* valueCell = new QWidget();
+        auto* rl = new QHBoxLayout(valueCell);
+        rl->setContentsMargins(0, 0, 0, 0);
+        rl->setSpacing(3);
 
         if (type == AnimatorParameter::Type::Float || type == AnimatorParameter::Type::Int) {
             auto* spin = new QDoubleSpinBox();
             spin->setRange(-1e6, 1e6);
             spin->setDecimals(type == AnimatorParameter::Type::Int ? 0 : 3);
             spin->setValue(def);
-            spin->setFixedWidth(70);
+            spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
             connect(spin, &QDoubleSpinBox::valueChanged, this, [this, name](double v) {
                 if (m_animator) if (auto* pp = m_animator->FindParameter(name)) pp->defaultValue = static_cast<float>(v);
             });
-            rl->addWidget(spin);
+            rl->addWidget(spin, 1);
         } else {
             auto* chk = new QCheckBox();
             chk->setChecked(def != 0.0f);
             connect(chk, &QCheckBox::toggled, this, [this, name](bool on) {
                 if (m_animator) if (auto* pp = m_animator->FindParameter(name)) pp->defaultValue = on ? 1.0f : 0.0f;
             });
-            rl->addWidget(chk);
+            rl->addWidget(chk, 1);
         }
 
         auto* del = new QPushButton("×");   // ×
@@ -241,7 +288,9 @@ void AnimatorGui::RebuildParametersPanel() {
         connect(del, &QPushButton::clicked, this, [this, name]() { if (m_animator) m_animator->RemoveParameter(name); });
         rl->addWidget(del);
 
-        m_paramsLayout->addWidget(row);
+        m_paramsLayout->addWidget(nameEdit, m_paramsRow, 0);
+        m_paramsLayout->addWidget(valueCell, m_paramsRow, 1);
+        ++m_paramsRow;
     }
 
     auto* addBtn = new QPushButton("+ Parameter");
@@ -253,7 +302,8 @@ void AnimatorGui::RebuildParametersPanel() {
         menu.addAction("Trigger", this, [this]{ if (m_animator) m_animator->AddParameter("New Trigger", AnimatorParameter::Type::Trigger); });
         menu.exec(addBtn->mapToGlobal(QPoint(0, addBtn->height())));
     });
-    m_paramsLayout->addWidget(addBtn);
+    AddFullRow(m_paramsLayout, m_paramsRow, addBtn);
+    AddTrailingStretch(m_paramsLayout, m_paramsRow);
 }
 
 // ─── selection inspector ──────────────────────────────────────────────────────
@@ -263,26 +313,28 @@ void AnimatorGui::ClearInspector() {
     m_inspectorTransitionId.clear();
     if (!m_inspectorLayout) return;
     clearLayout(m_inspectorLayout);
+    m_inspectorRow = 0;
+    m_frameList = nullptr;
     auto* hint = new QLabel("Select a state or transition");
     hint->setStyleSheet("color:#888;");
     hint->setAlignment(Qt::AlignCenter);
     hint->setWordWrap(true);
-    m_inspectorLayout->addWidget(hint);
+    AddFullRow(m_inspectorLayout, m_inspectorRow, hint);
+    AddTrailingStretch(m_inspectorLayout, m_inspectorRow);
 }
 
 void AnimatorGui::ShowStateInspector(const std::string& stateName) {
     m_inspectorState = stateName;
     m_inspectorTransitionId.clear();
     clearLayout(m_inspectorLayout);
+    m_inspectorRow = 0;
+    m_frameList = nullptr;
     if (!m_animator) return;
     AnimatorState* s = m_animator->FindState(stateName);
     if (!s) { m_inspectorState.clear(); return; }
 
-    auto* title = new QLabel("State");
-    title->setStyleSheet("font-weight:bold; font-size:14px;");
-    m_inspectorLayout->addWidget(title);
+    AddSectionTitle(m_inspectorLayout, m_inspectorRow, "State", false);
 
-    m_inspectorLayout->addWidget(new QLabel("Name"));
     auto* nameEdit = new QLineEdit(QString::fromStdString(s->name));
     connect(nameEdit, &QLineEdit::editingFinished, this, [this, stateName, nameEdit]() {
         const std::string nn = nameEdit->text().toStdString();
@@ -291,106 +343,114 @@ void AnimatorGui::ShowStateInspector(const std::string& stateName) {
         if (m_canvas) m_canvas->SelectState(nn);
         QMetaObject::invokeMethod(this, [this, nn]{ ShowStateInspector(nn); }, Qt::QueuedConnection);
     });
-    m_inspectorLayout->addWidget(nameEdit);
+    AddRow(m_inspectorLayout, m_inspectorRow, "Name: ", nameEdit);
 
-    m_inspectorLayout->addWidget(new QLabel("Frame Rate (fps)"));
     auto* fps = new QDoubleSpinBox();
     fps->setRange(0.0, 240.0);
     fps->setValue(s->frameRate);
+    fps->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     connect(fps, &QDoubleSpinBox::valueChanged, this, [this, stateName](double v) {
         if (m_animator) if (auto* st = m_animator->FindState(stateName)) st->frameRate = static_cast<float>(v);
     });
-    m_inspectorLayout->addWidget(fps);
+    AddRow(m_inspectorLayout, m_inspectorRow, "Frame Rate: ", fps);
 
-    m_inspectorLayout->addWidget(new QLabel("Speed"));
     auto* speed = new QDoubleSpinBox();
     speed->setRange(0.0, 100.0);
     speed->setSingleStep(0.1);
     speed->setValue(s->speed);
+    speed->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     connect(speed, &QDoubleSpinBox::valueChanged, this, [this, stateName](double v) {
         if (m_animator) if (auto* st = m_animator->FindState(stateName)) st->speed = static_cast<float>(v);
     });
-    m_inspectorLayout->addWidget(speed);
+    AddRow(m_inspectorLayout, m_inspectorRow, "Speed: ", speed);
 
-    auto* loop = new QCheckBox("Loop");
+    auto* loop = new QCheckBox();
     loop->setChecked(s->loop);
     connect(loop, &QCheckBox::toggled, this, [this, stateName](bool on) {
         if (m_animator) if (auto* st = m_animator->FindState(stateName)) st->loop = on;
     });
-    m_inspectorLayout->addWidget(loop);
+    AddRow(m_inspectorLayout, m_inspectorRow, "Loop: ", loop);
 
-    // Frames.
-    m_inspectorLayout->addWidget(new QLabel("Frames"));
-    auto* framesList = new QListWidget();
-    framesList->setFixedHeight(130);
-    auto& am = AssetManager::Get();
-    for (const auto& fid : s->frames) {
-        Sprite* sp = am.GetSprite(fid);
-        framesList->addItem(QString::fromStdString(sp ? sp->GetName() : fid));
-    }
-    m_inspectorLayout->addWidget(framesList);
+    // Frames — the one part that earns the full panel width, since each row is
+    // itself a label+field pair (the sprite reference widget).
+    AddSectionTitle(m_inspectorLayout, m_inspectorRow, "Frames");
 
-    auto* frameBtns = new QWidget();
-    auto* fbl = new QHBoxLayout(frameBtns);
-    fbl->setContentsMargins(0, 0, 0, 0);
-    auto* addFrame = new QPushButton("Add Frame");
-    connect(addFrame, &QPushButton::clicked, this, [this, stateName, addFrame]() {
-        std::vector<std::pair<std::string, std::string>> items;
-        for (const auto& [id, sp] : AssetManager::Get().GetAllSprites())
-            items.push_back({ sp->GetName(), id });
-        auto* picker = new AssetPickerWidget(std::move(items),
-            [](const std::string& id) { return AssetThumbnails::forSprite(id); }, nullptr, this);
-        picker->onSelected = [this, stateName](const std::string& id) {
-            if (m_animator) m_animator->AddFrame(stateName, id);
-            QMetaObject::invokeMethod(this, [this, stateName]{ ShowStateInspector(stateName); }, Qt::QueuedConnection);
-        };
-        picker->showAt(addFrame->mapToGlobal(QPoint(0, addFrame->height())));
-    });
-    fbl->addWidget(addFrame);
-    auto* removeFrame = new QPushButton("Remove");
-    connect(removeFrame, &QPushButton::clicked, this, [this, stateName, framesList]() {
-        const int idx = framesList->currentRow();
-        if (idx >= 0 && m_animator) {
-            m_animator->RemoveFrame(stateName, idx);
-            QMetaObject::invokeMethod(this, [this, stateName]{ ShowStateInspector(stateName); }, Qt::QueuedConnection);
-        }
-    });
-    fbl->addWidget(removeFrame);
-    m_inspectorLayout->addWidget(frameBtns);
+    auto* frames = new FrameListWidget();
+    m_frameList = frames;
+    frames->getFrames = [this, stateName]() -> std::vector<std::string> {
+        if (!m_animator) return {};
+        AnimatorState* st = m_animator->FindState(stateName);
+        return st ? st->frames : std::vector<std::string>{};
+    };
+    frames->onSetFrame = [this, stateName](int idx, const std::string& id) {
+        // In-place edit: no structural change, so no rebuild — rebuilding here
+        // would delete the very widget handling this callback.
+        if (m_animator) m_animator->SetFrame(stateName, idx, id);
+    };
+    frames->onAddFrames = [this, stateName](const std::vector<std::string>& ids) {
+        if (!m_animator) return;
+        for (const auto& id : ids) m_animator->AddFrame(stateName, id);
+        RefreshFrameList();
+    };
+    frames->onRemoveFrame = [this, stateName](int idx) {
+        if (m_animator) m_animator->RemoveFrame(stateName, idx);
+        RefreshFrameList();
+    };
+    frames->onMoveFrame = [this, stateName](int from, int to) {
+        if (m_animator) m_animator->MoveFrame(stateName, from, to);
+        RefreshFrameList();
+    };
+    frames->Rebuild();
+    AddFullRow(m_inspectorLayout, m_inspectorRow, frames);
+
+    AddTrailingStretch(m_inspectorLayout, m_inspectorRow);
+}
+
+// Frame edits are triggered from inside the frame rows themselves, so the rebuild
+// has to be queued — tearing the rows down underneath the click handler that asked
+// for it would destroy the sender mid-signal.
+void AnimatorGui::RefreshFrameList() {
+    QMetaObject::invokeMethod(this, [this]() {
+        if (m_frameList) m_frameList->Rebuild();
+    }, Qt::QueuedConnection);
 }
 
 void AnimatorGui::ShowTransitionInspector(const std::string& transitionId) {
     m_inspectorTransitionId = transitionId;
     m_inspectorState.clear();
     clearLayout(m_inspectorLayout);
+    m_inspectorRow = 0;
+    m_frameList = nullptr;
     if (!m_animator) return;
     AnimatorTransition* t = m_animator->FindTransition(transitionId);
     if (!t) { m_inspectorTransitionId.clear(); return; }
 
     const std::string from = t->fromAnyState ? "Any State" : t->fromState;
-    auto* title = new QLabel(QString::fromStdString("Transition\n" + from + "  →  " + t->toState));
-    title->setStyleSheet("font-weight:bold; font-size:13px;");
-    title->setWordWrap(true);
-    m_inspectorLayout->addWidget(title);
+    AddSectionTitle(m_inspectorLayout, m_inspectorRow, "Transition", false);
 
-    auto* het = new QCheckBox("Has Exit Time");
+    auto* route = new QLabel(QString::fromStdString(from + "  →  " + t->toState));
+    route->setStyleSheet("color:#aaa;");
+    route->setWordWrap(true);
+    AddFullRow(m_inspectorLayout, m_inspectorRow, route);
+
+    auto* het = new QCheckBox();
     het->setChecked(t->hasExitTime);
     connect(het, &QCheckBox::toggled, this, [this, transitionId](bool on) {
         if (m_animator) if (auto* tr = m_animator->FindTransition(transitionId)) tr->hasExitTime = on;
     });
-    m_inspectorLayout->addWidget(het);
+    AddRow(m_inspectorLayout, m_inspectorRow, "Has Exit Time: ", het);
 
-    m_inspectorLayout->addWidget(new QLabel("Exit Time (0..1)"));
     auto* exit = new QDoubleSpinBox();
     exit->setRange(0.0, 1.0);
     exit->setSingleStep(0.05);
     exit->setValue(t->exitTime);
+    exit->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
     connect(exit, &QDoubleSpinBox::valueChanged, this, [this, transitionId](double v) {
         if (m_animator) if (auto* tr = m_animator->FindTransition(transitionId)) tr->exitTime = static_cast<float>(v);
     });
-    m_inspectorLayout->addWidget(exit);
+    AddRow(m_inspectorLayout, m_inspectorRow, "Exit Time: ", exit);
 
-    m_inspectorLayout->addWidget(new QLabel("Conditions"));
+    AddSectionTitle(m_inspectorLayout, m_inspectorRow, "Conditions");
 
     QStringList paramNames;
     for (const auto& p : m_animator->GetParameters()) paramNames << QString::fromStdString(p.name);
@@ -439,7 +499,9 @@ void AnimatorGui::ShowTransitionInspector(const std::string& transitionId) {
         });
         rl->addWidget(del);
 
-        m_inspectorLayout->addWidget(row);
+        // A condition is one expression, not a name/value pair, so it spans both
+        // columns rather than being squeezed into the right-hand one.
+        AddFullRow(m_inspectorLayout, m_inspectorRow, row);
     }
 
     auto* addCond = new QPushButton("Add Condition");
@@ -451,7 +513,7 @@ void AnimatorGui::ShowTransitionInspector(const std::string& transitionId) {
         }
         QMetaObject::invokeMethod(this, [this, transitionId]{ ShowTransitionInspector(transitionId); }, Qt::QueuedConnection);
     });
-    m_inspectorLayout->addWidget(addCond);
+    AddFullRow(m_inspectorLayout, m_inspectorRow, addCond);
 
     auto* delT = new QPushButton("Delete Transition");
     connect(delT, &QPushButton::clicked, this, [this, transitionId]() {
@@ -459,5 +521,7 @@ void AnimatorGui::ShowTransitionInspector(const std::string& transitionId) {
         if (m_canvas) m_canvas->ClearSelection();
         QMetaObject::invokeMethod(this, [this]{ ClearInspector(); }, Qt::QueuedConnection);
     });
-    m_inspectorLayout->addWidget(delT);
+    AddFullRow(m_inspectorLayout, m_inspectorRow, delT);
+
+    AddTrailingStretch(m_inspectorLayout, m_inspectorRow);
 }

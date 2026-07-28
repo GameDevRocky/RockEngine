@@ -24,6 +24,13 @@ class Animator;
 class ParticleComponent;
 class Light;
 class ShadowCaster;
+class Joint;
+class DistanceJoint;
+class RevoluteJoint;
+class PrismaticJoint;
+class WeldJoint;
+class WheelJoint;
+class MotorJoint;
 
 class IVisitor {
 public:
@@ -47,4 +54,11 @@ public:
     virtual void Visit(ParticleComponent* p) {}
     virtual void Visit(Light* l) {}
     virtual void Visit(ShadowCaster* sc) {}
+    virtual void Visit(Joint* j) {}
+    virtual void Visit(DistanceJoint* j) {}
+    virtual void Visit(RevoluteJoint* j) {}
+    virtual void Visit(PrismaticJoint* j) {}
+    virtual void Visit(WeldJoint* j) {}
+    virtual void Visit(WheelJoint* j) {}
+    virtual void Visit(MotorJoint* j) {}
 };

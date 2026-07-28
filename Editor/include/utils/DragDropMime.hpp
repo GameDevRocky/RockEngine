@@ -12,3 +12,10 @@ inline constexpr const char* kGameObjectMimeType = "application/x-rockengine-gam
 // a texture with no file of its own, so it can't ride "text/uri-list" like other
 // assets — SPRITE reference fields accept this type instead (see RefDropFilter).
 inline constexpr const char* kSpriteMimeType = "application/x-rockengine-sprite-id";
+
+// Several sprites at once: newline-separated ids (UTF-8). Emitted by a
+// multi-selection drag out of the asset picker, and by any future multi-select
+// sprite source. A drag that carries this ALSO carries kSpriteMimeType holding
+// the first id, so single-value fields keep working untouched — only targets
+// that can take a list (the Animator's frame strip) read this one.
+inline constexpr const char* kSpriteListMimeType = "application/x-rockengine-sprite-id-list";

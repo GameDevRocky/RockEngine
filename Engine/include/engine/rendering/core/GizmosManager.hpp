@@ -122,6 +122,13 @@ private:
     void DrawShadowCasterGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
                                class ShadowCaster* caster, int alpha, bool interactive);
 
+    // ─── Joint gizmos ────────────────────────────────────────────────────────
+    // Both anchors plus the line linking them, drawn only for SELECTED objects.
+    // Read-only on purpose: anchors are not draggable, so this adds no hover/drag
+    // state and stays out of WantsCaptureMouse (see the note there).
+    void DrawJointGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight);
+    void DrawJointGizmo(const glm::mat4& vp, float viewWidth, float viewHeight, class Joint* joint);
+
     // ─── Component-type icons ────────────────────────────────────────────────
     // Fixed screen-space icon drawn at an object's transform for every
     // component type registered below. Expandable: add a component -> icon

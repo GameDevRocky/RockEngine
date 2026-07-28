@@ -77,6 +77,37 @@ protected:
         }
     }
 
+public:
+    // Every sprite id carried by a drag, in order — the list type if present,
+    // otherwise the single type, otherwise any sprite assets among dropped files.
+    // Shared so a list-accepting target (the Animator frame strip) resolves a drop
+    // exactly the way this filter would, instead of re-parsing MIME by hand.
+    static std::vector<std::string> SpriteIdsFromMime(const QMimeData* mime) {
+        std::vector<std::string> ids;
+        if (!mime) return ids;
+
+        if (mime->hasFormat(kSpriteListMimeType)) {
+            const QString blob = QString::fromUtf8(mime->data(kSpriteListMimeType));
+            for (const QString& part : blob.split('\n', Qt::SkipEmptyParts))
+                ids.push_back(part.trimmed().toStdString());
+            return ids;
+        }
+        if (mime->hasFormat(kSpriteMimeType)) {
+            const std::string id = QString::fromUtf8(mime->data(kSpriteMimeType)).toStdString();
+            if (!id.empty()) ids.push_back(id);
+            return ids;
+        }
+        if (mime->hasUrls()) {
+            for (const QUrl& url : mime->urls()) {
+                const QString path = url.toLocalFile();
+                if (path.isEmpty()) continue;
+                const std::string id = AssetIdForFile(path);
+                if (!id.empty() && AssetManager::Get().GetSprite(id)) ids.push_back(id);
+            }
+        }
+        return ids;
+    }
+
 private:
     // Returns true and fills outId when `mime` holds something droppable on a
     // field described by m_desc. Pure query: no side effects.
@@ -105,6 +136,18 @@ private:
 
             outId = goId;
             return true;
+        }
+
+        // ── Multi-sprite drag (asset picker) ──────────────────────────────────
+        // A single-value field takes the first id; targets that can hold a list
+        // read kSpriteListMimeType themselves. Checked before the single type so
+        // the ordering here matches what a list-aware target would pick.
+        if (mime->hasFormat(kSpriteListMimeType)) {
+            if (m_desc.tag != Tags::SPRITE) return false;
+            for (const std::string& id : SpriteIdsFromMime(mime)) {
+                if (AssetManager::Get().GetSprite(id)) { outId = id; return true; }
+            }
+            return false;
         }
 
         // ── Sprite drag from the Folder view's texture hover column ───────────

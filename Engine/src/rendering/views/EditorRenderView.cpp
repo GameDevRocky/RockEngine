@@ -23,7 +23,6 @@ void EditorRenderView::Init()
     pickingPass = new PickingPass();
 
     pipeline->AddSetupPass(clearPass);
-    pipeline->AddSetupPass(gridPass);
     // Simulation must precede ScenePass, which draws the particles it advanced
     // (interleaved with sprites by sorting layer).
     pipeline->AddScenePass(new ParticleSimulationPass());
@@ -33,6 +32,7 @@ void EditorRenderView::Init()
     pipeline->AddScenePass(scenePass);
     pipeline->AddScenePass(debugPass);
     pipeline->AddFinalizePass(pickingPass);
+    pipeline->AddFinalizePass(gridPass);
 
     pipeline->Init();
 }

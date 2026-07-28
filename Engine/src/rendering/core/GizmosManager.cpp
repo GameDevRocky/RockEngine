@@ -11,6 +11,11 @@
 #include "engine/components/Light.hpp"
 #include "engine/components/ShadowCaster.hpp"
 #include "engine/components/SpriteRenderer.hpp"
+#include "engine/components/RigidBody.hpp"
+#include "engine/components/Joint.hpp"
+#include "engine/components/RevoluteJoint.hpp"
+#include "engine/components/PrismaticJoint.hpp"
+#include "engine/components/WheelJoint.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/core/SceneManager.hpp"
 #include "engine/core/Scene.hpp"
@@ -94,6 +99,11 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
         m_dragScaleId.clear();
         return;
     }
+
+    // Selection-only, and independent of edit mode -- a joint's anchors are worth
+    // seeing whichever tool is active, and without them anchor offsets are blind
+    // numeric entry.
+    DrawJointGizmos(view, proj, viewWidth, viewHeight);
 
     if (m_editMode == EditMode::Collider) {
         DrawColliderGizmo(view, proj, viewWidth, viewHeight);
@@ -706,6 +716,100 @@ void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& pr
 // Orange rect showing the world region each enabled camera renders to the Game
 // view. Scans every active GameObject (like Camera::GetMain) so the main
 // camera's region is always visible without selecting it.
+// ─── Joint gizmos ───────────────────────────────────────────────────────────
+//
+// A joint's anchors live in each body's LOCAL frame (pixels, measured from the
+// body origin), so the world position is the body's world position plus the
+// anchor rotated by the body's world rotation. Scale is deliberately left out:
+// Box2D never scales a joint frame, so applying it here would draw the anchor
+// somewhere the solver isn't using.
+namespace {
+    glm::vec2 JointAnchorToWorld(Transform* bodyTransform, const glm::vec2& localAnchor) {
+        if (!bodyTransform) return localAnchor;
+        const glm::vec2 origin = bodyTransform->GetWorldPosition();
+        const float rot = glm::radians(bodyTransform->GetWorldRotation());
+        const float c = std::cos(rot);
+        const float s = std::sin(rot);
+        return origin + glm::vec2(localAnchor.x * c - localAnchor.y * s,
+                                  localAnchor.x * s + localAnchor.y * c);
+    }
+}
+
+void GizmosManager::DrawJointGizmos(const glm::mat4& view, const glm::mat4& proj,
+                                    float viewWidth, float viewHeight) {
+    Container* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+    Registry* registry = container->FindSystem<Registry>();
+    SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+    if (!registry || !selectionManager) return;
+
+    const glm::mat4 vp = proj * view;
+    for (const std::string& id : selectionManager->GetSelectedIds()) {
+        GameObject* obj = registry->Find<GameObject>(id);
+        if (!obj || !obj->GetActive()) continue;
+        for (Joint* joint : obj->GetComponents<Joint>()) {
+            if (!joint->GetEnabled()) continue;
+            DrawJointGizmo(vp, viewWidth, viewHeight, joint);
+        }
+    }
+}
+
+void GizmosManager::DrawJointGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                                   Joint* joint) {
+    RigidBody* bodyA = joint->GetOwnRigidBody();
+    RigidBody* bodyB = joint->GetConnectedRigidBody();
+    if (!bodyA) return;
+
+    Transform* transformA = bodyA->GetTransform();
+    Transform* transformB = bodyB ? bodyB->GetTransform() : nullptr;
+    if (!transformA) return;
+
+    const glm::vec2 worldA = JointAnchorToWorld(transformA, joint->GetLocalAnchorA());
+    const ImVec2 screenA = WorldToScreen(worldA, vp, viewWidth, viewHeight);
+
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    constexpr ImU32 kAnchorColor = IM_COL32(120, 220, 255, 255);
+    constexpr ImU32 kLinkColor   = IM_COL32(120, 220, 255, 160);
+    constexpr ImU32 kDetailColor = IM_COL32(255, 200,  90, 220);
+    constexpr float kAnchorRadius = 5.0f;
+
+    drawList->AddCircleFilled(screenA, kAnchorRadius, kAnchorColor);
+
+    // An unconnected joint still shows its own anchor -- that is the state you are
+    // most likely staring at while wiring one up.
+    if (transformB) {
+        const glm::vec2 worldB = JointAnchorToWorld(transformB, joint->GetLocalAnchorB());
+        const ImVec2 screenB = WorldToScreen(worldB, vp, viewWidth, viewHeight);
+        drawList->AddLine(screenA, screenB, kLinkColor, 2.0f);
+        drawList->AddCircleFilled(screenB, kAnchorRadius, kAnchorColor);
+        // Ring on B so the two ends are distinguishable when they overlap.
+        drawList->AddCircle(screenB, kAnchorRadius + 3.0f, kAnchorColor, 0, 1.5f);
+    }
+
+    // Type-specific hint at anchor A: a ring for the hinge, the travel axis for
+    // the sliding joints.
+    if (dynamic_cast<RevoluteJoint*>(joint)) {
+        drawList->AddCircle(screenA, kAnchorRadius + 6.0f, kDetailColor, 0, 2.0f);
+    } else {
+        float axisDeg = 0.0f;
+        bool hasAxis = false;
+        if (auto* prismatic = dynamic_cast<PrismaticJoint*>(joint)) {
+            axisDeg = prismatic->GetAxisAngle(); hasAxis = true;
+        } else if (auto* wheel = dynamic_cast<WheelJoint*>(joint)) {
+            axisDeg = wheel->GetAxisAngle(); hasAxis = true;
+        }
+        if (hasAxis) {
+            // The axis is authored relative to body A, so add the body's own rotation.
+            const float rot = glm::radians(transformA->GetWorldRotation() + axisDeg);
+            const glm::vec2 dir = {std::cos(rot), std::sin(rot)};
+            constexpr float kAxisHalfLength = 28.0f;   // world units (pixels)
+            const ImVec2 tip  = WorldToScreen(worldA + dir * kAxisHalfLength, vp, viewWidth, viewHeight);
+            const ImVec2 tail = WorldToScreen(worldA - dir * kAxisHalfLength, vp, viewWidth, viewHeight);
+            drawList->AddLine(tail, tip, kDetailColor, 2.0f);
+        }
+    }
+}
+
 void GizmosManager::DrawCameraGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
     Container* container = Engine::Get()->GetActiveContainer();
     if (!container) return;

@@ -11,9 +11,13 @@ if TYPE_CHECKING:
     from .transform_handler import Transform
 
 class Component:
-    def __init__(self, obj_id=None):
+    def __init__(self, obj_id=None, component_id=None):
         self._gameobject_id = obj_id
-        self._component_id = None # Should be set by C++ or lookup
+        # The component's OWN id. Needed by anything a GameObject can hold more
+        # than one of (joints, colliders), since a GameObject id alone cannot say
+        # which instance you mean. Populated by GameObject.add_component /
+        # get_components; None when the handler was built by type lookup alone.
+        self._component_id = component_id
 
     @property
     def id(self):
@@ -32,15 +36,38 @@ class Component:
     def transform(self) -> Transform:
         return self.gameobject.transform
 
-    @property 
+    def _resolve_component_id(self):
+        """This component's own id, looked up by type on first use.
+
+        Handlers built by type (the get_component path) know only their owning
+        GameObject, but base_component_module addresses components by their own
+        id. Resolving lazily here is what makes `enabled` work for those handlers
+        instead of silently no-opping.
+        """
+        if self._component_id:
+            return self._component_id
+        type_name = getattr(type(self), '_type_name', None)
+        if not type_name or not self._gameobject_id:
+            return None
+        from rock_engine.core import gameobject_module
+        ids = gameobject_module.get_component_ids(self._gameobject_id, type_name)
+        if ids:
+            self._component_id = ids[0]
+        return self._component_id
+
+    @property
     def enabled(self) -> bool:
-        if not self._component_id: return True
-        return base_component_module.get_enabled(self._component_id)
-    
+        comp_id = self._resolve_component_id()
+        if not comp_id: return True
+        return base_component_module.get_enabled(comp_id)
+
     @enabled.setter
     def enabled(self, val : bool):
-        if isinstance(val, bool) and self._component_id:
-            base_component_module.set_enabled(self._component_id, val)
+        if not isinstance(val, bool):
+            return
+        comp_id = self._resolve_component_id()
+        if comp_id:
+            base_component_module.set_enabled(comp_id, val)
     
     def get_component(self, cls: Type[T]) -> Optional[T]:
         # Generic helper: returns Optional of requested component type

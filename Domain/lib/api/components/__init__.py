@@ -11,3 +11,10 @@ from .collider_handler import Collider
 from .box_collider_handler import BoxCollider
 from .capsule_collider_handler import CapsuleCollider
 from .circle_collider_handler import CircleCollider
+from .joint_handler import Joint
+from .distance_joint_handler import DistanceJoint
+from .revolute_joint_handler import RevoluteJoint
+from .prismatic_joint_handler import PrismaticJoint
+from .weld_joint_handler import WeldJoint
+from .wheel_joint_handler import WheelJoint
+from .motor_joint_handler import MotorJoint

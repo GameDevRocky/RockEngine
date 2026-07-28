@@ -105,6 +105,14 @@ void PhysicsSystem::DestroyShape(b2ShapeId shapeId){
     if (B2_IS_NON_NULL(shapeId) && B2_IS_NON_NULL(worldId) && b2Shape_IsValid(shapeId))
         b2DestroyShape(shapeId, true);
 }
+void PhysicsSystem::DestroyJoint(b2JointId jointId){
+    // b2DestroyBody already tears down every joint attached to that body, so by the
+    // time a Joint component shuts down its handle may already be dead -- hence the
+    // b2Joint_IsValid check rather than DestroyBody's laxer null-only guard.
+    // wakeAttached=true so both bodies re-settle once the constraint disappears.
+    if (B2_IS_NON_NULL(jointId) && B2_IS_NON_NULL(worldId) && b2Joint_IsValid(jointId))
+        b2DestroyJoint(jointId, true);
+}
 
 void PhysicsSystem::Shutdown(){
     if (B2_IS_NON_NULL(worldId)) {

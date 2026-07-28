@@ -45,6 +45,13 @@ class InspectorVisitor : public IVisitor{
         void Visit(ParticleComponent* particles) override;
         void Visit(Light* light) override;
         void Visit(ShadowCaster* caster) override;
+        void Visit(Joint* joint) override;
+        void Visit(DistanceJoint* joint) override;
+        void Visit(RevoluteJoint* joint) override;
+        void Visit(PrismaticJoint* joint) override;
+        void Visit(WeldJoint* joint) override;
+        void Visit(WheelJoint* joint) override;
+        void Visit(MotorJoint* joint) override;
 
 
         QWidget* GetContent(){ return content;}

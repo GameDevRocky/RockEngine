@@ -64,6 +64,11 @@ class Animator : public Component{
 
     void AddFrame(const std::string& stateName, const std::string& spriteId);
     void RemoveFrame(const std::string& stateName, int frameIndex);
+    // Reassign one slot in place. An empty spriteId is allowed and left as a hole,
+    // so clearing a frame's picker doesn't silently shuffle every later frame.
+    void SetFrame(const std::string& stateName, int frameIndex, const std::string& spriteId);
+    // Reorder within the state; out-of-range indices are ignored.
+    void MoveFrame(const std::string& stateName, int fromIndex, int toIndex);
 
     // Read-only views for the editor.
     const std::vector<AnimatorState>&      GetStates()      const { return states; }

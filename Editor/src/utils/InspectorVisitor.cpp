@@ -13,6 +13,13 @@
 #include "engine/components/ParticleComponent.hpp"
 #include "engine/components/Light.hpp"
 #include "engine/components/ShadowCaster.hpp"
+#include "engine/components/Joint.hpp"
+#include "engine/components/DistanceJoint.hpp"
+#include "engine/components/RevoluteJoint.hpp"
+#include "engine/components/PrismaticJoint.hpp"
+#include "engine/components/WeldJoint.hpp"
+#include "engine/components/WheelJoint.hpp"
+#include "engine/components/MotorJoint.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/rendering/core/Sprite.hpp"
@@ -330,6 +337,288 @@ void InspectorVisitor::Visit(RigidBody* rb){
         {"Kinematic", static_cast<int>(b2_kinematicBody)},
         {"Static",    static_cast<int>(b2_staticBody)}
     }));
+}
+
+// Fields every joint type shares. Each concrete Visit(XJoint*) below calls this
+// first, so "Connected Body" always heads the section.
+void InspectorVisitor::Visit(Joint* joint){
+    auto getConnectedBody = [=](){ return joint->GetConnectedBody(); };
+    auto setConnectedBody = [](Joint* j, const std::string& val){ j->SetConnectedBody(val); };
+    auto getCollideConnected = [=](){ return joint->GetCollideConnected(); };
+    auto setCollideConnected = [](Joint* j, const bool& val){ j->SetCollideConnected(val); };
+    auto getAnchorA = [=](){ return joint->GetLocalAnchorA(); };
+    auto setAnchorA = [](Joint* j, const glm::vec2& val){ j->SetLocalAnchorA(val); };
+    auto getAnchorB = [=](){ return joint->GetLocalAnchorB(); };
+    auto setAnchorB = [](Joint* j, const glm::vec2& val){ j->SetLocalAnchorB(val); };
+
+    // ComponentType("RigidBody") restricts both the "…" picker and Hierarchy
+    // drag-drop to objects that actually have a body to constrain.
+    BindProperty<std::string>(joint, "Connected Body: ", getConnectedBody, setConnectedBody,
+        joint->CONNECTED_BODY_CHANGED_EVENT,
+        PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).ComponentType("RigidBody"));
+    BindProperty<bool>(joint, "Collide Connected: ", getCollideConnected, setCollideConnected,
+        joint->COLLIDE_CONNECTED_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<glm::vec2>(joint, "Anchor A: ", getAnchorA, setAnchorA,
+        joint->LOCAL_ANCHOR_A_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
+    BindProperty<glm::vec2>(joint, "Anchor B: ", getAnchorB, setAnchorB,
+        joint->LOCAL_ANCHOR_B_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
+}
+
+void InspectorVisitor::Visit(DistanceJoint* joint){
+    Visit(static_cast<Joint*>(joint));
+
+    auto getLength = [=](){ return joint->GetLength(); };
+    auto setLength = [](DistanceJoint* j, const float& v){ j->SetLength(v); };
+    auto getEnableSpring = [=](){ return joint->GetEnableSpring(); };
+    auto setEnableSpring = [](DistanceJoint* j, const bool& v){ j->SetEnableSpring(v); };
+    auto getHertz = [=](){ return joint->GetHertz(); };
+    auto setHertz = [](DistanceJoint* j, const float& v){ j->SetHertz(v); };
+    auto getDamping = [=](){ return joint->GetDampingRatio(); };
+    auto setDamping = [](DistanceJoint* j, const float& v){ j->SetDampingRatio(v); };
+    auto getEnableLimit = [=](){ return joint->GetEnableLimit(); };
+    auto setEnableLimit = [](DistanceJoint* j, const bool& v){ j->SetEnableLimit(v); };
+    auto getMinLength = [=](){ return joint->GetMinLength(); };
+    auto setMinLength = [](DistanceJoint* j, const float& v){ j->SetMinLength(v); };
+    auto getMaxLength = [=](){ return joint->GetMaxLength(); };
+    auto setMaxLength = [](DistanceJoint* j, const float& v){ j->SetMaxLength(v); };
+    auto getEnableMotor = [=](){ return joint->GetEnableMotor(); };
+    auto setEnableMotor = [](DistanceJoint* j, const bool& v){ j->SetEnableMotor(v); };
+    auto getMotorSpeed = [=](){ return joint->GetMotorSpeed(); };
+    auto setMotorSpeed = [](DistanceJoint* j, const float& v){ j->SetMotorSpeed(v); };
+    auto getMaxMotorForce = [=](){ return joint->GetMaxMotorForce(); };
+    auto setMaxMotorForce = [](DistanceJoint* j, const float& v){ j->SetMaxMotorForce(v); };
+
+    BindProperty<float>(joint, "Length: ", getLength, setLength,
+        joint->LENGTH_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
+    BindProperty<bool>(joint, "Enable Spring: ", getEnableSpring, setEnableSpring,
+        joint->ENABLE_SPRING_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Spring Hertz: ", getHertz, setHertz,
+        joint->HERTZ_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Spring Damping: ", getDamping, setDamping,
+        joint->DAMPING_RATIO_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10));
+    BindProperty<bool>(joint, "Enable Limit: ", getEnableLimit, setEnableLimit,
+        joint->ENABLE_LIMIT_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Min Length: ", getMinLength, setMinLength,
+        joint->LENGTH_RANGE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
+    BindProperty<float>(joint, "Max Length: ", getMaxLength, setMaxLength,
+        joint->LENGTH_RANGE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
+    BindProperty<bool>(joint, "Enable Motor: ", getEnableMotor, setEnableMotor,
+        joint->ENABLE_MOTOR_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Motor Speed: ", getMotorSpeed, setMotorSpeed,
+        joint->MOTOR_SPEED_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<float>(joint, "Max Motor Force: ", getMaxMotorForce, setMaxMotorForce,
+        joint->MAX_MOTOR_FORCE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+}
+
+void InspectorVisitor::Visit(RevoluteJoint* joint){
+    Visit(static_cast<Joint*>(joint));
+
+    auto getTargetAngle = [=](){ return joint->GetTargetAngle(); };
+    auto setTargetAngle = [](RevoluteJoint* j, const float& v){ j->SetTargetAngle(v); };
+    auto getEnableSpring = [=](){ return joint->GetEnableSpring(); };
+    auto setEnableSpring = [](RevoluteJoint* j, const bool& v){ j->SetEnableSpring(v); };
+    auto getHertz = [=](){ return joint->GetHertz(); };
+    auto setHertz = [](RevoluteJoint* j, const float& v){ j->SetHertz(v); };
+    auto getDamping = [=](){ return joint->GetDampingRatio(); };
+    auto setDamping = [](RevoluteJoint* j, const float& v){ j->SetDampingRatio(v); };
+    auto getEnableLimit = [=](){ return joint->GetEnableLimit(); };
+    auto setEnableLimit = [](RevoluteJoint* j, const bool& v){ j->SetEnableLimit(v); };
+    auto getLowerAngle = [=](){ return joint->GetLowerAngle(); };
+    auto setLowerAngle = [](RevoluteJoint* j, const float& v){ j->SetLowerAngle(v); };
+    auto getUpperAngle = [=](){ return joint->GetUpperAngle(); };
+    auto setUpperAngle = [](RevoluteJoint* j, const float& v){ j->SetUpperAngle(v); };
+    auto getEnableMotor = [=](){ return joint->GetEnableMotor(); };
+    auto setEnableMotor = [](RevoluteJoint* j, const bool& v){ j->SetEnableMotor(v); };
+    auto getMotorSpeed = [=](){ return joint->GetMotorSpeed(); };
+    auto setMotorSpeed = [](RevoluteJoint* j, const float& v){ j->SetMotorSpeed(v); };
+    auto getMaxMotorTorque = [=](){ return joint->GetMaxMotorTorque(); };
+    auto setMaxMotorTorque = [](RevoluteJoint* j, const float& v){ j->SetMaxMotorTorque(v); };
+
+    BindProperty<float>(joint, "Target Angle: ", getTargetAngle, setTargetAngle,
+        joint->TARGET_ANGLE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<bool>(joint, "Enable Spring: ", getEnableSpring, setEnableSpring,
+        joint->ENABLE_SPRING_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Spring Hertz: ", getHertz, setHertz,
+        joint->HERTZ_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Spring Damping: ", getDamping, setDamping,
+        joint->DAMPING_RATIO_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10));
+    BindProperty<bool>(joint, "Enable Limit: ", getEnableLimit, setEnableLimit,
+        joint->ENABLE_LIMIT_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Lower Angle: ", getLowerAngle, setLowerAngle,
+        joint->LIMITS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(-179, 179).Step(1));
+    BindProperty<float>(joint, "Upper Angle: ", getUpperAngle, setUpperAngle,
+        joint->LIMITS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(-179, 179).Step(1));
+    BindProperty<bool>(joint, "Enable Motor: ", getEnableMotor, setEnableMotor,
+        joint->ENABLE_MOTOR_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Motor Speed: ", getMotorSpeed, setMotorSpeed,
+        joint->MOTOR_SPEED_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<float>(joint, "Max Motor Torque: ", getMaxMotorTorque, setMaxMotorTorque,
+        joint->MAX_MOTOR_TORQUE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+}
+
+void InspectorVisitor::Visit(PrismaticJoint* joint){
+    Visit(static_cast<Joint*>(joint));
+
+    auto getAxisAngle = [=](){ return joint->GetAxisAngle(); };
+    auto setAxisAngle = [](PrismaticJoint* j, const float& v){ j->SetAxisAngle(v); };
+    auto getEnableSpring = [=](){ return joint->GetEnableSpring(); };
+    auto setEnableSpring = [](PrismaticJoint* j, const bool& v){ j->SetEnableSpring(v); };
+    auto getHertz = [=](){ return joint->GetHertz(); };
+    auto setHertz = [](PrismaticJoint* j, const float& v){ j->SetHertz(v); };
+    auto getDamping = [=](){ return joint->GetDampingRatio(); };
+    auto setDamping = [](PrismaticJoint* j, const float& v){ j->SetDampingRatio(v); };
+    auto getTargetTranslation = [=](){ return joint->GetTargetTranslation(); };
+    auto setTargetTranslation = [](PrismaticJoint* j, const float& v){ j->SetTargetTranslation(v); };
+    auto getEnableLimit = [=](){ return joint->GetEnableLimit(); };
+    auto setEnableLimit = [](PrismaticJoint* j, const bool& v){ j->SetEnableLimit(v); };
+    auto getLower = [=](){ return joint->GetLowerTranslation(); };
+    auto setLower = [](PrismaticJoint* j, const float& v){ j->SetLowerTranslation(v); };
+    auto getUpper = [=](){ return joint->GetUpperTranslation(); };
+    auto setUpper = [](PrismaticJoint* j, const float& v){ j->SetUpperTranslation(v); };
+    auto getEnableMotor = [=](){ return joint->GetEnableMotor(); };
+    auto setEnableMotor = [](PrismaticJoint* j, const bool& v){ j->SetEnableMotor(v); };
+    auto getMotorSpeed = [=](){ return joint->GetMotorSpeed(); };
+    auto setMotorSpeed = [](PrismaticJoint* j, const float& v){ j->SetMotorSpeed(v); };
+    auto getMaxMotorForce = [=](){ return joint->GetMaxMotorForce(); };
+    auto setMaxMotorForce = [](PrismaticJoint* j, const float& v){ j->SetMaxMotorForce(v); };
+
+    BindProperty<float>(joint, "Axis Angle: ", getAxisAngle, setAxisAngle,
+        joint->AXIS_ANGLE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(-360, 360).Step(1));
+    BindProperty<bool>(joint, "Enable Spring: ", getEnableSpring, setEnableSpring,
+        joint->ENABLE_SPRING_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Spring Hertz: ", getHertz, setHertz,
+        joint->HERTZ_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Spring Damping: ", getDamping, setDamping,
+        joint->DAMPING_RATIO_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10));
+    BindProperty<float>(joint, "Target Translation: ", getTargetTranslation, setTargetTranslation,
+        joint->TARGET_TRANSLATION_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<bool>(joint, "Enable Limit: ", getEnableLimit, setEnableLimit,
+        joint->ENABLE_LIMIT_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Lower Translation: ", getLower, setLower,
+        joint->LIMITS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<float>(joint, "Upper Translation: ", getUpper, setUpper,
+        joint->LIMITS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<bool>(joint, "Enable Motor: ", getEnableMotor, setEnableMotor,
+        joint->ENABLE_MOTOR_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Motor Speed: ", getMotorSpeed, setMotorSpeed,
+        joint->MOTOR_SPEED_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<float>(joint, "Max Motor Force: ", getMaxMotorForce, setMaxMotorForce,
+        joint->MAX_MOTOR_FORCE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+}
+
+void InspectorVisitor::Visit(WeldJoint* joint){
+    Visit(static_cast<Joint*>(joint));
+
+    auto getLinearHertz = [=](){ return joint->GetLinearHertz(); };
+    auto setLinearHertz = [](WeldJoint* j, const float& v){ j->SetLinearHertz(v); };
+    auto getLinearDamping = [=](){ return joint->GetLinearDampingRatio(); };
+    auto setLinearDamping = [](WeldJoint* j, const float& v){ j->SetLinearDampingRatio(v); };
+    auto getAngularHertz = [=](){ return joint->GetAngularHertz(); };
+    auto setAngularHertz = [](WeldJoint* j, const float& v){ j->SetAngularHertz(v); };
+    auto getAngularDamping = [=](){ return joint->GetAngularDampingRatio(); };
+    auto setAngularDamping = [](WeldJoint* j, const float& v){ j->SetAngularDampingRatio(v); };
+
+    // 0 Hertz means "infinitely stiff" here, which is the rigid-weld default.
+    BindProperty<float>(joint, "Linear Hertz: ", getLinearHertz, setLinearHertz,
+        joint->LINEAR_HERTZ_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Linear Damping: ", getLinearDamping, setLinearDamping,
+        joint->LINEAR_DAMPING_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10));
+    BindProperty<float>(joint, "Angular Hertz: ", getAngularHertz, setAngularHertz,
+        joint->ANGULAR_HERTZ_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Angular Damping: ", getAngularDamping, setAngularDamping,
+        joint->ANGULAR_DAMPING_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10));
+}
+
+void InspectorVisitor::Visit(WheelJoint* joint){
+    Visit(static_cast<Joint*>(joint));
+
+    auto getAxisAngle = [=](){ return joint->GetAxisAngle(); };
+    auto setAxisAngle = [](WheelJoint* j, const float& v){ j->SetAxisAngle(v); };
+    auto getEnableSpring = [=](){ return joint->GetEnableSpring(); };
+    auto setEnableSpring = [](WheelJoint* j, const bool& v){ j->SetEnableSpring(v); };
+    auto getHertz = [=](){ return joint->GetHertz(); };
+    auto setHertz = [](WheelJoint* j, const float& v){ j->SetHertz(v); };
+    auto getDamping = [=](){ return joint->GetDampingRatio(); };
+    auto setDamping = [](WheelJoint* j, const float& v){ j->SetDampingRatio(v); };
+    auto getEnableLimit = [=](){ return joint->GetEnableLimit(); };
+    auto setEnableLimit = [](WheelJoint* j, const bool& v){ j->SetEnableLimit(v); };
+    auto getLower = [=](){ return joint->GetLowerTranslation(); };
+    auto setLower = [](WheelJoint* j, const float& v){ j->SetLowerTranslation(v); };
+    auto getUpper = [=](){ return joint->GetUpperTranslation(); };
+    auto setUpper = [](WheelJoint* j, const float& v){ j->SetUpperTranslation(v); };
+    auto getEnableMotor = [=](){ return joint->GetEnableMotor(); };
+    auto setEnableMotor = [](WheelJoint* j, const bool& v){ j->SetEnableMotor(v); };
+    auto getMotorSpeed = [=](){ return joint->GetMotorSpeed(); };
+    auto setMotorSpeed = [](WheelJoint* j, const float& v){ j->SetMotorSpeed(v); };
+    auto getMaxMotorTorque = [=](){ return joint->GetMaxMotorTorque(); };
+    auto setMaxMotorTorque = [](WheelJoint* j, const float& v){ j->SetMaxMotorTorque(v); };
+
+    BindProperty<float>(joint, "Suspension Angle: ", getAxisAngle, setAxisAngle,
+        joint->AXIS_ANGLE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(-360, 360).Step(1));
+    BindProperty<bool>(joint, "Enable Spring: ", getEnableSpring, setEnableSpring,
+        joint->ENABLE_SPRING_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Spring Hertz: ", getHertz, setHertz,
+        joint->HERTZ_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Spring Damping: ", getDamping, setDamping,
+        joint->DAMPING_RATIO_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10));
+    BindProperty<bool>(joint, "Enable Limit: ", getEnableLimit, setEnableLimit,
+        joint->ENABLE_LIMIT_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Lower Translation: ", getLower, setLower,
+        joint->LIMITS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<float>(joint, "Upper Translation: ", getUpper, setUpper,
+        joint->LIMITS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<bool>(joint, "Enable Motor: ", getEnableMotor, setEnableMotor,
+        joint->ENABLE_MOTOR_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(joint, "Motor Speed: ", getMotorSpeed, setMotorSpeed,
+        joint->MOTOR_SPEED_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<float>(joint, "Max Motor Torque: ", getMaxMotorTorque, setMaxMotorTorque,
+        joint->MAX_MOTOR_TORQUE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+}
+
+void InspectorVisitor::Visit(MotorJoint* joint){
+    Visit(static_cast<Joint*>(joint));
+
+    auto getLinearVelocity = [=](){ return joint->GetLinearVelocity(); };
+    auto setLinearVelocity = [](MotorJoint* j, const glm::vec2& v){ j->SetLinearVelocity(v); };
+    auto getMaxVelocityForce = [=](){ return joint->GetMaxVelocityForce(); };
+    auto setMaxVelocityForce = [](MotorJoint* j, const float& v){ j->SetMaxVelocityForce(v); };
+    auto getAngularVelocity = [=](){ return joint->GetAngularVelocity(); };
+    auto setAngularVelocity = [](MotorJoint* j, const float& v){ j->SetAngularVelocity(v); };
+    auto getMaxVelocityTorque = [=](){ return joint->GetMaxVelocityTorque(); };
+    auto setMaxVelocityTorque = [](MotorJoint* j, const float& v){ j->SetMaxVelocityTorque(v); };
+    auto getLinearHertz = [=](){ return joint->GetLinearHertz(); };
+    auto setLinearHertz = [](MotorJoint* j, const float& v){ j->SetLinearHertz(v); };
+    auto getLinearDamping = [=](){ return joint->GetLinearDampingRatio(); };
+    auto setLinearDamping = [](MotorJoint* j, const float& v){ j->SetLinearDampingRatio(v); };
+    auto getMaxSpringForce = [=](){ return joint->GetMaxSpringForce(); };
+    auto setMaxSpringForce = [](MotorJoint* j, const float& v){ j->SetMaxSpringForce(v); };
+    auto getAngularHertz = [=](){ return joint->GetAngularHertz(); };
+    auto setAngularHertz = [](MotorJoint* j, const float& v){ j->SetAngularHertz(v); };
+    auto getAngularDamping = [=](){ return joint->GetAngularDampingRatio(); };
+    auto setAngularDamping = [](MotorJoint* j, const float& v){ j->SetAngularDampingRatio(v); };
+    auto getMaxSpringTorque = [=](){ return joint->GetMaxSpringTorque(); };
+    auto setMaxSpringTorque = [](MotorJoint* j, const float& v){ j->SetMaxSpringTorque(v); };
+
+    BindProperty<glm::vec2>(joint, "Linear Velocity: ", getLinearVelocity, setLinearVelocity,
+        joint->LINEAR_VELOCITY_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
+    BindProperty<float>(joint, "Max Velocity Force: ", getMaxVelocityForce, setMaxVelocityForce,
+        joint->MAX_VELOCITY_FORCE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Angular Velocity: ", getAngularVelocity, setAngularVelocity,
+        joint->ANGULAR_VELOCITY_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Step(1));
+    BindProperty<float>(joint, "Max Velocity Torque: ", getMaxVelocityTorque, setMaxVelocityTorque,
+        joint->MAX_VELOCITY_TORQUE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Linear Hertz: ", getLinearHertz, setLinearHertz,
+        joint->LINEAR_HERTZ_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Linear Damping: ", getLinearDamping, setLinearDamping,
+        joint->LINEAR_DAMPING_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10));
+    BindProperty<float>(joint, "Max Spring Force: ", getMaxSpringForce, setMaxSpringForce,
+        joint->MAX_SPRING_FORCE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Angular Hertz: ", getAngularHertz, setAngularHertz,
+        joint->ANGULAR_HERTZ_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    BindProperty<float>(joint, "Angular Damping: ", getAngularDamping, setAngularDamping,
+        joint->ANGULAR_DAMPING_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10));
+    BindProperty<float>(joint, "Max Spring Torque: ", getMaxSpringTorque, setMaxSpringTorque,
+        joint->MAX_SPRING_TORQUE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
 }
 
 void InspectorVisitor::Visit(ScriptComponent* sc){

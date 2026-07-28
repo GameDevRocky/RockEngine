@@ -330,3 +330,24 @@ void Animator::RemoveFrame(const std::string& stateName, int frameIndex){
             Notify(GRAPH_CHANGED_EVENT);
         }
 }
+
+void Animator::SetFrame(const std::string& stateName, int frameIndex, const std::string& spriteId){
+    if (auto* s = FindState(stateName))
+        if (frameIndex >= 0 && frameIndex < static_cast<int>(s->frames.size())) {
+            if (s->frames[frameIndex] == spriteId) return;
+            s->frames[frameIndex] = spriteId;
+            Notify(GRAPH_CHANGED_EVENT);
+        }
+}
+
+void Animator::MoveFrame(const std::string& stateName, int fromIndex, int toIndex){
+    auto* s = FindState(stateName);
+    if (!s) return;
+    const int count = static_cast<int>(s->frames.size());
+    if (fromIndex < 0 || fromIndex >= count || toIndex < 0 || toIndex >= count) return;
+    if (fromIndex == toIndex) return;
+    std::string moved = s->frames[fromIndex];
+    s->frames.erase(s->frames.begin() + fromIndex);
+    s->frames.insert(s->frames.begin() + toIndex, std::move(moved));
+    Notify(GRAPH_CHANGED_EVENT);
+}

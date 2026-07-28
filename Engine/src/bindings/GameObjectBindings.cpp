@@ -77,6 +77,19 @@ void BindGameObject(pybind11::module_& m) {
         return comp_id;
     });
 
+    // Every component of a given type, by component id. get_component() can only
+    // ever name one instance per type; anything genuinely multi-instance (joints,
+    // colliders) needs the individual ids to address a specific one.
+    gameobject_module.def("get_component_ids", [](const std::string& go_id, const std::string& type_name) {
+        std::vector<std::string> ids;
+        GameObject* go = registry->Find<GameObject>(go_id);
+        if (!go) return ids;
+        for (Component* comp : go->GetAllComponents()) {
+            if (comp && comp->GetTypeName() == type_name) ids.push_back(comp->GetID());
+        }
+        return ids;
+    });
+
     gameobject_module.def("instantiate", [](const std::string& caller_id, const std::string& name) -> std::string {
         GameObject* caller = registry->Find<GameObject>(caller_id);
         if (!caller) return {};
