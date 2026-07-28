@@ -12,6 +12,7 @@
 #include "engine/debug/FrameProfiler.hpp"
 #include <algorithm>
 #include <vector>
+#include <unordered_set>
 #include <iostream>
 
 void PickingPass::Init()
@@ -305,10 +306,37 @@ uint32_t PickingPass::ReadPixel(int x, int y)
     
     uint32_t pixel = 0;
     
-    glad_glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, &pixel);    
+    glad_glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_UNSIGNED_INT, &pixel);
     glad_glReadBuffer(GL_NONE);
     glad_glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     return pixel;
+}
+
+std::vector<std::string> PickingPass::ReadPixelsInRect(int x, int y, int width, int height)
+{
+    // Clip to the buffer bounds -- a drag box that starts/ends outside the
+    // viewport (or a degenerate zero-size box) must not read out of range.
+    const int clippedX = std::max(x, 0);
+    const int clippedY = std::max(y, 0);
+    width  = std::min(x + width,  viewportWidth)  - clippedX;
+    height = std::min(y + height, viewportHeight) - clippedY;
+    if (width <= 0 || height <= 0) return {};
+
+    std::vector<uint32_t> pixels(static_cast<size_t>(width) * static_cast<size_t>(height));
+
+    glad_glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
+    glad_glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glad_glReadPixels(clippedX, clippedY, width, height, GL_RED_INTEGER, GL_UNSIGNED_INT, pixels.data());
+    glad_glReadBuffer(GL_NONE);
+    glad_glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+
+    std::unordered_set<uint32_t> uniqueIds;
+    std::vector<std::string> objectIds;
+    for (uint32_t pickId : pixels) {
+        if (pickId == 0 || !uniqueIds.insert(pickId).second) continue;
+        objectIds.push_back(GetPickedObjectId(pickId));
+    }
+    return objectIds;
 }
 
 void PickingPass::Shutdown()

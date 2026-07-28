@@ -105,6 +105,9 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
     // numeric entry.
     DrawJointGizmos(view, proj, viewWidth, viewHeight);
 
+    // Likewise independent of edit mode: a "this is selected" outline, not a tool.
+    DrawSelectionOutlines(view, proj, viewWidth, viewHeight);
+
     if (m_editMode == EditMode::Collider) {
         DrawColliderGizmo(view, proj, viewWidth, viewHeight);
     } else if (m_editMode == EditMode::SpriteBox) {
@@ -807,6 +810,58 @@ void GizmosManager::DrawJointGizmo(const glm::mat4& vp, float viewWidth, float v
             const ImVec2 tail = WorldToScreen(worldA - dir * kAxisHalfLength, vp, viewWidth, viewHeight);
             drawList->AddLine(tail, tip, kDetailColor, 2.0f);
         }
+    }
+}
+
+// ─── Selection outline ───────────────────────────────────────────────────────
+void GizmosManager::DrawSelectionOutlines(const glm::mat4& view, const glm::mat4& proj,
+                                          float viewWidth, float viewHeight) {
+    Container* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+    Registry* registry = container->FindSystem<Registry>();
+    SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+    if (!registry || !selectionManager) return;
+
+    const glm::mat4 vp = proj * view;
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    constexpr ImU32 kOutlineColor = IM_COL32(255, 255, 255, 235);
+    constexpr float kOutlineThickness = 1.5f;
+
+    for (const std::string& id : selectionManager->GetSelectedIds()) {
+        GameObject* obj = registry->Find<GameObject>(id);
+        if (!obj || !obj->GetActive()) continue;
+
+        // Only sprites have a visual body to outline -- a bare Transform/Camera/
+        // Light already gets its own gizmo above and no ambiguous "bounds" here.
+        Transform* transform = obj->GetComponent<Transform>();
+        SpriteRenderer* renderer = obj->GetComponent<SpriteRenderer>();
+        if (!transform || !renderer) continue;
+
+        Sprite* sprite = renderer->GetSprite();
+        if (!sprite) continue;
+
+        const glm::vec2 spriteSize = EngineUtils::RenderUtils::PixelsToWorld(sprite->GetPixelSize());
+        if (spriteSize.x <= 0.0f || spriteSize.y <= 0.0f) continue;
+
+        // Same quad-in-model-space math as DrawSpriteBoxGizmo / sprite.glsl's
+        // vertex stage: centred at -uSize * pivot with half-extent uSize/2.
+        const glm::vec2 quadHalf   = spriteSize * 0.5f;
+        const glm::vec2 quadCenter = -spriteSize * sprite->GetPivot();
+        const glm::mat4 worldMat = transform->GetWorldMatrix();
+        const glm::vec2 localCorners[4] = {
+            quadCenter + glm::vec2(-quadHalf.x, -quadHalf.y),
+            quadCenter + glm::vec2( quadHalf.x, -quadHalf.y),
+            quadCenter + glm::vec2( quadHalf.x,  quadHalf.y),
+            quadCenter + glm::vec2(-quadHalf.x,  quadHalf.y),
+        };
+
+        ImVec2 screenCorners[4];
+        for (int i = 0; i < 4; ++i)
+            screenCorners[i] = WorldToScreen(
+                glm::vec2(worldMat * glm::vec4(localCorners[i], 0.0f, 1.0f)), vp, viewWidth, viewHeight);
+
+        for (int i = 0; i < 4; ++i)
+            drawList->AddLine(screenCorners[i], screenCorners[(i + 1) % 4], kOutlineColor, kOutlineThickness);
     }
 }
 

@@ -129,6 +129,12 @@ private:
     void DrawJointGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight);
     void DrawJointGizmo(const glm::mat4& vp, float viewWidth, float viewHeight, class Joint* joint);
 
+    // Thin white outline around every selected object's sprite quad. Read-only,
+    // drawn for the WHOLE selection regardless of edit mode -- it is a "this is
+    // selected" indicator, not a tool, so it coexists with whichever gizmo
+    // (transform/collider/sprite-box) is also drawn for the primary object.
+    void DrawSelectionOutlines(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight);
+
     // ─── Component-type icons ────────────────────────────────────────────────
     // Fixed screen-space icon drawn at an object's transform for every
     // component type registered below. Expandable: add a component -> icon

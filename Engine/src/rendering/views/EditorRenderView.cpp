@@ -49,3 +49,11 @@ std::string EditorRenderView::Pick(int fbPixelX, int fbPixelY)
     if (pickId == 0) return "";
     return pickingPass->GetPickedObjectId(pickId);
 }
+
+std::vector<std::string> EditorRenderView::PickRect(int fbPixelX, int fbPixelY, int width, int height)
+{
+    if (!pickingPass) return {};
+    UpdateCamera();
+    pickingPass->RenderPickBuffer(camera);
+    return pickingPass->ReadPixelsInRect(fbPixelX, fbPixelY, width, height);
+}

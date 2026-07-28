@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "engine/rendering/views/RenderView.hpp"
 #include "engine/rendering/cameras/EditorCamera.hpp"
@@ -23,6 +24,10 @@ public:
     // directly without going through ScreenToWorld's un-mapping.
     // Returns the picked GameObject id, or "" for nothing.
     std::string Pick(int fbPixelX, int fbPixelY);
+
+    // Rect version of Pick(), for drag box-select: every GameObject id anywhere
+    // under the rect (width/height in the same framebuffer-pixel units as Pick).
+    std::vector<std::string> PickRect(int fbPixelX, int fbPixelY, int width, int height);
 
     EditorCamera* GetEditorCamera() const { return static_cast<EditorCamera*>(camera); }
 

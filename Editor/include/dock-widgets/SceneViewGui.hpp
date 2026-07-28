@@ -2,7 +2,9 @@
 #include "dock-widgets/ViewportWidget.hpp"   // must precede any Qt header that pulls GL headers (glad.h ordering)
 #include <QWheelEvent>
 #include <QPoint>
+#include <QRect>
 #include <QMouseEvent>
+#include <QRubberBand>
 #include <glm/glm.hpp>
 #include "engine/rendering/views/EditorRenderView.hpp"
 #include "utils/ImGuiInstance.hpp"
@@ -79,4 +81,19 @@ private:
 
     QPoint lastMousePos;
     bool isPanning = false;
+
+    // ── Box (marquee) select ─────────────────────────────────────────────────
+    // Right-drag box-selects, replacing the selection. Armed on press -- nothing
+    // happens (rubber band included) until the drag clears Qt's own start-drag
+    // distance, so a plain right-click (no movement) stays a deliberate no-op.
+    //
+    // Deliberately NOT on Shift+Left: deferring that click's pick/toggle to
+    // mouseReleaseEvent (to leave room for a drag) made ordinary shift-click
+    // selection feel laggy, so shift-click stays on the immediate press-time path.
+    void PerformBoxSelect(const QRect& widgetRect);
+
+    QRubberBand* m_boxSelectRubberBand = nullptr;
+    QPoint m_boxSelectStart;
+    bool m_boxSelectArmed = false;     // right-press seen, drag not yet confirmed
+    bool m_boxSelecting = false;       // drag confirmed; rubber band is live
 };

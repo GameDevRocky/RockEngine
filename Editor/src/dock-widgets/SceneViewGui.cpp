@@ -37,6 +37,7 @@
 #include "engine/core/GameObject.hpp"
 #include <yaml-cpp/yaml.h>
 #include <QGuiApplication>
+#include <QApplication>
 #include <memory>
 #include <vector>
 #include <cfloat>
@@ -122,6 +123,8 @@ SceneViewGui::SceneViewGui(QWidget* parent)
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
     setAcceptDrops(true);   // accept .scene files dropped from the Folder view
+
+    m_boxSelectRubberBand = new QRubberBand(QRubberBand::Rectangle, this);
 }
 
 RenderView* SceneViewGui::CreateView(int pixelW, int pixelH)
@@ -598,6 +601,16 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
         return;
     }
 
+    if (event->button() == Qt::RightButton)
+    {
+        // Arm a possible box-select -- see PerformBoxSelect. A plain right-click
+        // with no drag is a deliberate no-op, resolved in mouseReleaseEvent once
+        // we know whether the drag threshold was crossed.
+        m_boxSelectArmed = true;
+        m_boxSelectStart = event->pos();
+        return;
+    }
+
     if (event->button() == Qt::LeftButton)
     {
         // Don't disturb the selection if GizmosManager is using a handle
@@ -635,6 +648,19 @@ void SceneViewGui::mouseReleaseEvent(QMouseEvent* event)
     {
         isPanning = false;
         setCursor(Qt::ArrowCursor);
+        return;
+    }
+
+    if (event->button() == Qt::RightButton && m_boxSelectArmed)
+    {
+        // A plain right-click with no drag is a deliberate no-op.
+        if (m_boxSelecting) {
+            PerformBoxSelect(QRect(m_boxSelectStart, event->pos()).normalized());
+            m_boxSelectRubberBand->hide();
+        }
+
+        m_boxSelectArmed = false;
+        m_boxSelecting = false;
     }
 }
 
@@ -654,6 +680,20 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
     glm::vec2 worldPos = editorView->ScreenToWorld(fbPos);
     inputManager->SetMousePosition(worldPos);
 
+    if (m_boxSelectArmed) {
+        if (!m_boxSelecting &&
+            (e->pos() - m_boxSelectStart).manhattanLength() >= QApplication::startDragDistance()) {
+            m_boxSelecting = true;
+            m_boxSelectRubberBand->setGeometry(QRect(m_boxSelectStart, QSize()));
+            m_boxSelectRubberBand->show();
+        }
+        if (m_boxSelecting) {
+            m_boxSelectRubberBand->setGeometry(QRect(m_boxSelectStart, e->pos()).normalized());
+            lastMousePos = e->pos();
+            return;   // box-select owns the drag; no camera pan while it's live
+        }
+    }
+
     if (!leftDragPan && !midDragPan) {
         lastMousePos = e->pos();
         return;
@@ -663,6 +703,28 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
     editorView->GetEditorCamera()->PanByPixels(glm::vec2(deltaPx.x(), deltaPx.y()));
 
     lastMousePos = e->pos();
+}
+
+// Reads the picking buffer under `widgetRect` (widget/logical pixels, Qt's
+// top-left origin) and replaces the selection with whatever it found -- an empty
+// result (dragged over nothing) clears it, same as a plain click on empty space.
+void SceneViewGui::PerformBoxSelect(const QRect& widgetRect)
+{
+    if (widgetRect.isEmpty()) return;
+
+    makeCurrent();   // Pick reads the picking-pass buffer via GL
+    const float dpi = devicePixelRatioF();
+    const int fbX      = static_cast<int>(widgetRect.left() * dpi);
+    const int fbWidth  = static_cast<int>(widgetRect.width() * dpi);
+    // GL flips Y (0 at the bottom): the framebuffer row for glReadPixels's
+    // origin is the WIDGET rect's bottom edge, not its top.
+    const int fbY      = static_cast<int>((height() - (widgetRect.top() + widgetRect.height())) * dpi);
+    const int fbHeight = static_cast<int>(widgetRect.height() * dpi);
+
+    std::vector<std::string> ids = editorView->PickRect(fbX, fbY, fbWidth, fbHeight);
+
+    auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+    if (selMgr) selMgr->SelectMany(ids);
 }
 
 

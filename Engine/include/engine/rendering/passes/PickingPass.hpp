@@ -6,6 +6,7 @@
 #include <glad/glad.h>
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 class GameObject;
 
@@ -21,6 +22,9 @@ public:
     void RenderPickBuffer(RenderCamera* camera);
 
     uint32_t ReadPixel(int x, int y);
+    // Rect version of ReadPixel, for drag box-select: one GetPickedObjectId per
+    // unique pick color found anywhere in the rect (background/id 0 excluded).
+    std::vector<std::string> ReadPixelsInRect(int x, int y, int width, int height);
     std::string GetPickedObjectId(uint32_t pickId) const;
     
     void SetDebugDraw(bool enabled) { debugDraw = enabled; }
