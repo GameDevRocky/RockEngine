@@ -17,3 +17,9 @@
 [submodule "External/imguizmo"]
 	path = External/imguizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "msdfgen"]
+	path = msdfgen
+	url = https://github.com/chlumsky/msdfgen
+[submodule "External/nvrhi"]
+	path = External/nvrhi
+	url = https://github.com/NVIDIA-RTX/NVRHI
