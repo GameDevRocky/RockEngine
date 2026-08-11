@@ -1,6 +1,61 @@
 name: New Scene
-id: 796535d9f4b7c68a461828f30929b902
-gameobjects:
-  []
+id: ad23cd7df5ea86c7eed07905f395f142
 components:
-  []
+  - id: 12fbc0034fb94bdd13dc626fb440513c
+    enabled: true
+    type: Transform
+    gameobject: 470b9075ec2c99919a9a8f62c47177c7
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: fccfd07543bd4ddb7bd428eb5757bf97
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 470b9075ec2c99919a9a8f62c47177c7
+    material_id: m1
+    sprite_id: default
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 00310302e986e37b47024031b0a1428b
+    enabled: true
+    type: Transform
+    gameobject: 71b921b183baab08c67c2cf42fcf0551
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 5ae426f708ca506c8ba4f3705ab69437
+    enabled: true
+    type: Camera
+    gameobject: 71b921b183baab08c67c2cf42fcf0551
+    projection: 0
+    orthoSize: 540
+    clearFlags: 0
+    clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
+    priority: 0
+    targetAspect: 1.7777778
+    viewportRect: [0, 0, 1, 1]
+    cullingLayers: []
+    targetTextureId: ""
+gameobjects:
+  - id: 470b9075ec2c99919a9a8f62c47177c7
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    component_ids:
+      - 12fbc0034fb94bdd13dc626fb440513c
+      - fccfd07543bd4ddb7bd428eb5757bf97
+  - id: 71b921b183baab08c67c2cf42fcf0551
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    component_ids:
+      - 00310302e986e37b47024031b0a1428b
+      - 5ae426f708ca506c8ba4f3705ab69437

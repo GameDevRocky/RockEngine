@@ -1,0 +1,12 @@
+type: Texture2D
+id: 327189b6694f86307a37d02e8cf3614e
+name: Screenshot 2026-07-30 194535
+path: Domain/sandbox/Screenshot 2026-07-30 194535.png
+filtering: nearest
+wrap: repeat
+sprites:
+  - id: 4622b75548f8d6d281e3dd051551f5c7
+    name: 4622b75548f8d6d281e3dd051551f5c7
+    uvMin: [0, 0]
+    uvMax: [0.97805333, 1]
+    pivot: [0, 0]

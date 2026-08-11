@@ -54,7 +54,7 @@ components:
       ground_check_distance: 5
       particle_gen: 3ffbee457f70afd023959af3dce66b1d
       camera: 983d4dc0871048db88c0abb372766b89
-      camera_smoothing: 0.11
+      camera_smoothing: 0.009999999
   - id: 453452e197bd49681846836930760cac
     enabled: true
     type: Animator
@@ -245,9 +245,9 @@ components:
     enabled: true
     type: Transform
     gameobject: 9a30149c1af0006e3edb419555007c18
-    localPosition: [-0.0002746582, -11.59761]
+    localPosition: [-0.00030517578, -11.59761]
     localRotation: 0
-    localScale: [0.4237689, 0.40564942]
+    localScale: [0.42376894, 0.40564942]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: eab49f33037d8106a1dcd35e3e1eab82
     enabled: true
@@ -301,7 +301,7 @@ components:
     type: Camera
     gameobject: 983d4dc0871048db88c0abb372766b89
     projection: 0
-    orthoSize: 2300.8945
+    orthoSize: 188.20695
     clearFlags: 0
     clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
     priority: -7
@@ -318,7 +318,7 @@ components:
     localScale: [1, 1]
     parent_id: ~
   - id: ad91d34051abb1339831d2df44a68485
-    enabled: true
+    enabled: false
     type: ScriptComponent
     gameobject: cf164e46c96b961589f6c20b99255005
     module: AutoTiler
