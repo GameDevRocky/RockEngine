@@ -46,7 +46,10 @@ public:
     const std::unordered_map<std::string, glm::vec4>&   GetVec4Uniforms()  const { return vec4Uniforms; }
     const std::unordered_map<std::string, std::string>& GetTexUniforms()   const { return texUniforms; }
 
-    void ApplyUniforms();
+    // Binds every uniform this material owns and returns the first texture unit
+    // it did NOT use, so a component's per-instance texture overrides can carry
+    // on from there without stomping the material's own samplers.
+    int ApplyUniforms();
 
     void Accept(IVisitor* v) override;
 

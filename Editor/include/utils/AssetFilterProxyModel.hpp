@@ -12,6 +12,7 @@
 // ─────────────────   ─────────────────────────────────────────────────────
 // foo.png.texture     foo.png / foo.jpg / foo.jpeg / foo.bmp
 // foo.vert.shader     foo.vert  AND  foo.frag (same stem, same dir)
+// foo.ttf.font        foo.ttf / foo.otf
 // foo.mat             (no source – already a definition file, always shown)
 // foo.material        (no source – already a definition file, always shown)
 // foo.sprite          (no source – already a definition file, always shown)
@@ -44,6 +45,13 @@ protected:
         // Hide when foo.glsl.shader exists in the same directory
         if (ext == "glsl") {
             QString metaPath = fi.absoluteFilePath() + ".shader";
+            if (QFileInfo::exists(metaPath)) return false;
+        }
+
+        // ── Font source (.ttf / .otf) ───────────────────────────────────────
+        // Hide when foo.ttf.font exists in the same directory
+        if (ext == "ttf" || ext == "otf") {
+            QString metaPath = fi.absoluteFilePath() + ".font";
             if (QFileInfo::exists(metaPath)) return false;
         }
 

@@ -119,7 +119,7 @@ void SpriteRenderer::RemoveUniformOverride(const std::string& name)
     uniformOverrides.erase(name);
 }
 
-void SpriteRenderer::OverrideUniforms()
+void SpriteRenderer::OverrideUniforms(int firstFreeTextureSlot)
 {
     Material* mat = GetMaterial();
     Sprite* sprite = GetSprite();
@@ -184,7 +184,9 @@ void SpriteRenderer::OverrideUniforms()
     shader->SetVec2("uPivot", sprite->GetPivot());
     shader->SetVec4("uColor", color);
 
-    int textureSlot = 1;
+    // At least 1, because slot 0 is always claimed above by the sprite's own
+    // texture (which deliberately overwrites whatever the material bound there).
+    int textureSlot = firstFreeTextureSlot > 1 ? firstFreeTextureSlot : 1;
     for (const auto& [uName, uValue] : uniformOverrides) {
         std::visit([&](const auto& v) {
             using T = std::decay_t<decltype(v)>;

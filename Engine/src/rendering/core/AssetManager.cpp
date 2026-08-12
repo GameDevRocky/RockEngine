@@ -57,6 +57,7 @@ void AssetManager::Init()
     for (auto& kv : sprites)  all.push_back(kv.second);
     for (auto& kv : shaders)   all.push_back(kv.second);
     for (auto& kv : materials) all.push_back(kv.second);
+    for (auto& kv : fonts)     all.push_back(kv.second);
     
     for (Resource* obj : all) obj->Init();
     
@@ -71,6 +72,7 @@ void AssetManager::Awake(){
     for (auto& kv : sprites)  all.push_back(kv.second);
     for (auto& kv : shaders)   all.push_back(kv.second);
     for (auto& kv : materials) all.push_back(kv.second);
+    for (auto& kv : fonts)     all.push_back(kv.second);
     
     for (Resource* obj : all) obj->Awake();
 }
@@ -135,6 +137,20 @@ Sprite* AssetManager::GetSpriteByName(const std::string& name)
     return nullptr;
 }
 
+Font* AssetManager::GetFont(const std::string& id)
+{
+    auto it = fonts.find(id);
+    return (it != fonts.end()) ? it->second : nullptr;
+}
+
+Font* AssetManager::GetFontByName(const std::string& name)
+{
+    for (auto& kv : fonts)
+        if (kv.second->GetName() == name)
+            return kv.second;
+    return nullptr;
+}
+
 // ----------------------
 // Add
 // ----------------------
@@ -160,6 +176,18 @@ void AssetManager::AddSprite(Sprite* sprite)
     sprites[sprite->GetID()] = sprite;
     SubscribeAutoSave(sprite);
     Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(sprite));
+}
+
+void AssetManager::AddFont(Font* font)
+{
+    if (!font)
+    {
+        Console::Alert("Failed to add font");
+        return;
+    }
+    fonts[font->GetID()] = font;
+    SubscribeAutoSave(font);
+    Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(font));
 }
 
 void AssetManager::AddTexture(Texture2D* texture)
@@ -335,6 +363,14 @@ void AssetManager::RemoveAsset(const std::string& id) {
         return;
     }
 
+    if (auto it = fonts.find(id); it != fonts.end()) {
+        Font* f = it->second;
+        fonts.erase(it);
+        Notify(ASSET_REMOVED_EVENT, id);
+        delete f;
+        return;
+    }
+
     // A standalone sprite -- reuse the sprite path (it rewrites the parent texture).
     if (sprites.count(id)) RemoveSprite(id);
 }
@@ -377,6 +413,8 @@ void AssetManager::LoadAsset(const YAML::Node& node, const std::string& type) {
         LoadTexture(node);
     } else if (type == "shader") {
         LoadShader(node);
+    } else if (type == "font") {
+        LoadFont(node);
     }
 }
 
@@ -429,6 +467,20 @@ void AssetManager::LoadShader(const YAML::Node& node, const std::string& filePat
     std::cout << "Loaded and Registered Shader: " + shader->GetName() << std::endl;
 }
 
+void AssetManager::LoadFont(const YAML::Node& node, const std::string& filePath) {
+    if (node["id"] && fonts.count(node["id"].as<std::string>())) return;
+
+    Font* font = new Font();
+    font->Deserialize(node);
+    if (!filePath.empty()) font->SetFilePath(filePath);
+    font->Init();
+    // No Awake() call: unlike a texture, a font does no GL work at load. The
+    // atlas is baked and uploaded lazily by EnsureUploaded() on first use, so a
+    // font nobody references never costs anything.
+    AddFont(font);
+    std::cout << "Loaded and Registered Font: " + font->GetName() << std::endl;
+}
+
 void AssetManager::LoadSprite(const YAML::Node& node, const std::string& filePath) {
     if (node["id"] && sprites.count(node["id"].as<std::string>())) return;
 
@@ -462,6 +514,8 @@ void AssetManager::LoadAssetFromFile(const std::string& filePath) {
         LoadTexture(node, filePath);
     } else if (type == "shader") {
         LoadShader(node, filePath);
+    } else if (type == "font") {
+        LoadFont(node, filePath);
     }
 }
 
@@ -473,8 +527,10 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     }
 
     // Load in dependency order: textures (+ their embedded sprites) and shaders
-    // first, then materials.
-    std::vector<fs::path> textureMetas, shaderMetas, materialMetas;
+    // first, then materials. Fonts depend on nothing and nothing depends on them
+    // at load time (a TextRenderer resolves its font by id at draw), so they can
+    // go anywhere in the order.
+    std::vector<fs::path> textureMetas, shaderMetas, materialMetas, fontMetas;
 
     std::error_code ec;
     for (auto& entry : fs::recursive_directory_iterator(root, ec)) {
@@ -482,6 +538,7 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
         const std::string ext = entry.path().extension().string();
         if      (ext == ".texture")  textureMetas .push_back(entry.path());
         else if (ext == ".shader")   shaderMetas  .push_back(entry.path());
+        else if (ext == ".font")     fontMetas    .push_back(entry.path());
         else if (ext == ".material" || ext == ".mat") materialMetas.push_back(entry.path());
     }
     if (ec)
@@ -489,6 +546,7 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
 
     for (auto& p : textureMetas)  LoadAssetFromFile(p.string());
     for (auto& p : shaderMetas)   LoadAssetFromFile(p.string());
+    for (auto& p : fontMetas)     LoadAssetFromFile(p.string());
     for (auto& p : materialMetas) LoadAssetFromFile(p.string());
 
     // Everything is loaded; from here on, in-memory edits sync back to disk.

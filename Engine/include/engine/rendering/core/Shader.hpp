@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include "engine/serialization/Serializable.hpp"
 #include "engine/rendering/core/Resource.hpp"
+#include "engine/utils/EngineUtils.hpp"
 
 struct UniformInfo {
     GLenum type;
@@ -40,6 +41,10 @@ public:
 
     GLuint GetProgramID() const { return program_id; }
 
+    // What vertex data this shader expects; see EngineUtils::ShaderDomain.
+    // Declared via `#pragma domain` in the .glsl, Sprite when unstated.
+    EngineUtils::ShaderDomain GetDomain() const { return domain; }
+
     Shader() = default;
     ~Shader();
 
@@ -51,6 +56,7 @@ private:
     std::string frag_src; 
 
     GLuint program_id = 0;
+    EngineUtils::ShaderDomain domain = EngineUtils::ShaderDomain::Sprite;
     GLuint CompileShader(GLenum type, const std::string& source);
     GLuint LinkProgram(GLuint vertexShader, GLuint fragmentShader);
     // Uniform locations are stable for a linked program; ReflectUniforms()

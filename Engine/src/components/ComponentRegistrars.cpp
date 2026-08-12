@@ -2,6 +2,7 @@
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
+#include "engine/components/TextRenderer.hpp"
 #include "engine/components/ScriptComponent.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/BoxCollider.hpp"
@@ -24,6 +25,7 @@
 void RegisterComponentTypes() {
     SerializableFactory::RegisterType("Transform", []() { return new Transform(); });
     SerializableFactory::RegisterType("SpriteRenderer", []() { return new SpriteRenderer(); });
+    SerializableFactory::RegisterType("TextRenderer", []() { return new TextRenderer(); });
     SerializableFactory::RegisterType("ScriptComponent", []() { return new ScriptComponent(); });
     SerializableFactory::RegisterType("RigidBody", []() { return new RigidBody(); });
     SerializableFactory::RegisterType("BoxCollider", []() { return new BoxCollider(); });

@@ -1,5 +1,8 @@
 #include "engine/rendering/passes/PickingPass.hpp"
 #include "engine/components/SpriteRenderer.hpp"
+#include "engine/components/TextRenderer.hpp"
+#include "engine/rendering/core/Font.hpp"
+#include "engine/text/TextLayout.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
@@ -192,14 +195,23 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
 
     uint32_t pickId = 1;
 
-    // One entry per pickable sprite, sorted per scene exactly like ScenePass.
+    // One entry per pickable renderable, sorted per scene exactly like ScenePass.
+    // Exactly one of `renderer` / `text` is set.
     struct PickDraw {
         GameObject*     obj           = nullptr;
         SpriteRenderer* renderer      = nullptr;
+        TextRenderer*   text          = nullptr;
         Transform*      transform     = nullptr;
         int             layerPriority = 0;
         int             sortingOrder  = 0;
         GLuint          shaderId      = 0;
+        // Text is picked as its measured block rectangle rather than its actual
+        // glyphs: one quad through the same picking shader, sized and offset to
+        // the layout bounds. Approximate (a click in the gap between two words
+        // still hits), but it makes a label grabbable at all, and clicking the
+        // visual extent of a text object is what a user expects anyway.
+        glm::vec2       quadSize{ 1.0f };
+        glm::vec2       quadPivot{ 0.5f };
     };
     std::vector<PickDraw> draws;
 
@@ -213,25 +225,52 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
         for (auto* obj : currentScene->GetAllGameObjects()) {
             if (!obj || !obj->GetActive()) continue;
 
-            SpriteRenderer* spr = obj->GetComponent<SpriteRenderer>();
-            // Match ScenePass's visibility test exactly, including the camera's
-            // culling mask -- a sprite on a layer this camera doesn't render must
-            // not be clickable either.
-            if (!spr || !spr->GetEnabled() || !spr->GetVisible()) continue;
-            if (camera && !camera->PassesCullingMask(spr->GetSortingLayer())) continue;
-
             Transform* transform = obj->GetComponent<Transform>();
             if (!transform) continue;
 
-            PickDraw d;
-            d.obj           = obj;
-            d.renderer      = spr;
-            d.transform     = transform;
-            d.layerPriority = layerManager ? layerManager->GetPriority(spr->GetSortingLayer()) : 0;
-            d.sortingOrder  = spr->GetSortingOrder();
-            if (Material* mat = spr->GetMaterial())
-                if (Shader* s = mat->GetShader()) d.shaderId = s->GetProgramID();
-            draws.push_back(d);
+            // Match ScenePass's visibility test exactly, including the camera's
+            // culling mask -- something on a layer this camera doesn't render must
+            // not be clickable either.
+            if (SpriteRenderer* spr = obj->GetComponent<SpriteRenderer>()) {
+                if (spr->GetEnabled() && spr->GetVisible() &&
+                    (!camera || camera->PassesCullingMask(spr->GetSortingLayer()))) {
+                    PickDraw d;
+                    d.obj           = obj;
+                    d.renderer      = spr;
+                    d.transform     = transform;
+                    d.layerPriority = layerManager ? layerManager->GetPriority(spr->GetSortingLayer()) : 0;
+                    d.sortingOrder  = spr->GetSortingOrder();
+                    if (Material* mat = spr->GetMaterial())
+                        if (Shader* s = mat->GetShader()) d.shaderId = s->GetProgramID();
+                    draws.push_back(d);
+                }
+            }
+
+            if (TextRenderer* txt = obj->GetComponent<TextRenderer>()) {
+                if (txt->GetEnabled() && txt->GetVisible() &&
+                    (!camera || camera->PassesCullingMask(txt->GetSortingLayer()))) {
+                    Font* font = txt->GetFont();
+                    glm::vec2 boundsMin(0.0f), boundsMax(0.0f);
+                    TextLayout::Measure(font, txt->GetText(), txt->GetLayoutSpec(),
+                                        boundsMin, boundsMax);
+                    const glm::vec2 size = boundsMax - boundsMin;
+                    if (size.x > 0.0f && size.y > 0.0f) {
+                        PickDraw d;
+                        d.obj           = obj;
+                        d.text          = txt;
+                        d.transform     = transform;
+                        d.layerPriority = layerManager ? layerManager->GetPriority(txt->GetSortingLayer()) : 0;
+                        d.sortingOrder  = txt->GetSortingOrder();
+                        d.quadSize      = size;
+                        // The picking shader (like sprite.glsl) places a corner at
+                        //   uSize * (aPos - uPivot),  aPos in [-0.5, 0.5]
+                        // so the quad spans uSize*(-0.5 - uPivot) .. uSize*(0.5 - uPivot).
+                        // Setting that equal to boundsMin..boundsMax and solving:
+                        d.quadPivot     = -boundsMin / size - glm::vec2(0.5f);
+                        draws.push_back(d);
+                    }
+                }
+            }
         }
 
         // Same keys as ScenePass, and stable for the same reason: on a full tie
@@ -250,6 +289,27 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
             pickIdToObjectId[pickId] = obj->GetID();
             shader->SetInt("uId", pickId);
             shader->SetMat4("uModel", transform->GetWorldMatrix());
+
+            if (d.text) {
+                // A bare rectangle. There is no texture to alpha-test against, and
+                // an unbound sampler reads as transparent -- which would discard
+                // every fragment -- so switch the test off for this draw.
+                shader->SetFloat("uAlphaTest", 0.0f);
+                glActiveTexture(GL_TEXTURE0);
+                glad_glBindTexture(GL_TEXTURE_2D, 0);
+                shader->SetInt("uTexture", 0);
+                shader->SetVec2("uUVScale", glm::vec2(1.0f));
+                shader->SetVec2("uUVOffset", glm::vec2(0.0f));
+                shader->SetVec2("uSize", d.quadSize);
+                shader->SetVec2("uPivot", d.quadPivot);
+                glad_glDrawArrays(GL_TRIANGLES, 0, 6);
+                pickId++;
+                continue;
+            }
+
+            // Back on for sprites -- the text branch above may have cleared it.
+            shader->SetFloat("uAlphaTest", 1.0f);
+
             Sprite* sprite = spr->GetSprite();
             glActiveTexture(GL_TEXTURE0);
             if(sprite && sprite->GetTexture()) {

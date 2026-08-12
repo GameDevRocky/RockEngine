@@ -16,12 +16,12 @@
 
 using namespace EngineUtils;
 
-// Draws every 2D renderable in the scene -- SpriteRenderers *and*
-// ParticleComponents -- in ONE list sorted by (sorting layer priority, order in
-// layer). Particles share the sprite sorting model rather than compositing on top
-// as a separate pass, which is the only way an emitter can sit behind or between
-// sprite layers. Particle simulation is not done here; see
-// ParticleSimulationPass, which must run before this pass.
+// Draws every 2D renderable in the scene -- SpriteRenderers, ParticleComponents
+// *and* TextRenderers -- in ONE list sorted by (sorting layer priority, order in
+// layer). Particles and text share the sprite sorting model rather than
+// compositing on top as separate passes, which is the only way an emitter or a
+// label can sit behind or between sprite layers. Particle simulation is not done
+// here; see ParticleSimulationPass, which must run before this pass.
 class ScenePass : public RenderPass
 {
 public:
@@ -45,9 +45,21 @@ private:
     // cannot come from ParticleManager itself.
     unsigned int particleVao = 0;
 
+    // Third VAO for glyph meshes. Set up with the separate attribute format
+    // (glVertexAttribFormat/Binding) rather than glVertexAttribPointer, because
+    // every TextRenderer owns its own VBO -- so the draw loop re-points the VAO
+    // at each one with a single glBindVertexBuffer instead of re-specifying the
+    // attribute layout per object.
+    unsigned int textVao = 0;
+
     // Resolved once on first use; the material map only grows via asset loads,
     // so the pointer stays valid for the pass's lifetime (borrowed, not owned).
     Material* defaultMaterial = nullptr;
+    Material* defaultTextMaterial = nullptr;
+
+    // FontManager's mesh cache is GC'd once per frame, not once per scene --
+    // this pass runs once per scene per view.
+    std::uint64_t lastGcFrame = ~0ull;
     // Objects already warned about (missing transform/material) — warn once per
     // object instead of flooding the console every frame.
     std::unordered_set<const void*> warnedObjects;

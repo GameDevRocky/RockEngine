@@ -173,7 +173,8 @@ private:
         // ── Asset file drag from the Folder view ──────────────────────────────
         if (mime->hasUrls()) {
             if (m_desc.tag != Tags::MATERIAL && m_desc.tag != Tags::SPRITE &&
-                m_desc.tag != Tags::TEXTURE  && m_desc.tag != Tags::SHADER)
+                m_desc.tag != Tags::TEXTURE  && m_desc.tag != Tags::SHADER &&
+                m_desc.tag != Tags::FONT)
                 return false;   // object-ref fields reject asset files
 
             for (const QUrl& url : mime->urls()) {
@@ -233,6 +234,7 @@ private:
             case Properties::Tags::SPRITE:   return am.GetSprite(id)   != nullptr;
             case Properties::Tags::TEXTURE:  return am.GetTexture(id)  != nullptr;
             case Properties::Tags::SHADER:   return am.GetShader(id)   != nullptr;
+            case Properties::Tags::FONT:     return am.GetFont(id)     != nullptr;
             default:                         return false;
         }
     }

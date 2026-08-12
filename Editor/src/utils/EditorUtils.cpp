@@ -43,7 +43,13 @@ QIcon CustomIconProvider::icon(const QFileInfo &info) const {
         return AssetIcon("Domain/lib/assets/icons/hpp_icon.png");
     } else if (info.suffix() == "shader" || info.suffix() == "glsl") {
         return AssetIcon("Domain/lib/assets/icons/shader_icon.png");
-    
+
+    } else if (info.suffix() == "font" || info.suffix() == "ttf" || info.suffix() == "otf") {
+        // The .ttf/.otf cases are for the asset-ref picker and anywhere else a
+        // source font is shown directly; the folder view hides those behind their
+        // .font meta (see AssetFilterProxyModel).
+        return AssetIcon("Domain/lib/assets/icons/font_icon.png");
+
     } else if (info.suffix() == "png" || info.suffix() == "jpg" || info.suffix() == "jpeg") {
         // Load the actual image file as a thumbnail
         return QIcon(info.absoluteFilePath());

@@ -97,11 +97,14 @@ void AssetPreviewDelegate::paint(QPainter* painter,
     const QString filePath = filePathForIndex(index);
     const QString ext      = QFileInfo(filePath).suffix().toLower();
 
-    // ── .shader meta: show default icon with clean label (no extension) ──────────
-    if (ext == "shader") {
+    // ── .shader / .font meta: default icon, clean label (no extension) ──────────
+    // Both are metas named after a source file, so they carry a double extension
+    // that would otherwise be shown in full.
+    if (ext == "shader" || ext == "font") {
         QStyleOptionViewItem opt = option;
         initStyleOption(&opt, index);
         // Strip double extension: "sprite.glsl.shader" → "sprite.glsl" → "sprite"
+        //                         "Nunito.ttf.font"    → "Nunito.ttf"   → "Nunito"
         QString stem = QFileInfo(filePath).completeBaseName(); // "sprite.glsl"
         opt.text = QFileInfo(stem).completeBaseName();          // "sprite"
         const bool selected = opt.state & QStyle::State_Selected;

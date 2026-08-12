@@ -1,6 +1,7 @@
 from .component_handler import Component
 from .scriptable_component_handler import ScriptableComponent
 from .sprite_renderer_handler import SpriteRenderer
+from .text_renderer_handler import TextRenderer, TextHAlign, TextVAlign
 from .camera_handler import Camera
 from .animator_handler import Animator
 from .particle_component_handler import ParticleComponent

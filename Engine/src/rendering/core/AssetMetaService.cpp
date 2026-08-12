@@ -9,13 +9,14 @@ namespace fs = std::filesystem;
 
 // ──────────────────────────────────────────────────────────────────────────────
 bool AssetMetaService::IsMetaExtension(const std::string& ext) {
-    return ext == ".texture" || ext == ".shader" || ext == ".material";
+    return ext == ".texture" || ext == ".shader" || ext == ".material" || ext == ".font";
 }
 
 std::string AssetMetaService::MetaExtensionFor(const std::string& sourceExt) {
     if (sourceExt == ".png"  || sourceExt == ".jpg"  ||
         sourceExt == ".jpeg" || sourceExt == ".bmp")   return ".texture";
     if (sourceExt == ".glsl")                           return ".shader";
+    if (sourceExt == ".ttf"  || sourceExt == ".otf")    return ".font";
     return "";
 }
 
@@ -83,11 +84,47 @@ void AssetMetaService::ProcessShader(const fs::path& glslPath) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+void AssetMetaService::ProcessFont(const fs::path& fontPath) {
+    fs::path metaPath = fs::path(fontPath.string() + ".font");
+    if (fs::exists(metaPath)) return;
+
+    std::string id      = EngineUtils::GenerateUUID();
+    std::string name    = fontPath.stem().string();
+    std::string relPath = ToProjectRelative(fontPath);
+
+    YAML::Node node;
+    node["type"] = "Font";
+    node["id"]   = id;
+    node["name"] = name;
+    node["path"] = relPath;
+
+    // The bake recipe. The atlas itself is never written to disk -- it is rebuilt
+    // in memory from the source font on first use each session, so changing these
+    // numbers takes effect on the next launch with nothing to invalidate.
+    YAML::Node bake;
+    bake["em_size"]  = 48;      // atlas pixels per em
+    bake["px_range"] = 4.0f;    // distance range, atlas pixels
+    node["bake"] = bake;
+    // `charset` is deliberately omitted: absent means printable ASCII. Add it by
+    // hand for a font that needs more (an icon font's glyphs sit far outside
+    // ASCII and will bake empty until you do).
+
+    std::ofstream out(metaPath);
+    if (!out.is_open()) {
+        std::cerr << "[AssetMetaService] Failed to write: " << metaPath << std::endl;
+        return;
+    }
+    out << node;
+    std::cout << "[AssetMetaService] Generated: " << metaPath.filename() << std::endl;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 void AssetMetaService::GenerateFor(const std::string& sourceFile) {
     fs::path p(sourceFile);
     const std::string metaExt = MetaExtensionFor(p.extension().string());
     if (metaExt == ".texture")      ProcessTexture(p);
     else if (metaExt == ".shader")  ProcessShader(p);
+    else if (metaExt == ".font")    ProcessFont(p);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -112,6 +149,8 @@ void AssetMetaService::ScanAndGenerate(const std::string& rootDir) {
         const std::string metaExt = MetaExtensionFor(ext);
         if (metaExt == ".texture") {
             ProcessTexture(p);
+        } else if (metaExt == ".font") {
+            ProcessFont(p);
         } else if (metaExt == ".shader") {
             ProcessShader(p);  // p is the .glsl file
         }

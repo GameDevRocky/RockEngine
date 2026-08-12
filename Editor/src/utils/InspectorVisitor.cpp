@@ -3,6 +3,7 @@
 #include "engine/core/GameObject.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
+#include "engine/components/TextRenderer.hpp"
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
@@ -26,6 +27,7 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/Shader.hpp"
+#include "engine/rendering/core/Font.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "Engine.hpp"
@@ -207,6 +209,178 @@ void InspectorVisitor::Visit(SpriteRenderer* renderer){
         renderer->SORTING_ORDER_CHANGED_EVENT,
         PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
     
+}
+
+void InspectorVisitor::Visit(TextRenderer* text){
+    using TR = TextRenderer;
+
+    // ── Content ──
+    BindProperty<std::string>(text, "Text: ",
+        [=]() { return text->GetText(); },
+        [](TR* t, const std::string& v) { t->SetText(v); },
+        text->TEXT_CHANGED_EVENT, PropDesc().Tag(Tags::MULTILINE));
+
+    BindProperty<std::string>(text, "Font: ",
+        [=]() { return text->GetFontID(); },
+        [](TR* t, const std::string& v) { t->SetFont(v); },
+        text->FONT_CHANGED_EVENT, PropDesc().Tag(Tags::FONT).RefType(Tags::OBJECT_REF));
+
+    BindProperty<std::string>(text, "Material: ",
+        [=]() { return text->GetMaterialID(); },
+        [](TR* t, const std::string& v) { t->SetMaterial(v); },
+        text->MATERIAL_CHANGED_EVENT, PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF)
+            .Desc("Leave empty to use the built-in 'text' material. Any material works: a "
+                  "sprite-domain shader will position the glyphs correctly but sample the "
+                  "MSDF atlas as raw colour rather than decoding it."));
+
+    // ── Layout ──
+    BindProperty<float>(text, "Font Size: ",
+        [=]() { return text->GetFontSize(); },
+        [](TR* t, const float& v) { t->SetFontSize(v); },
+        text->FONT_SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0.1f, 4096).Step(1)
+            .Desc("World units per em. 1 world unit == 1 pixel."));
+
+    BindProperty<int>(text, "Horizontal Align: ",
+        [=]() { return static_cast<int>(text->GetHAlign()); },
+        [](TR* t, const int& v) { t->SetHAlign(static_cast<TextHAlign>(v)); },
+        text->H_ALIGN_CHANGED_EVENT, PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Left",   static_cast<int>(TextHAlign::Left)},
+            {"Center", static_cast<int>(TextHAlign::Center)},
+            {"Right",  static_cast<int>(TextHAlign::Right)}
+        }));
+
+    BindProperty<int>(text, "Vertical Align: ",
+        [=]() { return static_cast<int>(text->GetVAlign()); },
+        [](TR* t, const int& v) { t->SetVAlign(static_cast<TextVAlign>(v)); },
+        text->V_ALIGN_CHANGED_EVENT, PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"Top",      static_cast<int>(TextVAlign::Top)},
+            {"Middle",   static_cast<int>(TextVAlign::Middle)},
+            {"Baseline", static_cast<int>(TextVAlign::Baseline)},
+            {"Bottom",   static_cast<int>(TextVAlign::Bottom)}
+        }));
+
+    BindProperty<float>(text, "Line Spacing: ",
+        [=]() { return text->GetLineSpacing(); },
+        [](TR* t, const float& v) { t->SetLineSpacing(v); },
+        text->LINE_SPACING_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 10).Step(0.05f)
+            .Desc("Multiplier on the font's own line height."));
+
+    BindProperty<float>(text, "Letter Spacing: ",
+        [=]() { return text->GetLetterSpacing(); },
+        [](TR* t, const float& v) { t->SetLetterSpacing(v); },
+        text->LETTER_SPACING_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(-1, 2).Step(0.01f)
+            .Desc("Extra tracking between glyphs, in em."));
+
+    BindProperty<float>(text, "Max Width: ",
+        [=]() { return text->GetMaxWidth(); },
+        [](TR* t, const float& v) { t->SetMaxWidth(v); },
+        text->MAX_WIDTH_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 100000).Step(1)
+            .Desc("Wrap width in world units. 0 disables wrapping."));
+
+    // ── Appearance ──
+    BindProperty<glm::vec4>(text, "Color: ",
+        [=]() { return text->GetColor(); },
+        [](TR* t, const glm::vec4& v) { t->SetColor(v); },
+        text->COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
+
+    BindProperty<float>(text, "Weight: ",
+        [=]() { return text->GetWeight(); },
+        [](TR* t, const float& v) { t->SetWeight(v); },
+        text->WEIGHT_CHANGED_EVENT, PropDesc().Tag(Tags::SLIDER).Range(-0.25f, 0.25f).Step(0.01f)
+            .Desc("Shifts the distance-field threshold: negative thins the strokes, "
+                  "positive bolds them. Free faux-bold, no second font file."));
+
+    BindProperty<glm::vec4>(text, "Outline Color: ",
+        [=]() { return text->GetOutlineColor(); },
+        [](TR* t, const glm::vec4& v) { t->SetOutlineColor(v); },
+        text->OUTLINE_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
+
+    BindProperty<float>(text, "Outline Width: ",
+        [=]() { return text->GetOutlineWidth(); },
+        [](TR* t, const float& v) { t->SetOutlineWidth(v); },
+        text->OUTLINE_CHANGED_EVENT, PropDesc().Tag(Tags::SLIDER).Range(0, 0.35f).Step(0.01f)
+            .Desc("0 disables the outline entirely."));
+
+    BindProperty<bool>(text, "Visible: ",
+        [=]() { return text->GetVisible(); },
+        [](TR* t, const bool& v) { t->SetVisible(v); },
+        text->VISIBILITY_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+    // ── Sorting ── (identical semantics to SpriteRenderer, so text interleaves
+    // with sprites in ScenePass's single sorted draw list.)
+    LayerManager* layerManager = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>();
+    if (layerManager)
+    {
+        std::vector<std::pair<std::string, std::any>> layerOptions;
+        for (const auto& layer : layerManager->GetLayers())
+            layerOptions.push_back({ layer.name, layer.priority });
+
+        auto layer_get = [=]() -> int {
+            return layerManager->GetPriority(text->GetSortingLayer());
+        };
+        auto layer_set = [layers = layerOptions](TR* t, const int& priority) {
+            for (const auto& [name, prio] : layers)
+            {
+                if (std::any_cast<int>(prio) == priority)
+                {
+                    t->SetSortingLayer(name);
+                    return;
+                }
+            }
+        };
+
+        BindProperty<int>(text, "Sorting Layer: ", layer_get, layer_set,
+            text->SORTING_LAYER_CHANGED_EVENT,
+            PropDesc().Tag(Tags::DROPDOWN).DropVals(layerOptions));
+    }
+
+    BindProperty<float>(text, "Order in Layer: ",
+        [=]() { return static_cast<float>(text->GetSortingOrder()); },
+        [](TR* t, const float& v) { t->SetSortingOrder(static_cast<int>(v)); },
+        text->SORTING_ORDER_CHANGED_EVENT,
+        PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
+}
+
+void InspectorVisitor::Visit(Font* font){
+    using F = Font;
+
+    BindProperty<std::string>(font, "Source: ",
+        [=]() { return font->GetSourcePath(); },
+        [](F*, const std::string&) {},
+        font->FILE_PATH_CHANGED_EVENT, PropDesc().Tag(Tags::FILEPATH).ReadOnly());
+
+    // Changing any of these three invalidates the disk cache and forces a rebake
+    // on the next frame that draws the font.
+    BindProperty<float>(font, "Atlas Em Size: ",
+        [=]() { return static_cast<float>(font->GetEmSize()); },
+        [](F* f, const float& v) { f->SetEmSize(static_cast<int>(v)); },
+        font->BAKE_SETTINGS_CHANGED_EVENT, PropDesc().Tag(Tags::INT).Range(8, 256).Step(1)
+            .Desc("Atlas pixels per em. Higher captures finer detail at a larger "
+                  "texture; MSDF stays sharp when scaled up, so this rarely needs "
+                  "raising for size alone."));
+
+    BindProperty<float>(font, "Distance Range: ",
+        [=]() { return font->GetPxRange(); },
+        [](F* f, const float& v) { f->SetPxRange(v); },
+        font->BAKE_SETTINGS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(1, 32).Step(0.5f)
+            .Desc("Width of the representable distance field, in atlas pixels. "
+                  "Raise it if thick outlines clip; it costs atlas area."));
+
+    BindProperty<std::string>(font, "Charset: ",
+        [=]() { return font->GetCharset(); },
+        [](F* f, const std::string& v) { f->SetCharset(v); },
+        font->BAKE_SETTINGS_CHANGED_EVENT, PropDesc().Tag(Tags::MULTILINE)
+            .Desc("Characters to bake. Empty means printable ASCII. An icon font "
+                  "needs its own glyphs listed here or it bakes empty."));
+
+    BindProperty<std::string>(font, "Atlas: ",
+        [=]() {
+            if (!font->IsReady()) return std::string("not baked yet");
+            return std::to_string(font->GetAtlasWidth()) + " x "
+                 + std::to_string(font->GetAtlasHeight()) + " px";
+        },
+        [](F*, const std::string&) {},
+        font->ATLAS_REBUILT_EVENT, PropDesc().Tag(Tags::STRING).ReadOnly());
 }
 
 void InspectorVisitor::Visit(Collider* collider){

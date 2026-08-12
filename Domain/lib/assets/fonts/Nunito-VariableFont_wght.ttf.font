@@ -1,0 +1,7 @@
+type: Font
+id: a37c742e4490cac09e3aaf21380c6e59
+name: Nunito-VariableFont_wght
+path: Domain/lib/assets/fonts/Nunito-VariableFont_wght.ttf
+bake:
+  em_size: 48
+  px_range: 4

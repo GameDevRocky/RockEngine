@@ -102,6 +102,7 @@ namespace EngineUtils {
         enum class Section { None, Vertex, Fragment };
         Section current = Section::None;
         std::stringstream vertSS, fragSS;
+        ShaderDomain domain = ShaderDomain::Sprite;
 
         std::string line;
         while (std::getline(file, line)) {
@@ -113,10 +114,18 @@ namespace EngineUtils {
                 current = Section::Fragment;
                 continue;
             }
+            // Read only in the preamble, before any stage marker. Everything up
+            // there was already being discarded, so recognising a directive here
+            // cannot change how any existing shader compiles.
+            if (current == Section::None &&
+                line.find("#pragma domain") != std::string::npos) {
+                if (line.find("text") != std::string::npos) domain = ShaderDomain::Text;
+                continue;
+            }
             if      (current == Section::Vertex)   vertSS << line << '\n';
             else if (current == Section::Fragment)  fragSS << line << '\n';
         }
 
-        return { vertSS.str(), fragSS.str() };
+        return { vertSS.str(), fragSS.str(), domain };
     }
 } 

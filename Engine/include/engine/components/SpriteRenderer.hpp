@@ -63,7 +63,10 @@ class SpriteRenderer : public Component
     void SetUniformOverride(const std::string& name, const UniformValue& value);
     void RemoveUniformOverride(const std::string& name);
 
-    void OverrideUniforms();
+    // `firstFreeTextureSlot` is what Material::ApplyUniforms returned for this
+    // draw. It used to be hardcoded to 1 here, which silently clobbered the
+    // material's second sampler whenever a material bound more than one texture.
+    void OverrideUniforms(int firstFreeTextureSlot);
     void Accept(IVisitor* v) override;
 
     std::string GetTypeName() const override { return "SpriteRenderer"; }

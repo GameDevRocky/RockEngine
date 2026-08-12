@@ -620,6 +620,14 @@ private:
                 auto* a = AssetManager::Get().GetShader(id);
                 return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
             };
+        else if (m_desc.tag == Properties::Tags::FONT)
+            // No thumbnail generator above, so the picker falls back to this: the
+            // OS icon for the .font meta. A rendered specimen would be nicer but
+            // needs a GL context the picker doesn't have.
+            fallbackIconGen = [iconFromFilePath](const std::string& id) {
+                auto* a = AssetManager::Get().GetFont(id);
+                return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
+            };
         else if (m_desc.tag == Properties::Tags::SCRIPT)
             fallbackIconGen = [iconFromFilePath](const std::string& id) -> QIcon {
                 // id is "module:class" — icon the module's .py file.
@@ -660,6 +668,8 @@ private:
             auto* a = am.GetTexture(id);  return a ? a->GetName() : id;
         } else if (m_desc.tag == Properties::Tags::SHADER) {
             auto* a = am.GetShader(id);   return a ? a->GetName() : id;
+        } else if (m_desc.tag == Properties::Tags::FONT) {
+            auto* a = am.GetFont(id);     return a ? a->GetName() : id;
         } else if (m_desc.tag == Properties::Tags::SCRIPT) {
             // id is "module:class" — show the class name (what the user picked).
             const auto colon = id.find(':');
@@ -718,6 +728,9 @@ private:
         } else if (m_desc.tag == Properties::Tags::SHADER) {
             for (const auto& [id, sh] : am.GetAllShaders())
                 items.push_back({sh->GetName(), id});
+        } else if (m_desc.tag == Properties::Tags::FONT) {
+            for (const auto& [id, f] : am.GetAllFonts())
+                items.push_back({f->GetName(), id});
         } else if (m_desc.tag == Properties::Tags::SCRIPT) {
             // Every ScriptableComponent subclass, keyed by "module:class".
             // Disambiguate a class name shared across modules as "Class (module)".

@@ -25,6 +25,7 @@ namespace Properties {
         SPRITE,
         TEXTURE,
         SHADER,
+        FONT,
         STRING,
         OBJECT_REF,
         SCRIPT,

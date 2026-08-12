@@ -1,0 +1,8 @@
+type: Texture2D
+id: d508fb4e2ccd4bf3bb0959f6a9e5c916
+name: font_icon
+path: Domain/lib/assets/icons/font_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

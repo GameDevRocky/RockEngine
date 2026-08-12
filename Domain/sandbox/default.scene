@@ -288,6 +288,34 @@ components:
     blendMode: 1
     sortingLayer: Default
     sortingOrder: -2
+  - id: e82274658f605f8b7706d210edbd2f02
+    enabled: true
+    type: Transform
+    gameobject: 54bb8b21d8508c8c7f05cb52a5642192
+    localPosition: [0, 20]
+    localRotation: 0
+    localScale: [0.67836785, 0.6051572]
+    parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
+  - id: e9aedcf3b8b2e9be7e17bb324eb2973c
+    enabled: true
+    type: TextRenderer
+    gameobject: 54bb8b21d8508c8c7f05cb52a5642192
+    text: Player
+    font_id: a37c742e4490cac09e3aaf21380c6e59
+    material_id: m_text
+    fontSize: 26
+    lineSpacing: 0.55
+    letterSpacing: 0.08
+    maxWidth: 0
+    hAlign: 1
+    vAlign: 1
+    color: [1, 0.45490196, 0.45490196, 1]
+    weight: 0.25
+    outlineColor: [0, 0, 0, 1]
+    outlineWidth: 0
+    visible: true
+    sortingLayer: Default
+    sortingOrder: 0
   - id: c557d15402229f902111d454d6003197
     enabled: true
     type: Transform
@@ -17123,6 +17151,13 @@ gameobjects:
     component_ids:
       - eab49f33037d8106a1dcd35e3e1eab82
       - 0146ac8c4181145e9bd7d94dc7d0aa32
+  - id: 54bb8b21d8508c8c7f05cb52a5642192
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    component_ids:
+      - e82274658f605f8b7706d210edbd2f02
+      - e9aedcf3b8b2e9be7e17bb324eb2973c
   - id: 983d4dc0871048db88c0abb372766b89
     type: GameObject
     name: Camera

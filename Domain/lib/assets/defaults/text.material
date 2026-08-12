@@ -1,0 +1,15 @@
+type: Material
+name: text
+id: m_text
+shader_id: s_msdf_text
+uniforms:
+  textures:
+    {}
+  floats:
+    {}
+  vec2:
+    {}
+  vec3:
+    {}
+  vec4:
+    {}

@@ -17,9 +17,12 @@
 [submodule "External/imguizmo"]
 	path = External/imguizmo
 	url = https://github.com/CedricGuillemet/ImGuizmo.git
-[submodule "msdfgen"]
-	path = msdfgen
+[submodule "External/msdfgen"]
+	path = External/msdfgen
 	url = https://github.com/chlumsky/msdfgen
+[submodule "External/freetype"]
+	path = External/freetype
+	url = https://github.com/freetype/freetype.git
 [submodule "External/nvrhi"]
 	path = External/nvrhi
 	url = https://github.com/NVIDIA-RTX/NVRHI

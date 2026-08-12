@@ -35,9 +35,16 @@ in vec2 vTexCoord;
 uniform int uId;
 uniform sampler2D uTexture;
 
+// Sprites are picked through their own alpha so a click passes through the
+// transparent parts of the quad. Some renderables have no texture to test
+// against -- a TextRenderer is picked as its measured block rectangle, and an
+// unbound sampler reads as fully transparent, which would discard every fragment
+// and make the object unclickable. Those set this to 0 to pick the whole quad.
+uniform float uAlphaTest = 1.0;
+
 void main()
 {
     vec4 texColor = texture(uTexture, vTexCoord);
-    if(texColor.a < 0.1) discard;
+    if(uAlphaTest > 0.5 && texColor.a < 0.1) discard;
     FragID = uint(uId);
 }

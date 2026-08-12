@@ -21,6 +21,27 @@ static const std::unordered_set<std::string>& EngineReservedUniforms()
     return kReserved;
 }
 
+// Additionally reserved on a TEXT-domain shader.
+//
+// uMSDF and uPxRange are engine-bound -- the atlas texture and the distance range
+// it was baked with are properties of the Font, not of any material. The rest are
+// authored on the TextRenderer component and written by its OverrideUniforms, so
+// a material row for them would be a dead control.
+//
+// Scoped by domain rather than added to the list above because uColor is shared
+// with sprite.glsl. Reserving it globally would prune it from every existing
+// sprite material, spamming the console and rewriting every .material file on
+// disk -- for a control that is admittedly already dead on that path, but fixing
+// that is a separate change with its own migration, not a side effect of adding
+// text.
+static const std::unordered_set<std::string>& TextReservedUniforms()
+{
+    static const std::unordered_set<std::string> kReserved = {
+        "uMSDF", "uPxRange", "uColor", "uWeight", "uOutlineColor", "uOutlineWidth"
+    };
+    return kReserved;
+}
+
 
 YAML::Node Material::Serialize() {
     YAML::Node node;
@@ -121,13 +142,19 @@ void Material::Validate() {
 
     auto& shaderUniforms = shader->GetActiveUniforms();
 
-    const auto& reserved = EngineReservedUniforms();
+    const auto& baseReserved = EngineReservedUniforms();
+    const bool isText = shader->GetDomain() == EngineUtils::ShaderDomain::Text;
+    const auto& textReserved = TextReservedUniforms();
+
+    auto isReserved = [&](const std::string& name) {
+        return baseReserved.count(name) > 0 || (isText && textReserved.count(name) > 0);
+    };
 
     auto prune = [&](auto& map) {
         for (auto it = map.begin(); it != map.end(); ) {
             // Reserved names are dropped even when the shader declares them, so a
             // material saved before this list existed sheds them on next load.
-            if (reserved.count(it->first) ||
+            if (isReserved(it->first) ||
                 shaderUniforms.find(it->first) == shaderUniforms.end()) {
                 Console::Alert("Material: Pruning unused uniform [" + it->first + "]");
                 it = map.erase(it);
@@ -152,7 +179,7 @@ void Material::Validate() {
     const auto& vec4Defs  = shader->GetVec4Defaults();
 
     for (const auto& [uname, info] : shaderUniforms) {
-        if (reserved.count(uname)) continue;
+        if (isReserved(uname)) continue;
         switch (info.type) {
             case GL_FLOAT: {
                 auto it = floatDefs.find(uname);
@@ -200,9 +227,9 @@ Shader* Material::GetShader(){
     return nullptr;
 }
 
-void Material::ApplyUniforms(){
+int Material::ApplyUniforms(){
     Shader* shader = GetShader();
-    if (!shader) return;
+    if (!shader) return 0;
         for (auto& kv : floatUniforms)
             shader->SetFloat(kv.first, kv.second);
 
@@ -220,12 +247,16 @@ void Material::ApplyUniforms(){
         {
             Texture2D* tex = AssetManager::Get().GetTexture(kv.second);
             if (tex) {
-                tex->Bind(textureSlot); 
+                tex->Bind(textureSlot);
                 shader->SetTexture(kv.first, textureSlot);
                 textureSlot++;
             }
         }
-    
+    // Returned so a component's per-instance overrides can continue from the
+    // first slot this material did NOT claim. Callers used to hardcode 1, which
+    // is only correct for a material with exactly one bound sampler -- with two,
+    // the override silently overwrote the material's second texture binding.
+    return textureSlot;
 }
 
 float Material::GetFloat(const std::string& name) const {

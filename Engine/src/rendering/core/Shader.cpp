@@ -31,6 +31,7 @@ void Shader::Deserialize(const YAML::Node& node) {
     auto src = EngineUtils::ParseShaderSource(source_path);
     vert_src = src.vertex;
     frag_src = src.fragment;
+    domain = src.domain;
     GLuint vertex = CompileShader(GL_VERTEX_SHADER, vert_src);
     GLuint fragment = CompileShader(GL_FRAGMENT_SHADER, frag_src);
     program_id = LinkProgram(vertex, fragment);

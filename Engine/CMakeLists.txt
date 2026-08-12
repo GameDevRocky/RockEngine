@@ -19,10 +19,16 @@ target_include_directories(RockEngineCore
 )
 
 # 4. Link Libraries
-target_link_libraries(RockEngineCore 
-    PUBLIC 
+target_link_libraries(RockEngineCore
+    PUBLIC
         ExternalLibs
         pybind11::embed
+    PRIVATE
+        # Deliberately PRIVATE, and deliberately not part of ExternalLibs: msdfgen's
+        # headers stay off the Editor's include path entirely. Only FontAtlasBaker.cpp
+        # includes them -- everything downstream sees a plain glyph table and a GL
+        # texture id, so swapping the generator later touches one file.
+        msdfgen::msdfgen
 )
 
 target_compile_definitions(RockEngineCore PRIVATE ROCK_ENGINE_EXPORT)

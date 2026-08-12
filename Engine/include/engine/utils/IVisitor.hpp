@@ -11,6 +11,8 @@ class BoxCollider;
 class CircleCollider;
 class CapsuleCollider;
 class SpriteRenderer;
+class TextRenderer;
+class Font;
 class ScriptComponent;
 class GameObject;
 class Collider;
@@ -44,6 +46,8 @@ public:
     virtual void Visit(CircleCollider* cc) {}
     virtual void Visit(CapsuleCollider* cac) {}
     virtual void Visit(SpriteRenderer* sr) {}
+    virtual void Visit(TextRenderer* tr) {}
+    virtual void Visit(Font* f) {}
     virtual void Visit(ScriptComponent* sc) {}
     virtual void Visit(Sprite* s) {}
     virtual void Visit(Material* m) {}

@@ -30,6 +30,8 @@ class InspectorVisitor : public IVisitor{
         void Visit(GameObject* obj) override;
         void Visit(Transform* transform) override;
         void Visit(SpriteRenderer* spriteRenderer) override;
+        void Visit(TextRenderer* textRenderer) override;
+        void Visit(Font* font) override;
         void Visit(Collider* collider) override;
         void Visit(BoxCollider* boxCollider) override;
         void Visit(CircleCollider* circleCollider) override;

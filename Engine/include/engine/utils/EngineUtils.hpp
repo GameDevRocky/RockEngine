@@ -68,6 +68,7 @@ namespace EngineUtils {
     namespace TextureSlots {
         constexpr int NormalMap   = 12;   // generated from the sprite texture's grayscale
         constexpr int ShadowAtlas = 13;   // per-light polar depth maps
+        constexpr int FontAtlas   = 14;   // a Font's baked MSDF glyph atlas
     }
 
     namespace MathUtils {
@@ -79,9 +80,26 @@ namespace EngineUtils {
     std::string GenerateUUID();
     std::string ReadShader(const std::string& path);
 
+    // What vertex data a shader expects to be fed. Declared in the .glsl via
+    // `#pragma domain <name>` before the stage markers; absent means Sprite, so
+    // every shader written before this existed keeps its meaning.
+    //
+    //   Sprite -- ScenePass's unit quad: aPos in [-0.5,0.5] scaled by uSize and
+    //             shifted by uPivot, UVs remapped through uUVScale/uUVOffset.
+    //   Text   -- a glyph mesh: aPos already positioned in text-local world
+    //             units, aUV already the glyph's rect in an MSDF atlas.
+    //
+    // Purely advisory. TextRenderer neutralizes the sprite quad's transform
+    // uniforms so a Sprite-domain material still positions text correctly; the
+    // domain exists so the editor can filter the material picker and warn on a
+    // mismatch rather than leaving the user to wonder why their text is rainbow
+    // noise (a sprite shader samples the atlas as colour instead of decoding it).
+    enum class ShaderDomain { Sprite, Text };
+
     struct ShaderSource {
         std::string vertex;
         std::string fragment;
+        ShaderDomain domain = ShaderDomain::Sprite;
     };
     // Parse a combined .glsl file split by #pragma vertex / #pragma fragment markers.
     ShaderSource ParseShaderSource(const std::string& path);

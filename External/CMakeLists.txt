@@ -27,6 +27,44 @@ find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter Development)
 set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(pybind11)
 
+# --- FreeType ---
+# Only here because msdfgen-ext needs it to read glyph outlines and metrics out of
+# a font file (msdfgen-core can generate a distance field but cannot parse a font).
+# Every optional codec/shaper is off: we hand FreeType a .ttf/.otf and take outlines
+# back out, nothing more.
+set(FT_DISABLE_ZLIB     ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BZIP2    ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_PNG      ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
+set(FT_DISABLE_BROTLI   ON CACHE BOOL "" FORCE)
+add_subdirectory(freetype)
+
+# FreeType's own CMakeLists only attaches the name `Freetype::Freetype` as an
+# EXPORT_NAME on an interface target, which exists for installed packages and NOT
+# as a target in this build. msdfgen guards its dependency with
+# `if(NOT TARGET Freetype::Freetype)` and would otherwise fall through to a
+# find_package(Freetype REQUIRED) that fails on a machine with no system FreeType.
+# Creating the alias here is what makes that guard see the submodule.
+add_library(Freetype::Freetype ALIAS freetype)
+
+# --- MSDF font atlas generation ---
+# Extensions ON: font loading lives in msdfgen-ext. Everything else off -- Skia is
+# only for geometry preprocessing we don't need, and the SVG/PNG codecs would drag
+# in tinyxml2 and libpng for features we never call.
+set(MSDFGEN_CORE_ONLY        OFF CACHE BOOL "" FORCE)
+set(MSDFGEN_BUILD_STANDALONE OFF CACHE BOOL "" FORCE)
+set(MSDFGEN_USE_VCPKG        OFF CACHE BOOL "" FORCE)
+set(MSDFGEN_USE_SKIA         OFF CACHE BOOL "" FORCE)
+set(MSDFGEN_DISABLE_SVG      ON  CACHE BOOL "" FORCE)
+set(MSDFGEN_DISABLE_PNG      ON  CACHE BOOL "" FORCE)
+set(MSDFGEN_INSTALL          OFF CACHE BOOL "" FORCE)
+# MUST stay ON. msdfgen defaults this OFF, which forces its targets onto the STATIC
+# MSVC runtime (/MT) while the rest of RockEngine and all of Qt use the dynamic one
+# (/MD). Mixing the two links with LNK4098 warnings and then corrupts the heap at
+# runtime, because memory allocated by one CRT is freed by the other.
+set(MSDFGEN_DYNAMIC_RUNTIME  ON  CACHE BOOL "" FORCE)
+add_subdirectory(msdfgen)
+
 # --- GLAD ---
 add_library(glad STATIC glad/src/glad.c)
 target_include_directories(glad 

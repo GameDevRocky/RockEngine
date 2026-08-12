@@ -1,0 +1,7 @@
+type: Font
+id: f3a3b317816c8d87f1a4b97efba0c0bd
+name: Eater-Regular
+path: Domain/lib/assets/fonts/Eater-Regular.ttf
+bake:
+  em_size: 48
+  px_range: 4

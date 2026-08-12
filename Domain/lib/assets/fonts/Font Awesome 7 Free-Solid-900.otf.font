@@ -1,0 +1,7 @@
+type: Font
+id: 6ebb53201b189aad80ec83b92b61e9a8
+name: Font Awesome 7 Free-Solid-900
+path: Domain/lib/assets/fonts/Font Awesome 7 Free-Solid-900.otf
+bake:
+  em_size: 48
+  px_range: 4
