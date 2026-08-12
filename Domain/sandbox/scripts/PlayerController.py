@@ -24,7 +24,7 @@ class PlayerController(ScriptableComponent):
     Tune the numeric fields below in the inspector to match your world scale.
     """
 
-    test_ : GameObject
+    test_ : list[GameObject]
 
     # ── Movement tuning ──────────────────────────────────────────────────────
     move_speed: float = 200.0           # target horizontal speed

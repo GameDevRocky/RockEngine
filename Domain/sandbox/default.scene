@@ -7,7 +7,7 @@ components:
     gameobject: 27d025e08ff0501fbf199080ce91f924
     localPosition: [595.2529, 48.23557]
     localRotation: 0.5104492
-    localScale: [1.5, 1.5]
+    localScale: [1.4999999, 1.4999999]
     parent_id: ~
   - id: 104a1015c1e12db37ea53169f31278b3
     enabled: true
@@ -245,16 +245,16 @@ components:
     enabled: true
     type: Transform
     gameobject: 9a30149c1af0006e3edb419555007c18
-    localPosition: [-0.00030517578, -11.59761]
-    localRotation: 0
-    localScale: [0.42376894, 0.40564942]
+    localPosition: [-0.00030517578, -11.597609]
+    localRotation: -3.147992e-08
+    localScale: [0.42376894, 0.4056494]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: eab49f33037d8106a1dcd35e3e1eab82
     enabled: true
     type: Transform
     gameobject: 3ffbee457f70afd023959af3dce66b1d
-    localPosition: [-0.00024414062, 1.5258789e-05]
-    localRotation: -2.5171414e-06
+    localPosition: [-0.00024414062, 1.7166138e-05]
+    localRotation: -2.5564718e-06
     localScale: [0.6783676, 0.6051572]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: 0146ac8c4181145e9bd7d94dc7d0aa32
@@ -292,8 +292,8 @@ components:
     enabled: true
     type: Transform
     gameobject: 54bb8b21d8508c8c7f05cb52a5642192
-    localPosition: [0.08081055, 29.074703]
-    localRotation: -1.8159696
+    localPosition: [0.08078003, 29.074703]
+    localRotation: -1.8159693
     localScale: [1, 1]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: e9aedcf3b8b2e9be7e17bb324eb2973c
@@ -329,9 +329,9 @@ components:
     type: Camera
     gameobject: 983d4dc0871048db88c0abb372766b89
     projection: 0
-    orthoSize: 251.33739
+    orthoSize: 177.82964
     clearFlags: 0
-    clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
+    clearColor: [0.76862746, 0.9490196, 1, 1]
     priority: -7
     targetAspect: 2
     viewportRect: [0, 0, 1, 1]
@@ -15366,6 +15366,51 @@ components:
     bounciness: 0
     rollingResistance: 0
     size: [15.999995, 15.999995]
+  - id: 4cf5b5d7cdcd2ca778ce30ca7319f471
+    enabled: true
+    type: Transform
+    gameobject: 6ab231c3fcb87b82e81cb7557353da46
+    localPosition: [495.30762, -64]
+    localRotation: 0
+    localScale: [2, 2]
+    parent_id: ~
+  - id: bae9c06691f976caf23ae0ad80a0561f
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 6ab231c3fcb87b82e81cb7557353da46
+    material_id: m1
+    sprite_id: 0160c4e42077e7427d811930ce5b302f
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: e6ebed7f33576b8fcc4dcef66d2a6ded
+    enabled: true
+    type: Animator
+    gameobject: 6ab231c3fcb87b82e81cb7557353da46
+    defaultState: On
+    states:
+      - name: On
+        frames: [0160c4e42077e7427d811930ce5b302f, 7e5e798bb47b859f04f8f53c17a94046, 3af7aff5f81d6284f9b720f44b557230]
+        frameRate: 12
+        speed: 1
+        loop: true
+        pos: [79.9, -241.6]
+    transitions:
+      - id: daf869491293fdc0f7170b13c034390a
+        from: ""
+        fromAny: true
+        to: On
+        hasExitTime: false
+        exitTime: 1
+        conditions:
+          []
+    parameters:
+      []
 gameobjects:
   - id: 27d025e08ff0501fbf199080ce91f924
     type: GameObject
@@ -18787,3 +18832,11 @@ gameobjects:
       - 10b9bb49dd10bc422f48b59c2f3dd864
       - 764af36e0e7f9403888803c79cb40aa9
       - e278a663bc61e2164067c21869b35624
+  - id: 6ab231c3fcb87b82e81cb7557353da46
+    type: GameObject
+    name: On (16x32)_0
+    tag: Untagged
+    component_ids:
+      - 4cf5b5d7cdcd2ca778ce30ca7319f471
+      - bae9c06691f976caf23ae0ad80a0561f
+      - e6ebed7f33576b8fcc4dcef66d2a6ded
