@@ -19,6 +19,7 @@
 #include "utils/AssetThumbnails.hpp"
 #include "utils/RefDropFilter.hpp"
 #include "utils/DragDropMime.hpp"
+#include "utils/ListRowChrome.hpp"
 
 // Keeps a PropertyWidget wrapper alive exactly as long as the Qt widget it drives.
 // The wrappers are plain C++ objects whose lambdas capture `this`, so freeing them
@@ -54,6 +55,12 @@ public:
         m_layout = new QVBoxLayout(this);
         m_layout->setContentsMargins(0, 0, 0, 0);
         m_layout->setSpacing(2);
+
+        // Reorder commits through the Animator's existing MoveFrame backend, so
+        // the drag has the same effect the old ↑/↓ buttons did -- just in one
+        // gesture and across any distance.
+        m_reorder = new ListRow::ReorderController(this,
+            [this](int from, int to) { if (onMoveFrame) onMoveFrame(from, to); }, this);
     }
 
     void Rebuild() {
@@ -106,11 +113,18 @@ private:
         e->ignore();
     }
 
-    QWidget* buildRow(int index, const std::string& spriteId, int frameCount) {
+    QWidget* buildRow(int index, const std::string& spriteId, int /*frameCount*/) {
         auto* row = new QWidget(this);
         auto* rl = new QHBoxLayout(row);
         rl->setContentsMargins(0, 0, 0, 0);
         rl->setSpacing(3);
+
+        // Grip first, ahead of everything including the index, because it is the
+        // handle for the row itself. Same class the inspector's list rows use --
+        // the ↑/↓ pair this replaced only moved one step at a time and had to be
+        // disabled at the ends, which drag-reorder makes unnecessary.
+        auto* handle = new ListRow::DragHandle(row);
+        rl->addWidget(handle);
 
         auto* idxLabel = new QLabel(QString::number(index), row);
         idxLabel->setFixedWidth(18);
@@ -130,32 +144,14 @@ private:
         rl->addWidget(ref->GetWidget(), 1);
         new PropertyWidgetHolder(std::move(ref), row);   // freed with the row
 
-        auto* up = new QPushButton("↑", row);       // ↑
-        up->setFixedWidth(20);
-        up->setEnabled(index > 0);
-        up->setToolTip("Move up");
-        connect(up, &QPushButton::clicked, this, [this, index]() {
-            if (onMoveFrame) onMoveFrame(index, index - 1);
-        });
-        rl->addWidget(up);
-
-        auto* down = new QPushButton("↓", row);     // ↓
-        down->setFixedWidth(20);
-        down->setEnabled(index < frameCount - 1);
-        down->setToolTip("Move down");
-        connect(down, &QPushButton::clicked, this, [this, index]() {
-            if (onMoveFrame) onMoveFrame(index, index + 1);
-        });
-        rl->addWidget(down);
-
-        auto* del = new QPushButton("×", row);
-        del->setFixedWidth(22);
+        auto* del = ListRow::MakeRemoveButton(row);
         del->setToolTip("Remove frame");
         connect(del, &QPushButton::clicked, this, [this, index]() {
             if (onRemoveFrame) onRemoveFrame(index);
         });
         rl->addWidget(del);
 
+        m_reorder->RegisterRow(row, handle);
         return row;
     }
 
@@ -188,6 +184,7 @@ private:
     }
 
     void clear() {
+        if (m_reorder) m_reorder->Clear();
         while (QLayoutItem* item = m_layout->takeAt(0)) {
             if (QWidget* w = item->widget()) w->deleteLater();
             delete item;
@@ -195,4 +192,5 @@ private:
     }
 
     QVBoxLayout* m_layout = nullptr;
+    ListRow::ReorderController* m_reorder = nullptr;
 };

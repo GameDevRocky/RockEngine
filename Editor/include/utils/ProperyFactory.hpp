@@ -1,7 +1,9 @@
 #pragma once
 #include "utils/PropertyWidget.hpp"
+#include "utils/ListRowChrome.hpp"
 #include <QVBoxLayout>
 #include <QToolButton>
+#include <algorithm>
 #include <vector>
 
 class PropertyFactory {
@@ -155,9 +157,32 @@ private:
         if (this->onChanged) this->onChanged(m_data);
     }
 
+    // Move an element and republish. The whole backend of reordering: the row
+    // widgets are a pure function of m_data, so shifting the data and rebuilding
+    // is both the move and the redraw.
+    void moveElement(int from, int to) {
+        const int n = static_cast<int>(m_data.size());
+        if (from < 0 || from >= n) return;
+        to = std::clamp(to, 0, n - 1);
+        if (from == to) return;
+
+        T moved = std::move(m_data[from]);
+        m_data.erase(m_data.begin() + from);
+        m_data.insert(m_data.begin() + to, std::move(moved));
+
+        // Queued: this runs from inside the drag handle's own event filter, and
+        // rebuild() deletes that handle. Tearing it down underneath the event
+        // that asked for it is a use-after-free.
+        QMetaObject::invokeMethod(m_container, [this]() {
+            rebuild();
+            emitChanged();
+        }, Qt::QueuedConnection);
+    }
+
     void clearRows() {
         for (auto* child : m_children) delete child;
         m_children.clear();
+        if (m_reorder) m_reorder->Clear();
         if (m_rowsLayout.isNull()) return;
         QLayoutItem* item;
         while ((item = m_rowsLayout->takeAt(0)) != nullptr) {
@@ -185,27 +210,45 @@ private:
             auto* rl = new QHBoxLayout(row);
             rl->setContentsMargins(0, 0, 0, 0);
             rl->setSpacing(4);
+
+            // The grip goes FIRST, before the element's own widget: it is the
+            // handle for the row as a whole, so it reads as belonging to the row
+            // rather than to the field inside it.
+            ListRow::DragHandle* handle = nullptr;
+            if (!m_readOnly) {
+                handle = new ListRow::DragHandle(row);
+                rl->addWidget(handle);
+            }
+
             rl->addWidget(child->GetWidget(), 1);
 
-            // Read-only lists drop the per-row remove button (the +Add button is
-            // likewise omitted from the header) — that's all read-only changes.
+            // Read-only lists drop the grip and the remove button (the +Add
+            // button is likewise omitted from the header) — that's all read-only
+            // changes.
             if (!m_readOnly) {
-                auto* removeBtn = new QPushButton();
-                removeBtn->setIcon(removeBtn->style()->standardIcon(QStyle::SP_TitleBarCloseButton));
-                removeBtn->setFlat(true);
-                removeBtn->setFixedWidth(24);
-                removeBtn->setToolTip("Remove");
+                auto* removeBtn = ListRow::MakeRemoveButton(row);
                 QObject::connect(removeBtn, &QPushButton::clicked, [this, i]() {
-                    if (i < m_data.size()) {
-                        m_data.erase(m_data.begin() + i);
+                    if (i >= m_data.size()) return;
+                    m_data.erase(m_data.begin() + i);
+                    // Queued for the same reason as moveElement: rebuild() deletes
+                    // the button whose click we are inside.
+                    QMetaObject::invokeMethod(m_container, [this]() {
                         rebuild();
                         emitChanged();
-                    }
+                    }, Qt::QueuedConnection);
                 });
                 rl->addWidget(removeBtn);
             }
 
             m_rowsLayout->addWidget(row);
+            if (handle) {
+                if (!m_reorder) {
+                    m_reorder = new ListRow::ReorderController(
+                        m_rows, [this](int from, int to) { moveElement(from, to); },
+                        m_container);
+                }
+                m_reorder->RegisterRow(row, handle);
+            }
             m_children.push_back(child);
         }
     }
@@ -218,6 +261,9 @@ private:
     QPointer<QToolButton> m_toggle;
     QPointer<QWidget> m_body;
     QPointer<QWidget> m_rows;
+    // Created on the first rebuild that produces rows; parented to m_container so
+    // it outlives individual rebuilds but dies with the widget.
+    ListRow::ReorderController* m_reorder = nullptr;
     QPointer<QVBoxLayout> m_rowsLayout;
 };
 

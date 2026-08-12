@@ -276,6 +276,34 @@ QProgressBar::chunk {
 
 
 /*===========================================================================
+ * ListRemoveButton (the trash button on editable list rows)
+ *
+ * Red because it is the one destructive control in a row of neutral ones, and
+ * the "×" it replaced read as "close this" rather than "delete this". Muted at
+ * rest so a long list isn't a wall of red; full strength on hover, when the
+ * pointer has already committed to the row.
+ *
+ * The generic QPushButton rule above sets 14px side padding, which would push a
+ * 14px icon out of a 24px button -- hence the explicit padding reset.
+ *===========================================================================*/
+QPushButton#ListRemoveButton {
+    background: rgb(104, 44, 44);
+    border: 1px solid rgb(132, 56, 56);
+    border-radius: 2px;
+    padding: 0px;
+}
+
+QPushButton#ListRemoveButton:hover {
+    background: rgb(158, 58, 58);
+    border: 1px solid rgb(190, 78, 78);
+}
+
+QPushButton#ListRemoveButton:pressed {
+    background: rgb(88, 36, 36);
+}
+
+
+/*===========================================================================
  * CToggleSwitch
  *===========================================================================*/
 CToggleSwitch

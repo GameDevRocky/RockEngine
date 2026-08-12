@@ -1,0 +1,8 @@
+type: Texture2D
+id: f11ecfa6e77e7a5d150e6568b63e1fc4
+name: trashcan_icon
+path: Domain/lib/assets/icons/trashcan_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []
