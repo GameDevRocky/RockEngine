@@ -17153,7 +17153,7 @@ gameobjects:
       - 0146ac8c4181145e9bd7d94dc7d0aa32
   - id: 54bb8b21d8508c8c7f05cb52a5642192
     type: GameObject
-    name: GameObject
+    name: Text
     tag: Untagged
     component_ids:
       - e82274658f605f8b7706d210edbd2f02

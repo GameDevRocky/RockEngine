@@ -1,0 +1,7 @@
+type: Font
+id: 0a73db5e94a3d0dd4e002e42e5531906
+name: default
+path: Domain/lib/assets/fonts/default.ttf
+bake:
+  em_size: 48
+  px_range: 4

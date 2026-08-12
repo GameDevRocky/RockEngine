@@ -224,6 +224,39 @@ QLineEdit:disabled {
 
 
 /*===========================================================================
+ * ResizableTextEdit (the Tags::MULTILINE property widget)
+ *
+ * Deliberately identical to QLineEdit above: a paragraph field is the same kind
+ * of input, just taller, and a second palette for it would read as a different
+ * control. Padding stays small because the drag grip lives inside the frame.
+ *===========================================================================*/
+ResizableTextEdit {
+    background-color: rgb(30, 30, 30);
+    border: 1px solid rgb(51, 51, 51);
+    border-radius: 2px;
+    padding: 2px;
+    color: rgb(220, 220, 220);
+    selection-background-color: rgb(70, 70, 70);
+    selection-color: rgb(255, 255, 255);
+}
+
+ResizableTextEdit:hover {
+    border: 1px solid rgb(80, 80, 80);
+}
+
+ResizableTextEdit:focus {
+    border: 1px solid rgb(100, 100, 100);
+    background-color: rgb(35, 35, 35);
+}
+
+ResizableTextEdit:disabled {
+    color: rgb(100, 100, 100);
+    background-color: rgb(25, 25, 25);
+    border: 1px solid rgb(40, 40, 40);
+}
+
+
+/*===========================================================================
  * CToggleSwitch
  *===========================================================================*/
 CToggleSwitch

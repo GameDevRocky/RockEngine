@@ -25,6 +25,15 @@ class Font;
 // the copy. Same reasoning as ParticleComponent and ParticleManager.
 class TextRenderer : public Component {
 public:
+    // Asset NAMES (not ids) of what a freshly created TextRenderer starts with,
+    // so a component dropped on an object draws something immediately instead of
+    // rendering nothing until a font is picked. Names rather than ids because the
+    // ids live in the meta files and are regenerated on collision.
+    static constexpr const char* kDefaultFontName     = "default";  // Domain/lib/assets/fonts/default.ttf
+    static constexpr const char* kDefaultMaterialName = "text";     // Domain/lib/assets/defaults/text.material
+
+    TextRenderer();
+
     // ── Layout-affecting: these invalidate the cached glyph mesh ────────────
     static inline const Event TEXT_CHANGED_EVENT           = TextRenderer::CreateEvent();
     static inline const Event FONT_CHANGED_EVENT           = TextRenderer::CreateEvent();

@@ -135,7 +135,12 @@ void AssetPreviewDelegate::paint(QPainter* painter,
         return;
     }
 
-    // ── Render fresh thumbnail every paint (no caching) ───────────────────────
+    // ── Thumbnail for this cell ───────────────────────────────────────────────
+    // The texture path goes through AssetThumbnails, which caches by id, so a
+    // repaint is a hash lookup. renderMaterialPreview still renders on every
+    // paint (and re-parses the .material file to find its id) -- it predates the
+    // cache and duplicates AssetThumbnails::forMaterial; folding the two
+    // together is worth doing.
     QPixmap px;
     if (ext == "mat" || ext == "material") {
         px = renderMaterialPreview(filePath);

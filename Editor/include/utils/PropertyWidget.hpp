@@ -11,6 +11,10 @@
 #include <QVBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QPlainTextEdit>
+#include <QTextDocument>
+#include <QPainter>
+#include <QResizeEvent>
 #include <QComboBox>
 #include <QStyle>
 #include <QApplication>
@@ -397,6 +401,173 @@ public:
 
 private:
     QPointer<QLineEdit> edit;
+};
+
+// The drag handle in a ResizableTextEdit's bottom-right corner.
+//
+// A real child widget rather than something painted into the text area: once the
+// vertical scrollbar appears it owns that corner, and only a widget raised above
+// it keeps both the cursor shape and the drag alive. It also scopes the resize
+// cursor to the handle instead of the whole field.
+class TextBoxResizeGrip : public QWidget {
+public:
+    static constexpr int kSize = 14;
+
+    TextBoxResizeGrip(QWidget* target, int minHeight, int maxHeight)
+        : QWidget(target), m_target(target), m_minH(minHeight), m_maxH(maxHeight)
+    {
+        setFixedSize(kSize, kSize);
+        setCursor(Qt::SizeVerCursor);
+        setToolTip("Drag to resize");
+    }
+
+protected:
+    void paintEvent(QPaintEvent*) override {
+        // The three diagonal ticks a browser draws on a <textarea>, so the
+        // gesture is recognisable without having to find the tooltip first.
+        QPainter p(this);
+        p.setPen(QPen(QColor(120, 120, 120)));
+        for (int i = 0; i < 3; ++i) {
+            const int o = 3 + i * 4;
+            p.drawLine(width() - o, height() - 2, width() - 2, height() - o);
+        }
+    }
+
+    void mousePressEvent(QMouseEvent* e) override {
+        if (e->button() != Qt::LeftButton || !m_target) { QWidget::mousePressEvent(e); return; }
+        m_dragging     = true;
+        m_pressGlobalY = e->globalPosition().toPoint().y();
+        m_pressHeight  = m_target->height();
+        e->accept();
+    }
+
+    void mouseMoveEvent(QMouseEvent* e) override {
+        if (!m_dragging || !m_target) { QWidget::mouseMoveEvent(e); return; }
+        // Tracked against the press point in global coordinates, not against the
+        // last move: the grip moves with the widget it is resizing, so a delta
+        // read from local coordinates would chase itself.
+        const int dy = e->globalPosition().toPoint().y() - m_pressGlobalY;
+        m_target->setFixedHeight(std::clamp(m_pressHeight + dy, m_minH, m_maxH));
+        e->accept();
+    }
+
+    void mouseReleaseEvent(QMouseEvent* e) override {
+        m_dragging = false;
+        e->accept();
+    }
+
+private:
+    QWidget* m_target = nullptr;
+    int  m_minH = 0;
+    int  m_maxH = 0;
+    bool m_dragging = false;
+    int  m_pressGlobalY = 0;
+    int  m_pressHeight = 0;
+};
+
+// The multi-line editor behind TextBoxPropertyWidget.
+//
+// QPlainTextEdit rather than QTextEdit: the bound value is a plain std::string,
+// and QTextEdit's rich-text machinery would accept pasted formatting only to
+// throw it away on the way out.
+//
+// Height is user-adjustable by dragging the bottom-right grip, the way an HTML
+// <textarea> resizes -- vertical only. Width belongs to the inspector's grid
+// column: a field that set its own would either sit visibly narrower than every
+// other row or widen the column and force a horizontal scrollbar on the whole
+// panel. That is `resize: vertical`, which is where a textarea inside a form
+// layout usually lands anyway.
+class ResizableTextEdit : public QPlainTextEdit {
+    Q_OBJECT
+public:
+    explicit ResizableTextEdit(int rows, QWidget* parent = nullptr)
+        : QPlainTextEdit(parent)
+    {
+        // Ignored horizontally, like every other property widget, so the grid
+        // column drives the width and a long paragraph can't stretch the panel.
+        setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        setLineWrapMode(QPlainTextEdit::WidgetWidth);
+        // In a form, Tab is worth more as "next field" than as a literal tab
+        // character. Ctrl+Tab still inserts one.
+        setTabChangesFocus(true);
+
+        m_grip = new TextBoxResizeGrip(this, HeightForRows(kMinRows), HeightForRows(kMaxRows));
+        setFixedHeight(HeightForRows(rows));
+    }
+
+    static constexpr int kMinRows = 2;
+    static constexpr int kMaxRows = 40;
+
+    // Pixel height that fits `rows` lines of text. Derived from the current font
+    // and the frame/document margins rather than a constant, so it survives a
+    // stylesheet padding change or a different UI font.
+    int HeightForRows(int rows) const {
+        const QMargins cm = contentsMargins();
+        return fontMetrics().lineSpacing() * rows
+             + static_cast<int>(document()->documentMargin()) * 2
+             + cm.top() + cm.bottom()
+             + frameWidth() * 2;
+    }
+
+protected:
+    void resizeEvent(QResizeEvent* e) override {
+        QPlainTextEdit::resizeEvent(e);
+        if (m_grip) {
+            m_grip->move(width()  - TextBoxResizeGrip::kSize - 1,
+                         height() - TextBoxResizeGrip::kSize - 1);
+            m_grip->raise();
+        }
+    }
+
+private:
+    TextBoxResizeGrip* m_grip = nullptr;
+};
+
+// Paragraph-friendly string property — what Tags::MULTILINE maps to. Same
+// contract as StringPropertyWidget, just not confined to one line.
+class TextBoxPropertyWidget : public PropertyWidget<std::string> {
+public:
+    static constexpr int kDefaultRows = 4;
+
+    explicit TextBoxPropertyWidget(const Properties::PropDesc& desc) {
+        edit = new ResizableTextEdit(kDefaultRows);
+        // Read by InspectorVisitor::AddRow: a row this tall reads better with its
+        // label pinned to the first line of text than floating at the midpoint.
+        edit->setProperty("labelTopAlign", true);
+        if (desc.readOnly || desc.tag == Properties::Tags::READONLY)
+            edit->setReadOnly(true);
+
+        QObject::connect(edit, &QPlainTextEdit::textChanged, [this]() {
+            if (edit.isNull() || !onChanged) return;
+            onChanged(edit->toPlainText().toStdString());
+        });
+    }
+
+    QWidget* GetWidget() override { return edit; }
+    bool IsValid() override { return !edit.isNull(); }
+
+    void SetValue(const std::string& val) override {
+        if (edit.isNull()) return;
+        const QString next = QString::fromStdString(val);
+        // A correctness guard, not an optimisation. SetValue also arrives as the
+        // echo of the user's own keystroke -- the edit fires the property's
+        // change event, which marks the row dirty, and the inspector's refresh
+        // timer pushes the value straight back. setPlainText resets the caret to
+        // the start of the document, so without this every character typed
+        // mid-paragraph would fling the cursor to the top.
+        if (edit->toPlainText() == next) return;
+        edit->blockSignals(true);
+        edit->setPlainText(next);
+        edit->blockSignals(false);
+    }
+
+    std::string GetValue() override {
+        return edit.isNull() ? "" : edit->toPlainText().toStdString();
+    }
+
+private:
+    QPointer<ResizableTextEdit> edit;
 };
 
 // A QLineEdit that emits clicked() on mouse press — used by ObjectRefPropertyWidget.

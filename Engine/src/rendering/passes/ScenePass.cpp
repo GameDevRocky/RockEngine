@@ -154,7 +154,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                 if (!mat)
                 {
                     if (!defaultTextMaterial)
-                        defaultTextMaterial = AssetManager::Get().GetMaterialByName("text");
+                        defaultTextMaterial = AssetManager::Get().GetMaterialByName(TextRenderer::kDefaultMaterialName);
                     mat = defaultTextMaterial;
                     if (mat && warnedObjects.insert(text).second)
                         Console::Alert("Assigning Default Text Material to " + obj->GetName());

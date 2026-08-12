@@ -11,6 +11,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <QImage>
 
+#include <any>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+
 // ─── GL helpers (local to this TU) ───────────────────────────────────────────
 
 static void makeQuad(GLuint& vao, GLuint& vbo)
@@ -161,8 +166,91 @@ static QPixmap renderTextureQuad(int sz, Texture2D* tex, glm::vec2 uvMin,
 
 namespace AssetThumbnails {
 
+namespace {
+
+// id -> rendered thumbnail. Every entry is a pure function of the asset's state
+// at render time, so the eviction wiring below is the whole correctness story.
+std::unordered_map<std::string, QPixmap> g_cache;
+
+// Assets we already hold a change subscription on, so repeated cache misses for
+// the same id don't stack duplicate callbacks on it.
+std::unordered_set<std::string> g_watched;
+
+// Wire the cache to AssetManager on first use rather than at startup: this is
+// editor-side code with no init hook of its own, and the first thumbnail request
+// is by definition before any thumbnail could go stale.
+void EnsureManagerSubscribed()
+{
+    static bool subscribed = false;
+    if (subscribed) return;
+    subscribed = true;
+
+    AssetManager& am = AssetManager::Get();
+
+    // Payload is the id (see AssetManager::RemoveAsset / RemoveSprite).
+    am.Subscribe([](std::any payload) {
+        if (payload.type() == typeid(std::string)) {
+            const auto id = std::any_cast<std::string>(payload);
+            g_watched.erase(id);   // the Observable died with the asset
+            Invalidate(id);
+        } else {
+            InvalidateAll();       // unknown payload: assume the worst
+        }
+        return true;
+    }, AssetManager::ASSET_REMOVED_EVENT);
+
+    // Reloading an asset in place (the file watcher re-reading a meta) keeps the
+    // id and replaces the contents, which is exactly a stale-thumbnail case.
+    am.Subscribe([](std::any payload) {
+        if (payload.type() == typeid(Resource*)) {
+            if (Resource* r = std::any_cast<Resource*>(payload)) {
+                g_watched.erase(r->GetID());
+                Invalidate(r->GetID());
+            }
+        }
+        return true;
+    }, AssetManager::ASSET_ADDED_EVENT);
+}
+
+// Subscribe once per asset so editing it drops the pictures drawn from it.
+// ANY_EVENT deliberately: a thumbnail depends on very nearly every field a
+// resource has, and a hand-maintained list of "the events that change the
+// picture" would rot the first time someone adds a property.
+void Watch(const std::vector<Resource*>& assets)
+{
+    for (Resource* r : assets) {
+        if (!r) continue;
+        const std::string id = r->GetID();
+        if (!g_watched.insert(id).second) continue;
+        // Captures the id by value, not the Resource*. The subscription is owned
+        // by the resource and dies with it, but Invalidate has to look the
+        // dependents up through AssetManager anyway, and an id stays meaningful
+        // there where a pointer would not.
+        r->Subscribe([id]() { Invalidate(id); return true; });
+    }
+}
+
+// Cache a freshly rendered thumbnail and start watching what it was drawn from.
+// A null pixmap is deliberately NOT cached: it means the render failed, almost
+// always because there is no GL context yet, and storing that would pin an empty
+// cell for the rest of the session.
+QPixmap Store(const std::string& id, QPixmap px, const std::vector<Resource*>& sources)
+{
+    if (px.isNull()) return px;
+    Watch(sources);
+    g_cache[id] = px;
+    return px;
+}
+
+} // namespace
+
+// ─── Cache-fronted entry points ──────────────────────────────────────────────
+
 QPixmap forMaterial(const std::string& id)
 {
+    EnsureManagerSubscribed();
+    if (auto it = g_cache.find(id); it != g_cache.end()) return it->second;
+
     Material* mat = AssetManager::Get().GetMaterial(id);
     if (!mat) return {};
     Shader* shader = mat->GetShader();
@@ -218,21 +306,78 @@ QPixmap forMaterial(const std::string& id)
     glad_glDeleteVertexArrays(1, &vao);
     glad_glDeleteBuffers(1, &vbo);
     sv->doneCurrent();
-    return result;
+
+    // Watch everything the picture was drawn from, not just the material: a
+    // recoloured texture or a recompiled shader changes it just as much as an
+    // edit to the material itself.
+    std::vector<Resource*> sources{ mat, shader };
+    for (const auto& [uname, texId] : mat->GetTexUniforms())
+        if (Texture2D* t = AssetManager::Get().GetTexture(texId)) sources.push_back(t);
+
+    return Store(id, result, sources);
 }
 
 QPixmap forSprite(const std::string& id)
 {
+    EnsureManagerSubscribed();
+    if (auto it = g_cache.find(id); it != g_cache.end()) return it->second;
+
     Sprite* sprite = AssetManager::Get().GetSprite(id);
     if (!sprite) return {};
-    return renderTextureQuad(kSize, sprite->GetTexture(), sprite->GetUVMin(),
-                             sprite->GetUVMax(), sprite->GetPivot());
+    QPixmap px = renderTextureQuad(kSize, sprite->GetTexture(), sprite->GetUVMin(),
+                                   sprite->GetUVMax(), sprite->GetPivot());
+    return Store(id, px, { sprite, sprite->GetTexture() });
 }
 
 QPixmap forTexture(const std::string& id)
 {
-    return renderTextureQuad(kSize, AssetManager::Get().GetTexture(id),
-                             glm::vec2(0.f), glm::vec2(1.f), glm::vec2(0.f));
+    EnsureManagerSubscribed();
+    if (auto it = g_cache.find(id); it != g_cache.end()) return it->second;
+
+    Texture2D* tex = AssetManager::Get().GetTexture(id);
+    QPixmap px = renderTextureQuad(kSize, tex, glm::vec2(0.f), glm::vec2(1.f), glm::vec2(0.f));
+    return Store(id, px, { tex });
+}
+
+// ─── Invalidation ────────────────────────────────────────────────────────────
+
+void Invalidate(const std::string& id)
+{
+    g_cache.erase(id);
+    if (g_cache.empty()) return;
+
+    // Thumbnails compose: a sprite's is drawn through its texture, a material's
+    // through its shader and its texture uniforms. Dropping only the edited
+    // asset's own entry would leave the picker showing pre-edit art for
+    // everything drawn from it. Resolved against AssetManager on demand rather
+    // than from a stored reverse index — the cache is a few hundred entries at
+    // worst and this runs on a human-paced event, so an index would be more to
+    // keep correct than it saves.
+    AssetManager& am = AssetManager::Get();
+    for (auto it = g_cache.begin(); it != g_cache.end(); ) {
+        bool derived = false;
+
+        if (Sprite* s = am.GetSprite(it->first)) {
+            derived = (s->GetTextureID() == id);
+        } else if (Material* m = am.GetMaterial(it->first)) {
+            Shader* sh = m->GetShader();
+            derived = (sh && sh->GetID() == id);
+            if (!derived)
+                for (const auto& [uname, texId] : m->GetTexUniforms())
+                    if (texId == id) { derived = true; break; }
+        }
+
+        if (derived) it = g_cache.erase(it);
+        else         ++it;
+    }
+}
+
+void InvalidateAll()
+{
+    g_cache.clear();
+    // Deliberately keeps g_watched: those subscriptions live on the assets and
+    // are still valid, and re-adding them would double up on every asset the
+    // cache refills with.
 }
 
 }

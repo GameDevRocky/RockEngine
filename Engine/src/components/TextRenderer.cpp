@@ -11,6 +11,20 @@
 using namespace EngineUtils;
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Resolved by name at construction rather than baked in as literal ids, because
+// the ids belong to the meta files (AssetMetaService regenerates them on a name
+// collision) and would go stale. Best-effort: if the assets are not loaded yet,
+// or the project has removed them, the ids stay empty -- exactly the state a
+// deliberately cleared font produces, which the draw path already reads as
+// "draw nothing" rather than as an error.
+TextRenderer::TextRenderer() {
+    if (Font* font = AssetManager::Get().GetFontByName(kDefaultFontName))
+        font_id = font->GetID();
+    if (Material* mat = AssetManager::Get().GetMaterialByName(kDefaultMaterialName))
+        material_id = mat->GetID();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 YAML::Node TextRenderer::Serialize() {
     YAML::Node node = Component::Serialize();
     node["text"]        = text;
@@ -47,8 +61,13 @@ void TextRenderer::Deserialize(const YAML::Node& node) {
     // Every field defaulted. A scene authored before a field existed must still
     // load, and yaml-cpp throws rather than returning a default on a missing key.
     text        = node["text"].as<std::string>("New Text");
-    font_id     = node["font_id"].as<std::string>("");
-    material_id = node["material_id"].as<std::string>("");
+    // Fall back to whatever the constructor resolved, not to empty: a scene
+    // authored before these keys existed then loads with the default font and
+    // text material rather than as an invisible component. A scene that stores
+    // an empty id stored it deliberately (the font was cleared) and keeps it --
+    // yaml-cpp round-trips an empty string as `""`, not as a missing key.
+    font_id     = node["font_id"].as<std::string>(font_id);
+    material_id = node["material_id"].as<std::string>(material_id);
 
     fontSize      = node["fontSize"].as<float>(32.0f);
     lineSpacing   = node["lineSpacing"].as<float>(1.0f);

@@ -114,8 +114,8 @@ void InspectorVisitor::Visit(Transform* transform){
     BindProperty<glm::vec2>(transform, "Position: ", pos_get, pos_set, transform->POSITION_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
     BindProperty<float>(transform, "Rotation: ", rot_get, rot_set, transform->ROTATION_CHANGED_EVENT, PropDesc().Tag(Tags::ANGLE).Step(1));
     BindProperty<glm::vec2>(transform, "Scale: ", scale_get, scale_set, transform->SCALE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
-    
-    
+
+
 }
 
 void InspectorVisitor::Visit(SpriteRenderer* renderer){
@@ -1393,7 +1393,13 @@ void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
     label->setFont(font);
     label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
-    layout->addWidget(label, gridRow, 0, Qt::AlignLeft);
+    // Tall widgets (the multi-line text box) ask for their label on the first
+    // line rather than centred against the whole block — see TextBoxPropertyWidget.
+    const Qt::Alignment labelAlign = widget->property("labelTopAlign").toBool()
+                                   ? (Qt::AlignLeft | Qt::AlignTop)
+                                   : Qt::Alignment(Qt::AlignLeft);
+
+    layout->addWidget(label, gridRow, 0, labelAlign);
     layout->addWidget(widget, gridRow, 1);
     gridRow++;
 }

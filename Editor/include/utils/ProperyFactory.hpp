@@ -45,6 +45,10 @@ inline PropertyWidget<std::string>* PropertyFactory::Create<std::string>(const P
         // ref type — no more always-visible collapsible thumbnail.
         return new ObjectRefPropertyWidget(desc);
     }
+    // Paragraph text (a TextRenderer's string, a font's charset) gets the
+    // resizable multi-line box; everything else stays a one-line field.
+    if (desc.tag == Properties::Tags::MULTILINE)
+        return new TextBoxPropertyWidget(desc);
     return new StringPropertyWidget(desc);
 }
 

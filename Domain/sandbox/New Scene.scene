@@ -6,23 +6,29 @@ components:
     type: Transform
     gameobject: 470b9075ec2c99919a9a8f62c47177c7
     localPosition: [0, 0]
-    localRotation: 0
-    localScale: [1, 1]
+    localRotation: 10.585928
+    localScale: [1.0000001, 1.0000001]
     parent_id: ~
-  - id: fccfd07543bd4ddb7bd428eb5757bf97
+  - id: 0ce079a631594432a0d3561be5667b00
     enabled: true
-    type: SpriteRenderer
+    type: TextRenderer
     gameobject: 470b9075ec2c99919a9a8f62c47177c7
-    material_id: m1
-    sprite_id: default
-    color: [1, 1, 1, 1]
-    uvOffset: [0, 0]
-    uvScale: [1, 1]
-    sortingOrder: 0
-    sortingLayer: Default
-    flipX: false
-    flipY: false
+    text: Hello
+    font_id: 0a73db5e94a3d0dd4e002e42e5531906
+    material_id: m_text
+    fontSize: 32
+    lineSpacing: 1
+    letterSpacing: 0
+    maxWidth: 0
+    hAlign: 1
+    vAlign: 1
+    color: [1, 0.6, 0.6, 1]
+    weight: 0.25
+    outlineColor: [1, 0.047058824, 0.10980392, 1]
+    outlineWidth: 0
     visible: true
+    sortingLayer: UI
+    sortingOrder: 0
   - id: 00310302e986e37b47024031b0a1428b
     enabled: true
     type: Transform
@@ -51,7 +57,7 @@ gameobjects:
     tag: Untagged
     component_ids:
       - 12fbc0034fb94bdd13dc626fb440513c
-      - fccfd07543bd4ddb7bd428eb5757bf97
+      - 0ce079a631594432a0d3561be5667b00
   - id: 71b921b183baab08c67c2cf42fcf0551
     type: GameObject
     name: GameObject
