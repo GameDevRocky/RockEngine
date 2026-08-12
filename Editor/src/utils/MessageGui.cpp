@@ -52,32 +52,6 @@ static void ApplyOuterBorder(QWidget* target, const std::string& type)
     target->setStyleSheet(style);
 }
 
-//
-// Apply clean inner stylesheet (no border, transparent children)
-//
-static void ApplyInnerStyle(QWidget* target)
-{
-    InitializeColors();
-    QString style = QString(R"(
-        QWidget {
-            background-color: transparent;
-            color: %1;
-            border: none;
-        }
-        QLabel {
-            font-family: %2;
-            font-size: %3px;
-            background-color: transparent;
-            border: none;
-        }
-    )")
-    .arg(FG_TEXT->name())
-    .arg(FONT_FAMILY)
-    .arg(FONT_SIZE);
-
-    target->setStyleSheet(style);
-}
-
 
 // ======================================================================
 //  MessageGui Implementation
@@ -136,9 +110,7 @@ MessageGui::MessageGui(ConsoleGui* parent, Message* msg)
     //
     // Apply styles
     //
-    ApplyOuterBorder(this, msg->type);      // ONLY OUTER BORDER
-    ApplyInnerStyle(this->findChild<QWidget*>()); // All children borderless
-
+    ApplyOuterBorder(this, msg->type);
     Update();
 
     // Set path

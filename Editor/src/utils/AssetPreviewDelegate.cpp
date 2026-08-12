@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <QPainter>
+#include <QIcon>
 #include <QFileInfo>
 #include <QSortFilterProxyModel>
 #include <QStyleOptionViewItem>
@@ -85,7 +86,7 @@ QString AssetPreviewDelegate::filePathForIndex(const QModelIndex& index) const {
 QSize AssetPreviewDelegate::sizeHint(const QStyleOptionViewItem& option,
                                       const QModelIndex& index) const {
     Q_UNUSED(option); Q_UNUSED(index);
-    return QSize(100, 110);
+    return QSize(kCellWidth, kCellHeight);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -97,66 +98,55 @@ void AssetPreviewDelegate::paint(QPainter* painter,
     const QString filePath = filePathForIndex(index);
     const QString ext      = QFileInfo(filePath).suffix().toLower();
 
-    // ── .shader / .font meta: default icon, clean label (no extension) ──────────
-    // Both are metas named after a source file, so they carry a double extension
-    // that would otherwise be shown in full.
-    if (ext == "shader" || ext == "font") {
-        QStyleOptionViewItem opt = option;
-        initStyleOption(&opt, index);
-        // Strip double extension: "sprite.glsl.shader" → "sprite.glsl" → "sprite"
-        //                         "Nunito.ttf.font"    → "Nunito.ttf"   → "Nunito"
-        QString stem = QFileInfo(filePath).completeBaseName(); // "sprite.glsl"
-        opt.text = QFileInfo(stem).completeBaseName();          // "sprite"
-        const bool selected = opt.state & QStyle::State_Selected;
-        opt.state &= ~QStyle::State_Selected;
-        QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &opt, painter, m_view);
-        if (selected) {
-            painter->save();
-            painter->setPen(QPen(QColor(160, 160, 160), 1));
-            painter->drawRect(option.rect.adjusted(0, 0, -1, -1));
-            painter->restore();
-        }
-        return;
-    }
-
-    // ── Asset types that get a pixmap/GL thumbnail ────────────────────────────
-    const bool needsThumb = (ext == "texture" || ext == "mat" || ext == "material");
-    if (!needsThumb) {
-        const bool selected = option.state & QStyle::State_Selected;
-        QStyleOptionViewItem opt = option;
-        opt.state &= ~QStyle::State_Selected;
-        QStyledItemDelegate::paint(painter, opt, index);
-        if (selected) {
-            painter->save();
-            painter->setPen(QPen(QColor(160, 160, 160), 1));
-            painter->drawRect(option.rect.adjusted(0, 0, -1, -1));
-            painter->restore();
-        }
-        return;
-    }
-
-    // ── Thumbnail for this cell ───────────────────────────────────────────────
-    // The texture path goes through AssetThumbnails, which caches by id, so a
-    // repaint is a hash lookup. renderMaterialPreview still renders on every
-    // paint (and re-parses the .material file to find its id) -- it predates the
-    // cache and duplicates AssetThumbnails::forMaterial; folding the two
-    // together is worth doing.
+    // ── One paint path for every cell ─────────────────────────────────────────
+    // Rendered cells (textures/materials) and icon cells (folders, scenes,
+    // shaders, fonts) used to be drawn two different ways: the former by
+    // drawCell, the latter by handing off to QStyledItemDelegate::paint /
+    // QStyle::CE_ItemViewItem. That is where the blue selection block behind the
+    // label came from -- the style draws the palette's Highlight brush behind
+    // item text, and clearing State_Selected first did not reliably suppress it.
+    // drawCell never consults the style at all, so routing everything through it
+    // removes the highlight by construction and makes both kinds of cell lay out
+    // identically. Selection is shown by drawCell's grey outline instead.
     QPixmap px;
-    if (ext == "mat" || ext == "material") {
-        px = renderMaterialPreview(filePath);
-    } else if (ext == "texture") {
-        // Render the engine's uploaded GPU texture, like the material preview
-        // above, rather than re-decoding the source image off disk.
+    QString label;
+
+    if (ext == "texture") {
+        // Render the engine's uploaded GPU texture rather than re-decoding the
+        // source image off disk. Cached by id in AssetThumbnails, so a repaint
+        // is a hash lookup.
         const std::string id = yamlField(filePath, "id");
         if (!id.empty()) px = AssetThumbnails::forTexture(id);
+        label = QFileInfo(filePath).fileName();
+    } else if (ext == "mat" || ext == "material") {
+        // Still renders on every paint (and re-parses the .material file to find
+        // its id) -- it predates the thumbnail cache and duplicates
+        // AssetThumbnails::forMaterial; folding the two together is worth doing.
+        px = renderMaterialPreview(filePath);
+        label = QFileInfo(filePath).fileName();
+    } else {
+        // Everything else shows the model's icon (folder, .scene, .py, ...),
+        // scaled into the same thumbnail box the rendered cells use.
+        px = qvariant_cast<QIcon>(index.data(Qt::DecorationRole))
+                 .pixmap(kThumbSize, kThumbSize);
+
+        if (ext == "shader" || ext == "font") {
+            // These metas are named after a source file, so they carry a double
+            // extension that would otherwise be shown in full:
+            //   "sprite.glsl.shader" → "sprite.glsl" → "sprite"
+            //   "Nunito.ttf.font"    → "Nunito.ttf"  → "Nunito"
+            label = QFileInfo(QFileInfo(filePath).completeBaseName()).completeBaseName();
+        } else {
+            // The model's display text, not QFileInfo::fileName -- it is what
+            // handles drives, "..", and any name the model chooses to present.
+            label = index.data(Qt::DisplayRole).toString();
+        }
     }
 
     if (px.isNull()) {
         px = QPixmap(kThumbSize, kThumbSize);
         px.fill(QColor(80, 80, 80));
     }
-
-    QString label = QFileInfo(filePath).fileName();
 
     // Fade this cell out while its sprite hover-column is shown (Folder view).
     const bool faded = !m_fadeFilePath.isEmpty() && filePath == m_fadeFilePath
@@ -196,7 +186,7 @@ void AssetPreviewDelegate::drawCell(QPainter* p,
 
     // Thumbnail centred in top portion of cell
     QRect iconArea(opt.rect.left() + (opt.rect.width() - kThumbSize) / 2,
-                   opt.rect.top() + 8,
+                   opt.rect.top() + kThumbTopPad,
                    kThumbSize, kThumbSize);
     if (!thumb.isNull()) {
         QPixmap scaled = thumb.scaled(kThumbSize, kThumbSize,
@@ -210,9 +200,9 @@ void AssetPreviewDelegate::drawCell(QPainter* p,
 
     // Label below the icon — single line, elided with "…" if too long
     QRect textArea(opt.rect.left() + 2,
-                   opt.rect.top() + kThumbSize + 12,
+                   opt.rect.top() + kThumbSize + kLabelGap,
                    opt.rect.width() - 4,
-                   opt.rect.height() - kThumbSize - 12);
+                   opt.rect.height() - kThumbSize - kLabelGap);
     p->setPen(QPen(opt.palette.text().color()));
     const QString elided = p->fontMetrics().elidedText(label, Qt::ElideRight, textArea.width());
     p->drawText(textArea, Qt::AlignHCenter | Qt::AlignTop, elided);

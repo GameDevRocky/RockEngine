@@ -12,6 +12,23 @@ class Resource;
 class AssetPreviewDelegate : public QStyledItemDelegate {
     Q_OBJECT
 public:
+    // ── Cell metrics: the single source of truth ────────────────────────────
+    // Public because the delegate only *draws* a cell -- the view that hosts it
+    // decides how big cells are (setIconSize/setGridSize), and SpriteHoverColumn
+    // has to line its own cells up with them. All three used to hardcode the
+    // same numbers separately, so changing the thumbnail size here left the grid
+    // still reserving room for the old one.
+    //
+    // Height is derived from the layout drawCell() actually uses: the thumbnail
+    // sits kThumbTopPad from the top, and the label starts kLabelGap below the
+    // thumbnail's own height.
+    static constexpr int kThumbSize   = 64;
+    static constexpr int kThumbTopPad = 8;
+    static constexpr int kLabelGap    = 12;
+    static constexpr int kLabelHeight = 22;   // one elided line + breathing room
+    static constexpr int kCellWidth   = 84;
+    static constexpr int kCellHeight  = kThumbSize + kLabelGap + kLabelHeight;
+
     explicit AssetPreviewDelegate(QFileSystemModel* fsModel,
                                    QAbstractItemView* view,
                                    QObject* parent = nullptr);
@@ -59,6 +76,4 @@ private:
     // The single cell currently faded (its source file path) and its opacity.
     QString m_fadeFilePath;
     double  m_fadeOpacity = 1.0;
-
-    static constexpr int kThumbSize = 64;
 };

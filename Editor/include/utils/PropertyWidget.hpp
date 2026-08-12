@@ -53,22 +53,41 @@ public:
     virtual T    GetValue() = 0;
 };
 
+// Shared setup for every numeric field in the inspector -- a lone float and each
+// component of a vector -- so how they look is decided in one place rather than
+// in four constructors that had already drifted apart.
+//
+// No up/down arrows. At inspector row height they are a ~7px target that is
+// easier to miss than to hit, and they take that width from the number itself,
+// which is the part worth reading. Values are typed.
+//
+// Note this also removes the only thing that used to distinguish a read-only
+// field: FloatPropertyWidget dropped the buttons for READONLY and kept them
+// otherwise. Read-only is now carried by setReadOnly() alone, which blocks
+// editing but is not visually obvious -- worth styling if it matters.
+//
+// Size policy is deliberately NOT set here: a lone float is Ignored horizontally
+// so the grid column drives its width, while a vector's components are Expanding
+// so they share the row evenly. Callers keep that choice.
+inline void ConfigureSpinBox(QDoubleSpinBox* spin, const Properties::PropDesc& desc) {
+    spin->setRange(desc.min, desc.max);
+    spin->setSingleStep(desc.step);
+    spin->setButtonSymbols(QAbstractSpinBox::NoButtons);
+}
+
 class FloatPropertyWidget : public PropertyWidget<float> {
 public:
     explicit FloatPropertyWidget(const Properties::PropDesc& desc) {
         spin = new QDoubleSpinBox();
-        spin->setRange(desc.min, desc.max);
-        spin->setSingleStep(desc.step);
+        ConfigureSpinBox(spin, desc);
         spin->setDecimals(desc.tag == Properties::Tags::INT ? 0 : 2);
         spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
 
         // PropDesc::tag holds a single value, so Tags::READONLY and a type tag such
         // as Tags::FLOAT are mutually exclusive. Accept either signal so a caller can
         // keep its type tag and still be display-only via PropDesc::ReadOnly().
-        if (desc.readOnly || desc.tag == Properties::Tags::READONLY) {
+        if (desc.readOnly || desc.tag == Properties::Tags::READONLY)
             spin->setReadOnly(true);
-            spin->setButtonSymbols(QAbstractSpinBox::NoButtons);
-        }
 
         QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this](double val) {
             if (onChanged) onChanged(static_cast<float>(val));
@@ -112,8 +131,7 @@ public:
             layout->addWidget(lbl);
 
             auto* s = new QDoubleSpinBox();
-            s->setRange(desc.min, desc.max);
-            s->setSingleStep(desc.step);
+            ConfigureSpinBox(s, desc);
             s->setObjectName(name);
             s->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
             layout->addWidget(s);
@@ -173,8 +191,7 @@ public:
             layout->addWidget(lbl);
 
             auto* s = new QDoubleSpinBox();
-            s->setRange(desc.min, desc.max);
-            s->setSingleStep(desc.step);
+            ConfigureSpinBox(s, desc);
             s->setObjectName(name);
             s->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
             layout->addWidget(s);
@@ -231,8 +248,7 @@ public:
             layout->addWidget(lbl);
 
             auto* s = new QDoubleSpinBox();
-            s->setRange(desc.min, desc.max);
-            s->setSingleStep(desc.step);
+            ConfigureSpinBox(s, desc);
             s->setObjectName(name);
             s->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
             layout->addWidget(s);

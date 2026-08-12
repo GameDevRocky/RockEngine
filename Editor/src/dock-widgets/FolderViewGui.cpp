@@ -75,10 +75,15 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     gridView->setMovement(QListView::Static);
     gridView->setResizeMode(QListView::Adjust);
     gridView->setSpacing(8);
-    gridView->setIconSize(QSize(64, 64));
+    // Taken from the delegate rather than restated: it owns the cell layout, and
+    // when these were separate literals, changing the thumbnail size left the
+    // grid still reserving room for the old one.
+    gridView->setIconSize(QSize(AssetPreviewDelegate::kThumbSize,
+                                AssetPreviewDelegate::kThumbSize));
     gridView->setWrapping(true);
     gridView->setUniformItemSizes(true);
-    gridView->setGridSize(QSize(100, 110));  // Fixed cell size: 100px wide, 110px tall
+    gridView->setGridSize(QSize(AssetPreviewDelegate::kCellWidth,
+                                AssetPreviewDelegate::kCellHeight));
     gridView->setTextElideMode(Qt::ElideRight);  // Add "..." to long filenames
     this->setAcceptDrops(true);
     gridView->setDragEnabled(true);

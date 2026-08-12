@@ -5,9 +5,9 @@ components:
     enabled: true
     type: Transform
     gameobject: 27d025e08ff0501fbf199080ce91f924
-    localPosition: [673.2205, -42.490173]
-    localRotation: 0
-    localScale: [1.4741265, 1.6524632]
+    localPosition: [595.2529, 48.23557]
+    localRotation: 0.5104492
+    localScale: [1.5, 1.5]
     parent_id: ~
   - id: 104a1015c1e12db37ea53169f31278b3
     enabled: true
@@ -292,16 +292,16 @@ components:
     enabled: true
     type: Transform
     gameobject: 54bb8b21d8508c8c7f05cb52a5642192
-    localPosition: [0, 20]
-    localRotation: 0
-    localScale: [0.67836785, 0.6051572]
+    localPosition: [0.08081055, 29.074703]
+    localRotation: -1.8159696
+    localScale: [1, 1]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: e9aedcf3b8b2e9be7e17bb324eb2973c
     enabled: true
     type: TextRenderer
     gameobject: 54bb8b21d8508c8c7f05cb52a5642192
     text: Player
-    font_id: a37c742e4490cac09e3aaf21380c6e59
+    font_id: 0a73db5e94a3d0dd4e002e42e5531906
     material_id: m_text
     fontSize: 26
     lineSpacing: 0.55

@@ -1,6 +1,7 @@
 #include "engine/rendering/Renderer.hpp"
 #include <glad/glad.h>
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 
 #include "engine/rendering/views/EditorRenderView.hpp"
@@ -29,8 +30,17 @@ bool Renderer::EnsureInitialized()
     AssetManager::Get().Awake();
 
     const std::string domainDir = EngineUtils::GetAssetPath("Domain");
+
+    // Timed and printed because "is the splash even worth having" is a question
+    // about a number, not an opinion -- and because the texture decode inside
+    // LoadFromDirectory is now parallel, so this is the figure that tells you
+    // whether that paid off.
+    const auto bootStart = std::chrono::steady_clock::now();
     AssetMetaService::ScanAndGenerate(domainDir);
     AssetManager::Get().LoadFromDirectory(domainDir);
+    const auto bootMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - bootStart).count();
+    std::cout << "[boot] asset scan + load took " << bootMs << " ms" << std::endl;
 
     CreateBlitResources();
 

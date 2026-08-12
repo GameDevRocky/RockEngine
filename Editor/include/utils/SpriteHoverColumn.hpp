@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "utils/AssetPreviewDelegate.hpp"   // cell metrics, see kCellW below
+
 class QPropertyAnimation;
 
 // A floating, scrollable column of sprite previews shown over a hovered texture
@@ -19,10 +21,12 @@ class QPropertyAnimation;
 class SpriteHoverColumn : public QWidget {
     Q_OBJECT
 public:
-    // Cell metrics mirror AssetPreviewDelegate (100x110 cell, 64px thumbnail).
-    static constexpr int kCellW   = 100;
-    static constexpr int kCellH   = 110;
-    static constexpr int kThumb   = 64;
+    // Cell metrics come from AssetPreviewDelegate, not copies of its numbers:
+    // this column has to line its cells up with the Folder view grid it floats
+    // over, so a mismatch is visible as misalignment rather than as a build error.
+    static constexpr int kCellW   = AssetPreviewDelegate::kCellWidth;
+    static constexpr int kCellH   = AssetPreviewDelegate::kCellHeight;
+    static constexpr int kThumb   = AssetPreviewDelegate::kThumbSize;
     static constexpr int kMaxRows = 4;     // visible rows before it scrolls
 
     explicit SpriteHoverColumn(QWidget* parent = nullptr);

@@ -18,11 +18,10 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     content->setWidgetResizable(true);
 
     clear_button = new QPushButton("Clear", this);
-    clear_button->setStyleSheet("font-size : 13px");
     QWidget* content_bar = new QWidget(this);
     QHBoxLayout* bar_layout = new QHBoxLayout(this);
     content_bar->setLayout(bar_layout);
-    bar_layout->setContentsMargins(0,0,0,0);
+    bar_layout->setContentsMargins(4,4,4,4);
     content_bar->setContentsMargins(0,0,0,0);
     bar_layout->addStretch();
     bar_layout->addWidget(clear_button);

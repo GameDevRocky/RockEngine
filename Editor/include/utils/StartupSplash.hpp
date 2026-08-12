@@ -1,5 +1,6 @@
 #pragma once
 #include <QSplashScreen>
+#include <chrono>
 #include <string>
 
 // The boot screen, shown while the startup asset load runs.
@@ -38,7 +39,13 @@ private:
     StartupSplash();
     void OnProgress(float fraction, const std::string& label);
 
+    // Minimum time the splash stays up, so a fast boot doesn't reduce it to a
+    // flicker. Costs up to this much startup time on a machine that loads
+    // quicker than this; set to 0 to disable.
+    static constexpr int kMinVisibleMs = 700;
+
     float       m_fraction = -1.0f;   // negative == indeterminate
     std::string m_label;
     bool        m_active = false;
+    std::chrono::steady_clock::time_point m_shownAt{};
 };
