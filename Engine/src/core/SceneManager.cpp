@@ -10,6 +10,7 @@
 #include <fstream>
 #include "engine/debug/Console.hpp"
 #include "engine/debug/FrameProfiler.hpp"
+#include "engine/jobs/JobSystem.hpp"
 
 using namespace EngineUtils;
 void SceneManager::Init(){
@@ -148,9 +149,48 @@ void SceneManager::LoadScene(const std::string& file_path){
     if (!std::filesystem::exists(finalPath)) {
         return;
     }
-    std::cout << "Loading scene from path: " + file_path << std::endl;
-    YAML::Node root = YAML::LoadFile(finalPath);
-    
+
+    const std::string sceneName = std::filesystem::path(finalPath).stem().string();
+
+    // Parsed by the worker, consumed by the main step. Written on one thread and
+    // read on the other with the job system's mutex providing the happens-before
+    // edge, and never touched by both at once.
+    auto parsed = std::make_shared<YAML::Node>();
+
+    JobDesc desc;
+    desc.title = "Loading scene: " + sceneName;
+    desc.modal = true;
+
+    desc.worker = [parsed, finalPath](JobProgressSink& sink) {
+        sink.Report(-1.0f, "Reading " + std::filesystem::path(finalPath).filename().string());
+        // The only genuinely threadable part of a scene load. Everything after
+        // this builds engine objects, which cannot leave the main thread.
+        *parsed = YAML::LoadFile(finalPath);
+    };
+
+    desc.mainStep = [parsed, finalPath](JobProgressSink& sink) -> bool {
+        // Re-resolved rather than captured: SceneManager is a System owned by a
+        // Container, and a container can be replaced (play mode) between submit
+        // and install, which would leave a captured `this` dangling. Resolving
+        // through the ACTIVE container is the same idiom Registry's shutdown
+        // subscription uses. Consequence worth knowing: entering play mode in
+        // the frame between drop and install would land the scene in the runtime
+        // world instead of the editor one.
+        Container* active = Engine::Get()->GetActiveContainer();
+        auto* sm = active ? active->FindSystem<SceneManager>() : nullptr;
+        if (!sm) { sink.Fail("no active SceneManager"); return false; }
+
+        sink.Report(-1.0f, "Building objects");
+        sm->InstallScene(*parsed, finalPath);
+        return false;   // single step; chunking across frames is a later change
+    };
+
+    JobSystem::Get().Submit(std::move(desc));
+}
+
+void SceneManager::InstallScene(const YAML::Node& root, const std::string& finalPath) {
+    std::cout << "Loading scene from path: " + finalPath << std::endl;
+
     if (root["id"]) {
         std::string id = root["id"].as<std::string>();
         if (std::find(scene_ids.begin(), scene_ids.end(), id) != scene_ids.end()) {
@@ -162,23 +202,23 @@ void SceneManager::LoadScene(const std::string& file_path){
     Scene* scene = new Scene();
     scene->Attach(container);
 
-    std::cout << "Deserializing scene from path: " + file_path << std::endl;
+    std::cout << "Deserializing scene from path: " + finalPath << std::endl;
     scene->Deserialize(root);
     scene->SetPath(finalPath);
     registry->Register(scene);
     
-    std::cout << "Initializing scene from path: " + file_path << std::endl;
+    std::cout << "Initializing scene from path: " + finalPath << std::endl;
     scene->Init();
     scene->PostInit();
     
     if (container->GetMode() == Container::Mode::Runtime){
-        std::cout << "Awakening scene (Runtime mode): " + file_path << std::endl;
+        std::cout << "Awakening scene (Runtime mode): " + finalPath << std::endl;
         scene->Awake();
         scene->Start();
     }
 
     scene_ids.push_back(scene->GetID());
-    std::cout << "Completed loading scene from path: " + file_path << std::endl;
+    std::cout << "Completed loading scene from path: " + finalPath << std::endl;
     Notify(LOADED_SCENE_EVENT, scene->GetID());
 }
 
@@ -215,6 +255,42 @@ bool SceneManager::SaveScene(const std::string& scene_id, bool allowRuntimeSave)
 }
 
 void SceneManager::RemoveScene(const std::string& scene_id) {
+    auto* scene = registry->Find<Scene>(scene_id);
+    if(!scene) return;
+
+    const std::string sceneName = scene->GetName().empty() ? scene_id : scene->GetName();
+
+    // No worker half: an unload is 100% graph teardown and Qt notification, and
+    // no part of it can leave the main thread. The job exists purely so the
+    // overlay reports it -- and, because a workerless job runs on the NEXT pump,
+    // the window gets one painted frame before the teardown begins.
+    //
+    // Deliberately not sliced across frames: every SHUTDOWN_EVENT in the cascade
+    // drives SelectionManager and an Inspector rebuild that walks stored
+    // Observable handles, and interleaving a repaint into the middle of that is
+    // exactly the use-after-free the ExitPlayMode comment documents.
+    JobDesc desc;
+    desc.title = "Unloading scene: " + sceneName;
+    desc.modal = true;
+    // Same reasoning as the play-mode transitions: no worker half means the
+    // teardown blocks for its whole duration, so the card has to be painted
+    // first or it is never seen at all.
+    desc.graceMs = 0;
+    desc.warmupPumps = 2;
+
+    desc.mainStep = [scene_id](JobProgressSink& sink) -> bool {
+        // Re-resolved, not captured -- see the note in LoadScene.
+        Container* active = Engine::Get()->GetActiveContainer();
+        auto* sm = active ? active->FindSystem<SceneManager>() : nullptr;
+        if (!sm) { sink.Fail("no active SceneManager"); return false; }
+        sm->UnloadSceneNow(scene_id);
+        return false;
+    };
+
+    JobSystem::Get().Submit(std::move(desc));
+}
+
+void SceneManager::UnloadSceneNow(const std::string& scene_id) {
     auto* scene = registry->Find<Scene>(scene_id);
     if(!scene) return;
     scene_ids.erase(std::remove(scene_ids.begin(), scene_ids.end(), scene_id), scene_ids.end());

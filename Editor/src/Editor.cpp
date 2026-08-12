@@ -15,8 +15,11 @@
 #include "dock-widgets/GameViewGui.hpp"
 #include "dock-widgets/HierarchyGui.hpp"
 #include <QCoreApplication>
+#include "engine/jobs/JobSystem.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "utils/GizmoUndoBridge.hpp"
+#include "utils/LoadingOverlay.hpp"
+#include "utils/StartupSplash.hpp"
 #include <algorithm>
 
 Editor::Editor(){
@@ -81,6 +84,12 @@ void Editor::Init() {
 }
 
 void Editor::Update(){
+    // Refresh the loading overlay from the engine's job list. A pull, not a
+    // notify: JobSystem deliberately isn't an Observable, so nothing on the
+    // worker side can ever end up dispatching into Qt. This runs every tick, so
+    // the bar advances at the display's refresh rate for free.
+    LoadingOverlay::Get()->Sync(JobSystem::Get().SnapshotActive());
+
     // Repaint every viewport that's currently on screen -- not just the frame
     // driver. When Scene and Game are visible at the same time (split or
     // floated), both must re-render each tick to reflect the latest engine
@@ -131,7 +140,20 @@ void Editor::PostInit() {
     // After Engine::PostInit, so the container and its UndoSystem exist.
     GizmoUndoBridge::Install();
 
+    // The startup asset load (~230 metas) runs inside the first viewport's
+    // initializeGL, which showMaximized below triggers -- so it happens before
+    // app->exec() and before any frame is drawn. The job system cannot report it
+    // (its pump rides the frame loop, which doesn't exist yet), so the splash
+    // takes BootProgress callbacks and force-repaints itself instead.
+    StartupSplash::Get()->Begin();
+
     MainWindow::Get()->PostInit();
+
+    StartupSplash::Get()->End(MainWindow::Get());
+
+    // After PostInit's showMaximized, so the overlay sizes to the real window
+    // rect rather than a pre-layout one.
+    LoadingOverlay::Get()->Attach(MainWindow::Get());
 
     // Primary clock: whichever viewport is currently visible drives the loop
     // -- its frameSwapped signal fires at the display refresh rate under
@@ -177,6 +199,11 @@ void Editor::PostInit() {
 }
 
 void Editor::Shutdown() {
+    // First, before any Qt teardown. A job completing against a half-destroyed
+    // MainWindow (or a deleted QApplication) is the one way this shutdown order
+    // can crash, and joining here closes it -- app->exec() has already returned,
+    // so no further Pump will run and any in-flight result is simply dropped.
+    JobSystem::Get().Shutdown();
 
     MainWindow::Get()->Shutdown();
 

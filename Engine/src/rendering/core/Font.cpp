@@ -3,6 +3,8 @@
 #include <algorithm>
 
 #include "engine/debug/Console.hpp"
+#include "engine/jobs/JobSystem.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/utils/EngineUtils.hpp"
 
 using namespace EngineUtils;
@@ -63,12 +65,33 @@ void Font::Awake() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Three states, checked in this order, called every frame from the draw path
+// (ScenePass) -- which is the only place a current GL context is guaranteed.
+//
+//   1. a bake came back -> install it (this is the only GL in the whole flow)
+//   2. clean, poisoned, or already baking -> nothing to do
+//   3. otherwise -> hand the bake to a worker and return immediately
+//
+// The draw path already gates on IsReady(), so a font mid-bake simply emits no
+// draw call and retries next frame. That pre-existing gate is why the bake could
+// be made asynchronous without touching ScenePass at all.
+//
+// Changing a bake setting mid-flight self-corrects at the cost of one wasted
+// bake: the setter raises `dirty` but bakeInFlight blocks a second submit, so
+// the stale result installs, clears the latch, and the still-set `dirty` submits
+// a fresh bake on the following frame. Deliberately not optimized -- the
+// alternative is tracking which settings a running bake was started with.
 void Font::EnsureUploaded() {
-    if (!dirty || bakeFailed) return;
-    Rebuild();
-}
+    if (pendingAtlas) {
+        InstallAtlas(*pendingAtlas);
+        pendingAtlas.reset();
+        bakeInFlight = false;
+        return;
+    }
+    if (!dirty || bakeFailed || bakeInFlight) return;
 
-void Font::Rebuild() {
+    // Cleared before the work starts, exactly as the synchronous version did, so
+    // a failure can't loop.
     dirty = false;
 
     if (source_path.empty()) {
@@ -77,23 +100,67 @@ void Font::Rebuild() {
         return;
     }
 
+    bakeInFlight = true;
+    SubmitBake();
+}
+
+void Font::SubmitBake() {
     FontBakeSettings settings;
     settings.emSize  = emSize;
     settings.pxRange = pxRange;
     settings.charset = charset;
 
-    // No disk cache by design -- see FontAtlasBaker::Bake. This runs once per
-    // session per font, and costs ~265 ms optimized but ~2 s in a Debug build.
-    // Announced because that is a visible stall and a user watching the editor
-    // hitch deserves to know what caused it.
-    Console::Alert("Baking MSDF atlas for font '" + GetName() + "'...");
-    BakedAtlas atlas = FontAtlasBaker::Bake(source_path, settings);
-    if (!atlas.ok) {
-        bakeFailed = true;
-        Console::Alert("Font bake failed for '" + GetName() + "': " + atlas.error);
-        return;
-    }
+    // Captured by value: the worker must not read a single member of `this`.
+    const std::string path = source_path;
+    const std::string name = GetName();
+    // The id, never a Font* -- the font can be deleted while the bake is out
+    // (AssetManager::RemoveAsset), and the completion has to be able to tell.
+    const std::string fontId = GetID();
 
+    // Shared between the two halves: written only by the worker, read only by
+    // the main step, with the job system's mutex providing the happens-before.
+    auto result = std::make_shared<BakedAtlas>();
+
+    JobDesc desc;
+    desc.title = "Baking font atlas: " + name;
+    // Modal. A bake is a visible stall the user deserves an explanation for --
+    // the same reasoning behind the Console::Alert this replaced. The 150ms
+    // grace delay in the overlay means a fast bake still never flashes a card.
+    desc.modal = true;
+
+    desc.worker = [result, path, settings](JobProgressSink& sink) {
+        sink.Report(-1.0f, "Rasterizing glyphs");
+        // Pure CPU and documented never to throw. This is the entire ~265 ms
+        // (~2 s in Debug) that used to sit on the GUI thread.
+        *result = FontAtlasBaker::Bake(path, settings);
+        if (!result->ok) sink.Fail(result->error);
+    };
+
+    desc.mainStep = [result, fontId](JobProgressSink&) -> bool {
+        // Main thread, but NOT inside paintGL -- no GL here. Park the result and
+        // let the next draw-path EnsureUploaded do the upload.
+        if (Font* font = AssetManager::Get().GetFont(fontId))
+            font->pendingAtlas = std::make_unique<BakedAtlas>(std::move(*result));
+        // else: the font was deleted mid-bake. Dropping the result is the whole
+        // reason this captures an id instead of a pointer.
+        return false;
+    };
+
+    desc.onFinished = [fontId, name](bool ok, const std::string& error) {
+        if (ok) return;
+        Console::Alert("Font bake failed for '" + name + "': " + error);
+        // Re-latch the poison on the live object, so a broken font doesn't
+        // re-submit a doomed bake on every frame forever.
+        if (Font* font = AssetManager::Get().GetFont(fontId)) {
+            font->bakeFailed   = true;
+            font->bakeInFlight = false;
+        }
+    };
+
+    JobSystem::Get().Submit(std::move(desc));
+}
+
+void Font::InstallAtlas(BakedAtlas& atlas) {
     glyphs     = std::move(atlas.glyphs);
     ascender   = atlas.ascender;
     descender  = atlas.descender;

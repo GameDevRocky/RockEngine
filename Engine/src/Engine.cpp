@@ -12,6 +12,8 @@
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/core/FileWatcherSystem.hpp"
+#include "engine/jobs/JobSystem.hpp"
+#include "engine/jobs/MainThread.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include <filesystem>
 #include <cstdlib>
@@ -19,6 +21,17 @@
 namespace py = pybind11;
 
 void Engine::Init() {
+    // Claim this thread as the engine's before anything else runs, so
+    // ROCK_ASSERT_MAIN_THREAD has something to compare against and every job
+    // worker is measured from here.
+    MainThread::Stamp();
+
+    // Construct the job system eagerly rather than on first Submit: Get() is a
+    // magic static, which is thread-safe to initialize but only if the first
+    // touch isn't racing a worker that doesn't exist yet. Doing it here makes
+    // the ordering unambiguous.
+    JobSystem::Get();
+
     // If a bundled Python runtime sits next to the executable (distribution build),
     // point the embedded interpreter at it so the app runs without a system Python.
     // In a dev build there is no such folder, so the build-time interpreter is used
@@ -81,9 +94,67 @@ void Engine::PostInit(){
 void Engine::Update(){
     ROCK_PROFILE_FRAME();
     ROCK_PROFILE_SCOPE("Engine::Update");
+
+    // Before the container ticks, deliberately: a job that swaps containers
+    // (entering play mode) must complete before anything reads the container
+    // this frame. Note there is NO GL context current here -- Editor calls
+    // Update() outside paintGL, and its stall watchdog calls it when no viewport
+    // is presenting at all -- so jobs park results and the draw path uploads.
+    JobSystem::Get().Pump();
+
     activeContainer->Update();
 }
 
+
+void Engine::RequestEnterPlayMode(){
+    if (playModeTransitionInFlight) return;
+    if (!editorContainer || activeContainer != editorContainer) return;
+    playModeTransitionInFlight = true;
+
+    JobDesc desc;
+    desc.title = "Entering play mode";
+    desc.modal = true;
+    // No grace delay and a warmup: this operation is KNOWN to block for its
+    // whole duration, so the card must be on screen and painted BEFORE the work
+    // starts, not after a delay that it would outlive. Costs ~2 frames.
+    desc.graceMs = 0;
+    desc.warmupPumps = 2;
+
+    // No worker half, and that is not an oversight -- see the header.
+    desc.mainStep = [](JobProgressSink& sink) -> bool {
+        // Indeterminate: the copy is one indivisible call, so there is no
+        // honest fraction to report. A fake advancing bar would be a lie.
+        sink.Report(-1.0f, "Copying world");
+        Engine::Get()->EnterPlayMode();
+        return false;
+    };
+    desc.onFinished = [](bool, const std::string&) {
+        Engine::Get()->playModeTransitionInFlight = false;
+    };
+
+    JobSystem::Get().Submit(std::move(desc));
+}
+
+void Engine::RequestExitPlayMode(){
+    if (playModeTransitionInFlight) return;
+    if (!runtimeContainer || activeContainer != runtimeContainer) return;
+    playModeTransitionInFlight = true;
+
+    JobDesc desc;
+    desc.title = "Exiting play mode";
+    desc.modal = true;
+
+    desc.mainStep = [](JobProgressSink& sink) -> bool {
+        sink.Report(-1.0f, "Tearing down runtime world");
+        Engine::Get()->ExitPlayMode();
+        return false;
+    };
+    desc.onFinished = [](bool, const std::string&) {
+        Engine::Get()->playModeTransitionInFlight = false;
+    };
+
+    JobSystem::Get().Submit(std::move(desc));
+}
 
 void Engine::EnterPlayMode(){
     runtimeContainer = editorContainer->Copy();
@@ -135,5 +206,8 @@ void Engine::StepFrame(){
 }
 
 void Engine::Shutdown() {
-   
+    // Join the worker before anything it might publish into goes away. The
+    // editor calls this first in its own Shutdown (while Qt is still alive);
+    // this call is the net for a headless embedding, and is idempotent.
+    JobSystem::Get().Shutdown();
 }

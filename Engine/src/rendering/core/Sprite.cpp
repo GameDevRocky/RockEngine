@@ -117,7 +117,9 @@ void Sprite::RebuildOpaqueOutline(float alphaThreshold)
     // Texture2D frees its pixels right after upload, so the source has to be
     // re-decoded. Flip must match Awake()'s, which is what makes decoded row 0
     // the v=0 row -- i.e. this buffer is y-up in UV space, same as the quad.
-    stbi_set_flip_vertically_on_load(true);
+    // The _thread variant: the plain setter writes a process-global that a
+    // concurrent ImageDecoder::Decode on a worker would race.
+    stbi_set_flip_vertically_on_load_thread(1);
     int texW = 0, texH = 0, comps = 0;
     unsigned char* data = stbi_load(tex->GetPath().c_str(), &texW, &texH, &comps, 4);
     if (!data || texW <= 0 || texH <= 0) {

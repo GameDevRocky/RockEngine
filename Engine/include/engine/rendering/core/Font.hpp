@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -93,8 +94,12 @@ public:
     void SetCharset(const std::string& v);
 
 private:
-    // Load the cache if it matches, otherwise bake and write one, then upload.
-    void Rebuild();
+    // Hand the bake to a worker thread. Pure CPU, so it needs nothing from here
+    // but the recipe; the result comes back as a parked BakedAtlas.
+    void SubmitBake();
+    // Install a finished bake: glyph table, metrics, and the GL upload. MUST be
+    // called with a current context -- only EnsureUploaded does.
+    void InstallAtlas(BakedAtlas& atlas);
     void DestroyAtlas();
 
     std::string source_path;    // absolute path to the .ttf/.otf
@@ -120,4 +125,16 @@ private:
     // Set once a bake has failed, so a broken font file doesn't retry (and
     // re-log) on every single frame.
     bool bakeFailed = false;
+
+    // A bake is out on a worker thread right now. Without this, EnsureUploaded
+    // -- which the draw loop calls EVERY FRAME -- would submit a fresh ~265 ms
+    // bake on each of the ~16 frames the first one is still running. Same role
+    // as bakeFailed: a latch that stops the draw path re-triggering work that is
+    // already accounted for.
+    bool bakeInFlight = false;
+
+    // A finished bake waiting for a frame with a current GL context. The job
+    // system's main-thread step parks it here (it runs outside paintGL, where no
+    // context is current); the next EnsureUploaded from the draw path uploads it.
+    std::unique_ptr<BakedAtlas> pendingAtlas;
 };

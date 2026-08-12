@@ -1,4 +1,5 @@
 #include "engine/core/Observable.hpp"
+#include "engine/jobs/MainThread.hpp"
 
 #include <algorithm>
 
@@ -49,6 +50,13 @@ void Observable::Unsubscribe(int id) {
 }
 
 void Observable::Notify(Event event, const std::any& data) {
+    // The subscriber map is unlocked, and handlers run synchronously on the
+    // calling thread -- including editor handlers that construct Qt widgets.
+    // A notify from a worker would therefore both race this map and build
+    // widgets off the GUI thread. Jobs publish results through their main-thread
+    // step instead; this is the tripwire if one ever doesn't.
+    ROCK_ASSERT_MAIN_THREAD();
+
     std::vector<Callback> copy;
     auto collect = [&](Event e) {
         auto found = this->subscribers.find(e);

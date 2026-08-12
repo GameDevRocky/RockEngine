@@ -94,6 +94,13 @@ public:
     void LoadFromDirectory(const std::string& rootDir);
 
     private:
+    // The two halves of LoadTexture either side of the decode+upload, so the
+    // bulk load in LoadFromDirectory can construct every texture, decode them
+    // all in parallel, then upload serially on the thread that owns the GL
+    // context. See ImageDecoder for why the decode is separable at all.
+    Texture2D* CreateTextureFromMeta(const YAML::Node& node, const std::string& filePath);
+    void FinishTextureLoad(Texture2D* tex, const YAML::Node& node, const std::string& filePath);
+
     void LoadMaterial(const YAML::Node& node, const std::string& filePath = {});
     void LoadTexture (const YAML::Node& node, const std::string& filePath = {});
     void LoadShader  (const YAML::Node& node, const std::string& filePath = {});

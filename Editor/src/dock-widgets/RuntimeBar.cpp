@@ -28,22 +28,39 @@ void RuntimeBar::Init() {
     runtimeButton->setIcon(*playIcon);
     runtimeButton->setFixedWidth(48);
     connect(runtimeButton, &QPushButton::clicked, [this]() {
+        // No py::gil_scoped_acquire here any more. It used to wrap the whole
+        // handler, but the transition is now deferred to a job, so the scope
+        // would close before any Python ran -- leaving a lock that looked
+        // load-bearing and wasn't. The code that actually needs the GIL
+        // (ScriptComponent::InstantiateScript) takes it itself.
         auto* container = Engine::Get()->GetActiveContainer();
-        py::gil_scoped_acquire gil;
-        if (container->GetMode() == Container::Mode::Editor){
-            Engine::Get()->EnterPlayMode();
-            runtimeButton->setIcon(*stopIcon);
-            // Bring the Game viewport to the front (raise() surfaces it whether
-            // it's tabbed behind the Scene view or floating in its own window).
-            MainWindow::Get()->gameviewDock->show();
-            MainWindow::Get()->gameviewDock->raise();
-            GameViewGui::Get()->setFocus();
-        }
-        else if (container->GetMode() == Container::Mode::Runtime){
-            Engine::Get()->ExitPlayMode();
-            runtimeButton->setIcon(*playIcon);
-        }
+        if (!container) return;
+
+        // Both requests are no-ops while a transition is already in flight, so
+        // a double-click can't deep-copy the world twice.
+        if (container->GetMode() == Container::Mode::Editor)
+            Engine::Get()->RequestEnterPlayMode();
+        else if (container->GetMode() == Container::Mode::Runtime)
+            Engine::Get()->RequestExitPlayMode();
     });
+
+    // The button now follows the engine rather than the click: the transition
+    // happens a frame or two after the press, so flipping the icon inline would
+    // show "stop" during a period when the game hasn't started yet.
+    Engine::Get()->Subscribe([this]() {
+        runtimeButton->setIcon(*stopIcon);
+        // Bring the Game viewport to the front (raise() surfaces it whether
+        // it's tabbed behind the Scene view or floating in its own window).
+        MainWindow::Get()->gameviewDock->show();
+        MainWindow::Get()->gameviewDock->raise();
+        GameViewGui::Get()->setFocus();
+        return true;
+    }, Engine::ENTER_PLAY_MODE_EVENT);
+
+    Engine::Get()->Subscribe([this]() {
+        runtimeButton->setIcon(*playIcon);
+        return true;
+    }, Engine::EXIT_PLAY_MODE_EVENT);
     
     pauseIcon = new QIcon(GetAssetPath("Domain/lib/assets/icons/pause_icon.png").c_str());
     pauseButton = new QPushButton("", this);

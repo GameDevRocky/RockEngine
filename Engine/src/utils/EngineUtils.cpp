@@ -1,4 +1,5 @@
 #include "engine/utils/EngineUtils.hpp"
+#include "engine/jobs/MainThread.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -68,6 +69,13 @@ namespace EngineUtils {
     }
 
     std::string GenerateUUID() {
+        // Every Serializable constructor lands here, so this is the single most
+        // likely way for a worker thread to corrupt shared state: `gen` and
+        // `dis` are shared and mutated on every call. Thread-safe to
+        // *initialize*, not to *use*. A job's worker half must never construct
+        // an engine object -- this is what catches it if one tries.
+        ROCK_ASSERT_MAIN_THREAD();
+
         static std::random_device rd;
         static std::mt19937 gen(rd());
         static std::uniform_int_distribution<> dis(0, 15);

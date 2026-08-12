@@ -257,6 +257,25 @@ ResizableTextEdit:disabled {
 
 
 /*===========================================================================
+ * QProgressBar (the loading overlay's bar)
+ *
+ * There was no rule for this at all, so a stock bar rendered in raw Fusion
+ * colours against the dark theme. Flat, no text, no border -- it sits inside
+ * the overlay card, which already supplies the frame.
+ *===========================================================================*/
+QProgressBar {
+    background-color: rgb(45, 45, 45);
+    border: none;
+    border-radius: 3px;
+}
+
+QProgressBar::chunk {
+    background-color: rgb(87, 126, 100);
+    border-radius: 3px;
+}
+
+
+/*===========================================================================
  * CToggleSwitch
  *===========================================================================*/
 CToggleSwitch

@@ -38,21 +38,42 @@ void Texture2D::ApplySettings() const
 }
 
 void Texture2D::Awake(){
-    stbi_set_flip_vertically_on_load(true);
-
-    unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
-    if (!data)
-    {
-        std::cerr << "Failed to load texture: " << path << std::endl;
+    // The synchronous path: decode here and upload immediately. The bulk asset
+    // load takes the split version instead (ImageDecoder::Decode on a worker,
+    // then UploadDecoded on the main thread), but a texture created on its own
+    // still gets a one-call route.
+    DecodedImage img = ImageDecoder::Decode(path);
+    if (!img.ok) {
+        std::cerr << "Failed to load texture: " << img.error << std::endl;
         return;
     }
+    UploadDecoded(img);
+}
+
+void Texture2D::UploadDecoded(DecodedImage& img){
+    if (!img.ok || img.pixels.empty()) return;
+
+    width    = img.width;
+    height   = img.height;
+    channels = img.channels;
 
     glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id);
 
     GLenum format = channels == 4 ? GL_RGBA : GL_RGB;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+    // Rows are tightly packed at the source's native channel count, so a
+    // 3-channel image whose width isn't a multiple of 4 would be misread under
+    // GL's default 4-byte row alignment. Awake() got away with it only because
+    // stb's own buffer happened to satisfy it often enough.
+    GLint prevAlignment = 4;
+    glGetIntegerv(GL_UNPACK_ALIGNMENT, &prevAlignment);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format,
+                 GL_UNSIGNED_BYTE, img.pixels.data());
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, prevAlignment);
 
     glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -61,7 +82,12 @@ void Texture2D::Awake(){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     ApplySettings();
-    stbi_image_free(data);
+
+    // The decoded pixels are not retained: the GPU has them now, and holding
+    // 25MB of source images resident to avoid a re-read that happens twice per
+    // session is the wrong trade.
+    img.pixels.clear();
+    img.pixels.shrink_to_fit();
 }
 
 void Texture2D::Deserialize(const YAML::Node &node){
@@ -233,10 +259,13 @@ void Texture2D::RebuildNormalMap()
         return;
     }
 
-    // Awake() frees its pixels right after upload, so the source has to be
-    // re-decoded here. The vertical flip MUST match Awake()'s, or the normal map
-    // ends up mirrored against the albedo it is supposed to shade.
-    stbi_set_flip_vertically_on_load(true);
+    // UploadDecoded frees its pixels right after upload, so the source has to be
+    // re-decoded here. The vertical flip MUST match the albedo's, or the normal
+    // map ends up mirrored against the texture it is supposed to shade.
+    //
+    // The _thread variant: the plain setter writes a process-global, and this
+    // runs from the render path where a worker could be decoding concurrently.
+    stbi_set_flip_vertically_on_load_thread(1);
     int w = 0, h = 0, sourceChannels = 0;
     unsigned char* data = stbi_load(path.c_str(), &w, &h, &sourceChannels, 4);
     if (!data || w <= 0 || h <= 0)

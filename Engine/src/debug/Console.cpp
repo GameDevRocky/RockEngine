@@ -1,4 +1,5 @@
 #include "engine/debug/Console.hpp"
+#include "engine/jobs/MainThread.hpp"
 #include <filesystem>
 #include "Engine.hpp"
 
@@ -6,6 +7,11 @@ void Console::Update() {}
 void Console::Shutdown() {}
 
 void Console::CreateMessage(std::string text, std::string type, const std::source_location loc){
+    // Unguarded message map, an unchecked FindSystem<TimeManager>() deref below,
+    // and a Notify that fans out into Qt. A job that wants to log does it from
+    // its main-thread step or its completion callback, never from the worker.
+    ROCK_ASSERT_MAIN_THREAD();
+
     Console& instance = Get();
     Engine* engine = Engine::Get();
     TimeManager* timeManager = engine->GetActiveContainer()->FindSystem<TimeManager>();

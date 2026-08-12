@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include "engine/serialization/Serializable.hpp"
 #include "engine/rendering/core/Resource.hpp"
+#include "engine/rendering/core/ImageDecoder.hpp"
 #include <yaml-cpp/yaml.h>
 
 
@@ -52,7 +53,13 @@ public:
     // Removes a sprite id from this texture's list (used when a sprite is deleted).
     void UnregisterSprite(const std::string& spriteId);
 
+    // Decode + upload, in one blocking call. Kept for callers that genuinely
+    // want it synchronous (and for a texture created outside the bulk load).
     void Awake() override;
+
+    // The GL half of Awake, split out so the decode can happen on another
+    // thread. MUST be called with a current GL context. Consumes the image.
+    void UploadDecoded(DecodedImage& img);
 
     void Bind(unsigned int slot = 0) const;
     void Unbind() const;

@@ -3,6 +3,9 @@
 #include "engine/rendering/core/Resource.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/rendering/core/AssetMetaService.hpp"
+#include "engine/rendering/core/ImageDecoder.hpp"
+#include "engine/jobs/BootProgress.hpp"
+#include "engine/jobs/ParallelFor.hpp"
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
@@ -431,13 +434,30 @@ void AssetManager::LoadMaterial(const YAML::Node& node, const std::string& fileP
 }
 
 void AssetManager::LoadTexture(const YAML::Node& node, const std::string& filePath) {
-    if (node["id"] && textures.count(node["id"].as<std::string>())) return;
+    Texture2D* tex = CreateTextureFromMeta(node, filePath);
+    if (!tex) return;
+    tex->Awake();                       // decode + upload, synchronously
+    FinishTextureLoad(tex, node, filePath);
+}
+
+// Everything about loading a texture EXCEPT the decode and the GL upload. Split
+// out so the bulk load can construct all of them first, decode them in parallel,
+// and upload afterwards -- see LoadFromDirectory. Returns nullptr if the id is
+// already registered.
+Texture2D* AssetManager::CreateTextureFromMeta(const YAML::Node& node,
+                                               const std::string& filePath) {
+    if (node["id"] && textures.count(node["id"].as<std::string>())) return nullptr;
 
     Texture2D* tex = new Texture2D();
-    tex->Deserialize(node);
+    tex->Deserialize(node);             // pure CPU: resolves the source path
     if (!filePath.empty()) tex->SetFilePath(filePath);
-    tex->Init();
-    tex->Awake();
+    tex->Init();                        // no-op; Texture2D doesn't override it
+    return tex;
+}
+
+void AssetManager::FinishTextureLoad(Texture2D* tex, const YAML::Node& node,
+                                     const std::string& filePath) {
+    if (!tex) return;
     AddTexture(tex);
     std::cout << "Loaded and Registered Texture: " + tex->GetName() << std::endl;
 
@@ -526,6 +546,8 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
         return;
     }
 
+    BootProgress::Report(-1.0f, "Scanning assets");
+
     // Load in dependency order: textures (+ their embedded sprites) and shaders
     // first, then materials. Fonts depend on nothing and nothing depends on them
     // at load time (a TextRenderer resolves its font by id at draw), so they can
@@ -544,10 +566,76 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     if (ec)
         Console::Alert("LoadFromDirectory: iteration error: " + ec.message());
 
-    for (auto& p : textureMetas)  LoadAssetFromFile(p.string());
-    for (auto& p : shaderMetas)   LoadAssetFromFile(p.string());
-    for (auto& p : fontMetas)     LoadAssetFromFile(p.string());
-    for (auto& p : materialMetas) LoadAssetFromFile(p.string());
+    // Reported so the startup splash can show real progress. This runs before
+    // app->exec(), so there is no event loop and no job pump -- BootProgress is
+    // a direct call and the splash force-repaints itself on each one.
+    const std::size_t total = textureMetas.size() + shaderMetas.size()
+                            + fontMetas.size() + materialMetas.size();
+    std::size_t done = 0;
+    auto loadAll = [&](const std::vector<fs::path>& metas, const char* kind) {
+        for (const auto& p : metas) {
+            BootProgress::Report(total ? static_cast<float>(done) / static_cast<float>(total) : -1.0f,
+                                 std::string(kind) + ": " + p.stem().string());
+            LoadAssetFromFile(p.string());
+            ++done;
+        }
+    };
+
+    // ── Textures: decode in parallel, upload serially ───────────────────────
+    // The one genuinely parallel step in the whole boot. Decoding ~210 PNGs
+    // (25MB) is pure CPU and was the single largest stall in startup; the GL
+    // upload that follows is not parallelizable and must stay on the thread that
+    // owns the context, so the two are separated rather than interleaved.
+    {
+        struct Pending { Texture2D* tex; YAML::Node node; std::string metaPath; };
+        std::vector<Pending> pending;
+        pending.reserve(textureMetas.size());
+
+        // Phase A, main thread: parse the metas and construct the objects. Both
+        // steps allocate Serializables, which call GenerateUUID -- so neither
+        // can move off this thread.
+        for (const auto& p : textureMetas) {
+            BootProgress::Report(static_cast<float>(done) / static_cast<float>(total ? total : 1),
+                                 "Reading " + p.stem().string());
+            try {
+                YAML::Node node = YAML::LoadFile(p.string());
+                if (Texture2D* tex = CreateTextureFromMeta(node, p.string()))
+                    pending.push_back({tex, node, p.string()});
+            } catch (const std::exception& e) {
+                Console::Alert("Failed to read texture meta " + p.string() + ": " + e.what());
+            }
+            ++done;
+        }
+
+        BootProgress::Report(static_cast<float>(done) / static_cast<float>(total ? total : 1),
+                             "Decoding " + std::to_string(pending.size()) + " images");
+
+        // Phase B, worker threads: pure decode. Each index writes only its own
+        // slot, and nothing here touches engine state -- which is exactly the
+        // contract ParallelFor and ImageDecoder are both documented against.
+        std::vector<DecodedImage> images(pending.size());
+        ParallelFor::Run(pending.size(), [&](std::size_t i) {
+            images[i] = ImageDecoder::Decode(pending[i].tex->GetPath());
+        });
+
+        // Phase C, main thread: upload and register. AddTexture fires
+        // ASSET_ADDED_EVENT, so this half could never have been threaded anyway.
+        for (std::size_t i = 0; i < pending.size(); ++i) {
+            if (!images[i].ok) {
+                Console::Alert("Texture decode failed: " + images[i].error);
+                delete pending[i].tex;
+                continue;
+            }
+            pending[i].tex->UploadDecoded(images[i]);
+            FinishTextureLoad(pending[i].tex, pending[i].node, pending[i].metaPath);
+        }
+    }
+
+    loadAll(shaderMetas,   "Shaders");
+    loadAll(fontMetas,     "Fonts");
+    loadAll(materialMetas, "Materials");
+
+    BootProgress::Report(1.0f, "Finishing up");
 
     // Everything is loaded; from here on, in-memory edits sync back to disk.
     EnableAutoSave();
