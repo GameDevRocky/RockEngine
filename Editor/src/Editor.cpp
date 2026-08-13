@@ -17,6 +17,7 @@
 #include <QCoreApplication>
 #include "engine/jobs/JobSystem.hpp"
 #include "engine/utils/EngineUtils.hpp"
+#include "engine/input/GamepadService.hpp"
 #include "utils/GizmoUndoBridge.hpp"
 #include "utils/LoadingOverlay.hpp"
 #include "utils/StartupSplash.hpp"
@@ -53,6 +54,18 @@ void Editor::Init() {
         app = qobject_cast<QApplication*>(QApplication::instance());
     }
     QApplication::setStyle(QStyleFactory::create("Fusion"));
+
+    // Gamepads are POLLED from the OS, not delivered as Qt events, so unlike the keyboard they
+    // keep reporting while the editor sits in the background -- a game left in play mode would
+    // happily respond to stick input while you work in another application, and a rumble left
+    // running would keep buzzing. Qt's application-state signal is the only thing that knows
+    // about focus (Engine has no windows), so the editor pushes it down to the engine here.
+    // ApplicationActive is the sole "we have the user's attention" state; Inactive, Suspended
+    // and Hidden all mean the same thing to a controller.
+    QObject::connect(app, &QGuiApplication::applicationStateChanged,
+                     app, [](Qt::ApplicationState state) {
+        GamepadService::Get().SetApplicationFocused(state == Qt::ApplicationActive);
+    });
 
     const QStringList styleCandidates = {
         QString::fromStdString(EngineUtils::GetAssetPath("Domain/lib/assets/styling/default.qss")),

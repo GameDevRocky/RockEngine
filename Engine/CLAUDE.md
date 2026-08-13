@@ -184,6 +184,77 @@ stb/glad); `AudioEngine.cpp` is the one translation unit with `MINIAUDIO_IMPLEME
   `Observable::CreateEvent()` parsed after it into `CreateEventA` — a link error pointing at
   unrelated static Event initializers. `AudioEngine.cpp` `#undef`s it right after the include.
 
+## Input & gamepads
+
+Keyboard/mouse and gamepads reach the engine by **opposite routes**, and the difference drives
+most of the design here.
+
+- **Keyboard/mouse is pushed in.** Engine has no windows, so `SceneViewGui`/`GameViewGui`
+  forward Qt events into `InputManager::SetKeyState` / `SetMouseButtonState` /
+  `SetMousePosition` (raw `Qt::Key` / `Qt::MouseButton` ints — there is no engine-side keycode
+  enum). Input therefore only flows while a viewport has Qt focus.
+- **Gamepads are polled.** `GamepadService` (`src/input/GamepadService.cpp`, singleton) asks the
+  OS directly once per frame. No Qt, no focus, no events.
+
+**`GamepadService` lives outside any `Container`**, alongside `Renderer`/`AssetManager`/
+`AudioEngine` and for the identical reason: a controller is hardware, and hardware has no
+per-world identity. There is one DualSense on the desk whether the editor or runtime container
+is ticking, and deep-copying it into play mode would mean two objects fighting over one device
+handle. `InputManager` (which *is* a per-Container `System`) reads the service each frame and
+derives the pressed/released **edges**, so scripts still get container-scoped input off one
+shared device — the same split as `AudioEngine` (global device) vs `AudioSource` (per-world
+component).
+
+**SDL3 is the backend**, vendored as `External/SDL` and built with **`SDL_VIDEO` OFF** (see the
+comment block in `External/CMakeLists.txt`). That is load-bearing, not incidental: the video
+code is never compiled, so this build of SDL *cannot* create a window even by accident. Qt keeps
+owning every window; Engine only ever calls `SDL_INIT_GAMEPAD`. `SDL_AUDIO` is off too —
+miniaudio owns audio. `HIDAPI`/`SENSOR`/`POWER`/`HAPTIC` stay **on**, and that is what supplies
+the PlayStation feature set (gyro, accelerometer, touchpad fingers, lightbar, battery); turn any
+of them off and a DualSense silently degrades to a generic pad. Qt6 dropped QtGamepad and Engine
+must not depend on Qt anyway, which is why an external library was needed at all.
+
+Details worth knowing before changing any of it:
+
+- **Poll order is a correctness constraint.** `GamepadService::Update()` runs in
+  `Engine::Update()` **before** `activeContainer->Update()`, because `InputManager::Update()`
+  derives this frame's edges from it. Polling after the container tick puts a one-frame lag on
+  every controller input.
+- **`GamepadTypes.hpp` includes no SDL header.** SDL is an implementation detail of
+  `GamepadService.cpp`; letting `SDL_gamepad.h` leak into engine headers would drag it into
+  every binding and script-facing TU. `GamepadService.hpp` stores pads as `void*` for the same
+  reason.
+- **`GamepadButton`/`GamepadAxis` mirror SDL's enum ordering** so translation is a cast, not a
+  switch. `GamepadService.cpp` `static_assert`s that correspondence — an SDL upgrade that
+  reorders its enum breaks the build there instead of silently swapping Circle for Cross.
+- **Buttons are named by position** (`South`/`East`/`West`/`North`), the only naming that stays
+  true across vendors. `gamepad_system.py` adds `CROSS`/`CIRCLE`/`SQUARE`/`TRIANGLE` and
+  `A`/`B`/`X`/`Y` aliases so script code reads naturally without the engine picking a side.
+- **Stick Y is flipped once, in `ReadPad`.** SDL reports Y-down; a Y-up 2D engine wants "push
+  up, get +1". Touchpad Y is flipped to match.
+- **Deadzone is radial and lives in `InputManager`**, not the service — the service reports raw
+  hardware. Per-axis deadzoning is deliberately avoided (it makes diagonals reach further than
+  cardinals).
+- **Focus gating.** A polled pad has no focus concept, so without this a game left in play mode
+  keeps responding while you work in another app. `Editor::Init` connects Qt's
+  `applicationStateChanged` to `GamepadService::SetApplicationFocused`. While unfocused every
+  `GetState()` returns zeroes and rumble is cut, but devices stay open so nothing is
+  re-enumerated on the way back. `IsConnected()` still answers honestly — "is a pad plugged in"
+  is not input, and a controller icon in the UI should not flicker when you alt-tab.
+- **Rumble outlives its owner.** The motors latch in the controller's own hardware, so anything
+  that ends a session has to zero them: `ExitPlayMode`, `Engine::Shutdown`, focus loss, and
+  `GamepadService::Shutdown` all do. A script cannot leave a pad buzzing on the desk.
+- **COM apartment.** `GamepadService::EnsureInitialized` claims `COINIT_APARTMENTTHREADED`
+  before `SDL_Init`, exactly as `AudioEngine` does and for the same drag-and-drop reason (see
+  the Audio section above). Both claim STA defensively, so the ordering between audio, gamepads
+  and Qt startup does not matter. Don't "fix" it by reordering init.
+- **`InputManager::Copy()` seeds pad buttons from live hardware** into both the current and
+  previous buffers, so entering play mode while holding a button reads as *down* but never fires
+  a phantom *press* edge on the runtime container's first frame.
+- **Steam Input** hides the physical pad behind a virtual one when a game runs under Steam. SDL
+  handles that correctly; `GamepadState::steamHandle` is non-zero when it is in play, which is
+  the signal that remapping is Steam's job and the game should not offer its own.
+
 ## Scripting — C++ side (pybind11)
 
 - `PYBIND11_EMBEDDED_MODULE(rock_engine, ...)` in `src/bindings/PythonBindings.cpp` exposes

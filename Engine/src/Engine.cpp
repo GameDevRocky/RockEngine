@@ -16,6 +16,7 @@
 #include "engine/jobs/MainThread.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/audio/AudioEngine.hpp"
+#include "engine/input/GamepadService.hpp"
 #include "engine/components/AudioListener.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/Transform.hpp"
@@ -101,6 +102,12 @@ void Engine::PostInit(){
     // at which Qt initializes OLE is an internal detail we must not depend on. See the comment
     // there before moving this call anywhere.
     AudioEngine::Get().EnsureInitialized();
+
+    // Same deal as audio: a controller is hardware with no per-world identity, so the service
+    // lives outside any Container and is started once here rather than per-Container. Safe to
+    // sit after the audio call -- both claim an STA COM apartment defensively, so whichever
+    // runs first agrees with Qt and the ordering does not matter (see GamepadService.cpp).
+    GamepadService::Get().EnsureInitialized();
 }
 
 void Engine::Update(){
@@ -113,6 +120,11 @@ void Engine::Update(){
     // Update() outside paintGL, and its stall watchdog calls it when no viewport
     // is presenting at all -- so jobs park results and the draw path uploads.
     JobSystem::Get().Pump();
+
+    // Must precede the container tick: InputManager::Update() derives this frame's gamepad
+    // pressed/released edges from this state, and polling after the tick would hand every
+    // script last frame's buttons -- a one-frame lag on every controller input.
+    GamepadService::Get().Update();
 
     activeContainer->Update();
 
@@ -210,6 +222,12 @@ void Engine::ExitPlayMode(){
     delete runtimeContainer;
     runtimeContainer = nullptr;
     activeContainer = editorContainer;
+
+    // Rumble is the one thing a script can start that outlives its own container: the motors
+    // latch in the controller until told otherwise, so a game stopped mid-shake would leave the
+    // pad buzzing on the editor's desk with nothing left running to turn it off.
+    GamepadService::Get().StopAllRumble();
+
     Notify(EXIT_PLAY_MODE_EVENT);
 }
 
@@ -236,4 +254,7 @@ void Engine::Shutdown() {
     // this call is the net for a headless embedding, and is idempotent.
     JobSystem::Get().Shutdown();
     AudioEngine::Get().Shutdown();
+    // Closes every open pad, and zeroes the motors on the way out -- rumble latches in the
+    // controller's own hardware and would otherwise outlive the process.
+    GamepadService::Get().Shutdown();
 }

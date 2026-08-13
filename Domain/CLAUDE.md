@@ -11,8 +11,8 @@ Loaded at runtime relative to `PROJECT_ROOT` (the source dir, baked in at build 
     `scriptable_component_handler` — the base class users subclass).
   - `core/` — `gameobject_handler`.
   - `rendering/` — `sprite_handler`, `material_handler`.
-  - `systems/` — `input_system`, `physics_system`, `time_system`, `console_system`,
-    `debug_draw`.
+  - `systems/` — `input_system`, `gamepad_system`, `physics_system`, `time_system`,
+    `console_system`, `debug_draw`.
 - **`lib/assets/`** — textures, sprites, icons, fonts, shaders, `styling/default.qss` (the Qt
   editor stylesheet). Each source asset has a sibling meta file (e.g. `foo.png` +
   `foo.png.texture`) — see Engine's CLAUDE.md for the meta convention.

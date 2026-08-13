@@ -11,7 +11,7 @@ OpenGL 4.6 rendering, Box2D physics, YAML-based serialization, pybind11 scriptin
 | `Editor/`   | Qt6 editor UI (`RockEngineEditor` lib). Depends on Engine. | `Editor/CLAUDE.md` |
 | `Domain/`   | Game-side content: Python scripting API + assets + sandbox. Not compiled. | `Domain/CLAUDE.md` |
 | `src/`      | `main.cpp` — the launcher executable `RockEngineLauncher`. | — |
-| `External/` | Git submodules (glm, yaml-cpp, box2d, pybind11, imgui, imguizmo) + vendored glad/stb. | `.gitmodules` |
+| `External/` | Git submodules (glm, yaml-cpp, box2d, pybind11, imgui, imguizmo, SDL) + vendored glad/stb. | `.gitmodules` |
 | `tools/`    | Misc tooling. | — |
 
 Each major layer has its own `CLAUDE.md` (loaded when you work in that subtree) with the

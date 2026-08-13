@@ -26,3 +26,6 @@
 [submodule "External/nvrhi"]
 	path = External/nvrhi
 	url = https://github.com/NVIDIA-RTX/NVRHI
+[submodule "External/SDL"]
+	path = External/SDL
+	url = https://github.com/libsdl-org/SDL

@@ -21,6 +21,9 @@ class PlayerController(ScriptableComponent):
       DoubleJump(Trigger) -- fired on an air (double) jump; wire a DoubleJump clip
                              in the Animator editor and add a transition on it
     Input: A/D (or Left/Right) to move, Space or W to jump (again in the air to double-jump).
+      Controller: left stick to move, Cross/A to jump. Both schemes are live at once --
+      whichever is pushed harder wins, so a pad and the keyboard never fight each other.
+      The stick is analog: half-pushed is half speed, which the keyboard cannot express.
     Tune the numeric fields below in the inspector to match your world scale.
     """
 
@@ -85,7 +88,8 @@ class PlayerController(ScriptableComponent):
     def update(self):
         # is_key_pressed is a one-frame edge; read it here (per render frame), not
         # in fixed_update which can run zero or many times per frame and miss it.
-        if Input.is_key_pressed(Keys.UP) or Input.is_key_pressed(Keys.SPACE) or Input.is_key_pressed(Keys.W):
+        # Gamepad edges have exactly the same one-frame lifetime and the same rule.
+        if self._jump_pressed():
             self.jump_buffer_timer = self.jump_buffer_time
         self._update_animation()
         self._follow_camera()
@@ -104,7 +108,7 @@ class PlayerController(ScriptableComponent):
 
     # ── movement ─────────────────────────────────────────────────────────────
     def _move_horizontal(self, dt):
-        move = self._axis(Keys.D, Keys.RIGHT) - self._axis(Keys.A, Keys.LEFT)
+        move = self._move_axis()
 
         vel = self.rb.velocity
         target = move * self.move_speed
@@ -200,8 +204,7 @@ class PlayerController(ScriptableComponent):
                 self.animator.set_trigger('Jump' if can_ground_jump else 'DoubleJump')
 
         # Variable jump height: releasing the jump key while rising cuts the ascent.
-        jump_held = Input.is_key_down(Keys.UP) or Input.is_key_down(Keys.SPACE) or Input.is_key_down(Keys.W)
-        if self.is_jumping and not jump_held:
+        if self.is_jumping and not self._jump_held():
             vel = self.rb.velocity
             if vel.y > 0.0:
                 vel.y *= self.jump_cut_multiplier
@@ -233,6 +236,44 @@ class PlayerController(ScriptableComponent):
         if self.camera:
             self.camera.transform.position += (
                 (self.transform.position - self.camera.transform.position) * self.camera_smoothing)
+
+    # ── input ────────────────────────────────────────────────────────────────
+    # Keyboard and controller are read together rather than one mode being selected,
+    # so picking up a pad mid-session just works and no "active input device" state
+    # has to be tracked. Jump is an OR; movement takes whichever source is pushed
+    # further (see _move_axis).
+
+    # PadButton.CROSS is the X-looking button on a PlayStation pad and A on an Xbox
+    # one -- the same physical position, which is why the engine names buttons by
+    # position (SOUTH) and treats the labels as aliases. Do NOT use PadButton.X here:
+    # that is Xbox's X, which sits WEST and is Square on a DualSense.
+    JUMP_BUTTON = PadButton.CROSS
+
+    def _jump_pressed(self):
+        """One-frame edge, from either input device."""
+        return (Input.is_key_pressed(Keys.UP)
+                or Input.is_key_pressed(Keys.SPACE)
+                or Input.is_key_pressed(Keys.W)
+                or Gamepad.is_button_pressed(self.JUMP_BUTTON))
+
+    def _jump_held(self):
+        """Held state, for the variable-height jump cut."""
+        return (Input.is_key_down(Keys.UP)
+                or Input.is_key_down(Keys.SPACE)
+                or Input.is_key_down(Keys.W)
+                or Gamepad.is_button_down(self.JUMP_BUTTON))
+
+    def _move_axis(self):
+        """Horizontal input in [-1, 1], analog from the stick.
+
+        The larger magnitude wins rather than the two being summed: summing would let
+        a half-pushed stick cancel a held key, and would clamp oddly when both point
+        the same way. The stick is already radially deadzoned by the engine, so it
+        reads exactly 0 at rest and never fights the keyboard's 0.
+        """
+        keys = self._axis(Keys.D, Keys.RIGHT) - self._axis(Keys.A, Keys.LEFT)
+        stick = Gamepad.left_stick().x
+        return stick if abs(stick) > abs(keys) else keys
 
     # ── helpers ──────────────────────────────────────────────────────────────
     @staticmethod
