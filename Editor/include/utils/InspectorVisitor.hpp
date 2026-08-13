@@ -54,6 +54,9 @@ class InspectorVisitor : public IVisitor{
         void Visit(WeldJoint* joint) override;
         void Visit(WheelJoint* joint) override;
         void Visit(MotorJoint* joint) override;
+        void Visit(AudioSource* audioSource) override;
+        void Visit(AudioListener* audioListener) override;
+        void Visit(AudioClip* audioClip) override;
 
 
         QWidget* GetContent(){ return content;}

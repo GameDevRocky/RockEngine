@@ -815,6 +815,13 @@ private:
                 auto* a = AssetManager::Get().GetFont(id);
                 return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
             };
+        else if (m_desc.tag == Properties::Tags::AUDIO_CLIP)
+            // No thumbnail generator (no waveform preview) -- falls back to the OS
+            // icon for the .audio meta, same as FONT above.
+            fallbackIconGen = [iconFromFilePath](const std::string& id) {
+                auto* a = AssetManager::Get().GetAudioClip(id);
+                return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
+            };
         else if (m_desc.tag == Properties::Tags::SCRIPT)
             fallbackIconGen = [iconFromFilePath](const std::string& id) -> QIcon {
                 // id is "module:class" — icon the module's .py file.
@@ -857,6 +864,8 @@ private:
             auto* a = am.GetShader(id);   return a ? a->GetName() : id;
         } else if (m_desc.tag == Properties::Tags::FONT) {
             auto* a = am.GetFont(id);     return a ? a->GetName() : id;
+        } else if (m_desc.tag == Properties::Tags::AUDIO_CLIP) {
+            auto* a = am.GetAudioClip(id); return a ? a->GetName() : id;
         } else if (m_desc.tag == Properties::Tags::SCRIPT) {
             // id is "module:class" — show the class name (what the user picked).
             const auto colon = id.find(':');
@@ -918,6 +927,9 @@ private:
         } else if (m_desc.tag == Properties::Tags::FONT) {
             for (const auto& [id, f] : am.GetAllFonts())
                 items.push_back({f->GetName(), id});
+        } else if (m_desc.tag == Properties::Tags::AUDIO_CLIP) {
+            for (const auto& [id, clip] : am.GetAllAudioClips())
+                items.push_back({clip->GetName(), id});
         } else if (m_desc.tag == Properties::Tags::SCRIPT) {
             // Every ScriptableComponent subclass, keyed by "module:class".
             // Disambiguate a class name shared across modules as "Class (module)".

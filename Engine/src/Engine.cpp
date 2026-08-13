@@ -15,6 +15,10 @@
 #include "engine/jobs/JobSystem.hpp"
 #include "engine/jobs/MainThread.hpp"
 #include "engine/utils/EngineUtils.hpp"
+#include "engine/audio/AudioEngine.hpp"
+#include "engine/components/AudioListener.hpp"
+#include "engine/components/Camera.hpp"
+#include "engine/components/Transform.hpp"
 #include <filesystem>
 #include <cstdlib>
 
@@ -66,6 +70,10 @@ void Engine::Init() {
     engine::RegisterPythonBindings();
     RegisterComponentTypes();
 
+    // No GL context needed (unlike Renderer), so this can start eagerly here rather than
+    // lazily on first use.
+    AudioEngine::Get().EnsureInitialized();
+
     editorContainer = new Container();
     editorContainer->AddSystem(new Registry());
     editorContainer->AddSystem(new TimeManager());
@@ -103,6 +111,19 @@ void Engine::Update(){
     JobSystem::Get().Pump();
 
     activeContainer->Update();
+
+    // Pulled once per frame, same "pull, don't push" rule the render cameras follow (see
+    // Engine/CLAUDE.md "Rendering"): whichever AudioListener is active drives what every
+    // AudioSource's spatialBlend measures distance/pan against, falling back to the main
+    // Camera so positional audio works with zero setup in scenes that never add one.
+    AudioEngine::Get().Update();
+    if (AudioListener* listener = AudioListener::GetMain()) {
+        if (Transform* t = listener->GetTransform())
+            AudioEngine::Get().SetListenerPosition(glm::vec3(t->GetWorldPosition(), 0.0f));
+    } else if (Camera* cam = Camera::GetMain()) {
+        if (Transform* t = cam->GetTransform())
+            AudioEngine::Get().SetListenerPosition(glm::vec3(t->GetWorldPosition(), 0.0f));
+    }
 }
 
 
@@ -210,4 +231,5 @@ void Engine::Shutdown() {
     // editor calls this first in its own Shutdown (while Qt is still alive);
     // this call is the net for a headless embedding, and is idempotent.
     JobSystem::Get().Shutdown();
+    AudioEngine::Get().Shutdown();
 }

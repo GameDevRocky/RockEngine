@@ -13,6 +13,7 @@
 // foo.png.texture     foo.png / foo.jpg / foo.jpeg / foo.bmp
 // foo.vert.shader     foo.vert  AND  foo.frag (same stem, same dir)
 // foo.ttf.font        foo.ttf / foo.otf
+// foo.wav.audio       foo.wav / foo.mp3 / foo.ogg / foo.flac
 // foo.mat             (no source – already a definition file, always shown)
 // foo.material        (no source – already a definition file, always shown)
 // foo.sprite          (no source – already a definition file, always shown)
@@ -52,6 +53,13 @@ protected:
         // Hide when foo.ttf.font exists in the same directory
         if (ext == "ttf" || ext == "otf") {
             QString metaPath = fi.absoluteFilePath() + ".font";
+            if (QFileInfo::exists(metaPath)) return false;
+        }
+
+        // ── Audio source (.wav / .mp3 / .ogg / .flac) ────────────────────────
+        // Hide when foo.ext.audio exists in the same directory
+        if (ext == "wav" || ext == "mp3" || ext == "ogg" || ext == "flac") {
+            QString metaPath = fi.absoluteFilePath() + ".audio";
             if (QFileInfo::exists(metaPath)) return false;
         }
 

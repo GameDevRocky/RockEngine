@@ -26,6 +26,7 @@ namespace Properties {
         TEXTURE,
         SHADER,
         FONT,
+        AUDIO_CLIP,
         STRING,
         OBJECT_REF,
         SCRIPT,

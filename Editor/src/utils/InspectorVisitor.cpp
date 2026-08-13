@@ -21,6 +21,10 @@
 #include "engine/components/WeldJoint.hpp"
 #include "engine/components/WheelJoint.hpp"
 #include "engine/components/MotorJoint.hpp"
+#include "engine/components/AudioSource.hpp"
+#include "engine/components/AudioListener.hpp"
+#include "engine/audio/AudioClip.hpp"
+#include "engine/audio/AudioEngine.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
 #include "engine/rendering/core/Sprite.hpp"
@@ -1672,4 +1676,106 @@ void InspectorVisitor::Visit(Animator* animator) {
         MainWindow::Get()->ShowAnimator();
     });
     AddFullRow(openBtn);
+}
+
+void InspectorVisitor::Visit(AudioSource* src) {
+    using AS = AudioSource;
+
+    auto clip_get = [=]() { return src->GetClipID(); };
+    auto clip_set = [](AS* s, const std::string& val) { std::string v = val; s->SetClip(v); };
+    BindProperty<std::string>(src, "Clip: ", clip_get, clip_set,
+        src->CLIP_CHANGED_EVENT, PropDesc().Tag(Tags::AUDIO_CLIP).RefType(Tags::OBJECT_REF));
+
+    BindProperty<bool>(src, "Play On Awake: ",
+        [=]() { return src->GetPlayOnAwake(); },
+        [](AS* s, const bool& v) { s->SetPlayOnAwake(v); },
+        src->PLAY_ON_AWAKE_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+    BindProperty<bool>(src, "Loop: ",
+        [=]() { return src->GetLoop(); },
+        [](AS* s, const bool& v) { s->SetLoop(v); },
+        src->LOOP_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+    BindProperty<bool>(src, "Mute: ",
+        [=]() { return src->GetMute(); },
+        [](AS* s, const bool& v) { s->SetMute(v); },
+        src->MUTE_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+
+    BindProperty<float>(src, "Volume: ",
+        [=]() { return src->GetVolume(); },
+        [](AS* s, const float& v) { s->SetVolume(v); },
+        src->VOLUME_CHANGED_EVENT, PropDesc().Tag(Tags::SLIDER).Range(0.0f, 1.0f).Step(0.01f));
+
+    BindProperty<float>(src, "Pitch: ",
+        [=]() { return src->GetPitch(); },
+        [](AS* s, const float& v) { s->SetPitch(v); },
+        src->PITCH_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0.1f, 3.0f).Step(0.01f));
+
+    BindProperty<float>(src, "Spatial Blend: ",
+        [=]() { return src->GetSpatialBlend(); },
+        [](AS* s, const float& v) { s->SetSpatialBlend(v); },
+        src->SPATIAL_BLEND_CHANGED_EVENT, PropDesc().Tag(Tags::SLIDER).Range(0.0f, 1.0f).Step(0.01f)
+            .Desc("0 = always centered, full volume regardless of distance (music/UI). "
+                  "1 = fully positional, panned and attenuated against the active "
+                  "AudioListener (falls back to the main Camera if none is present)."));
+
+    BindProperty<float>(src, "Min Distance: ",
+        [=]() { return src->GetMinDistance(); },
+        [](AS* s, const float& v) { s->SetMinDistance(v); },
+        src->MIN_DISTANCE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0.0f, 100000.0f).Step(1.0f)
+            .Desc("World units (== pixels). Distance under which volume stays at max."));
+
+    BindProperty<float>(src, "Max Distance: ",
+        [=]() { return src->GetMaxDistance(); },
+        [](AS* s, const float& v) { s->SetMaxDistance(v); },
+        src->MAX_DISTANCE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0.0f, 1000000.0f).Step(1.0f)
+            .Desc("World units (== pixels). Distance beyond which volume is silent."));
+
+    auto* playBtn = new QPushButton("Play");
+    QObject::connect(playBtn, &QPushButton::clicked, playBtn, [src]() { src->Play(); });
+    AddFullRow(playBtn);
+
+    auto* stopBtn = new QPushButton("Stop");
+    QObject::connect(stopBtn, &QPushButton::clicked, stopBtn, [src]() { src->Stop(); });
+    AddFullRow(stopBtn);
+}
+
+void InspectorVisitor::Visit(AudioListener*) {
+    auto* label = new QLabel(
+        "Drives the audio listener from this GameObject's position. "
+        "At most one active AudioListener should exist per scene.");
+    label->setWordWrap(true);
+    AddFullRow(label);
+}
+
+void InspectorVisitor::Visit(AudioClip* clip) {
+    BindProperty<std::string>(clip, "Path: ",
+        [=]() { return clip->GetPath(); },
+        [](AudioClip*, const std::string&) {},
+        clip->FILE_PATH_CHANGED_EVENT, PropDesc().Tag(Tags::FILEPATH).ReadOnly());
+
+    BindProperty<std::string>(clip, "Duration: ",
+        [=]() {
+            char buf[32];
+            std::snprintf(buf, sizeof(buf), "%.2f s", clip->GetDuration());
+            return std::string(buf);
+        },
+        [](AudioClip*, const std::string&) {},
+        clip->FILE_PATH_CHANGED_EVENT, PropDesc().Tag(Tags::STRING).ReadOnly());
+
+    BindProperty<std::string>(clip, "Channels: ",
+        [=]() { return std::to_string(clip->GetChannels()); },
+        [](AudioClip*, const std::string&) {},
+        clip->FILE_PATH_CHANGED_EVENT, PropDesc().Tag(Tags::STRING).ReadOnly());
+
+    BindProperty<std::string>(clip, "Sample Rate: ",
+        [=]() { return std::to_string(clip->GetSampleRate()) + " Hz"; },
+        [](AudioClip*, const std::string&) {},
+        clip->FILE_PATH_CHANGED_EVENT, PropDesc().Tag(Tags::STRING).ReadOnly());
+
+    auto* playBtn = new QPushButton("Play Preview");
+    QObject::connect(playBtn, &QPushButton::clicked, playBtn, [clip]() {
+        AudioEngine::Get().PlayOneShot(clip->GetPath());
+    });
+    AddFullRow(playBtn);
 }

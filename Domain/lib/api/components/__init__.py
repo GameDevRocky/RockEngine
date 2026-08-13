@@ -19,3 +19,5 @@ from .prismatic_joint_handler import PrismaticJoint
 from .weld_joint_handler import WeldJoint
 from .wheel_joint_handler import WheelJoint
 from .motor_joint_handler import MotorJoint
+from .audio_source_handler import AudioSource
+from .audio_listener_handler import AudioListener

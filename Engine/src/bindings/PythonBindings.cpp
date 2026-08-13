@@ -37,11 +37,15 @@ void BindCamera(py::module_& m);
 void BindAnimator(py::module_& m);
 void BindParticleComponent(py::module_& m);
 void BindJoint(py::module_& m);
+void BindAudioSource(py::module_& m);
 
 // RENDERING
 void BindSprite(py::module_ & m);
 void BindMaterial(py::module_ & m);
 void BindTexture2D(py::module_ & m);
+
+// AUDIO
+void BindAudioClip(py::module_& m);
 
 // TIME
 void BindTime(py::module_& m);
@@ -75,6 +79,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindAnimator(components);
     BindParticleComponent(components);
     BindJoint(components);
+    BindAudioSource(components);
 
     // RENDERING
     py::module_ rendering = m.def_submodule("rendering", "ReockEngine rendering APIs");
@@ -82,8 +87,11 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindMaterial(rendering);
     BindTexture2D(rendering);
 
+    // AUDIO
+    py::module_ audio = m.def_submodule("audio", "RockEngine audio APIs");
+    BindAudioClip(audio);
 
-} 
+}
 
 namespace engine {
     void RegisterPythonBindings() {

@@ -117,5 +117,14 @@ target_include_directories(ExternalLibs
     INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/glad/include
         ${CMAKE_CURRENT_SOURCE_DIR}/stb
+        ${CMAKE_CURRENT_SOURCE_DIR}/miniaudio
         ${Python3_INCLUDE_DIRS}
 )
+
+# miniaudio (header-only, vendored like stb/glad -- see Engine/src/audio/AudioEngine.cpp for
+# the single translation unit that defines MINIAUDIO_IMPLEMENTATION). Per its own docs, Windows
+# and macOS need no extra linking (device backends are loaded at runtime), but Linux/BSD require
+# these three system libs.
+if(UNIX AND NOT APPLE)
+    target_link_libraries(ExternalLibs INTERFACE dl pthread m)
+endif()

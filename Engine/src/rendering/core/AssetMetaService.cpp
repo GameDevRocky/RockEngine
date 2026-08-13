@@ -9,7 +9,8 @@ namespace fs = std::filesystem;
 
 // ──────────────────────────────────────────────────────────────────────────────
 bool AssetMetaService::IsMetaExtension(const std::string& ext) {
-    return ext == ".texture" || ext == ".shader" || ext == ".material" || ext == ".font";
+    return ext == ".texture" || ext == ".shader" || ext == ".material" || ext == ".font"
+        || ext == ".audio";
 }
 
 std::string AssetMetaService::MetaExtensionFor(const std::string& sourceExt) {
@@ -17,6 +18,8 @@ std::string AssetMetaService::MetaExtensionFor(const std::string& sourceExt) {
         sourceExt == ".jpeg" || sourceExt == ".bmp")   return ".texture";
     if (sourceExt == ".glsl")                           return ".shader";
     if (sourceExt == ".ttf"  || sourceExt == ".otf")    return ".font";
+    if (sourceExt == ".wav"  || sourceExt == ".mp3"  ||
+        sourceExt == ".ogg"  || sourceExt == ".flac")   return ".audio";
     return "";
 }
 
@@ -119,12 +122,37 @@ void AssetMetaService::ProcessFont(const fs::path& fontPath) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+void AssetMetaService::ProcessAudio(const fs::path& audioPath) {
+    fs::path metaPath = fs::path(audioPath.string() + ".audio");
+    if (fs::exists(metaPath)) return;  // already has meta
+
+    std::string id       = EngineUtils::GenerateUUID();
+    std::string name     = audioPath.stem().string();
+    std::string relPath  = ToProjectRelative(audioPath);
+
+    YAML::Node node;
+    node["type"] = "AudioClip";
+    node["id"]   = id;
+    node["name"] = name;
+    node["path"] = relPath;
+
+    std::ofstream out(metaPath);
+    if (!out.is_open()) {
+        std::cerr << "[AssetMetaService] Failed to write: " << metaPath << std::endl;
+        return;
+    }
+    out << node;
+    std::cout << "[AssetMetaService] Generated: " << metaPath.filename() << std::endl;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 void AssetMetaService::GenerateFor(const std::string& sourceFile) {
     fs::path p(sourceFile);
     const std::string metaExt = MetaExtensionFor(p.extension().string());
     if (metaExt == ".texture")      ProcessTexture(p);
     else if (metaExt == ".shader")  ProcessShader(p);
     else if (metaExt == ".font")    ProcessFont(p);
+    else if (metaExt == ".audio")   ProcessAudio(p);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -153,6 +181,8 @@ void AssetMetaService::ScanAndGenerate(const std::string& rootDir) {
             ProcessFont(p);
         } else if (metaExt == ".shader") {
             ProcessShader(p);  // p is the .glsl file
+        } else if (metaExt == ".audio") {
+            ProcessAudio(p);
         }
     }
     if (ec) {

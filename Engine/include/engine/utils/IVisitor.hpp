@@ -33,6 +33,9 @@ class PrismaticJoint;
 class WeldJoint;
 class WheelJoint;
 class MotorJoint;
+class AudioSource;
+class AudioListener;
+class AudioClip;
 
 class IVisitor {
 public:
@@ -65,4 +68,7 @@ public:
     virtual void Visit(WeldJoint* j) {}
     virtual void Visit(WheelJoint* j) {}
     virtual void Visit(MotorJoint* j) {}
+    virtual void Visit(AudioSource* a) {}
+    virtual void Visit(AudioListener* a) {}
+    virtual void Visit(AudioClip* a) {}
 };

@@ -52,31 +52,33 @@ void AssetManager::Deserialize(const YAML::Node& node){
     }
 }
 void AssetManager::Init()
-{    
-    
+{
+
     std::vector<Resource*> all;
-    
+
     for (auto& kv : textures)  all.push_back(kv.second);
     for (auto& kv : sprites)  all.push_back(kv.second);
     for (auto& kv : shaders)   all.push_back(kv.second);
     for (auto& kv : materials) all.push_back(kv.second);
     for (auto& kv : fonts)     all.push_back(kv.second);
-    
+    for (auto& kv : audioClips) all.push_back(kv.second);
+
     for (Resource* obj : all) obj->Init();
-    
+
     std::cout << "Shared Resources Initialized" << std::endl;
-    
+
 }
 void AssetManager::Awake(){
 
     std::vector<Resource*> all;
-    
+
     for (auto& kv : textures)  all.push_back(kv.second);
     for (auto& kv : sprites)  all.push_back(kv.second);
     for (auto& kv : shaders)   all.push_back(kv.second);
     for (auto& kv : materials) all.push_back(kv.second);
     for (auto& kv : fonts)     all.push_back(kv.second);
-    
+    for (auto& kv : audioClips) all.push_back(kv.second);
+
     for (Resource* obj : all) obj->Awake();
 }
 
@@ -154,6 +156,20 @@ Font* AssetManager::GetFontByName(const std::string& name)
     return nullptr;
 }
 
+AudioClip* AssetManager::GetAudioClip(const std::string& id)
+{
+    auto it = audioClips.find(id);
+    return (it != audioClips.end()) ? it->second : nullptr;
+}
+
+AudioClip* AssetManager::GetAudioClipByName(const std::string& name)
+{
+    for (auto& kv : audioClips)
+        if (kv.second->GetName() == name)
+            return kv.second;
+    return nullptr;
+}
+
 // ----------------------
 // Add
 // ----------------------
@@ -191,6 +207,18 @@ void AssetManager::AddFont(Font* font)
     fonts[font->GetID()] = font;
     SubscribeAutoSave(font);
     Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(font));
+}
+
+void AssetManager::AddAudioClip(AudioClip* clip)
+{
+    if (!clip)
+    {
+        Console::Alert("Failed to add audio clip");
+        return;
+    }
+    audioClips[clip->GetID()] = clip;
+    SubscribeAutoSave(clip);
+    Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(clip));
 }
 
 void AssetManager::AddTexture(Texture2D* texture)
@@ -418,6 +446,8 @@ void AssetManager::LoadAsset(const YAML::Node& node, const std::string& type) {
         LoadShader(node);
     } else if (type == "font") {
         LoadFont(node);
+    } else if (type == "audioclip") {
+        LoadAudioClip(node);
     }
 }
 
@@ -501,6 +531,18 @@ void AssetManager::LoadFont(const YAML::Node& node, const std::string& filePath)
     std::cout << "Loaded and Registered Font: " + font->GetName() << std::endl;
 }
 
+void AssetManager::LoadAudioClip(const YAML::Node& node, const std::string& filePath) {
+    if (node["id"] && audioClips.count(node["id"].as<std::string>())) return;
+
+    AudioClip* clip = new AudioClip();
+    clip->Deserialize(node);
+    if (!filePath.empty()) clip->SetFilePath(filePath);
+    clip->Init();
+    clip->Awake();          // probes duration/channels/sample rate -- cheap, header-only
+    AddAudioClip(clip);
+    std::cout << "Loaded and Registered AudioClip: " + clip->GetName() << std::endl;
+}
+
 void AssetManager::LoadSprite(const YAML::Node& node, const std::string& filePath) {
     if (node["id"] && sprites.count(node["id"].as<std::string>())) return;
 
@@ -536,6 +578,8 @@ void AssetManager::LoadAssetFromFile(const std::string& filePath) {
         LoadShader(node, filePath);
     } else if (type == "font") {
         LoadFont(node, filePath);
+    } else if (type == "audioclip") {
+        LoadAudioClip(node, filePath);
     }
 }
 
@@ -549,10 +593,10 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     BootProgress::Report(-1.0f, "Scanning assets");
 
     // Load in dependency order: textures (+ their embedded sprites) and shaders
-    // first, then materials. Fonts depend on nothing and nothing depends on them
-    // at load time (a TextRenderer resolves its font by id at draw), so they can
-    // go anywhere in the order.
-    std::vector<fs::path> textureMetas, shaderMetas, materialMetas, fontMetas;
+    // first, then materials. Fonts and audio clips depend on nothing and nothing
+    // depends on them at load time (a TextRenderer/AudioSource resolves its
+    // font/clip by id when used), so they can go anywhere in the order.
+    std::vector<fs::path> textureMetas, shaderMetas, materialMetas, fontMetas, audioMetas;
 
     std::error_code ec;
     for (auto& entry : fs::recursive_directory_iterator(root, ec)) {
@@ -561,6 +605,7 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
         if      (ext == ".texture")  textureMetas .push_back(entry.path());
         else if (ext == ".shader")   shaderMetas  .push_back(entry.path());
         else if (ext == ".font")     fontMetas    .push_back(entry.path());
+        else if (ext == ".audio")    audioMetas   .push_back(entry.path());
         else if (ext == ".material" || ext == ".mat") materialMetas.push_back(entry.path());
     }
     if (ec)
@@ -570,7 +615,7 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     // app->exec(), so there is no event loop and no job pump -- BootProgress is
     // a direct call and the splash force-repaints itself on each one.
     const std::size_t total = textureMetas.size() + shaderMetas.size()
-                            + fontMetas.size() + materialMetas.size();
+                            + fontMetas.size() + materialMetas.size() + audioMetas.size();
     std::size_t done = 0;
     auto loadAll = [&](const std::vector<fs::path>& metas, const char* kind) {
         for (const auto& p : metas) {
@@ -633,6 +678,7 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
 
     loadAll(shaderMetas,   "Shaders");
     loadAll(fontMetas,     "Fonts");
+    loadAll(audioMetas,    "Audio");
     loadAll(materialMetas, "Materials");
 
     BootProgress::Report(1.0f, "Finishing up");

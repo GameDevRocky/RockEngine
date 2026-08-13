@@ -19,6 +19,8 @@
 #include "engine/components/WeldJoint.hpp"
 #include "engine/components/WheelJoint.hpp"
 #include "engine/components/MotorJoint.hpp"
+#include "engine/components/AudioSource.hpp"
+#include "engine/components/AudioListener.hpp"
 #include <iostream>
 
 
@@ -44,5 +46,7 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("WeldJoint", []() { return new WeldJoint(); });
     SerializableFactory::RegisterType("WheelJoint", []() { return new WheelJoint(); });
     SerializableFactory::RegisterType("MotorJoint", []() { return new MotorJoint(); });
+    SerializableFactory::RegisterType("AudioSource", []() { return new AudioSource(); });
+    SerializableFactory::RegisterType("AudioListener", []() { return new AudioListener(); });
 
 }

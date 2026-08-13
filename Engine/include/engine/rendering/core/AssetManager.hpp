@@ -10,6 +10,7 @@
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Font.hpp"
+#include "engine/audio/AudioClip.hpp"
 
 class AssetManager : public System
 {
@@ -31,24 +32,28 @@ public:
     Material* GetMaterial(const std::string& id);
     Sprite* GetSprite(const std::string& id);
     Font* GetFont(const std::string& id);
+    AudioClip* GetAudioClip(const std::string& id);
 
     Shader* GetShaderByName(const std::string& name);
     Texture2D* GetTextureByName(const std::string& name);
     Material* GetMaterialByName(const std::string& name);
     Sprite* GetSpriteByName(const std::string& name);
     Font* GetFontByName(const std::string& name);
+    AudioClip* GetAudioClipByName(const std::string& name);
 
     const std::unordered_map<std::string, Material*>& GetAllMaterials() const { return materials; }
     const std::unordered_map<std::string, Sprite*>&   GetAllSprites()   const { return sprites; }
     const std::unordered_map<std::string, Texture2D*>& GetAllTextures() const { return textures; }
     const std::unordered_map<std::string, Shader*>&   GetAllShaders()   const { return shaders; }
     const std::unordered_map<std::string, Font*>&     GetAllFonts()     const { return fonts; }
+    const std::unordered_map<std::string, AudioClip*>& GetAllAudioClips() const { return audioClips; }
 
     void AddShader(Shader* shader);
     void AddTexture(Texture2D* texture);
     void AddMaterial(Material* material);
     void AddSprite(Sprite* sprite);
     void AddFont(Font* font);
+    void AddAudioClip(AudioClip* clip);
 
     // Create a new sprite carving a normalized-UV region out of an existing texture,
     // register it with that texture, and persist it into the texture's meta file.
@@ -101,11 +106,12 @@ public:
     Texture2D* CreateTextureFromMeta(const YAML::Node& node, const std::string& filePath);
     void FinishTextureLoad(Texture2D* tex, const YAML::Node& node, const std::string& filePath);
 
-    void LoadMaterial(const YAML::Node& node, const std::string& filePath = {});
-    void LoadTexture (const YAML::Node& node, const std::string& filePath = {});
-    void LoadShader  (const YAML::Node& node, const std::string& filePath = {});
-    void LoadSprite  (const YAML::Node& node, const std::string& filePath = {});
-    void LoadFont    (const YAML::Node& node, const std::string& filePath = {});
+    void LoadMaterial (const YAML::Node& node, const std::string& filePath = {});
+    void LoadTexture  (const YAML::Node& node, const std::string& filePath = {});
+    void LoadShader   (const YAML::Node& node, const std::string& filePath = {});
+    void LoadSprite   (const YAML::Node& node, const std::string& filePath = {});
+    void LoadFont     (const YAML::Node& node, const std::string& filePath = {});
+    void LoadAudioClip(const YAML::Node& node, const std::string& filePath = {});
 
     // Persist the resource whenever it fires a change notification (once auto-save is armed).
     void SubscribeAutoSave(Resource* r);
@@ -118,4 +124,5 @@ public:
     std::unordered_map<std::string, Material*> materials;
     std::unordered_map<std::string, Sprite*> sprites;
     std::unordered_map<std::string, Font*> fonts;
+    std::unordered_map<std::string, AudioClip*> audioClips;
 };

@@ -148,11 +148,31 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
   `RenderPass`.
 - OpenGL 4.6 core profile.
 
+## Audio
+
+`src/audio/`: `AudioEngine` (singleton, owns miniaudio's `ma_engine` — the audio device + mixing
+graph) and `AudioClip` (a `Resource`, `.audio` meta next to a wav/mp3/ogg/flac source, same
+convention as `.texture`/`.font`; see `AssetMetaService`). Like `Renderer`/`AssetManager`, audio
+hardware has no per-world identity, so `AudioEngine` lives **outside any `Container`** rather
+than as a per-Container `System` — one physical device shared by editor and runtime containers,
+whichever is active. `AudioSource` (`src/components/AudioSource.cpp`) and `AudioListener` are
+Components: an `AudioSource` owns a live `ma_sound*` created lazily against `AudioEngine`'s
+engine, runtime-only like `RigidBody`'s `b2BodyId` (never serialized/copied — `Copy()` carries
+only the authored fields and leaves it null). `spatialBlend` (0 = always centered/full volume, 1
+= fully positional) is implemented by lerping the position fed to miniaudio's spatializer
+between the listener's own position and the source's true world position, rather than a
+separate fake volume/pan blend — real panning and distance attenuation fall out of miniaudio's
+own spatializer at any blend in between. The active listener is resolved once per frame in
+`Engine::Update` (pull, not push, same rule the render cameras follow) via
+`AudioListener::GetMain()`, falling back to `Camera::GetMain()` so positional audio works with
+zero setup. miniaudio is vendored as `External/miniaudio/miniaudio.h` (single-header, like
+stb/glad); `AudioEngine.cpp` is the one translation unit with `MINIAUDIO_IMPLEMENTATION` defined.
+
 ## Scripting — C++ side (pybind11)
 
 - `PYBIND11_EMBEDDED_MODULE(rock_engine, ...)` in `src/bindings/PythonBindings.cpp` exposes
-  submodules `core`, `systems`, `components`, `rendering`. Each `Bind*` function lives in its
-  own file under `src/bindings/`.
+  submodules `core`, `systems`, `components`, `rendering`, `audio`. Each `Bind*` function lives
+  in its own file under `src/bindings/`.
 - The embedded interpreter is started in `Engine::Init` (`scoped_interpreter` +
   `gil_scoped_release`).
 - Adding a new C++ type to scripting: write a `Bind<Type>` in a bindings file, declare + call
