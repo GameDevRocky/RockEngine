@@ -31,6 +31,9 @@ public:
 protected:
     void DrawGizmos();
     void DrawToolBar();
+    // A second, horizontal toolbar for grid + snapping. Its own ImGui window, so
+    // it can be moved and sized independently of the vertical tool strip.
+    void DrawGridToolBar();
 
     RenderView* CreateView(int pixelW, int pixelH) override;
     void OnViewInitialized() override;

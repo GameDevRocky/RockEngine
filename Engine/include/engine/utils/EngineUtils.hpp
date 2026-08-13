@@ -49,8 +49,14 @@ namespace EngineUtils {
         inline float     MetersToPixels(float meters)            { return meters * PixelsPerMeter; }
         inline glm::vec2 MetersToPixels(const glm::vec2& meters) { return meters * PixelsPerMeter; }
 
-        // Grid display cell size AND gizmo snap increment, in world units (pixels).
-        // The grid pass and the transform gizmo both read this, so they can't drift.
+        // NOT the live grid cell size any more -- that is GridSettings::GetCellSize(),
+        // which the scene view's toolbar drives at runtime, and which the grid pass
+        // and the transform gizmo both read.
+        //
+        // What survives here is the default those settings start at, plus a stable
+        // reference unit for things that want "about one cell" without following
+        // the user's choice: SceneViewGui's frame-selection zoom floor uses it so
+        // that setting a huge grid cell doesn't make "frame selected" zoom to orbit.
         constexpr float  GridCellPixels = 32.0f;
 
         // Reference vertical resolution a new game Camera's default orthoSize is

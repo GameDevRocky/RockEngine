@@ -1,4 +1,5 @@
 #include "engine/rendering/passes/GridPass.hpp"
+#include "engine/rendering/core/GridSettings.hpp"
 #include "engine/utils/EngineUtils.hpp"
 
 void GridPass::Init(){
@@ -28,6 +29,11 @@ void GridPass::Execute(RenderCamera* camera, Scene* scene){
     if (!shader || vao == 0)
             return;
 
+        // Read at draw time rather than pushed on toggle: the pass runs once per
+        // view per frame, so a pull is always current and needs no notification.
+        if (!GridSettings::Get().IsVisible())
+            return;
+
         glad_glDisable(GL_DEPTH_TEST);
         glad_glBindVertexArray(vao);
 
@@ -43,7 +49,7 @@ void GridPass::Execute(RenderCamera* camera, Scene* scene){
         // handle density from here.
         float pixelsPerWorldUnit = camera->GetPixelHeight() * zoom / (2.0f * orthoSize);
         shader->SetFloat("uPixelsPerWorldUnit", pixelsPerWorldUnit);
-        shader->SetFloat("uBaseSpacing", EngineUtils::RenderUtils::GridCellPixels);
+        shader->SetFloat("uBaseSpacing", GridSettings::Get().GetCellSize());
 
         glad_glDrawArrays(GL_TRIANGLES, 0, 3);
         glad_glBindVertexArray(0);

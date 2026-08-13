@@ -27,14 +27,19 @@
 #include "imgui.h"
 #include <cmath>
 
+#include "engine/rendering/core/GridSettings.hpp"
+
 GizmosManager* GizmosManager::instance = nullptr;
 
 namespace {
-    // Grid-snap increments. Translation uses GridCellPixels (world units == pixels)
-    // so objects land on grid lines; rotation snaps to a fixed angle; scale snaps
-    // the drag RATIO (1.0-relative), never the absolute scale, so it can't collapse.
-    constexpr float kRotateSnapDeg = 15.0f;
-    constexpr float kScaleSnapStep = 0.25f;
+    // Grid-snap increments now live in GridSettings so the toolbar can drive
+    // them, and so the translate step stays tied to the grid actually drawn.
+    // Scale still snaps the drag RATIO (1.0-relative), never the absolute scale,
+    // so it can't collapse.
+    float MoveSnapStep()   { return GridSettings::Get().GetMoveSnap(); }
+    float RotateSnapDeg()  { return GridSettings::Get().GetRotateSnap(); }
+    float ScaleSnapStep()  { return GridSettings::Get().GetScaleSnap(); }
+
     // Thresholds that decide which single operation a drag frame is exercising.
     constexpr float kPosActiveEps = 0.25f;   // world units
     constexpr float kRotActiveEps = 0.05f;   // degrees
@@ -254,7 +259,7 @@ void GizmosManager::DrawSpriteBoxGizmo(const glm::mat4& view, const glm::mat4& p
             const glm::vec2 deltaLocal(deltaBox.x * c - deltaBox.y * s,
                                        deltaBox.x * s + deltaBox.y * c);
             glm::vec2 newPos = m_scaleDragStartLocalPos + deltaLocal;
-            if (m_snapRequested) newPos = SnapTo(newPos, EngineUtils::RenderUtils::GridCellPixels);
+            if (m_snapRequested) newPos = SnapTo(newPos, MoveSnapStep());
             transform->SetPosition(newPos);
         } else {
             // Resize. In the box frame the quad's rect is startScale * (quadCenter
@@ -497,9 +502,9 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
                 }
 
                 if (m_dragAxis == 1) {           // translate
-                    if (m_snapRequested) pos = SnapTo(pos, EngineUtils::RenderUtils::GridCellPixels);
+                    if (m_snapRequested) pos = SnapTo(pos, MoveSnapStep());
                 } else if (m_dragAxis == 2) {    // rotate (Alt has no effect)
-                    if (m_snapRequested) rot = SnapTo(rec.startWorldRot + m_dragRawRotDelta, kRotateSnapDeg);
+                    if (m_snapRequested) rot = SnapTo(rec.startWorldRot + m_dragRawRotDelta, RotateSnapDeg());
                 } else if (m_dragAxis == 3) {    // scale
                     // Work in the ratio vs. drag start, not the absolute scale.
                     glm::vec2 safeStart = rec.startWorldScale;
@@ -515,8 +520,8 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
                     }
                     if (m_snapRequested) {
                         // Snap the ratio, never below one step so it can't collapse.
-                        ratio.x = std::max(SnapTo(std::abs(ratio.x), kScaleSnapStep), kScaleSnapStep) * (ratio.x < 0 ? -1.f : 1.f);
-                        ratio.y = std::max(SnapTo(std::abs(ratio.y), kScaleSnapStep), kScaleSnapStep) * (ratio.y < 0 ? -1.f : 1.f);
+                        ratio.x = std::max(SnapTo(std::abs(ratio.x), ScaleSnapStep()), ScaleSnapStep()) * (ratio.x < 0 ? -1.f : 1.f);
+                        ratio.y = std::max(SnapTo(std::abs(ratio.y), ScaleSnapStep()), ScaleSnapStep()) * (ratio.y < 0 ? -1.f : 1.f);
                     }
                     scl = rec.startWorldScale * ratio;
                 }
@@ -553,9 +558,9 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
                 // Adjust the one active op's delta (see single-object path).
                 if (glm::length(deltaPos) > kPosActiveEps) {
                     if (m_snapRequested)
-                        deltaPos = SnapTo(startCentroid + deltaPos, EngineUtils::RenderUtils::GridCellPixels) - startCentroid;
+                        deltaPos = SnapTo(startCentroid + deltaPos, MoveSnapStep()) - startCentroid;
                 } else if (std::abs(deltaRot) > kRotActiveEps) {
-                    if (m_snapRequested) deltaRot = SnapTo(deltaRot, kRotateSnapDeg);
+                    if (m_snapRequested) deltaRot = SnapTo(deltaRot, RotateSnapDeg());
                 } else {
                     if (m_uniformScale) {
                         const float f = (std::abs(deltaScale.x - 1.f) >= std::abs(deltaScale.y - 1.f))
@@ -563,8 +568,8 @@ void GizmosManager::DrawTransformGizmo(const glm::mat4& view, const glm::mat4& p
                         deltaScale = glm::vec2(f, f);
                     }
                     if (m_snapRequested) {
-                        deltaScale.x = std::max(SnapTo(deltaScale.x, kScaleSnapStep), kScaleSnapStep);
-                        deltaScale.y = std::max(SnapTo(deltaScale.y, kScaleSnapStep), kScaleSnapStep);
+                        deltaScale.x = std::max(SnapTo(deltaScale.x, ScaleSnapStep()), ScaleSnapStep());
+                        deltaScale.y = std::max(SnapTo(deltaScale.y, ScaleSnapStep()), ScaleSnapStep());
                     }
                 }
             }

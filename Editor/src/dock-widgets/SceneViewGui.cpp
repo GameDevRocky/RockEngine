@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include "engine/rendering/Renderer.hpp"
 #include "engine/rendering/core/GizmosManager.hpp"
+#include "engine/rendering/core/GridSettings.hpp"
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
@@ -145,6 +146,9 @@ void SceneViewGui::OnViewInitialized()
     imGuiInstance->AddDrawCall([this](){DrawGizmos();});
     imGuiInstance->AddDrawCall([this](){DrawFPS();});
     imGuiInstance->AddDrawCall([this](){DrawToolBar();});
+    // Grid/snap toolbar disabled -- not drawn for now. DrawGridToolBar() and the
+    // GridSettings backing it are still intact if this comes back.
+    // imGuiInstance->AddDrawCall([this](){DrawGridToolBar();});
 
     std::cout << "SceneViewGui OpenGl Initialized. " << std::endl;
 }
@@ -738,7 +742,11 @@ void SceneViewGui::DrawGizmos(){
     // Feed the real keyboard state (ImGui's io.KeyCtrl is cleared every NewFrame
     // because no ImGui keyboard backend is wired up). Ctrl held == snap to grid.
     const Qt::KeyboardModifiers mods = QGuiApplication::queryKeyboardModifiers();
-    GizmosManager::Get()->SetSnapRequested(mods.testFlag(Qt::ControlModifier));
+    // Either source enables snapping: the toolbar toggle means "always", Ctrl
+    // means "just for this drag". OR rather than XOR so neither can lock the
+    // other out partway through a drag, which would change the step mid-gesture.
+    GizmosManager::Get()->SetSnapRequested(mods.testFlag(Qt::ControlModifier)
+                                           || GridSettings::Get().IsSnapEnabled());
     GizmosManager::Get()->SetUniformScaleRequested(mods.testFlag(Qt::AltModifier));
     GizmosManager::Get()->DrawGizmos(
         camera->GetViewMatrix(),
@@ -850,6 +858,112 @@ void SceneViewGui::DrawToolBar() {
             gizmos->SetEditMode(GizmosManager::EditMode::Transform);
         }
 
+        ImGui::End();
+    }
+    else {
+        ImGui::PopStyleVar();
+    }
+
+    ImGui::PopStyleColor(3);
+}
+
+// The grid/snap toolbar: a second, horizontal strip alongside the tool toolbar.
+//
+// Its own ImGui window rather than a section of the first one so it can be
+// dragged, positioned, and collapsed independently -- the tool strip is vertical
+// and lives at the edge, while this reads left-to-right as a row of settings.
+// Same styling as the tool toolbar so the two are obviously siblings.
+void SceneViewGui::DrawGridToolBar() {
+    auto& grid = GridSettings::Get();
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 2.0f));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg,      ImVec4(0.12f, 0.12f, 0.12f, 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBg,       ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_TitleBgActive, ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
+
+    if (ImGui::Begin("###GridToolbar", nullptr,
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoCollapse))
+    {
+        ImGui::PopStyleVar();
+
+        // Every control on one line; ImGui stacks vertically by default, so the
+        // horizontal layout is SameLine between each.
+        auto Tip = [](const char* text) {
+            if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", text);
+        };
+
+        // Toggles drawn as lit/unlit buttons, matching the tool toolbar, rather
+        // than as checkboxes -- and because a plain button was asked for.
+        auto ToggleButton = [](const char* label, bool active) {
+            ImGui::PushStyleColor(ImGuiCol_Button, active ? ImVec4(0.26f, 0.58f, 0.26f, 1.0f)
+                                                          : ImVec4(0.20f, 0.20f, 0.20f, 1.0f));
+            const bool clicked = ImGui::Button(label, ImVec2(0, 22));
+            ImGui::PopStyleColor();
+            return clicked;
+        };
+
+        if (ToggleButton(ICON_FA_MAGNET " Snap", grid.IsSnapEnabled()))
+            grid.SetSnapEnabled(!grid.IsSnapEnabled());
+        Tip("Grid snapping.\nWhen on, moving/rotating/scaling steps by the increments\n"
+            "to the right instead of moving freely.\n\n"
+            "Holding Ctrl snaps for one drag without turning this on.");
+
+        ImGui::SameLine();
+        if (ToggleButton(ICON_FA_BORDER_ALL " Grid", grid.IsVisible()))
+            grid.SetVisible(!grid.IsVisible());
+        Tip("Show the scene grid.\nPurely visual -- hiding the grid does not turn off snapping.");
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("|");
+        ImGui::SameLine();
+
+        // Narrow enough that six controls fit a sane toolbar width. DragFloat
+        // rather than InputFloat: it takes both a drag and a typed value
+        // (double-click or Ctrl+click), which is what a scrubbing field wants.
+        constexpr float kFieldWidth = 62.0f;
+
+        float cell = grid.GetCellSize();
+        ImGui::SetNextItemWidth(kFieldWidth);
+        if (ImGui::DragFloat("Cell##gridcell", &cell, 1.0f, 1.0f, 4096.0f, "%.0f"))
+            grid.SetCellSize(cell);
+        Tip("Grid cell size, in world units.\nThe spacing of the lines drawn in the viewport.\n\n"
+            "Drag to scrub, double-click to type.");
+
+        ImGui::SameLine();
+        ImGui::TextDisabled("|");
+        ImGui::SameLine();
+
+        float move = grid.GetMoveSnap();
+        ImGui::SetNextItemWidth(kFieldWidth);
+        if (ImGui::DragFloat("Move##movesnap", &move, 0.5f, 0.01f, 4096.0f, "%.2f"))
+            grid.SetMoveSnap(move);
+        Tip("Move snap increment, in world units.\nWith snapping on, dragging an object steps by this much.\n\n"
+            "Set it equal to Cell to land objects exactly on the grid lines.");
+
+        ImGui::SameLine();
+        float rot = grid.GetRotateSnap();
+        ImGui::SetNextItemWidth(kFieldWidth);
+        if (ImGui::DragFloat("Rotate##rotsnap", &rot, 1.0f, 1.0f, 180.0f, "%.0f"))
+            grid.SetRotateSnap(rot);
+        Tip("Rotation snap increment, in DEGREES.\nWith snapping on, rotating steps by this much.");
+
+        ImGui::SameLine();
+        float scl = grid.GetScaleSnap();
+        ImGui::SetNextItemWidth(kFieldWidth);
+        if (ImGui::DragFloat("Scale##scalesnap", &scl, 0.05f, 0.01f, 10.0f, "%.2f"))
+            grid.SetScaleSnap(scl);
+        Tip("Scale snap increment, as a multiplier.\nWith snapping on, scaling steps by this much --\n"
+            "0.25 gives 0.25x, 0.5x, 0.75x, and so on.");
+
+        // Only offered once the two have been edited apart. Move snap starts
+        // equal to the cell size, but silently re-syncing them later would throw
+        // away a value that was set deliberately.
+        if (move != cell) {
+            ImGui::SameLine();
+            if (ImGui::Button(ICON_FA_LINK "##matchsnap", ImVec2(0, 22)))
+                grid.MatchMoveSnapToCell();
+            Tip("Match the move snap to the cell size, so objects land on grid lines.");
+        }
 
         ImGui::End();
     }
