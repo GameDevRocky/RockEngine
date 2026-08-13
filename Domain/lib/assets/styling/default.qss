@@ -26,6 +26,7 @@ QPushButton
 {
 	background: palette(button);
     border: 2px solid transparent;
+    border-radius: 3px;
     padding-left: 14px;
     padding-right: 14px;
     padding-top: 4px;
@@ -253,6 +254,124 @@ ResizableTextEdit:disabled {
     color: rgb(100, 100, 100);
     background-color: rgb(25, 25, 25);
     border: 1px solid rgb(40, 40, 40);
+}
+
+
+/*===========================================================================
+ * QSpinBox / QDoubleSpinBox
+ *
+ * Both are listed explicitly because QDoubleSpinBox is NOT a QSpinBox subclass --
+ * they are siblings under QAbstractSpinBox -- so a lone `QSpinBox` selector would
+ * silently miss every numeric field in the inspector, which are all doubles.
+ *
+ * The frame matches QLineEdit exactly: a number field and a text field are the same
+ * kind of control, and they sit on adjacent inspector rows where any difference in
+ * height or border reads as a mistake.
+ *
+ * Two populations exist and both are covered here:
+ *   - Inspector fields (PropertyWidget's ConfigureSpinBox) set NoButtons, so the
+ *     sub-control rules below simply don't render for them.
+ *   - AnimatorGui (fps/speed/exit time/threshold) and the Sprite Editor's slice
+ *     counts keep their buttons, and were falling back to raw Fusion chrome.
+ *===========================================================================*/
+QSpinBox,
+QDoubleSpinBox {
+    background-color: rgb(30, 30, 30);
+    border: 1px solid rgb(51, 51, 51);
+    border-radius: 2px;
+    padding: 4px;
+    color: rgb(220, 220, 220);
+    selection-background-color: rgb(70, 70, 70);
+    selection-color: rgb(255, 255, 255);
+}
+
+QSpinBox:hover,
+QDoubleSpinBox:hover {
+    border: 1px solid rgb(80, 80, 80);
+}
+
+QSpinBox:focus,
+QDoubleSpinBox:focus {
+    border: 1px solid rgb(100, 100, 100);
+    background-color: rgb(35, 35, 35);
+}
+
+QSpinBox:disabled,
+QDoubleSpinBox:disabled {
+    color: rgb(100, 100, 100);
+    background-color: rgb(25, 25, 25);
+    border: 1px solid rgb(40, 40, 40);
+}
+
+/* Read-only (PropDesc::ReadOnly / Tags::READONLY display rows). Dimmer than a live
+ * field but clearly brighter than a disabled one -- the value still matters, it just
+ * can't be edited. */
+QSpinBox:read-only,
+QDoubleSpinBox:read-only {
+    color: rgb(150, 150, 150);
+    background-color: rgb(26, 26, 26);
+    border: 1px solid rgb(44, 44, 44);
+}
+
+/*---------------------------------------------------------------------------
+ * Steppers. subcontrol-origin is `border` so they sit flush inside the frame
+ * instead of being inset by the 4px text padding, which would leave a dead strip
+ * of background down the right edge.
+ *-------------------------------------------------------------------------*/
+QSpinBox::up-button,
+QDoubleSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 16px;
+    background-color: rgb(42, 42, 42);
+    border: none;
+    border-left: 1px solid rgb(51, 51, 51);
+    border-top-right-radius: 2px;
+    margin: 1px 1px 0px 0px;
+}
+
+QSpinBox::down-button,
+QDoubleSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 16px;
+    background-color: rgb(42, 42, 42);
+    border: none;
+    border-left: 1px solid rgb(51, 51, 51);
+    border-bottom-right-radius: 2px;
+    margin: 0px 1px 1px 0px;
+}
+
+QSpinBox::up-button:hover,
+QDoubleSpinBox::up-button:hover,
+QSpinBox::down-button:hover,
+QDoubleSpinBox::down-button:hover {
+    background-color: rgb(58, 58, 58);
+}
+
+QSpinBox::up-button:pressed,
+QDoubleSpinBox::up-button:pressed,
+QSpinBox::down-button:pressed,
+QDoubleSpinBox::down-button:pressed {
+    background-color: rgb(87, 126, 100);
+}
+
+QSpinBox::up-button:disabled,
+QDoubleSpinBox::up-button:disabled,
+QSpinBox::down-button:disabled,
+QDoubleSpinBox::down-button:disabled {
+    background-color: rgb(30, 30, 30);
+    border-left: 1px solid rgb(40, 40, 40);
+}
+
+/* Sized but deliberately image-less, exactly like QComboBox::down-arrow above: Qt
+ * draws its own arrow primitive, so the theme needs no icon assets to ship. */
+QSpinBox::up-arrow,
+QDoubleSpinBox::up-arrow,
+QSpinBox::down-arrow,
+QDoubleSpinBox::down-arrow {
+    width: 7px;
+    height: 5px;
 }
 
 

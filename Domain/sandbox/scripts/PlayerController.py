@@ -24,14 +24,13 @@ class PlayerController(ScriptableComponent):
     Tune the numeric fields below in the inspector to match your world scale.
     """
 
-    test_ : list[GameObject]
+    test_ : list[Vector3]
 
     # ── Movement tuning ──────────────────────────────────────────────────────
     move_speed: float = 200.0           # target horizontal speed
     acceleration: float = 400.0         # how quickly we reach move_speed
     deceleration: float = 500.0         # how quickly we stop when no input
     air_control: float = 0.7            # 0..1 fraction of accel/decel applied in the air
-
     # ── Jump tuning ──────────────────────────────────────────────────────────
     jump_velocity: float = 500.0        # upward speed applied on jump
     max_jumps: int = 2                  # 1 = single jump, 2 = double jump, etc.

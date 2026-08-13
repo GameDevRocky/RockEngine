@@ -100,15 +100,16 @@ public:
         // Header row: collapse toggle on the left, Add button on the right.
         QWidget* header = new QWidget();
         auto* headerLayout = new QHBoxLayout(header);
-        headerLayout->setContentsMargins(0, 0, 0, 0);
+        headerLayout->setContentsMargins(0,4,4,4);
         headerLayout->setSpacing(2);
         headerLayout->addWidget(m_toggle);
         headerLayout->addStretch(1);
 
         if (!m_readOnly) {
-            auto* addButton = new QPushButton("+");
+            auto* addButton = new QPushButton();
+            addButton->setIcon(QIcon("Domain/lib/assets/icons/plus_icon.png"));
             addButton->setContentsMargins(0,0,0,0);
-            addButton->setFixedSize(48, 24);
+            addButton->setFixedSize(24, 24);
             addButton->setToolTip("Add");
             QObject::connect(addButton, &QPushButton::clicked, [this]() {
                 m_data.push_back(T{});

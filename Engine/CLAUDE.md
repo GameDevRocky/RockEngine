@@ -168,6 +168,22 @@ own spatializer at any blend in between. The active listener is resolved once pe
 zero setup. miniaudio is vendored as `External/miniaudio/miniaudio.h` (single-header, like
 stb/glad); `AudioEngine.cpp` is the one translation unit with `MINIAUDIO_IMPLEMENTATION` defined.
 
+**Two Windows gotchas, both already handled — don't undo them:**
+- `AudioEngine::EnsureInitialized()` calls `CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)`
+  before touching miniaudio. miniaudio's Win32 context init calls `CoInitializeEx` on the
+  *calling* thread with `COINIT_MULTITHREADED` and holds that apartment for the context's life.
+  Windows OLE drag-and-drop (`RegisterDragDrop` for drop targets, `DoDragDrop` under every
+  `QDrag::exec()`) needs the GUI thread **STA**. Whoever touches COM first wins the apartment,
+  and if miniaudio wins, Qt's `OleInitialize()` fails with `RPC_E_CHANGED_MODE` and **all editor
+  drag-and-drop silently dies** — Folder-view assets, the sprite hover column, Hierarchy rows —
+  while everything else keeps working, with no error anywhere. Claiming STA first makes us agree
+  with Qt rather than race it, so it does not matter whether Qt initializes OLE eagerly (at
+  `QApplication` construction) or lazily (at first drop-target registration). Do **not** "fix"
+  this by reordering init instead — the ordering is not knowable from outside Qt.
+- `miniaudio.h` drags in `<windows.h>`, whose `CreateEvent` macro rewrites every
+  `Observable::CreateEvent()` parsed after it into `CreateEventA` — a link error pointing at
+  unrelated static Event initializers. `AudioEngine.cpp` `#undef`s it right after the include.
+
 ## Scripting — C++ side (pybind11)
 
 - `PYBIND11_EMBEDDED_MODULE(rock_engine, ...)` in `src/bindings/PythonBindings.cpp` exposes

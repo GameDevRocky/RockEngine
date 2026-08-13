@@ -22,6 +22,8 @@
 #include <QPropertyAnimation>
 #include <QCursor>
 #include <QEvent>
+#include <QIcon>
+#include <QSize>
 #include <glm/glm.hpp>
 #include "engine/utils/Properties.hpp"
 #include "utils/AssetPickerWidget.hpp"
@@ -701,7 +703,17 @@ public:
         m_edit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         layout->addWidget(m_edit);
 
-        m_btn = new QPushButton("\u2026");  // ellipsis "…"
+        // Search icon in place of the old ellipsis glyph. Resolved through GetAssetPath
+        // so it works from a bundled build as well as a dev run, matching how the
+        // picker's own fallback icons below are loaded.
+        m_btn = new QPushButton();
+        m_btn->setIcon(QIcon(QString::fromStdString(
+            EngineUtils::GetAssetPath("Domain/lib/assets/icons/search_icon.png"))));
+        // Set explicitly: the style's default icon size is unrelated to this button's
+        // fixed 26px width, and the source PNG is far larger than it renders at.
+        m_btn->setIconSize(QSize(14, 14));
+        // The button carries no text now, so name what it does for hover/accessibility.
+        m_btn->setToolTip("Browse");
         m_btn->setFixedWidth(26);
         m_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         layout->addWidget(m_btn);

@@ -5,6 +5,7 @@
 #include <QIcon>
 #include <QDebug>
 #include <vector>
+#include <cctype>
 #include "engine/utils/EngineUtils.hpp"
 
 using namespace EngineUtils;
@@ -56,6 +57,65 @@ QIcon CustomIconProvider::icon(const QFileInfo &info) const {
     }
     // Fallback to default file icon
     return QFileIconProvider::icon(info);
+}
+
+std::string FormatLabel(const std::string& raw)
+{
+    // Trailing separator the call site may already have written ("Color: ") comes off
+    // first, so appending one afterwards can't double it up.
+    std::size_t end = raw.size();
+    while (end > 0) {
+        const unsigned char c = static_cast<unsigned char>(raw[end - 1]);
+        if (c == ':' || std::isspace(c)) --end;
+        else break;
+    }
+
+    // Pass 1 -- insert the missing word breaks.
+    std::string spaced;
+    spaced.reserve(end + 8);
+    for (std::size_t i = 0; i < end; ++i) {
+        const unsigned char c = static_cast<unsigned char>(raw[i]);
+        if (c == '_' || c == '-') { spaced.push_back(' '); continue; }
+
+        // Only an uppercase letter can open a new word mid-token, and only when the
+        // previous character isn't already a break.
+        if (std::isupper(c) && !spaced.empty() && spaced.back() != ' ') {
+            const unsigned char prev = static_cast<unsigned char>(raw[i - 1]);
+            // "startOffset" -> "start Offset"
+            const bool afterLowerOrDigit = std::islower(prev) || std::isdigit(prev);
+            // "UVMin" -> "UV Min": an acronym ends at the last capital before a
+            // lowercase letter, so the break goes there rather than after every capital
+            // (which would shred "UV" into "U V").
+            const bool acronymEnd = std::isupper(prev) && i + 1 < end &&
+                                    std::islower(static_cast<unsigned char>(raw[i + 1]));
+            if (afterLowerOrDigit || acronymEnd) spaced.push_back(' ');
+        }
+        spaced.push_back(static_cast<char>(c));
+    }
+
+    // Pass 2 -- collapse whitespace runs and capitalise the head of every alphabetic
+    // run. Only the first letter is touched; the rest is left as authored so "UV" and
+    // "X" stay intact.
+    std::string out;
+    out.reserve(spaced.size());
+    bool wordStart = true;
+    for (const char ch : spaced) {
+        const unsigned char c = static_cast<unsigned char>(ch);
+        if (std::isspace(c)) {
+            if (!out.empty() && out.back() != ' ') out.push_back(' ');
+            wordStart = true;
+        } else if (std::isalpha(c)) {
+            out.push_back(wordStart ? static_cast<char>(std::toupper(c)) : ch);
+            wordStart = false;
+        } else {
+            // Punctuation ('(', ',', '/') opens a new word, so "(min,max)" reads
+            // "(Min,Max)" rather than "(Min,max)".
+            out.push_back(ch);
+            wordStart = true;
+        }
+    }
+    while (!out.empty() && out.back() == ' ') out.pop_back();
+    return out;
 }
 
 void OpenInVSCode(const std::string& fullPath)

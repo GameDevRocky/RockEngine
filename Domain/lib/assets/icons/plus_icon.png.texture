@@ -1,0 +1,8 @@
+type: Texture2D
+id: edce4c39c6a77e3dd1574e0592c9689d
+name: plus_icon
+path: Domain/lib/assets/icons/plus_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

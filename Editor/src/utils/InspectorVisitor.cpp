@@ -35,6 +35,7 @@
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "Engine.hpp"
+#include "utils/EditorUtils.hpp"
 #include "utils/ComponentPickerWidget.hpp"
 #include "utils/TexturePreviewWidget.hpp"
 #include "dock-widgets/SpriteEditorModal.hpp"
@@ -52,8 +53,11 @@ InspectorVisitor::InspectorVisitor(){
     content = new QWidget();
     layout = new QGridLayout();
     layout->setContentsMargins(0,0,0,0);
+    // 1/3 label, 2/3 property widget. The editors in column 1 (vec2/vec4 rows, asset
+    // ref fields with their "…" button) are what actually need the room; a label only
+    // needs enough to be recognised, and elides when it isn't (see ElidingLabel).
     layout->setColumnStretch(0, 1);
-    layout->setColumnStretch(1, 1);
+    layout->setColumnStretch(1, 2);
     content->setLayout(layout);
 }
 
@@ -1391,19 +1395,29 @@ void InspectorVisitor::Visit(ShadowCaster* caster) {
 }
 
 void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
-    QLabel* label = new QLabel(text.c_str());
+    // Every property row's label is normalised here, so a call site can pass a
+    // hand-written "Color: " or a raw field name like "startOffset" and both come out
+    // as "Start Offset: ". The ": " is appended once here rather than repeated at every
+    // call site -- which is exactly why FormatLabel strips a trailing one first.
+    auto* label = new EditorUtils::ElidingLabel(
+        QString::fromStdString(EditorUtils::FormatLabel(text) + ": "));
     auto font = label->font();
     font.setBold(true);
     label->setFont(font);
-    label->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
     // Tall widgets (the multi-line text box) ask for their label on the first
     // line rather than centred against the whole block — see TextBoxPropertyWidget.
-    const Qt::Alignment labelAlign = widget->property("labelTopAlign").toBool()
-                                   ? (Qt::AlignLeft | Qt::AlignTop)
-                                   : Qt::Alignment(Qt::AlignLeft);
+    //
+    // Applied as the label's OWN text alignment instead of a cell alignment handed to
+    // addWidget, which is not a cosmetic difference: a cell alignment makes the layout
+    // shrink the widget to its sizeHint, so the label would size itself to its full
+    // text and never be narrow enough to elide. Unaligned, it fills the column and
+    // ElidingLabel fits the text to that width.
+    label->setAlignment(widget->property("labelTopAlign").toBool()
+                        ? (Qt::AlignLeft | Qt::AlignTop)
+                        : (Qt::AlignLeft | Qt::AlignVCenter));
 
-    layout->addWidget(label, gridRow, 0, labelAlign);
+    layout->addWidget(label, gridRow, 0);
     layout->addWidget(widget, gridRow, 1);
     gridRow++;
 }

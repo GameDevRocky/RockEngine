@@ -22,11 +22,11 @@ public:
     // Height is derived from the layout drawCell() actually uses: the thumbnail
     // sits kThumbTopPad from the top, and the label starts kLabelGap below the
     // thumbnail's own height.
-    static constexpr int kThumbSize   = 64;
+    static constexpr int kThumbSize   = 48;
     static constexpr int kThumbTopPad = 8;
     static constexpr int kLabelGap    = 12;
-    static constexpr int kLabelHeight = 22;   // one elided line + breathing room
-    static constexpr int kCellWidth   = 84;
+    static constexpr int kLabelHeight = 16;   // one elided line + breathing room
+    static constexpr int kCellWidth   = 64;
     static constexpr int kCellHeight  = kThumbSize + kLabelGap + kLabelHeight;
 
     explicit AssetPreviewDelegate(QFileSystemModel* fsModel,

@@ -29,6 +29,32 @@ AudioEngine::~AudioEngine() {
 void AudioEngine::EnsureInitialized() {
     if (m_initialized) return;
 
+#ifdef _WIN32
+    // Claim STA on THIS thread before miniaudio can claim MTA on it. Order-independent by
+    // design -- do not replace this with "just initialize audio later".
+    //
+    // miniaudio's Win32 context init calls CoInitializeEx(NULL, MA_COINIT_VALUE) on the
+    // calling thread and holds that apartment for the context's whole lifetime, and
+    // MA_COINIT_VALUE defaults to COINIT_MULTITHREADED. Windows OLE drag-and-drop --
+    // RegisterDragDrop for drop targets and DoDragDrop under every QDrag::exec(), i.e. every
+    // drag in the editor (Folder view assets, the sprite hover column, Hierarchy rows) --
+    // requires the GUI thread to be STA. Whichever of Qt or miniaudio touches COM first wins
+    // the apartment, and if miniaudio wins, Qt's OleInitialize() fails with RPC_E_CHANGED_MODE
+    // and ALL drag-and-drop silently stops working while everything else keeps running.
+    //
+    // Requesting STA here makes us agree with Qt instead of racing it, so it no longer matters
+    // whether Qt initializes OLE eagerly (at QApplication construction) or lazily (at the first
+    // drop-target registration, which happens later than any sensible audio-init point).
+    // miniaudio's own call then returns RPC_E_CHANGED_MODE, which it explicitly tolerates (it
+    // just skips the matching CoUninitialize), and its audio thread still initializes its own
+    // apartment separately -- so miniaudio's threading model is untouched.
+    //
+    // Deliberately not paired with CoUninitialize: the apartment is meant to last for process
+    // life, exactly like the OleInitialize Qt itself never unwinds. A host that already chose
+    // MTA gets RPC_E_CHANGED_MODE here and is left alone.
+    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+#endif
+
     m_engine = new ma_engine();
     ma_engine_config cfg = ma_engine_config_init();
     if (ma_engine_init(&cfg, m_engine) != MA_SUCCESS) {

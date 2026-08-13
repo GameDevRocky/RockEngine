@@ -70,10 +70,6 @@ void Engine::Init() {
     engine::RegisterPythonBindings();
     RegisterComponentTypes();
 
-    // No GL context needed (unlike Renderer), so this can start eagerly here rather than
-    // lazily on first use.
-    AudioEngine::Get().EnsureInitialized();
-
     editorContainer = new Container();
     editorContainer->AddSystem(new Registry());
     editorContainer->AddSystem(new TimeManager());
@@ -96,7 +92,15 @@ void Engine::Init() {
 }
 
 void Engine::PostInit(){
-    
+    // Deferred out of Init() only because nothing needs audio that early (AudioClip probing
+    // uses a standalone ma_decoder with no device; an AudioSource only creates a sound in play
+    // mode), so the device isn't opened until the app is otherwise up.
+    //
+    // What this is NOT is the fix for the COM-apartment / drag-and-drop interaction -- that
+    // lives in EnsureInitialized itself and is order-independent on purpose, because the point
+    // at which Qt initializes OLE is an internal detail we must not depend on. See the comment
+    // there before moving this call anywhere.
+    AudioEngine::Get().EnsureInitialized();
 }
 
 void Engine::Update(){
