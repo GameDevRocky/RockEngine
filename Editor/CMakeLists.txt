@@ -37,6 +37,8 @@ target_link_libraries(RockEngineEditor
 		Qt6::Gui
 		Qt6::Widgets
 		Qt6::OpenGLWidgets
+		# QLocalServer/QLocalSocket for the MCP bridge (src/mcp/).
+		Qt6::Network
 )
 
 set_target_properties(RockEngineEditor PROPERTIES

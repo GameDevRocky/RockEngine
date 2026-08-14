@@ -20,6 +20,9 @@ aqtinstall.log
 # --- Python ---
 **/__pycache__/
 *.pyc
+# The MCP bridge's own environment. Recreated from tools/mcp-server/requirements.txt;
+# deliberately separate from the engine's embedded interpreter.
+tools/mcp-server/.venv/
 
 # --- Local sandbox: third-party art stays local; scenes + scripts are tracked ---
 Domain/sandbox/assets/

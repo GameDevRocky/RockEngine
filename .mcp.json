@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "rockengine": {
+      "command": "tools/mcp-server/.venv/Scripts/python.exe",
+      "args": ["tools/mcp-server/server.py"],
+      "env": {}
+    }
+  }
+}

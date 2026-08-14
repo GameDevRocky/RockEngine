@@ -18,6 +18,7 @@
 #include "engine/jobs/JobSystem.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/input/GamepadService.hpp"
+#include "mcp/McpServer.hpp"
 #include "utils/GizmoUndoBridge.hpp"
 #include "utils/LoadingOverlay.hpp"
 #include "utils/StartupSplash.hpp"
@@ -168,6 +169,14 @@ void Editor::PostInit() {
     // rect rather than a pre-layout one.
     LoadingOverlay::Get()->Attach(MainWindow::Get());
 
+    // Local IPC endpoint for external tooling. Deliberately last: the moment this
+    // listens, an external client can call in, and it must not observe a half-built
+    // editor. MainWindow::PostInit above is what triggers the viewport's initializeGL
+    // and therefore the whole AssetManager load, so installing any earlier gives
+    // callers a window (~3s) in which the engine answers but every asset list is
+    // empty. Nothing here needs to run before the window exists.
+    mcp::McpServer::Install();
+
     // Primary clock: whichever viewport is currently visible drives the loop
     // -- its frameSwapped signal fires at the display refresh rate under
     // vsync. Each frame we advance the engine and request the next repaint,
@@ -212,6 +221,10 @@ void Editor::PostInit() {
 }
 
 void Editor::Shutdown() {
+    // Before everything else: stop accepting requests and drop open connections, so no
+    // external tool call can land on an engine that is already coming apart.
+    mcp::McpServer::Shutdown();
+
     // First, before any Qt teardown. A job completing against a half-destroyed
     // MainWindow (or a deleted QApplication) is the one way this shutdown order
     // can crash, and joining here closes it -- app->exec() has already returned,

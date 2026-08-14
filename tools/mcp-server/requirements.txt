@@ -1,0 +1,12 @@
+# Dependencies for the MCP bridge process ONLY.
+#
+# Deliberately separate from the repo-root requirements.txt: that one is installed into
+# the engine's embedded interpreter and gets bundled into shipped Player builds, which
+# are kept stdlib-plus-watchdog. Nothing here belongs in a game.
+#
+# The named-pipe / Unix-socket client uses only the standard library, so this is just
+# the MCP SDK.
+#
+# 2.x specifically: server.py imports MCPServer from mcp.server.mcpserver, which in 1.x
+# was FastMCP in mcp.server.fastmcp.
+mcp>=2.0.0
