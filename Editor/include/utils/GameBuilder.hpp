@@ -34,7 +34,11 @@ public:
         std::string playerExe;      // source RockEnginePlayer.exe
         std::string domainDir;      // source Domain/
         std::string pythonRuntime;  // source bin/player-runtime/python (may be empty)
-        std::string pythonDllDir;   // where pythonXY.dll lives (the editor's own dir)
+        // bin/player-runtime, which holds pythonXY.dll. Deliberately NOT the editor's own
+        // directory: a pythonXY.dll sitting beside the editor breaks the editor's own
+        // interpreter (wrong prefix -> no site-packages -> no watchdog -> no hot reload).
+        // See the comment block in Player/CMakeLists.txt.
+        std::string pythonDllDir;
     };
 
     // Resolves Inputs from a config, and reports why if it cannot. Main thread only.

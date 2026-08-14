@@ -27,7 +27,7 @@ class PlayerController(ScriptableComponent):
     Tune the numeric fields below in the inspector to match your world scale.
     """
 
-    jump_sound : AudioSource
+    drrr : GameObject
     test_ : list[Vector3]
 
 

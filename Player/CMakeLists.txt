@@ -109,6 +109,41 @@ if(Python3_FOUND)
 		)
 	endif()
 
+	# The interpreter shared library goes into player-runtime/ alongside the stdlib -- NOT
+	# next to the built executables.
+	#
+	# This is load-bearing and the mistake is easy to make (it was made once already).
+	# RockEnginePlayer.exe and RockEngineLauncher.exe (the editor) share one output
+	# directory, so a pythonXY.dll dropped beside the player is also beside the editor.
+	# CPython derives its prefix from wherever its DLL was loaded from: found in bin/, it
+	# looks for bin/Lib, finds nothing, prints "Could not find platform independent
+	# libraries <prefix>" and builds a sys.path with NO site-packages. The editor then
+	# cannot import `watchdog`, FileWatcherSystem::Init throws, and Python hot-reload
+	# silently stops working -- with the only clue on stderr, which a GUI app usually has
+	# nobody reading.
+	#
+	# Staged here instead, both executables keep resolving python3XX.dll from the real
+	# install via PATH (correct prefix, site-packages intact), and GameBuilder copies these
+	# into each shipped build, where a sibling python/Lib DOES exist so the prefix resolves.
+	if(WIN32)
+		set(_py_dlls "")
+		# EXISTS-guarded: copy_if_different treats a missing SOURCE as a hard error.
+		foreach(_name "python3.dll" "python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll")
+			if(EXISTS "${_py_root}/${_name}")
+				list(APPEND _py_dlls "${_py_root}/${_name}")
+			endif()
+		endforeach()
+		if(_py_dlls)
+			list(APPEND _stage_cmds
+				COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_py_dlls} "${_runtime_dir}"
+			)
+		else()
+			message(WARNING
+				"No pythonXY.dll found under '${_py_root}'. RockEnginePlayer will build but "
+				"game builds will not run on machines without Python installed.")
+		endif()
+	endif()
+
 	# Stamped so this runs on the first build and then never again. Without the stamp it
 	# would re-copy the whole standard library on every single build of the player.
 	add_custom_command(
@@ -120,31 +155,6 @@ if(Python3_FOUND)
 	)
 	add_custom_target(RockEnginePlayerRuntime DEPENDS "${_runtime_stamp}")
 	add_dependencies(RockEnginePlayer RockEnginePlayerRuntime)
-
-	# The interpreter shared library, copied next to the player exe. A dev run needs it on
-	# PATH anyway, and the Build window picks it up from here for shipped builds. Each is
-	# guarded by EXISTS: copy_if_different treats a missing SOURCE as an error, so an
-	# unguarded copy would break the build on any layout that names these differently.
-	if(WIN32)
-		set(_py_dlls "")
-		foreach(_name "python3.dll" "python${Python3_VERSION_MAJOR}${Python3_VERSION_MINOR}.dll")
-			if(EXISTS "${_py_root}/${_name}")
-				list(APPEND _py_dlls "${_py_root}/${_name}")
-			endif()
-		endforeach()
-		if(_py_dlls)
-			add_custom_command(TARGET RockEnginePlayer POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy_if_different
-						${_py_dlls} "$<TARGET_FILE_DIR:RockEnginePlayer>"
-				COMMENT "Copying the Python interpreter DLLs next to RockEnginePlayer..."
-				VERBATIM
-			)
-		else()
-			message(WARNING
-				"No pythonXY.dll found under '${_py_root}'. RockEnginePlayer will build but "
-				"game builds will not run on machines without Python installed.")
-		endif()
-	endif()
 else()
 	message(WARNING
 		"Python3 not found: RockEnginePlayer will build, but no shippable Python runtime "

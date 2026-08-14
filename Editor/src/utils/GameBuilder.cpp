@@ -100,15 +100,21 @@ bool GameBuilder::Prepare(const BuildConfig& cfg, const std::string& parentDir,
     out.cfg           = cfg;
     out.playerExe     = playerExe.string();
     out.domainDir     = domainDir.string();
-    out.pythonDllDir  = binDir.string();
     out.outputDir     = OutputDirFor(cfg.gameName, parentDir);
 
     // Staged once by the Player target's build (see Player/CMakeLists.txt). Optional: a
     // build without it still runs on a machine that has Python installed, which is fine for
     // handing to yourself and useless for handing to anyone else -- so the caller warns
     // rather than failing.
-    const fs::path runtime = binDir / "player-runtime" / "python";
+    const fs::path runtimeDir = binDir / "player-runtime";
+    const fs::path runtime    = runtimeDir / "python";
     out.pythonRuntime = fs::exists(runtime, ec) ? runtime.string() : std::string();
+
+    // pythonXY.dll comes from player-runtime, NOT from binDir. It must not live beside the
+    // editor: CPython derives its prefix from wherever its DLL loaded, so a copy in bin/
+    // makes the EDITOR look for bin/Lib, find no site-packages, and lose `watchdog` -- which
+    // kills Python hot-reload with nothing but a stderr line to show for it.
+    out.pythonDllDir = fs::exists(runtimeDir, ec) ? runtimeDir.string() : std::string();
 
     return true;
 }
@@ -207,20 +213,27 @@ void GameBuilder::Submit(Inputs inputs, std::function<void(const Result&)> onDon
             }
         }
 
-        // pythonXY.dll has to sit beside the executable, not inside python/ -- it is
+        // pythonXY.dll has to sit beside the SHIPPED executable, not inside python/ -- it is
         // resolved by the OS loader, not by PYTHONHOME. Missing it is the classic packaging
         // failure: the build looks complete and the game dies instantly on a clean machine.
-        sink.Report(0.90f, "Copying runtime libraries");
-        for (const auto& entry : fs::directory_iterator(inputs.pythonDllDir, ec)) {
-            if (ec) break;
-            const std::string name = entry.path().filename().string();
-            const bool isPythonDll = name.rfind("python", 0) == 0 &&
-                                     entry.path().extension() == ".dll";
-            if (isPythonDll)
-                fs::copy_file(entry.path(), outDir / name,
-                              fs::copy_options::overwrite_existing, ec);
+        //
+        // In the build output this placement is correct precisely because a sibling
+        // python/Lib exists there, so CPython's prefix resolution finds a real standard
+        // library. That is the same mechanism that makes putting these next to the EDITOR
+        // wrong -- there is no bin/Lib, so the prefix resolves to nothing.
+        if (!inputs.pythonDllDir.empty()) {
+            sink.Report(0.90f, "Copying runtime libraries");
+            for (const auto& entry : fs::directory_iterator(inputs.pythonDllDir, ec)) {
+                if (ec) break;
+                const std::string name = entry.path().filename().string();
+                const bool isPythonDll = name.rfind("python", 0) == 0 &&
+                                         entry.path().extension() == ".dll";
+                if (isPythonDll)
+                    fs::copy_file(entry.path(), outDir / name,
+                                  fs::copy_options::overwrite_existing, ec);
+            }
+            ec.clear();
         }
-        ec.clear();
 
         sink.Report(1.0f, "Finishing up");
         result->ok = true;
