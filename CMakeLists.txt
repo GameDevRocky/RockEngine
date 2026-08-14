@@ -33,6 +33,10 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets)
 add_subdirectory(External)
 add_subdirectory(Engine)
 add_subdirectory(Editor)
+# The standalone game executable. Links RockEngineCore only -- no Qt, no Editor. The
+# editor's Build window copies the binary this produces into each game build, which is why
+# it is built alongside the editor rather than on demand (Unity's "export template" model).
+add_subdirectory(Player)
 
 add_executable(RockEngineLauncher src/main.cpp)
 

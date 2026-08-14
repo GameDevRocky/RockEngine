@@ -28,6 +28,15 @@ void Console::CreateMessage(std::string text, std::string type, const std::sourc
     std::string function = loc.function_name();
     float time_stamp = timeManager->ElapsedTime();
 
+    // In the editor, ConsoleGui subscribes to NEW_MESSAGE_EVENT and renders the message map.
+    // In a player nothing subscribes, so without this every Alert/Warn/Comment would vanish
+    // into a map no one ever reads -- and a shipped game that misbehaves would give you
+    // nothing at all to go on. stderr for problems, stdout for the rest.
+    if (engine->IsPlayer()) {
+        std::ostream& out = (type == "comment") ? std::cout : std::cerr;
+        out << "[" << type << "] " << text << "  (" << file_name << ":" << line << ")" << std::endl;
+    }
+
     std::string key = text + type;
     auto it = instance.messages.find(key);
     

@@ -9,6 +9,7 @@ OpenGL 4.6 rendering, Box2D physics, YAML-based serialization, pybind11 scriptin
 |-------------|------------|---------|
 | `Engine/`   | Runtime core (`RockEngineCore` lib). No Qt. | `Engine/CLAUDE.md` |
 | `Editor/`   | Qt6 editor UI (`RockEngineEditor` lib). Depends on Engine. | `Editor/CLAUDE.md` |
+| `Player/`   | `RockEnginePlayer` — the standalone game exe. SDL3 window, no Qt. | `Player/CLAUDE.md` |
 | `Domain/`   | Game-side content: Python scripting API + assets + sandbox. Not compiled. | `Domain/CLAUDE.md` |
 | `src/`      | `main.cpp` — the launcher executable `RockEngineLauncher`. | — |
 | `External/` | Git submodules (glm, yaml-cpp, box2d, pybind11, imgui, imguizmo, SDL) + vendored glad/stb. | `.gitmodules` |
@@ -54,11 +55,34 @@ headers (embedded interpreter — see `requirements.txt`). `PROJECT_ROOT` is com
 - **Engine** is the runtime world (containers of systems + game objects). **Editor** observes
   and drives the engine via its event system; it holds no game logic. **Domain** is data and
   Python scripts loaded at runtime. Engine exposes C++ to Python; Domain's handlers wrap it.
+- **Player** is the third host: same Engine, SDL3 instead of Qt. It exists because Engine is
+  genuinely Qt-free and `RenderView::Present()` takes an FBO id — the editor hands it Qt's
+  `defaultFramebufferObject()`, the player hands it `0`. See `Player/CLAUDE.md`.
 - Two big invariants to know before changing anything:
   - **Play mode deep-copies the editor world**, runs it, and discards it — so anything that
     must survive play mode has to be copyable via `Copy()`. (Details in `Engine/CLAUDE.md`.)
   - **Observable/Event** is the decoupling backbone across all layers — a notify callback that
     returns `false` auto-unsubscribes. (Details in `Engine/CLAUDE.md`.)
+
+## Shipping a game
+
+**File → Build Game…** (Ctrl+Shift+B) opens `BuildWindow`, which authors a `BuildConfig`
+(`Domain/sandbox/project.build`) and hands it to `GameBuilder`. Output defaults to the OS
+Downloads folder and is never inside the repo.
+
+This is Unity's **export-template** model, not a compiler invocation: `RockEnginePlayer.exe` is
+already built and sitting in `build/local/bin/`, so a game build *copies* it plus `Domain/` plus
+the staged Python runtime and writes a `game.rock` beside them. Seconds, and the machine needs
+no toolchain — RockEngine's scripts are Python, so there is nothing to compile, exactly like
+Unity's Mono backend.
+
+The copy runs as a `JobSystem` job (worker half — `std::filesystem` only, and all the
+worker-thread prohibitions in `Job.hpp` apply), with progress on the Build window's own progress
+bar rather than `LoadingOverlay`, which is a child of `MainWindow` and would not cover a separate
+top-level window.
+
+`Engine::AppMode` distinguishes the two processes at runtime and gates the authoring-only
+behaviour that would otherwise write into a read-only install. See `Engine/CLAUDE.md`.
 
 ## Repo-wide conventions
 

@@ -25,7 +25,40 @@ The whole engine is built from `RuntimeObject`s living inside a `Container`.
     throw it away.** Key invariant: runtime mutations never touch editor state.
   - `activeContainer` points at whichever is current.
 
-`Engine::Update()` (called every frame by the editor's QTimer) ticks `activeContainer`.
+`Engine::Update()` (called every frame by the editor's vsync-driven frame loop, or by
+`PlayerApp`'s loop in a shipped game) ticks `activeContainer`.
+
+## AppMode — editor process vs. shipped game
+
+`Engine::SetAppMode(AppMode::Editor | AppMode::Player)`, **called before `Init()`** (it decides
+which systems get built, so a later call is refused). Defaults to `Editor`, so anything that
+never calls it is unchanged. `RockEnginePlayer`'s `main()` is the only caller that sets `Player`.
+
+**This is not `Container::Mode`, and the distinction matters.** `Container::Mode`
+(Editor/Runtime/Paused) describes *a world*; `AppMode` describes *the process*. They are
+orthogonal — a shipped game's container is still `Mode::Runtime`, reached by the same
+`EnterPlayMode()` deep copy the editor's Play button uses. `AppMode` deliberately does **not**
+live on `Container`, which would both conflate the two and get it deep-copied by
+`Container::Copy()` for a value that can never change. It belongs with
+`Renderer`/`AudioEngine`/`GamepadService`: process-global, no per-world identity.
+
+What `AppMode::Player` turns off, and why — every item writes to the asset tree, and a real
+install (Program Files, a Steam library) is usually read-only:
+
+- **`UndoSystem`** and **`FileWatcherSystem`** are not added to the container. `FileWatcherSystem`
+  tails `Domain/sandbox/scripts` for hot-reload and is the only reason `requirements.txt`
+  contains `watchdog` — skipping it is what lets the shipped Python bundle be stdlib-only.
+  `SelectionManager` is *kept*: it is nearly free, and `ExitPlayMode` and several bindings
+  resolve it.
+- **`AssetMetaService::ScanAndGenerate`** is skipped in `Renderer::EnsureInitialized` — metas are
+  authoring output, baked at build time.
+- **`AssetManager`'s auto-save** is never armed. Otherwise a script nudging a material property,
+  or a Font finishing its atlas bake, would rewrite the meta file inside the install.
+- **`Console`** gains a stdout/stderr sink, because nothing subscribes to it without the editor
+  and messages would otherwise vanish into a map no one reads.
+
+Exposed to scripts as `Application.is_editor` / `Application.is_player`
+(`Domain/lib/api/systems/application_system.py`), mirroring Unity's `Application.isEditor`.
 
 ## Observable (event system)
 
@@ -205,14 +238,24 @@ derives the pressed/released **edges**, so scripts still get container-scoped in
 shared device — the same split as `AudioEngine` (global device) vs `AudioSource` (per-world
 component).
 
-**SDL3 is the backend**, vendored as `External/SDL` and built with **`SDL_VIDEO` OFF** (see the
-comment block in `External/CMakeLists.txt`). That is load-bearing, not incidental: the video
-code is never compiled, so this build of SDL *cannot* create a window even by accident. Qt keeps
-owning every window; Engine only ever calls `SDL_INIT_GAMEPAD`. `SDL_AUDIO` is off too —
-miniaudio owns audio. `HIDAPI`/`SENSOR`/`POWER`/`HAPTIC` stay **on**, and that is what supplies
-the PlayStation feature set (gyro, accelerometer, touchpad fingers, lightbar, battery); turn any
-of them off and a DualSense silently degrades to a generic pad. Qt6 dropped QtGamepad and Engine
-must not depend on Qt anyway, which is why an external library was needed at all.
+**SDL3 is the backend**, vendored as `External/SDL`. `SDL_VIDEO` **used to be OFF**, and the
+comment block in `External/CMakeLists.txt` used to call that the whole point: the video code was
+never compiled, so SDL *could not* create a window even by accident. **That is no longer true** —
+`RockEnginePlayer` (see `Player/CLAUDE.md`) needs exactly that capability, so video and OpenGL
+are compiled in. The invariant survives as a rule rather than an impossibility:
+
+> Only `RockEnginePlayer` calls `SDL_INIT_VIDEO`. The editor process calls `SDL_INIT_GAMEPAD`
+> and nothing else, and Qt still owns every window in the editor.
+
+If `SDL_INIT_VIDEO` or `SDL_CreateWindow` ever becomes reachable from `Editor/` or
+`RockEngineLauncher`, that rule is broken and two window systems are fighting over one process.
+`SDL_GPU`/`RENDER`/`CAMERA` are pinned **off** explicitly — they are `cmake_dependent_option`s on
+`SDL_VIDEO` and would otherwise switch themselves on now; we render through glad against GL 4.6.
+`SDL_AUDIO` is off too — miniaudio owns audio. `HIDAPI`/`SENSOR`/`POWER`/`HAPTIC` stay **on**, and
+that is what supplies the PlayStation feature set (gyro, accelerometer, touchpad fingers,
+lightbar, battery); turn any of them off and a DualSense silently degrades to a generic pad. Qt6
+dropped QtGamepad and Engine must not depend on Qt anyway, which is why an external library was
+needed at all.
 
 Details worth knowing before changing any of it:
 

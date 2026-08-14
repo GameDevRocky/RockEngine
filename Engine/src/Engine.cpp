@@ -25,6 +25,17 @@
 
 namespace py = pybind11;
 
+void Engine::SetAppMode(AppMode mode) {
+    // Init() reads this to decide which systems the container gets, so a call after Init()
+    // would silently leave the mode and the container disagreeing -- the kind of mismatch
+    // that only shows up as a missing system three layers down. Refuse loudly instead.
+    if (initialized) {
+        std::cerr << "Engine::SetAppMode called after Init(); ignored." << std::endl;
+        return;
+    }
+    appMode = mode;
+}
+
 void Engine::Init() {
     // Claim this thread as the engine's before anything else runs, so
     // ROCK_ASSERT_MAIN_THREAD has something to compare against and every job
@@ -77,18 +88,33 @@ void Engine::Init() {
     editorContainer->AddSystem(new InputManager());
     editorContainer->AddSystem(new PhysicsSystem());
     editorContainer->AddSystem(new SceneManager());
+    // Kept in both modes even though selection is an editing concept: it is nearly free, and
+    // ExitPlayMode + several bindings resolve it. A player that skipped it would exercise a
+    // different teardown path than the one the editor tests every time you press Stop.
     editorContainer->AddSystem(new SelectionManager());
-    // After SelectionManager: UndoSystem::Init subscribes to it to break the
-    // coalescing gesture when the selection changes.
-    editorContainer->AddSystem(new UndoSystem());
     editorContainer->AddSystem(new LayerManager());
     editorContainer->AddSystem(new TagManager());
-    editorContainer->AddSystem(new FileWatcherSystem());
 
+    // Editor-only systems. A shipped game has no undo history to keep and no source tree to
+    // watch -- FileWatcherSystem imports Domain.lib.utils.file_watcher and tails
+    // Domain/sandbox/scripts for hot-reload, which is also the only reason requirements.txt
+    // contains `watchdog`. Skipping it is what lets the shipped Python bundle be stdlib-only.
+    if (IsEditor()) {
+        // After SelectionManager: UndoSystem::Init subscribes to it to break the
+        // coalescing gesture when the selection changes.
+        editorContainer->AddSystem(new UndoSystem());
+        editorContainer->AddSystem(new FileWatcherSystem());
+    }
+
+    // Always Editor here, in BOTH app modes, and that is deliberate: the player loads its
+    // startup scene into this container and then calls EnterPlayMode(), so the world it runs
+    // is a deep copy produced by exactly the same path the editor's Play button uses. One
+    // code path means a shipped game cannot diverge from what you tested.
     editorContainer->SetMode(Container::Mode::Editor);
     editorContainer->Init();
     editorContainer->PostInit();
     activeContainer = editorContainer;
+    initialized = true;
     std::cout << "Engine Initialized\n" << std::endl;
 }
 

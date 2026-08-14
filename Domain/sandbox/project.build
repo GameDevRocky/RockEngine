@@ -1,0 +1,8 @@
+gameName: My Game
+version: 1.0.0
+startupScene: Domain/sandbox/default.scene
+windowWidth: 1280
+windowHeight: 720
+fullscreen: false
+resizable: true
+vsync: true

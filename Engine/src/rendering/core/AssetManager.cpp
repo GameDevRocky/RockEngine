@@ -6,6 +6,7 @@
 #include "engine/rendering/core/ImageDecoder.hpp"
 #include "engine/jobs/BootProgress.hpp"
 #include "engine/jobs/ParallelFor.hpp"
+#include "Engine.hpp"
 #include <algorithm>
 #include <cctype>
 #include <filesystem>
@@ -684,5 +685,14 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     BootProgress::Report(1.0f, "Finishing up");
 
     // Everything is loaded; from here on, in-memory edits sync back to disk.
-    EnableAutoSave();
+    //
+    // Editor only. Auto-save exists so an inspector edit persists without an explicit Save,
+    // which is authoring behaviour and actively wrong in a shipped game: a script nudging a
+    // material property, or a Font finishing its atlas bake, would rewrite the meta file in
+    // the install directory. That is at best a spurious write to the player's disk and at
+    // worst a hard failure, because a real install (Program Files, a Steam library) is
+    // typically read-only. Leaving it armed also means a player's saved game state could
+    // silently diverge from the assets that shipped.
+    if (Engine::Get()->IsEditor())
+        EnableAutoSave();
 }

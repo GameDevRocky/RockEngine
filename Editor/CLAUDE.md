@@ -37,7 +37,8 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 
 - **`src/dock-widgets/`** — the dockable panels: `MainWindowGui` (the `QMainWindow` host),
   `HierarchyGui`, `InspectorGui`, `ConsoleGui`, `SceneViewGui`, `GameViewGui`, `FolderViewGui`,
-  `FileExplorerGui`, `MenuBar`, `RuntimeBar` (play/pause/stop).
+  `FileExplorerGui`, `MenuBar`, `RuntimeBar` (play/pause/stop), `BuildWindow` (File → Build
+  Game…, a top-level window rather than a dock).
 - **`src/component-widgets/`** — per-component inspector UI pieces: `ComponentHeader`,
   `ObjectHeader`.
 - **`src/utils/`**:
@@ -59,5 +60,13 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   `QOpenGLWidget` base that hosts an engine-owned `RenderView` (`EditorRenderView`/
   `GameRenderView`) and hands it an FBO id each frame — the pipeline, passes, and camera all
   live in Engine, not here. See Engine's CLAUDE.md "Rendering" section for the ownership chain.
+- **Never `exec()` a dialog.** There are no `QDialog` subclasses here by design — the reason is
+  documented on `LoadingOverlay.hpp`: `exec()` spins a nested `QEventLoop`, inside which
+  `frameSwapped` still fires → `Editor::FrameTick` → `Engine::Update` → `JobSystem::Pump`,
+  re-entering the pump from inside a job step. `QApplication::processEvents()` and
+  `QProgressDialog` are out for the same reason. Windows are plain top-level `QWidget`s shown
+  with `show(); raise(); activateWindow();` (see `BuildWindow`, `SpriteEditorModal`). The static
+  `QFileDialog::getExistingDirectory` helper is fine — it runs the platform's own loop, not ours.
 - Don't put game/runtime logic here — it belongs in Engine. The Editor only observes and
-  drives the engine.
+  drives the engine. Game *build* tooling (`utils/GameBuilder`) is the exception and correctly
+  lives here — it is authoring, and the thing it ships is `Player/`.

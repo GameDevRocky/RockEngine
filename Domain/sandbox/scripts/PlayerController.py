@@ -27,7 +27,9 @@ class PlayerController(ScriptableComponent):
     Tune the numeric fields below in the inspector to match your world scale.
     """
 
+    jump_sound : AudioSource
     test_ : list[Vector3]
+
 
     # ── Movement tuning ──────────────────────────────────────────────────────
     move_speed: float = 200.0           # target horizontal speed

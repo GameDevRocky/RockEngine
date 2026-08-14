@@ -1,4 +1,5 @@
 #include "dock-widgets/MenuBar.hpp"
+#include "dock-widgets/BuildWindow.hpp"
 #include <QKeySequence>
 #include "Engine.hpp"
 #include "engine/core/Container.hpp"
@@ -29,6 +30,19 @@ void MenuBar::Init() {
     openSceneAction = fileMenu->addAction("Open Scene");
     saveSceneAction = fileMenu->addAction("Save Scene");
     saveSceneAsAction = fileMenu->addAction("Save Scene As...");
+
+    fileMenu->addSeparator();
+    buildGameAction = fileMenu->addAction("Build Game...");
+    // Application-scoped for the same reason Undo/Redo are (see below): a WindowShortcut
+    // would not fire while a QOpenGLWidget viewport has focus, which is most of the time.
+    buildGameAction->setShortcut(QKeySequence(QStringLiteral("Ctrl+Shift+B")));
+    buildGameAction->setShortcutContext(Qt::ApplicationShortcut);
+    // Connected with a direct lambda, deliberately NOT via a *Requested signal like the
+    // scene actions above -- those signals have no receivers anywhere in the codebase, so
+    // that whole half of this menu does nothing when clicked. Don't copy that pattern.
+    connect(buildGameAction, &QAction::triggered, this, []() {
+        BuildWindow::Get()->ShowCentered();
+    });
 
     fileMenu->addSeparator();
     exitAction = fileMenu->addAction("Exit");

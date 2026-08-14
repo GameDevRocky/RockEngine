@@ -7,6 +7,18 @@
 #include "engine/core/Container.hpp"
 #include "engine/core/Observable.hpp"
 
+// Which kind of process the engine is running inside. Deliberately NOT on Container:
+// Container::Mode (Editor/Runtime/Paused) describes a WORLD, this describes the PROCESS,
+// and the two are orthogonal -- a shipped game's container is still Mode::Runtime, and it
+// still deep-copies an editor container to get there. Putting this on Container would also
+// mean Container::Copy() carries it, which is meaningless for a value that can never change
+// after startup. It belongs with Renderer/AudioEngine/GamepadService: process-global state
+// with no per-world identity.
+enum class AppMode {
+    Editor,   // the Qt editor process (RockEngineLauncher)
+    Player    // a shipped standalone game (RockEnginePlayer)
+};
+
 class Engine : public Observable {
 public:
     static inline const Event ENTER_PLAY_MODE_EVENT = Engine::CreateEvent();
@@ -24,6 +36,14 @@ public:
     void PostInit();
     void Update();
     void Shutdown();
+
+    // Must be called BEFORE Init(): Init() decides which systems to build from it, so setting
+    // it afterwards would leave a container that disagrees with the mode. Defaults to Editor,
+    // so every existing caller (and any embedding that never calls this) is unchanged.
+    void SetAppMode(AppMode mode);
+    AppMode GetAppMode() const { return appMode; }
+    bool IsPlayer() const { return appMode == AppMode::Player; }
+    bool IsEditor() const { return appMode == AppMode::Editor; }
 
     // Deferred play-mode transitions. These submit a job and return
     // immediately; the transition itself runs from the job's main step on a
@@ -64,6 +84,9 @@ public:
     Container* editorContainer = nullptr;
     Container* runtimeContainer = nullptr;
     Container* activeContainer = nullptr;
+
+    AppMode appMode = AppMode::Editor;
+    bool initialized = false;   // guards SetAppMode against a too-late call
 
     // A transition job is queued or running. The overlay blocks input, but that
     // is UI and UI is not a guarantee -- a script, a shortcut, or a second click

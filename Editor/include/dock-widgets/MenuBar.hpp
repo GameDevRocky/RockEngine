@@ -55,6 +55,7 @@ private:
     QAction* openSceneAction = nullptr;
     QAction* saveSceneAction = nullptr;
     QAction* saveSceneAsAction = nullptr;
+    QAction* buildGameAction = nullptr;
     QAction* exitAction = nullptr;
 
     QAction* undoAction = nullptr;

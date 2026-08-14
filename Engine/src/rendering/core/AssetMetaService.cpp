@@ -25,14 +25,11 @@ std::string AssetMetaService::MetaExtensionFor(const std::string& sourceExt) {
 
 // ──────────────────────────────────────────────────────────────────────────────
 std::string AssetMetaService::ToProjectRelative(const fs::path& absPath) {
-    fs::path root = fs::path(PROJECT_ROOT);
-    std::error_code ec;
-    fs::path rel = fs::relative(absPath, root, ec);
-    if (ec) return absPath.string();
-
-    // Normalise to forward slashes
-    std::string s = rel.generic_string();
-    return s;
+    // GetAssetRoot(), not the raw PROJECT_ROOT define: in a bundled build the root is the
+    // folder beside the executable, and anchoring to the build machine's source directory
+    // would write metas whose `path:` cannot resolve anywhere else. Every reader of these
+    // files goes back through GetAssetPath(), so this is the matching inverse.
+    return EngineUtils::ToAssetRelative(absPath.string());
 }
 
 

@@ -9,6 +9,7 @@
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/AssetMetaService.hpp"
 #include "engine/utils/EngineUtils.hpp"
+#include "Engine.hpp"
 
 Renderer& Renderer::Get()
 {
@@ -36,7 +37,13 @@ bool Renderer::EnsureInitialized()
     // LoadFromDirectory is now parallel, so this is the figure that tells you
     // whether that paid off.
     const auto bootStart = std::chrono::steady_clock::now();
-    AssetMetaService::ScanAndGenerate(domainDir);
+    // Editor only. Meta files are authoring output: in a shipped game they were already
+    // generated at build time and copied in, and the install directory is very often
+    // read-only (Program Files, a Steam library), so re-running the generator there would
+    // fail on every single launch. LoadFromDirectory still runs in both modes -- it only
+    // reads.
+    if (Engine::Get()->IsEditor())
+        AssetMetaService::ScanAndGenerate(domainDir);
     AssetManager::Get().LoadFromDirectory(domainDir);
     const auto bootMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - bootStart).count();

@@ -65,16 +65,28 @@ set(MSDFGEN_INSTALL          OFF CACHE BOOL "" FORCE)
 set(MSDFGEN_DYNAMIC_RUNTIME  ON  CACHE BOOL "" FORCE)
 add_subdirectory(msdfgen)
 
-# --- SDL3 (gamepad subsystem only) ---
-# Here for ONE reason: reading game controllers. Qt6 dropped QtGamepad and Engine must not
-# depend on Qt anyway, so there was no cross-platform way to talk to a pad.
+# --- SDL3 (gamepads + the standalone player's window) ---
+# Here for TWO reasons now: reading game controllers (Qt6 dropped QtGamepad and Engine must
+# not depend on Qt anyway), and giving RockEnginePlayer -- the shipped game executable -- a
+# window and an OpenGL context without dragging Qt into a distributed build.
 #
-# SDL_VIDEO is OFF, which is the whole point -- the video code is never compiled, so this
-# build of SDL is incapable of creating a window even by accident. Qt keeps owning every
-# window in the editor; Engine only ever calls SDL_INIT_GAMEPAD. Turning video off also
-# forces GPU/Render/Camera off automatically (they are cmake_dependent_options on SDL_VIDEO).
-# Audio is off too -- miniaudio owns audio and there is no reason to have two device layers
-# fighting over one sound card.
+# SDL_VIDEO USED TO BE OFF, and the comment here used to say that was the whole point: the
+# video code was never compiled, so SDL was incapable of creating a window even by accident.
+# That guarantee is deliberately retired, because the player needs exactly that capability.
+# The invariant it protected still holds, but it is now a rule rather than an impossibility:
+#
+#     Only RockEnginePlayer calls SDL_INIT_VIDEO. The editor process calls SDL_INIT_GAMEPAD
+#     and nothing else, and Qt still owns every window in the editor.
+#
+# If you ever find SDL_INIT_VIDEO or SDL_CreateWindow reachable from Editor/ or from
+# RockEngineLauncher, that rule has been broken and you have two window systems fighting
+# over one process.
+#
+# Audio stays OFF -- miniaudio owns audio and there is no reason to have two device layers
+# fighting over one sound card. GPU/RENDER/CAMERA are pinned OFF explicitly: they are
+# cmake_dependent_options on SDL_VIDEO, so they were free before and would silently switch
+# themselves on now. We render through glad against GL 4.6 and want none of SDL's own
+# graphics stack.
 #
 # What stays ON is deliberate: HIDAPI is what gives DualSense/DualShock 4 their gyro,
 # accelerometer, touchpad fingers and lightbar (SDL's own controller drivers parse the raw
@@ -82,7 +94,11 @@ add_subdirectory(msdfgen)
 # Drop any of those and the PlayStation feature set silently degrades to a generic pad.
 set(SDL_SHARED        OFF CACHE BOOL "" FORCE)  # static-link; nothing extra to ship
 set(SDL_STATIC        ON  CACHE BOOL "" FORCE)
-set(SDL_VIDEO         OFF CACHE BOOL "" FORCE)
+set(SDL_VIDEO         ON  CACHE BOOL "" FORCE)  # player windowing; see the rule above
+set(SDL_OPENGL        ON  CACHE BOOL "" FORCE)
+set(SDL_GPU           OFF CACHE BOOL "" FORCE)  # we use glad/GL 4.6, not SDL's graphics stack
+set(SDL_RENDER        OFF CACHE BOOL "" FORCE)
+set(SDL_CAMERA        OFF CACHE BOOL "" FORCE)
 set(SDL_AUDIO         OFF CACHE BOOL "" FORCE)
 set(SDL_DIALOG        OFF CACHE BOOL "" FORCE)
 set(SDL_TRAY          OFF CACHE BOOL "" FORCE)

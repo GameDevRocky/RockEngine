@@ -98,7 +98,11 @@ void GamepadService::EnsureInitialized() {
 #endif
 
     // Gamepad only. This pulls in JOYSTICK + EVENTS implicitly and nothing else -- notably not
-    // VIDEO, which is not even compiled into our SDL build (External/CMakeLists.txt).
+    // VIDEO. Video IS compiled into our SDL build now (RockEnginePlayer needs a window), so
+    // that separation is no longer enforced by the build; keep it here. In the editor Qt owns
+    // every window, and this call is the editor's only contact with SDL. In the player,
+    // PlayerApp has already brought VIDEO up and SDL_Init is refcounted, so this is a cheap
+    // no-op that still leaves the gamepad subsystem correctly owned by this service.
     if (!SDL_Init(SDL_INIT_GAMEPAD)) {
         Console::Alert(std::string("GamepadService: SDL_Init failed: ") + SDL_GetError());
         return;
