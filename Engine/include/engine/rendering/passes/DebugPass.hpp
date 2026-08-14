@@ -35,13 +35,10 @@ private:
 
     unsigned int boxVao = 0, boxVbo = 0;
     unsigned int circleVao = 0, circleVbo = 0;
-    unsigned int capsuleVao = 0, capsuleVbo = 0;
     unsigned int lineVao = 0, lineVbo = 0;
     unsigned int polyVao = 0, polyVbo = 0;
     unsigned int ssbo = 0;
 
     int circleVertexCount = 0;
-    int capsuleVertexCount = 0;
-
     Shader* debugShader = nullptr;
 };

@@ -1,20 +1,11 @@
 #include "engine/rendering/passes/DebugPass.hpp"
 #include "engine/debug/FrameProfiler.hpp"
-#include "engine/components/Transform.hpp"
-#include "engine/components/SpriteRenderer.hpp"
-#include "engine/components/BoxCollider.hpp"
-#include "engine/components/CircleCollider.hpp"
-#include "engine/components/CapsuleCollider.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/utils/EngineUtils.hpp"
-#include "engine/core/SelectionManager.hpp"
-#include "engine/core/Container.hpp"
 #include <vector>
 #include <cmath>
-#include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 
-using namespace EngineUtils::RenderUtils;
 using namespace EngineUtils::MathUtils;
 
 static unsigned int CreateVAO(unsigned int& vbo, const float* data, size_t dataSize)
@@ -60,29 +51,6 @@ void DebugPass::Init()
     circleVertexCount = segments;
     circleVao = CreateVAO(circleVbo, circleVerts.data(), circleVerts.size() * sizeof(float));
 
-    const int semiSegments = 17;
-    std::vector<float> capsuleVerts;
-    for (int i = 0; i < semiSegments; ++i)
-    {
-        float angle = (PI * i) / (semiSegments - 1);
-        capsuleVerts.push_back(0.0f);        
-        capsuleVerts.push_back(0.5f);            
-        capsuleVerts.push_back(std::cos(angle));
-        capsuleVerts.push_back(std::sin(angle)); 
-    }
-
-    for (int i = 0; i < semiSegments; ++i)
-    {
-        float angle = PI + (PI * i) / (semiSegments - 1);
-        capsuleVerts.push_back(0.0f);            
-        capsuleVerts.push_back(-0.5f);           
-        capsuleVerts.push_back(std::cos(angle)); 
-        capsuleVerts.push_back(std::sin(angle)); 
-    }
-
-    capsuleVertexCount = semiSegments * 2;
-    capsuleVao = CreateVAO(capsuleVbo, capsuleVerts.data(), capsuleVerts.size() * sizeof(float));
-
     // Line: 2 verts along the X axis. Shader: scaledPos = aPos * size + offset
     // So a line from A to B is encoded as offset=A, size=B-A, model=identity
     float lineVerts[] = {
@@ -123,7 +91,7 @@ void DebugPass::DrawInstanced(unsigned int vao, int vertexCount, GLenum mode,
     glad_glDrawArraysInstanced(mode, 0, vertexCount, static_cast<GLsizei>(instances.size()));
 }
 
-void DebugPass::Execute(RenderCamera* camera, Scene* scene)
+void DebugPass::Execute(RenderCamera* camera, Scene* /*scene*/)
 {
     ROCK_PROFILE_SCOPE("DebugPass");
     if (!debugShader) return;
@@ -132,91 +100,6 @@ void DebugPass::Execute(RenderCamera* camera, Scene* scene)
     debugShader->SetMat4("uView", camera->GetViewMatrix());
     debugShader->SetMat4("uProj", camera->GetProjectionMatrix());
 
-    const auto& objects = scene->GetAllGameObjects();
-
-    std::vector<DebugInstanceData> boxInstances;
-    std::vector<DebugInstanceData> circleInstances;
-    std::vector<DebugInstanceData> capsuleInstances;
-
-    for (auto* obj : objects)
-    {
-        if (!obj || !obj->GetActive()) continue;
-
-        Transform* transform = obj->GetComponent<Transform>();
-        if (!transform) continue;
-
-        for (BoxCollider* collider : obj->GetComponents<BoxCollider>())
-        {
-            if (!collider->GetEnabled()) continue;
-
-            DebugInstanceData inst{};
-            inst.model = transform->GetWorldMatrix();
-            inst.size = collider->GetSize();
-            inst.semiSize = glm::vec2(0.0f);
-            inst.offset = collider->GetCenter();
-            inst.pivot = glm::vec2(0.0f);
-            inst.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-            boxInstances.push_back(inst);
-        }
-
-        for (CircleCollider* collider : obj->GetComponents<CircleCollider>())
-        {
-            if (!collider->GetEnabled()) continue;
-
-            float radius = collider->GetRadius();
-            glm::vec2 worldScale = transform->GetWorldScale();
-            // Physics scales a circle's radius uniformly by the largest axis
-            // (CircleCollider::CreateShape). A scale-free model (world position +
-            // rotation only) plus a uniform scale baked into the size keeps the
-            // circle circular instead of skewed by non-uniform object scale.
-            float uniformScale = std::max(std::abs(worldScale.x), std::abs(worldScale.y));
-
-            glm::mat4 model = glm::translate(glm::mat4(1.0f),
-                                             glm::vec3(transform->GetWorldPosition(), 0.0f));
-            model = glm::rotate(model, glm::radians(transform->GetWorldRotation()),
-                                glm::vec3(0.0f, 0.0f, 1.0f));
-
-            DebugInstanceData inst{};
-            inst.model = model;
-            inst.size = glm::vec2(radius * uniformScale);
-            inst.semiSize = glm::vec2(0.0f);
-            // Center offset is a position, so it scales with both axes to stay put.
-            inst.offset = collider->GetCenter() * worldScale;
-            inst.pivot = glm::vec2(0.0f);
-            inst.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-            circleInstances.push_back(inst);
-        }
-
-        for (CapsuleCollider* collider : obj->GetComponents<CapsuleCollider>())
-        {
-            if (!collider->GetEnabled()) continue;
-
-            float radius = collider->GetRadius();
-            float height = collider->GetHeight();
-            glm::vec2 worldScale = transform->GetWorldScale();
-            // Scale uniformly by the largest axis so the capsule isn't skewed by
-            // non-uniform object scale. With a scale-free model (world position +
-            // rotation) the round caps stay circular without the old sx/sy fudge.
-            float uniformScale = std::max(std::abs(worldScale.x), std::abs(worldScale.y));
-
-            glm::mat4 model = glm::translate(glm::mat4(1.0f),
-                                             glm::vec3(transform->GetWorldPosition(), 0.0f));
-            model = glm::rotate(model, glm::radians(transform->GetWorldRotation()),
-                                glm::vec3(0.0f, 0.0f, 1.0f));
-
-            DebugInstanceData inst{};
-            inst.model = model;
-            inst.size = glm::vec2(0.0f, height * uniformScale);
-            inst.semiSize = glm::vec2(radius / 2.0f * uniformScale);
-            inst.offset = collider->GetCenter() * worldScale;
-            inst.pivot = glm::vec2(0.0f);
-            inst.color = glm::vec4(0.0f, 1.0f, 0.0f, 1.0f);
-            capsuleInstances.push_back(inst);
-        }
-    }
-    DrawInstanced(boxVao, 4, GL_LINE_LOOP, boxInstances);
-    DrawInstanced(circleVao, circleVertexCount, GL_LINE_LOOP, circleInstances);
-    DrawInstanced(capsuleVao, capsuleVertexCount, GL_LINE_LOOP, capsuleInstances);
     {
         auto* debug = DebugDrawManager::Get();
 
@@ -360,8 +243,6 @@ void DebugPass::Shutdown()
     if (boxVao)     glad_glDeleteVertexArrays(1, &boxVao);
     if (circleVbo)  glad_glDeleteBuffers(1, &circleVbo);
     if (circleVao)  glad_glDeleteVertexArrays(1, &circleVao);
-    if (capsuleVbo) glad_glDeleteBuffers(1, &capsuleVbo);
-    if (capsuleVao) glad_glDeleteVertexArrays(1, &capsuleVao);
     if (lineVbo)    glad_glDeleteBuffers(1, &lineVbo);
     if (lineVao)    glad_glDeleteVertexArrays(1, &lineVao);
     if (polyVbo)    glad_glDeleteBuffers(1, &polyVbo);

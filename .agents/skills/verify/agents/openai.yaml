@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verify RockEngine"
+  short_description: "Build and visually verify RockEngine editor changes"
+  default_prompt: "Build RockEngine, launch the editor, and verify the requested visible change end-to-end."

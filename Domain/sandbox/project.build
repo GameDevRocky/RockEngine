@@ -1,8 +1,8 @@
-gameName: My Game
+gameName: Platformer
 version: 1.0.0
 startupScene: Domain/sandbox/default.scene
 windowWidth: 1280
 windowHeight: 720
-fullscreen: true
+fullscreen: false
 resizable: true
 vsync: true

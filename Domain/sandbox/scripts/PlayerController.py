@@ -27,8 +27,10 @@ class PlayerController(ScriptableComponent):
     Tune the numeric fields below in the inspector to match your world scale.
     """
 
-    drrr : GameObject
+    jump_sound : AudioSource = None
+    song : AudioSource = None
     test_ : list[Vector3]
+
 
 
     # ── Movement tuning ──────────────────────────────────────────────────────
@@ -64,16 +66,17 @@ class PlayerController(ScriptableComponent):
         self.animator = self.get_component(Animator)
         
         self.balls = []
-        
+        if self.song:
+            self.song.loop = True
+            self.song.play()
 
-        # Core runtime state FIRST, before any optional setup that can fail: an
-        # exception below must never leave fixed_update reading an unset timer/flag.
-        self.facing = 1            # 1 = right, -1 = left
+        
+        self.facing = 1     
         self.grounded = False
-        self.ground_normal = Vector2(0, 1)   # surface normal under the feet (flat by default)
+        self.ground_normal = Vector2(0, 1)  
         self.coyote_timer = 0.0
         self.jump_buffer_timer = 0.0
-        self.is_jumping = False    # currently in the rising part of a jump (for jump-cut)
+        self.is_jumping = False 
         self.jump_lockout_timer = 0.0       # >0 = ignore the ground ray (just jumped)
         self.jumps_left = self.max_jumps   # air jumps remaining until we touch ground again
 
@@ -190,6 +193,7 @@ class PlayerController(ScriptableComponent):
         can_air_jump = not can_ground_jump and self.jumps_left > 0
 
         if self.jump_buffer_timer > 0.0 and (can_ground_jump or can_air_jump):
+            self.jump_sound.play()
             vel = self.rb.velocity
             vel.y = self.jump_velocity          # crisp double jump: reset, don't add
             self.rb.velocity = vel

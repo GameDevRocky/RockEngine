@@ -9,6 +9,8 @@
 #include "engine/rendering/views/EditorRenderView.hpp"
 #include "utils/ImGuiInstance.hpp"
 
+class DraggableSceneToolbar;
+
 class SceneViewGui : public ViewportWidget {
     Q_OBJECT
 
@@ -30,10 +32,6 @@ public:
 
 protected:
     void DrawGizmos();
-    void DrawToolBar();
-    // A second, horizontal toolbar for grid + snapping. Its own ImGui window, so
-    // it can be moved and sized independently of the vertical tool strip.
-    void DrawGridToolBar();
 
     RenderView* CreateView(int pixelW, int pixelH) override;
     void OnViewInitialized() override;
@@ -81,6 +79,7 @@ private:
 
     EditorRenderView* editorView = nullptr;   // borrowed; same object as ViewportWidget::view
     ImGuiInstance* imGuiInstance = nullptr;
+    DraggableSceneToolbar* m_nativeToolbar = nullptr;
 
     QPoint lastMousePos;
     bool isPanning = false;

@@ -1,5 +1,12 @@
 #include "engine/bindings/PythonBindings.hpp"
 
+// get_component_ids returns a std::vector<std::string>. pybind11 needs the STL type
+// caster visible in THIS translation unit to convert it -- without it the binding still
+// compiles and registers, then fails at call time with "Unable to convert function return
+// value to a Python type". Every other binding TU that traffics in STL containers
+// (Animator, Camera, Joint, Transform) includes this for the same reason.
+#include <pybind11/stl.h>
+
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/core/GameObject.hpp"
