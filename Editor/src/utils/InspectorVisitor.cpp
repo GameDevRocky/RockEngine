@@ -34,6 +34,7 @@
 #include "engine/rendering/core/Font.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/core/SelectionManager.hpp"
+#include "engine/core/Scene.hpp"
 #include "Engine.hpp"
 #include "utils/EditorUtils.hpp"
 #include "utils/ComponentPickerWidget.hpp"
@@ -1792,4 +1793,11 @@ void InspectorVisitor::Visit(AudioClip* clip) {
         AudioEngine::Get().PlayOneShot(clip->GetPath());
     });
     AddFullRow(playBtn);
+}
+
+void InspectorVisitor::Visit(Scene* scene) {
+
+    BindProperty<std::string>(scene, "Name:", [=](){return scene->GetName();}, [](Scene*s, const std::string& name){s->SetName(name);}, Scene::NAME_CHANGED_EVENT, PropDesc().RefType(Tags::STRING));
+    
+
 }

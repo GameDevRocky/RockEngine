@@ -7,6 +7,7 @@
 #include "engine/serialization/SerializableFactory.hpp"
 #include "engine/serialization/IdRemapper.hpp"
 #include "engine/debug/Console.hpp"
+#include "engine/utils/IVisitor.hpp"
 #include <algorithm>
 #include <functional>
 #include <unordered_set>
@@ -323,17 +324,7 @@ GameObject* Scene::InstantiateSubtree(const YAML::Node& gameobjects, const YAML:
 {
     if (!registry || gameobjects.size() == 0) return nullptr;
 
-    // Build every GameObject before any of them initializes: Transform::Init
-    // resolves parent_id through the registry, so the whole subtree has to be
-    // registered first.
-    //
-    // AddGameObject() looks like the right call here but is not — it creates a
-    // Transform when GetTransform() returns null, and at this point the
-    // deserialized component_ids point at components that don't exist yet, so
-    // it would attach a spurious second Transform. Going direct also bypasses
-    // AddComponent's singleton rejection, which is correct: the snapshot came
-    // from an object that already satisfied that constraint, so its components
-    // are attached verbatim.
+    
     std::vector<GameObject*> created;
     created.reserve(gameobjects.size());
     for (const auto& goNode : gameobjects) {
@@ -550,4 +541,8 @@ Scene *Scene::Copy(Container *container)
     Scene *copy = this->Copy();
     copy->Attach(container);
     return copy;
+}
+
+void Scene::Accept(IVisitor* v) {
+    v->Visit(this);
 }

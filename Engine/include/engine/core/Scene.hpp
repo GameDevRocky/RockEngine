@@ -11,6 +11,7 @@
 class GameObject;
 class Component;
 class Registry;
+class IVisitor;
 
 class Scene : public RuntimeObject{
 public:
@@ -35,6 +36,7 @@ public:
     void Update() override;
     void FixedUpdate();
     void LateUpdate();
+    void Accept(IVisitor* v) override;
     
     std::string GetTypeName() override { return "Scene"; }
     

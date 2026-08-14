@@ -110,7 +110,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
         const QString filePath = model->filePath(sourceIndex);
         const QString ext = QFileInfo(filePath).suffix().toLower();
 
-        static const QSet<QString> assetExts = { "mat", "material", "texture", "shader" };
+        static const QSet<QString> assetExts = { "mat", "material", "texture", "shader", "scene" };
         if (assetExts.contains(ext)) {
             try {
                 YAML::Node node = YAML::LoadFile(filePath.toStdString());
@@ -119,7 +119,8 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
                     auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
                     if (selMgr) selMgr->Select(assetId);
                 }
-            } catch (...) {}
+            } catch (...) {
+            }
         }
     });
 

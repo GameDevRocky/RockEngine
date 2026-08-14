@@ -36,6 +36,7 @@ class MotorJoint;
 class AudioSource;
 class AudioListener;
 class AudioClip;
+class Scene;
 
 class IVisitor {
 public:
@@ -71,4 +72,5 @@ public:
     virtual void Visit(AudioSource* a) {}
     virtual void Visit(AudioListener* a) {}
     virtual void Visit(AudioClip* a) {}
+    virtual void Visit(Scene* s) {}
 };

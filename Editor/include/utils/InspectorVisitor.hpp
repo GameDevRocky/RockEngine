@@ -22,6 +22,7 @@ class Sprite;
 class Material;
 class Texture2D;
 class Shader;
+class Scene;
 
 class InspectorVisitor : public IVisitor{
 
@@ -57,6 +58,7 @@ class InspectorVisitor : public IVisitor{
         void Visit(AudioSource* audioSource) override;
         void Visit(AudioListener* audioListener) override;
         void Visit(AudioClip* audioClip) override;
+        void Visit(Scene* scene) override;
 
 
         QWidget* GetContent(){ return content;}
