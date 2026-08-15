@@ -1,12 +1,12 @@
 type: Material
 name: New Material 1
 id: 51c31cd30d572a21bdb1409464867b25
-shader_id: s1
+shader_id: s7
 uniforms:
   textures:
     uTexture: ""
   floats:
-    uLitAmount: 1
+    uInvertAmount: 1
   vec2:
     uUVScale: [1, 1]
     uUVOffset: [0, 0]

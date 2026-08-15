@@ -3,6 +3,9 @@
 #include <QString>
 #include <QStringList>
 #include <QIcon>
+#include <QPixmap>
+#include <QColor>
+#include <QPainter>
 #include <QDebug>
 #include <vector>
 #include <cctype>
@@ -16,6 +19,24 @@ namespace EditorUtils {
 // as an icon. Goes through GetAssetPath so it works regardless of the launch directory.
 static QIcon AssetIcon(const char* relativePath) {
     return QIcon(QString::fromStdString(EngineUtils::GetAssetPath(relativePath)));
+}
+
+// Same as AssetIcon, but recolors the source image's opaque pixels to a flat
+// color while preserving its alpha shape. Several bundled icons are authored
+// dark-on-transparent (fine on a light background); this lets them still read
+// correctly against the editor's dark panels without editing the source PNG.
+static QIcon TintedAssetIcon(const char* relativePath, const QColor& color) {
+    const QPixmap source(QString::fromStdString(EngineUtils::GetAssetPath(relativePath)));
+    if (source.isNull()) return {};
+    QPixmap tinted(source.size());
+    tinted.setDevicePixelRatio(source.devicePixelRatio());
+    tinted.fill(Qt::transparent);
+    QPainter painter(&tinted);
+    painter.drawPixmap(0, 0, source);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+    painter.fillRect(source.rect(), color);
+    painter.end();
+    return QIcon(tinted);
 }
 
 QIcon CustomIconProvider::gameObjectIcon() {
@@ -36,6 +57,12 @@ QIcon CustomIconProvider::componentIcon(const std::string& typeName) {
 
 QIcon CustomIconProvider::aiSendIcon() {
     return AssetIcon("Domain/lib/assets/icons/up_arrow_icon.png");
+}
+
+QIcon CustomIconProvider::aiSettingsIcon() {
+    // Matches QPushButton#AiTopAction's resting text color in ai_assistant.qss,
+    // so this icon-based button reads the same as its glyph-text siblings.
+    return TintedAssetIcon("Domain/lib/assets/icons/settings_icon.png", QColor(170, 170, 174));
 }
 
 QIcon CustomIconProvider::icon(const QFileInfo &info) const {

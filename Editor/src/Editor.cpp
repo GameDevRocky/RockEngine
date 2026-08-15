@@ -8,6 +8,10 @@
 #include <QFont>
 #include <QStringList>
 #include <QSurfaceFormat>
+#include <QEvent>
+#include <QMenu>
+#include <QPainterPath>
+#include <QRegion>
 // QOpenGLWidget comes transitively from dock-widgets/*.hpp below, which
 // include it via ViewportWidget.hpp -- that header orders glad.h first, so
 // QOpenGLWidget must never be included directly before it in this file.
@@ -25,6 +29,59 @@
 #include "utils/LoadingOverlay.hpp"
 #include "utils/StartupSplash.hpp"
 #include <algorithm>
+
+namespace {
+
+void ApplyComboPopupMask(QWidget* widget) {
+    if (!widget || widget->width() <= 0 || widget->height() <= 0) return;
+    constexpr qreal radius = 12.0;
+    QPainterPath path;
+    path.addRoundedRect(QRectF(widget->rect()), radius, radius);
+    widget->setMask(QRegion(path.toFillPolygon().toPolygon()));
+}
+
+// A popup's rounded corners are drawn *inside* an opaque native window, so the
+// stylesheet's border-radius on QMenu / the combo box dropdown would otherwise
+// leave that window's square corners showing behind the curve. Translucency
+// fixes it, but only if set before the popup's window handle exists -- hence a
+// Polish filter rather than a per-call-site setAttribute (AiChatGui's settings
+// menu is the one place that already opts in by hand). Native popup shadows and
+// automatic background fills must also be disabled: on Windows either one can
+// leave an opaque black rectangle behind an otherwise translucent rounded menu.
+class RoundedPopupFilter : public QObject {
+public:
+    using QObject::QObject;
+
+protected:
+    bool eventFilter(QObject* watched, QEvent* event) override {
+        auto* widget = qobject_cast<QWidget*>(watched);
+        const bool comboPopup = widget &&
+            widget->inherits("QComboBoxPrivateContainer");
+
+        if (comboPopup && (event->type() == QEvent::Show ||
+                           event->type() == QEvent::Resize)) {
+            ApplyComboPopupMask(widget);
+        }
+
+        if (event->type() == QEvent::Polish) {
+            if (widget && (qobject_cast<QMenu*>(widget) ||
+                           comboPopup) &&
+                !widget->property("rockengineRoundedPopupPrepared").toBool()) {
+                widget->setProperty("rockengineRoundedPopupPrepared", true);
+                widget->setWindowFlags(widget->windowFlags() |
+                                       Qt::FramelessWindowHint |
+                                       Qt::NoDropShadowWindowHint);
+                widget->setAttribute(Qt::WA_TranslucentBackground, true);
+                widget->setAttribute(Qt::WA_NoSystemBackground, true);
+                widget->setAttribute(Qt::WA_OpaquePaintEvent, false);
+                widget->setAutoFillBackground(false);
+            }
+        }
+        return QObject::eventFilter(watched, event);
+    }
+};
+
+} // namespace
 
 Editor::Editor(){
     QCoreApplication::setOrganizationName("Rocklyn");
@@ -64,6 +121,7 @@ void Editor::Init() {
                               QStringLiteral("Consolas"));
 #endif
     QApplication::setStyle(QStyleFactory::create("Fusion"));
+    app->installEventFilter(new RoundedPopupFilter(app));
 
     // Gamepads are POLLED from the OS, not delivered as Qt events, so unlike the keyboard they
     // keep reporting while the editor sits in the background -- a game left in play mode would

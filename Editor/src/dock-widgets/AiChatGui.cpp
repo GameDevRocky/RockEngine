@@ -547,8 +547,10 @@ void AiChatGui::BuildUi() {
     chatHeader->setSpacing(3);
     chatHeader->addStretch(1);
 
-    m_settings = new QPushButton(QStringLiteral("\u2699"), headerOverlay);
+    m_settings = new QPushButton(headerOverlay);
     m_settings->setObjectName(QStringLiteral("AiTopAction"));
+    m_settings->setIcon(EditorUtils::CustomIconProvider::aiSettingsIcon());
+    m_settings->setIconSize(QSize(16, 16));
     m_settings->setFixedSize(28, 28);
     m_settings->setToolTip(QStringLiteral("AI assistant settings"));
     m_settings->setAccessibleName(QStringLiteral("AI assistant settings"));
@@ -1091,6 +1093,7 @@ void AiChatGui::OpenFilePicker() {
 bool AiChatGui::CanAttachMimeData(const QMimeData* mime) const {
     if (!mime || m_busy || !m_pages || m_pages->currentIndex() != 1) return false;
     if (mime->hasFormat(kGameObjectMimeType) ||
+        mime->hasFormat(kGameObjectListMimeType) ||
         mime->hasFormat(kComponentMimeType) ||
         mime->hasFormat(kSpriteMimeType) ||
         mime->hasFormat(kSpriteListMimeType)) return true;
@@ -1107,7 +1110,11 @@ bool AiChatGui::AttachMimeData(const QMimeData* mime) {
     if (!mime) return false;
     const qsizetype countBefore = m_attachments.size();
 
-    if (mime->hasFormat(kGameObjectMimeType)) {
+    if (mime->hasFormat(kGameObjectListMimeType)) {
+        const QString ids = QString::fromUtf8(mime->data(kGameObjectListMimeType));
+        for (const QString& id : ids.split('\n', Qt::SkipEmptyParts))
+            AttachGameObject(id.trimmed());
+    } else if (mime->hasFormat(kGameObjectMimeType)) {
         AttachGameObject(QString::fromUtf8(
             mime->data(kGameObjectMimeType)).trimmed());
     }

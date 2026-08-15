@@ -119,23 +119,75 @@ QRadioButton::indicator:checked:hover
  *===========================================================================*/
 QComboBox
 {
-    border: 2px solid rgb(51, 51, 51);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
     padding-left: 10px;
     padding-right: 10px;
     padding-top: 3px;
     padding-bottom: 4px;
 }
 
-
-QComboBox:hover:!pressed
+QComboBox:hover
 {
-    border-color: rgb(102, 102, 102);
+    background: rgb(26, 26, 26);
+    border: 1px solid transparent;
+}
+
+QComboBox:focus,
+QComboBox:on
+{
+    background: rgb(18, 18, 18);
+    border: 1px solid transparent;
+}
+
+/*---------------------------------------------------------------------------
+ * The drop-down popup. Styled to match QMenu below so a combo box and a menu
+ * read as the same control -- both are "pick one of these".
+ *
+ * The rounded container depends on Editor::Init's popup translucency filter:
+ * Qt draws the rounded rect inside an opaque native popup window, so without it
+ * the square corners of that window show through behind the curve.
+ *-------------------------------------------------------------------------*/
+QComboBoxPrivateContainer
+{
+    background: transparent;
+    border: none;
+}
+
+QComboBox QAbstractItemView
+{
+    background: rgb(38, 38, 39);
+    border: 1px solid rgb(58, 58, 60);
+    border-radius: 12px;
+    padding: 6px;
+    color: rgb(216, 216, 219);
+    /* Kills the focus rectangle Fusion would draw around the whole list, which
+     * would otherwise square off the rounded frame from the inside. */
+    outline: none;
+    /* The ::item rules below own selection painting; leaving this set would
+     * paint a square highlight underneath their rounded one. */
+    selection-background-color: transparent;
 }
 
 QComboBox QAbstractItemView::item
 {
-	padding-top: 3px;
-    padding-bottom: 4px;
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    padding: 6px 10px;
+}
+
+QComboBox QAbstractItemView::item:selected,
+QComboBox QAbstractItemView::item:hover
+{
+    background: rgb(59, 59, 61);
+    color: white;
+}
+
+QComboBox QAbstractItemView::item:disabled
+{
+    color: rgb(105, 105, 108);
 }
 
 
@@ -199,9 +251,9 @@ QComboBox::down-arrow
  * QLineEdit
  *===========================================================================*/
 QLineEdit {
-    background-color: rgb(30, 30, 30);
-    border: 1px solid rgb(51, 51, 51);
-    border-radius: 2px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
     padding: 4px;
     color: rgb(220, 220, 220);
     selection-background-color: rgb(70, 70, 70);
@@ -209,18 +261,19 @@ QLineEdit {
 }
 
 QLineEdit:hover {
-    border: 1px solid rgb(80, 80, 80);
+    background: rgb(26, 26, 26);
+    border: 1px solid transparent;
 }
 
 QLineEdit:focus {
-    border: 1px solid rgb(100, 100, 100);
-    background-color: rgb(35, 35, 35);
+    background: rgb(18, 18, 18);
+    border: 1px solid transparent;
 }
 
 QLineEdit:disabled {
     color: rgb(100, 100, 100);
-    background-color: rgb(25, 25, 25);
-    border: 1px solid rgb(40, 40, 40);
+    background: transparent;
+    border: 1px solid transparent;
 }
 
 
@@ -232,9 +285,9 @@ QLineEdit:disabled {
  * control. Padding stays small because the drag grip lives inside the frame.
  *===========================================================================*/
 ResizableTextEdit {
-    background-color: rgb(30, 30, 30);
-    border: 1px solid rgb(51, 51, 51);
-    border-radius: 2px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
     padding: 2px;
     color: rgb(220, 220, 220);
     selection-background-color: rgb(70, 70, 70);
@@ -242,18 +295,19 @@ ResizableTextEdit {
 }
 
 ResizableTextEdit:hover {
-    border: 1px solid rgb(80, 80, 80);
+    background: rgb(26, 26, 26);
+    border: 1px solid transparent;
 }
 
 ResizableTextEdit:focus {
-    border: 1px solid rgb(100, 100, 100);
-    background-color: rgb(35, 35, 35);
+    background: rgb(18, 18, 18);
+    border: 1px solid transparent;
 }
 
 ResizableTextEdit:disabled {
     color: rgb(100, 100, 100);
-    background-color: rgb(25, 25, 25);
-    border: 1px solid rgb(40, 40, 40);
+    background: transparent;
+    border: 1px solid transparent;
 }
 
 
@@ -425,9 +479,9 @@ QAbstractScrollArea::corner {
  *===========================================================================*/
 QSpinBox,
 QDoubleSpinBox {
-    background-color: rgb(30, 30, 30);
-    border: 1px solid rgb(51, 51, 51);
-    border-radius: 2px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
     padding: 4px;
     color: rgb(220, 220, 220);
     selection-background-color: rgb(70, 70, 70);
@@ -436,20 +490,21 @@ QDoubleSpinBox {
 
 QSpinBox:hover,
 QDoubleSpinBox:hover {
-    border: 1px solid rgb(80, 80, 80);
+    background: rgb(26, 26, 26);
+    border: 1px solid transparent;
 }
 
 QSpinBox:focus,
 QDoubleSpinBox:focus {
-    border: 1px solid rgb(100, 100, 100);
-    background-color: rgb(35, 35, 35);
+    background: rgb(18, 18, 18);
+    border: 1px solid transparent;
 }
 
 QSpinBox:disabled,
 QDoubleSpinBox:disabled {
     color: rgb(100, 100, 100);
-    background-color: rgb(25, 25, 25);
-    border: 1px solid rgb(40, 40, 40);
+    background: transparent;
+    border: 1px solid transparent;
 }
 
 /* Read-only (PropDesc::ReadOnly / Tags::READONLY display rows). Dimmer than a live
@@ -458,8 +513,8 @@ QDoubleSpinBox:disabled {
 QSpinBox:read-only,
 QDoubleSpinBox:read-only {
     color: rgb(150, 150, 150);
-    background-color: rgb(26, 26, 26);
-    border: 1px solid rgb(44, 44, 44);
+    background: transparent;
+    border: 1px solid transparent;
 }
 
 /*---------------------------------------------------------------------------
@@ -472,10 +527,9 @@ QDoubleSpinBox::up-button {
     subcontrol-origin: border;
     subcontrol-position: top right;
     width: 16px;
-    background-color: rgb(42, 42, 42);
+    background: transparent;
     border: none;
-    border-left: 1px solid rgb(51, 51, 51);
-    border-top-right-radius: 2px;
+    border-top-right-radius: 6px;
     margin: 1px 1px 0px 0px;
 }
 
@@ -484,10 +538,9 @@ QDoubleSpinBox::down-button {
     subcontrol-origin: border;
     subcontrol-position: bottom right;
     width: 16px;
-    background-color: rgb(42, 42, 42);
+    background: transparent;
     border: none;
-    border-left: 1px solid rgb(51, 51, 51);
-    border-bottom-right-radius: 2px;
+    border-bottom-right-radius: 6px;
     margin: 0px 1px 1px 0px;
 }
 
@@ -509,8 +562,7 @@ QSpinBox::up-button:disabled,
 QDoubleSpinBox::up-button:disabled,
 QSpinBox::down-button:disabled,
 QDoubleSpinBox::down-button:disabled {
-    background-color: rgb(30, 30, 30);
-    border-left: 1px solid rgb(40, 40, 40);
+    background: transparent;
 }
 
 /* Sized but deliberately image-less, exactly like QComboBox::down-arrow above: Qt
@@ -622,6 +674,60 @@ QMenuBar::item:selected
 {
    background: rgba(0, 0, 0, 30);
    border: none;
+}
+
+
+/*===========================================================================
+ * QMenu
+ *
+ * Covers every popup menu in the editor -- the menu bar's dropdowns and the
+ * Hierarchy / Folder view context menus -- and is deliberately the same shape
+ * as the combo box popup above, so the two never read as different controls.
+ *
+ * The rounded container depends on Editor::Init's popup translucency filter;
+ * see the note on QComboBoxPrivateContainer for why a border-radius alone is
+ * not enough.
+ *===========================================================================*/
+QMenu
+{
+    background: rgb(38, 38, 39);
+    border: 1px solid rgb(58, 58, 60);
+    border-radius: 12px;
+    color: rgb(216, 216, 219);
+    padding: 6px;
+}
+
+QMenu::item
+{
+    background: transparent;
+    border: none;
+    border-radius: 7px;
+    padding: 6px 24px 6px 10px;
+}
+
+QMenu::item:selected
+{
+    background: rgb(59, 59, 61);
+    color: white;
+}
+
+QMenu::item:disabled
+{
+    color: rgb(105, 105, 108);
+}
+
+QMenu::separator
+{
+    background: rgb(66, 66, 68);
+    height: 1px;
+    margin: 5px 8px;
+}
+
+QMenu::indicator
+{
+    width: 13px;
+    height: 13px;
+    margin-left: 6px;
 }
 
 

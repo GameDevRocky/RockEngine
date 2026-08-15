@@ -7,6 +7,13 @@
 // standard "text/uri-list" (file paths), so they need no custom type.
 inline constexpr const char* kGameObjectMimeType = "application/x-rockengine-gameobject-id";
 
+// Several GameObjects at once: newline-separated ids (UTF-8). Emitted by a
+// multi-selection drag out of the scene Hierarchy. A drag that carries this
+// ALSO carries kGameObjectMimeType holding the first id, so single-value
+// targets (Inspector reference fields) keep working untouched — only targets
+// that can take a list (e.g. the AI assistant's context area) read this one.
+inline constexpr const char* kGameObjectListMimeType = "application/x-rockengine-gameobject-id-list";
+
 // Custom MIME type used when dragging a live component out of its Inspector
 // section. The payload is the component id (UTF-8). Unlike a file attachment,
 // consumers resolve this id at drop/send time so they see the current in-memory

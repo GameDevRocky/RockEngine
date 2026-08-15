@@ -1,0 +1,8 @@
+type: Texture2D
+id: 104bee1c937fc9d5a5e8b13e155dbe81
+name: settings_icon
+path: Domain/lib/assets/icons/settings_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

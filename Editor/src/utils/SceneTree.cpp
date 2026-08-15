@@ -43,7 +43,7 @@ using namespace EngineUtils;
 namespace {
 constexpr int GAMEOBJECT_ID_ROLE = Qt::UserRole + 1;
 
-// Standard item model that also stamps the dragged GameObject's id onto the
+// Standard item model that also stamps the dragged GameObject's id(s) onto the
 // drag's mime data (in addition to the built-in internal-move payload), so
 // inspector reference widgets can accept a Hierarchy item dropped onto them.
 // Internal reordering is untouched -- the original mime data is preserved.
@@ -54,12 +54,15 @@ public:
     QMimeData* mimeData(const QModelIndexList& indexes) const override {
         QMimeData* data = QStandardItemModel::mimeData(indexes);
         if (!data) return data;
+        QStringList ids;
         for (const QModelIndex& idx : indexes) {
             const QString goId = idx.data(GAMEOBJECT_ID_ROLE).toString();
-            if (!goId.isEmpty()) {
-                data->setData(kGameObjectMimeType, goId.toUtf8());
-                break;   // dragging is single-selection; first valid id wins
-            }
+            if (!goId.isEmpty() && !ids.contains(goId)) ids << goId;
+        }
+        if (!ids.isEmpty()) {
+            // Single-value reference fields understand only the first id.
+            data->setData(kGameObjectMimeType, ids.front().toUtf8());
+            data->setData(kGameObjectListMimeType, ids.join('\n').toUtf8());
         }
         return data;
     }
