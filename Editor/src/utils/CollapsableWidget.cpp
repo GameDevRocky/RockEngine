@@ -4,6 +4,7 @@
 #include <QStyleOption>
 #include <QPropertyAnimation>
 #include <QEasingCurve>
+#include "utils/EditorUtils.hpp"
 
 CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidget(parent) 
 {
@@ -21,12 +22,14 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     mainLayout->setSpacing(0);
 
     toggleButton = new QToolButton(this);
+    toggleButton->setObjectName("CollapseToggleButton");
     toggleButton->setFixedSize(24,24);
     toggleButton->setIconSize(QSize(24, 24));
     toggleButton->setCheckable(true);
     toggleButton->setChecked(true);
     toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
-    toggleButton->setArrowType(Qt::DownArrow);
+    toggleButton->setArrowType(Qt::NoArrow);
+    toggleButton->setIcon(EditorUtils::CustomIconProvider::disclosureArrowDownIcon());
     toggleButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
     iconButton = new QPushButton();
@@ -55,7 +58,9 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     collapseAnim->setEasingCurve(QEasingCurve::InOutCubic);
 
     connect(toggleButton, &QToolButton::toggled, this, [this](bool checked) {
-        toggleButton->setArrowType(checked ? Qt::DownArrow : Qt::RightArrow);
+        toggleButton->setIcon(checked
+            ? EditorUtils::CustomIconProvider::disclosureArrowDownIcon()
+            : EditorUtils::CustomIconProvider::disclosureArrowRightIcon());
         collapseAnim->stop();
         if (checked) {
             contentWidget->setVisible(true);   // must be visible while it grows

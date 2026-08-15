@@ -1,6 +1,7 @@
 #pragma once
 #include "utils/PropertyWidget.hpp"
 #include "utils/ListRowChrome.hpp"
+#include "utils/EditorUtils.hpp"
 #include <QVBoxLayout>
 #include <QToolButton>
 #include <algorithm>
@@ -84,15 +85,20 @@ public:
 
         // Collapse toggle header (arrow + element count).
         m_toggle = new QToolButton();
+        m_toggle->setObjectName("CollapseToggleButton");
         m_toggle->setCheckable(true);
         m_toggle->setChecked(true);
-        m_toggle->setArrowType(Qt::DownArrow);
+        m_toggle->setArrowType(Qt::NoArrow);
+        m_toggle->setIconSize(QSize(24, 24));
+        m_toggle->setIcon(EditorUtils::CustomIconProvider::disclosureArrowDownIcon());
         m_toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
         m_toggle->setAutoRaise(true);
         m_toggle->setStyleSheet("QToolButton { border: none; }");
         QObject::connect(m_toggle, &QToolButton::toggled, [this](bool checked) {
             if (!m_toggle.isNull())
-                m_toggle->setArrowType(checked ? Qt::DownArrow : Qt::RightArrow);
+                m_toggle->setIcon(checked
+                    ? EditorUtils::CustomIconProvider::disclosureArrowDownIcon()
+                    : EditorUtils::CustomIconProvider::disclosureArrowRightIcon());
             if (!m_body.isNull())
                 m_body->setVisible(checked);
         });

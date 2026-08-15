@@ -15,7 +15,10 @@ QSize SceneTreeItemDelegate::sizeHint(const QStyleOptionViewItem& option, const 
 void SceneTreeItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const {
     QStyleOptionViewItem opt = option;
     initStyleOption(&opt, index);
-    opt.rect.setLeft(option.rect.left() + LEFT_MARGIN);
+    // Leave a small gutter around the styled item rectangle so the rounded
+    // selection reads as an individual bubble instead of a full-width strip.
+    // The left gutter also reserves room for SceneTree's hover active toggle.
+    opt.rect = option.rect.adjusted(LEFT_MARGIN, 1, -4, -1);
 
     // Inactive GameObjects paint with Qt's disabled visual state (dimmed icon and
     // text) but the model flags stay Qt::ItemIsEnabled, so the row stays selectable

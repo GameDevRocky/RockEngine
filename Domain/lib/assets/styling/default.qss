@@ -26,7 +26,7 @@ QPushButton
 {
 	background: palette(button);
     border: 2px solid transparent;
-    border-radius: 3px;
+    border-radius: 7px;
     padding-left: 14px;
     padding-right: 14px;
     padding-top: 4px;
@@ -59,14 +59,37 @@ QPushButton:disabled
 QToolButton
 {
 	background: transparent;
-    border: none;
+    border: 1px solid transparent;
+    border-radius: 7px;
     text-align: center;
-
 }
 
 QToolButton:hover
 {
-	color: white;
+	background: rgb(52, 52, 52);
+    color: white;
+}
+
+QToolButton:pressed,
+QToolButton:checked
+{
+    background: rgb(59, 59, 61);
+}
+
+/* Collapse arrows communicate hierarchy rather than an action surface. Keep
+ * them visually bare in every interaction state. */
+CollapsableWidget QToolButton,
+CollapsableWidget QToolButton:hover,
+CollapsableWidget QToolButton:pressed,
+CollapsableWidget QToolButton:checked,
+QToolButton#CollapseToggleButton,
+QToolButton#CollapseToggleButton:hover,
+QToolButton#CollapseToggleButton:pressed,
+QToolButton#CollapseToggleButton:checked
+{
+    background: transparent;
+    border: none;
+    border-radius: 0px;
 }
 
 
@@ -663,6 +686,7 @@ QMenuBar::item
 {
    background: none;
    border: none;
+   border-radius: 7px;
    padding-bottom: 10px;
    padding-top: 11px;
    padding-left: 12px;
@@ -672,7 +696,7 @@ QMenuBar::item
 
 QMenuBar::item:selected
 {
-   background: rgba(0, 0, 0, 30);
+   background: rgb(52, 52, 52);
    border: none;
 }
 
@@ -732,34 +756,111 @@ QMenu::indicator
 
 
 /*===========================================================================
+ * Item views
+ *
+ * Keep rows visually separate instead of painting one continuous rectangular
+ * selection strip. Combo-box popups use the same radius and hover colour.
+ *===========================================================================*/
+QTreeView,
+QListView
+{
+    outline: none;
+    selection-background-color: transparent;
+}
+
+QTreeView::item,
+QListView::item
+{
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 3px 7px;
+}
+
+QTreeView::item:hover,
+QListView::item:hover
+{
+    background: rgb(49, 49, 51);
+}
+
+QTreeView::item:selected,
+QListView::item:selected
+{
+    background: rgb(59, 59, 61);
+    color: white;
+}
+
+QTreeView::item:disabled,
+QListView::item:disabled
+{
+    color: rgb(105, 105, 108);
+}
+
+/* Shared disclosure arrows for every tree, including File Explorer. Branch
+ * cells keep the view surface in selected rows instead of inheriting the item
+ * highlight; the rounded selection begins at the item icon and label. */
+QTreeView::branch,
+QTreeView::branch:hover,
+QTreeView::branch:selected,
+QTreeView::branch:selected:hover
+{
+    background: palette(window);
+    border: none;
+}
+
+QTreeView::branch:closed:has-children
+{
+    image: url("__SCENE_TREE_ARROW_RIGHT__");
+}
+
+QTreeView::branch:open:has-children
+{
+    image: url("__SCENE_TREE_ARROW_DOWN__");
+}
+
+
+/*===========================================================================
  * SceneTree
  *===========================================================================*/
 SceneTree
 {
+    background: rgb(32, 32, 32);
+    border: none;
     color: palette(text);
+    outline: none;
+    selection-background-color: transparent;
+    show-decoration-selected: 0;
 }
 
 SceneTree QHeaderView::section
 {
 }
 
-SceneTree::item{
-    background : rgb(32, 32, 32);
+SceneTree::item
+{
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    padding: 2px 6px;
 }
 
+SceneTree::item:hover
+{
+    background: rgb(49, 49, 51);
+}
 
 SceneTree::item:selected
 {
-    border: 1px solid rgb(7, 134, 39);
-    background : rgb(32, 32, 32);
-    color: rgb(255, 255, 255);
-
+    background: rgb(59, 59, 61);
+    border: 1px solid rgb(87, 126, 100);
+    color: white;
 }
 
 SceneTree::item:selected:!active
 {
-    background: rgb(32, 32, 32);
-    color: rgb(255, 255, 255);
+    background: rgb(52, 52, 54);
+    border: 1px solid rgb(72, 92, 77);
+    color: white;
 }
 
 SceneTree::item:disabled
@@ -770,8 +871,19 @@ SceneTree::item:disabled
 
 SceneTree::item:disabled:selected
 {
-    border: 1px solid rgb(7, 134, 39);
-    background : rgb(32, 32, 32);
+    background: rgb(52, 52, 54);
+    border: 1px solid rgb(72, 92, 77);
+}
+
+/* SceneTree has its own fixed surface colour, so override only the shared
+ * branch background while inheriting the common disclosure arrow images. */
+SceneTree::branch,
+SceneTree::branch:hover,
+SceneTree::branch:selected,
+SceneTree::branch:selected:hover
+{
+    background: rgb(32, 32, 32);
+    border: none;
 }
 
 CollapsableWidget ObjectHeader
@@ -802,7 +914,7 @@ CollapsableWidget QLineEdit#Label:disabled
  *===========================================================================*/
 QToolButton#ActiveToggleBtn {
     border: 2px solid rgb(150, 150, 150);
-    border-radius: 3px;
+    border-radius: 6px;
     background: transparent;
     padding: 0px;
 }

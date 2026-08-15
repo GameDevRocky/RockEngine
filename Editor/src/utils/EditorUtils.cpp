@@ -65,6 +65,14 @@ QIcon CustomIconProvider::aiSettingsIcon() {
     return TintedAssetIcon("Domain/lib/assets/icons/settings_icon.png", QColor(170, 170, 174));
 }
 
+QIcon CustomIconProvider::disclosureArrowRightIcon() {
+    return AssetIcon("Domain/lib/assets/icons/scene_tree_arrow_right.svg");
+}
+
+QIcon CustomIconProvider::disclosureArrowDownIcon() {
+    return AssetIcon("Domain/lib/assets/icons/scene_tree_arrow_down.svg");
+}
+
 QIcon CustomIconProvider::icon(const QFileInfo &info) const {
     const QString& name = info.fileName();
     

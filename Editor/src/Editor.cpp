@@ -166,6 +166,10 @@ void Editor::Init() {
                                iconPath(QStringLiteral("scroll_arrow_left.svg")));
             styleSheet.replace(QStringLiteral("__SCROLL_ARROW_RIGHT__"),
                                iconPath(QStringLiteral("scroll_arrow_right.svg")));
+            styleSheet.replace(QStringLiteral("__SCENE_TREE_ARROW_RIGHT__"),
+                               iconPath(QStringLiteral("scene_tree_arrow_right.svg")));
+            styleSheet.replace(QStringLiteral("__SCENE_TREE_ARROW_DOWN__"),
+                               iconPath(QStringLiteral("scene_tree_arrow_down.svg")));
             app->setStyleSheet(styleSheet);
             styleLoaded = true;
             break;

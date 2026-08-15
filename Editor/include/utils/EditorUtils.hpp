@@ -25,6 +25,8 @@ public:
     static QIcon componentIcon(const std::string& typeName);
     static QIcon aiSendIcon();
     static QIcon aiSettingsIcon();
+    static QIcon disclosureArrowRightIcon();
+    static QIcon disclosureArrowDownIcon();
 };
 
 void OpenInVSCode(const std::string& fullPath);
