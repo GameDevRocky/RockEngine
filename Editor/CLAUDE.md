@@ -37,7 +37,7 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 
 - **`src/dock-widgets/`** — the dockable panels: `MainWindowGui` (the `QMainWindow` host),
   `HierarchyGui`, `InspectorGui`, `ConsoleGui`, `SceneViewGui`, `GameViewGui`, `FolderViewGui`,
-  `FileExplorerGui`, `MenuBar`, `RuntimeBar` (play/pause/stop), `BuildWindow` (File → Build
+  `FileExplorerGui`, `AiChatGui`, `MenuBar`, `RuntimeBar` (play/pause/stop), `BuildWindow` (File → Build
   Game…, a top-level window rather than a dock).
 - **`src/component-widgets/`** — per-component inspector UI pieces: `ComponentHeader`,
   `ObjectHeader`.
@@ -70,3 +70,33 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 - Don't put game/runtime logic here — it belongs in Engine. The Editor only observes and
   drives the engine. Game *build* tooling (`utils/GameBuilder`) is the exception and correctly
   lives here — it is authoring, and the thing it ships is `Player/`.
+
+## AI assistant
+
+- `AiChatGui` is the dockable editor surface; `ai::AiAgentService` owns asynchronous provider
+  CLI processes and JSONL event parsing. It never blocks the Qt event loop while an agent is
+  working. Provider conversation IDs are the only AI state stored in `QSettings`. All
+  widget-specific visual styling lives in `Domain/lib/assets/styling/ai_assistant.qss`; keep
+  `AiChatGui.cpp` limited to structure, object names, and behavior.
+- The assistant uses the providers' coding-agent CLIs rather than duplicating RockEngine's MCP
+  schemas. Every run injects the existing `tools/mcp-server/server.py` as the `rockengine` stdio
+  server, so live scene changes follow the same bridge and main-thread guarantees as an external
+  MCP client. The MCP venv under `tools/mcp-server/.venv/` must be installed.
+- OpenAI runs through Codex. ChatGPT browser login and `codex login --with-api-key` are supported;
+  `CODEX_HOME` is isolated under Qt's local app-data directory and Codex is forced to use the OS
+  keyring (`cli_auth_credentials_store="keyring"`) with no plaintext fallback.
+- Claude runs through Claude Code in non-interactive JSONL mode. Third-party Claude.ai OAuth is
+  intentionally not exposed: Anthropic requires this integration to use a Console API key. The
+  key is stored by `tools/ai/credential_store.py` in Windows Credential Manager, macOS Keychain,
+  or Linux Secret Service, called through `SecureCredentialStore`'s pybind11 bridge. Claude reads
+  it through its documented `apiKeyHelper` pipe, not an inherited environment variable. There is
+  no `.env`/QSettings/plaintext fallback and this editor-only Python package is not shipped in games.
+- Gemini runs through Gemini CLI in non-interactive streaming-JSON mode. AI Studio API keys are
+  validated before use and stored in the same native credential vault; the key is injected only
+  into the child Gemini process. `GEMINI_CLI_HOME` isolates its settings and sessions under Qt's
+  local app-data directory, where RockEngine writes a non-secret trusted `rockengine` MCP entry.
+  Embedded Google-account login is not exposed because Gemini's browser login is coupled to its
+  interactive terminal UI.
+- Provider CLIs are found on `PATH` plus common install locations. `ROCKENGINE_CODEX_CLI` and
+  `ROCKENGINE_CLAUDE_CLI` or `ROCKENGINE_GEMINI_CLI` can point to explicit executables. Sign out
+  clears the selected provider's resumable session ID and removes its isolated credentials.

@@ -19,6 +19,9 @@ public:
     // Wires the Undo/Redo actions to the engine's UndoSystem. Separate from Init
     // because it needs the engine container, which only exists after Engine::Init.
     void PostInit();
+    // Registers a dock's visibility toggle in Window after MainWindow creates
+    // the dock. Ownership remains with the dock/QMainWindow.
+    void AddWindowAction(QAction* action);
 
 signals:
     void NewSceneRequested();

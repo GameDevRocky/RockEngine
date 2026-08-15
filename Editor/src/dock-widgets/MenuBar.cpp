@@ -108,6 +108,11 @@ void MenuBar::PostInit() {
     }, Engine::EXIT_PLAY_MODE_EVENT);
 }
 
+void MenuBar::AddWindowAction(QAction* action) {
+    if (windowMenu && action && !windowMenu->actions().contains(action))
+        windowMenu->addAction(action);
+}
+
 void MenuBar::SubscribeToUndoSystem() {
     // The previous container may already be gone (ExitPlayMode deletes the runtime
     // one), so don't try to unsubscribe from it — just drop the stale id. The dead

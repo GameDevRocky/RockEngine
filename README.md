@@ -100,3 +100,23 @@ variable to your Qt install and use the per-OS presets directly:
 | `External/` | Git submodules (glm, yaml-cpp, box2d, pybind11, imgui, imguizmo) + vendored glad/stb. |
 
 See `CLAUDE.md` and the per-directory `CLAUDE.md` files for architecture details.
+
+---
+
+## Built-in AI Assistant
+
+The editor includes an **AI Assistant** dock (also available from **Window → AI Assistant**) that
+can edit project files and control the running scene through RockEngine's local MCP bridge.
+
+- OpenAI supports ChatGPT account login through the official Codex browser flow, with an API-key
+  fallback. Credentials are isolated to RockEngine and forced into the operating-system keyring.
+- Claude uses a Claude Console API key, stored in Windows Credential Manager, macOS Keychain, or
+  Linux Secret Service by the editor's Python/pybind11 credential bridge. No secrets are written
+  to this repository, `.env`, or `QSettings`.
+- Gemini uses a validated Google AI Studio API key in the same native credential vault and runs
+  through Gemini CLI with isolated settings and RockEngine MCP access.
+- Install the provider CLI (`codex`, `claude`, and/or `gemini`) and prepare the MCP environment using
+  [`tools/mcp-server/README.md`](tools/mcp-server/README.md). Override CLI discovery with
+  `ROCKENGINE_CODEX_CLI`, `ROCKENGINE_CLAUDE_CLI`, or `ROCKENGINE_GEMINI_CLI` when needed.
+
+Signing out removes the selected provider's RockEngine-scoped credentials and conversation ID.

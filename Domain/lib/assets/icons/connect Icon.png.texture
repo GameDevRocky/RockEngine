@@ -1,0 +1,8 @@
+type: Texture2D
+id: a9ab78c6e01652985a8906feb083f606
+name: connect Icon
+path: Domain/lib/assets/icons/connect Icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

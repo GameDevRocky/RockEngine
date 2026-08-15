@@ -1,0 +1,8 @@
+type: Texture2D
+id: d2b67fdf66af14b18fe9e36c711da043
+name: gemini_logo
+path: Domain/lib/assets/icons/gemini_logo.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

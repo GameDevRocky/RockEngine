@@ -38,6 +38,7 @@ public:
     QDockWidget* fileExplorerDock;
     QDockWidget* folderViewDock;
     QDockWidget* consoleDock;
+    QDockWidget* aiAssistantDock;
     QDockWidget* runtimeBarDock;
     QDockWidget* animatorDock = nullptr;   // created lazily by ShowAnimator()
 

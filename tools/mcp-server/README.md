@@ -1,13 +1,15 @@
 # RockEngine MCP server
 
-Lets an MCP client (Claude Code) inspect and drive a **running** RockEngine editor: walk the
-scene hierarchy, move objects, edit component properties, enter play mode, trigger builds.
+Lets an MCP client inspect and drive a **running** RockEngine editor: walk the scene hierarchy,
+move objects, edit component properties, enter play mode, trigger builds. Clients include Claude
+Code, Codex, Gemini CLI, and the editor's built-in AI Assistant dock.
 
 ## Shape
 
 ```
-Claude Code  --stdio-->  server.py  --named pipe-->  Editor process
-                        (this dir)                   (Editor/src/mcp/)
+Claude Code / Codex / Gemini CLI / AI Assistant
+                 --stdio--> server.py --named pipe--> Editor process
+                             (this dir)                (Editor/src/mcp/)
 ```
 
 `server.py` holds no engine logic. It declares the MCP tools and forwards each call as one
@@ -28,10 +30,14 @@ python -m venv .venv
 # .venv/bin/python -m pip install -r requirements.txt          # macOS / Linux
 ```
 
-`../../.mcp.json` registers the server for this repo and already points at
+`../../.mcp.json` registers the server for Claude Code and already points at
 `tools/mcp-server/.venv/Scripts/python.exe`, so the venv above is not optional — the
 system interpreter will not have `mcp`. On macOS/Linux change that path to
 `.venv/bin/python`. The venv itself is gitignored; recreate it per machine.
+
+The built-in AI Assistant constructs an equivalent absolute MCP configuration for all provider
+CLIs at runtime, choosing `Scripts/python.exe` on Windows and `bin/python` on macOS/Linux. It does
+not modify either provider's global MCP configuration.
 
 Requires **mcp 2.x**: `server.py` imports `MCPServer` from `mcp.server.mcpserver`, which
 in 1.x was `FastMCP` in `mcp.server.fastmcp`. A 1.x install fails at import.

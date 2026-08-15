@@ -9,6 +9,7 @@
 #include "dock-widgets/RuntimeBar.hpp"
 #include "dock-widgets/MenuBar.hpp"
 #include "dock-widgets/AnimatorGui.hpp"
+#include "dock-widgets/AiChatGui.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "Editor.hpp"
 #include <QOpenGLWidget>
@@ -28,6 +29,7 @@ void MainWindow::Init()
     RuntimeBar* runtime_bar = RuntimeBar::Get();
     MenuBar* menu_bar = MenuBar::Get();
     AnimatorGui* animator_gui = AnimatorGui::Get();
+    AiChatGui* ai_chat = AiChatGui::Get();
 
     console_widget->Init();
     game_view->Init();
@@ -39,6 +41,7 @@ void MainWindow::Init()
     runtime_bar->Init();
     menu_bar->Init();
     animator_gui->Init();
+    ai_chat->Init();
 
     setMenuBar(menu_bar);
 
@@ -121,6 +124,15 @@ void MainWindow::Init()
     addDockWidget(Qt::BottomDockWidgetArea, consoleDock);
     consoleDock->setObjectName("Console");
 
+    aiAssistantDock = new QDockWidget("AI Assistant", this);
+    aiAssistantDock->setWidget(ai_chat);
+    aiAssistantDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    aiAssistantDock->setObjectName("AiAssistantDock");
+    addDockWidget(Qt::RightDockWidgetArea, aiAssistantDock);
+    tabifyDockWidget(inspectorDock, aiAssistantDock);
+    inspectorDock->raise();
+    menu_bar->AddWindowAction(aiAssistantDock->toggleViewAction());
+
     tabifyDockWidget(consoleDock, folderViewDock);
 
     resizeDocks({fileExplorerDock}, {200}, Qt::Vertical);
@@ -179,6 +191,7 @@ void MainWindow::LoadLayout()
 }
 
 void MainWindow::Shutdown(){
+    AiChatGui::Get()->Shutdown();
     SaveLayout();
     //ClearLayout();
 }

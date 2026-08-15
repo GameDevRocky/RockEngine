@@ -1,0 +1,8 @@
+type: Texture2D
+id: e1861a60b118a44fd5edbf547263b5a1
+name: anthropic_logo
+path: Domain/lib/assets/icons/anthropic_logo.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

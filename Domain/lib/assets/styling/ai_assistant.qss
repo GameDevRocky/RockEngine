@@ -1,0 +1,425 @@
+/* AI Assistant dock ---------------------------------------------------------
+ * Kept separate from the editor-wide theme so this panel can evolve without
+ * leaking selectors into the inspector, hierarchy, or other authoring tools.
+ */
+
+QWidget#AiAssistant {
+    background: palette(window);
+}
+
+/* The login page keeps the editor's original gray. The moving radial widgets
+ * drift behind the content. Overall intensity is controlled by
+ * kGradientColorStrength in AiChatGui.cpp because Qt QSS has no variables. */
+QWidget#AiLoginPage,
+QWidget#AiGradientLayer {
+    background: palette(window);
+}
+
+QWidget#AiLoginSurface,
+QWidget#AiLoginContent,
+QWidget#AiLoginPage QLabel {
+    background: transparent;
+}
+
+QWidget#AiGradientBlob {
+    background: transparent;
+    border: none;
+}
+
+QWidget#AiGradientBlob[providerTheme="openai"][gradientRole="primary"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.43, fy: 0.42,
+        stop: 0.00 rgba(82, 113, 190, 205),
+        stop: 0.34 rgba(75, 99, 166, 145),
+        stop: 0.70 rgba(88, 91, 106, 58),
+        stop: 1.00 rgba(88, 91, 106, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="openai"][gradientRole="secondary"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.57, fy: 0.43,
+        stop: 0.00 rgba(120, 78, 160, 190),
+        stop: 0.38 rgba(99, 73, 137, 130),
+        stop: 0.74 rgba(91, 88, 104, 45),
+        stop: 1.00 rgba(91, 88, 104, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="openai"][gradientRole="accent"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.48, fy: 0.57,
+        stop: 0.00 rgba(63, 132, 177, 180),
+        stop: 0.38 rgba(71, 111, 147, 120),
+        stop: 0.74 rgba(87, 94, 108, 42),
+        stop: 1.00 rgba(87, 94, 108, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="claude"][gradientRole="primary"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.43, fy: 0.42,
+        stop: 0.00 rgba(218, 112, 66, 210),
+        stop: 0.36 rgba(184, 83, 43, 145),
+        stop: 0.72 rgba(112, 79, 65, 50),
+        stop: 1.00 rgba(112, 79, 65, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="claude"][gradientRole="secondary"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.57, fy: 0.43,
+        stop: 0.00 rgba(164, 69, 37, 175),
+        stop: 0.42 rgba(137, 67, 43, 112),
+        stop: 0.76 rgba(98, 78, 69, 38),
+        stop: 1.00 rgba(98, 78, 69, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="claude"][gradientRole="accent"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.48, fy: 0.57,
+        stop: 0.00 rgba(205, 135, 54, 185),
+        stop: 0.38 rgba(171, 103, 43, 125),
+        stop: 0.74 rgba(112, 83, 66, 42),
+        stop: 1.00 rgba(112, 83, 66, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="gemini"][gradientRole="primary"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.43, fy: 0.42,
+        stop: 0.00 rgba(66, 133, 244, 205),
+        stop: 0.36 rgba(62, 112, 207, 140),
+        stop: 0.72 rgba(82, 94, 116, 48),
+        stop: 1.00 rgba(82, 94, 116, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="gemini"][gradientRole="secondary"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.57, fy: 0.43,
+        stop: 0.00 rgba(234, 67, 53, 195),
+        stop: 0.38 rgba(191, 65, 55, 132),
+        stop: 0.74 rgba(110, 78, 75, 44),
+        stop: 1.00 rgba(110, 78, 75, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="gemini"][gradientRole="accent"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.48, fy: 0.57,
+        stop: 0.00 rgba(251, 188, 4, 185),
+        stop: 0.38 rgba(204, 151, 17, 125),
+        stop: 0.74 rgba(119, 101, 53, 42),
+        stop: 1.00 rgba(119, 101, 53, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="gemini"][gradientIndex="3"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.45, fy: 0.55,
+        stop: 0.00 rgba(52, 168, 83, 195),
+        stop: 0.38 rgba(48, 139, 74, 130),
+        stop: 0.74 rgba(72, 102, 79, 44),
+        stop: 1.00 rgba(72, 102, 79, 0)
+    );
+}
+
+QWidget#AiGradientBlob[providerTheme="gemini"][gradientIndex="4"] {
+    background: qradialgradient(
+        cx: 0.50, cy: 0.50, radius: 0.42, fx: 0.56, fy: 0.47,
+        stop: 0.00 rgba(66, 133, 244, 180),
+        stop: 0.38 rgba(59, 112, 205, 120),
+        stop: 0.74 rgba(80, 93, 114, 42),
+        stop: 1.00 rgba(80, 93, 114, 0)
+    );
+}
+
+QStackedWidget#AiPages {
+    border: none;
+}
+
+QLabel#AiPageTitle {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QWidget#AiLoginPage QLabel#AiLoginLogo {
+    background: white;
+    border: 2px solid rgb(218, 218, 218);
+    border-radius: 41px;
+    color: rgb(20, 20, 20);
+    font-size: 24px;
+    font-weight: 700;
+}
+
+QLabel#AiLoginHeading {
+    font-size: 20px;
+    font-weight: 650;
+}
+
+QLabel#AiMutedText {
+    color: rgb(180, 180, 184);
+}
+
+QLabel#AiLoginError {
+    background: rgb(55, 55, 58);
+    border: 1px solid rgb(205, 76, 76);
+    border-radius: 8px;
+    color: rgb(226, 226, 229);
+    padding: 10px 12px;
+}
+
+QLabel#AiLink {
+    background: transparent;
+    color: rgb(190, 190, 194);
+}
+
+QWidget#AiAssistant QComboBox {
+    background: rgba(40, 40, 43, 225);
+    border: 1px solid rgb(83, 83, 83);
+    border-radius: 6px;
+}
+
+QWidget#AiCredentialFrame {
+    background: rgba(37, 37, 40, 225);
+    border: 1px solid rgb(83, 83, 83);
+    border-radius: 9px;
+}
+
+QLineEdit#AiCredentialInput {
+    background: transparent;
+    border: none;
+    padding: 9px 10px;
+    font-size: 13px;
+}
+
+QLineEdit#AiCredentialInput:hover,
+QLineEdit#AiCredentialInput:focus {
+    background: transparent;
+    border: none;
+}
+
+QPushButton#AiCredentialSubmit {
+    background: rgb(63, 63, 66);
+    border: 1px solid transparent;
+    border-radius: 14px;
+    padding: 0px;
+    font-size: 17px;
+    font-weight: 600;
+}
+
+QPushButton#AiSecondaryButton {
+    min-height: 30px;
+    background: rgb(43, 43, 43);
+    border: 1px solid rgb(69, 69, 69);
+    border-radius: 7px;
+}
+
+QPushButton#AiHeaderAction {
+    background: transparent;
+    border: none;
+    color: rgb(180, 180, 180);
+    padding: 5px 7px;
+}
+
+QPushButton#AiHeaderAction:hover {
+    color: white;
+    background: rgb(49, 49, 49);
+}
+
+QScrollArea#AiTranscript {
+    background: palette(base);
+    border: 1px solid transparent;
+    border-radius: 6px;
+}
+
+QScrollArea#AiTranscript > QWidget > QWidget {
+    background: palette(base);
+}
+
+QWidget#AiMessageList,
+QWidget#AiMessageRow {
+    background: transparent;
+}
+
+QLabel#AiEmptyChat {
+    color: rgb(135, 135, 135);
+    font-size: 12px;
+}
+
+QLabel#AiUserBubble {
+    background: rgb(61, 61, 61);
+    border: 1px solid rgb(76, 76, 76);
+    border-radius: 11px;
+    padding: 9px 11px;
+    font-size: 12px;
+}
+
+QLabel#AiAssistantBubble {
+    background: rgb(42, 42, 42);
+    border: 1px solid rgb(59, 59, 59);
+    border-radius: 11px;
+    padding: 9px 11px;
+    font-size: 12px;
+}
+
+QLabel#AiErrorBubble {
+    background: rgb(82, 43, 43);
+    border: 1px solid rgb(111, 57, 57);
+    border-radius: 11px;
+    padding: 9px 11px;
+    font-size: 12px;
+}
+
+QLabel#AiActivity {
+    color: rgb(150, 150, 150);
+    padding-left: 42px;
+}
+
+QWidget#AiComposerFrame {
+    background: rgb(29, 29, 29);
+    border: 1px solid rgb(82, 82, 82);
+    border-radius: 18px;
+}
+
+QPlainTextEdit#AiPrompt {
+    background: transparent;
+    border: none;
+    padding: 7px 8px;
+    font-size: 12px;
+}
+
+QPushButton#AiRoundButton {
+    background: transparent;
+    border: none;
+    border-radius: 16px;
+    padding: 0px;
+    font-size: 20px;
+    color: rgb(175, 175, 175);
+}
+
+QPushButton#AiRoundButton:hover {
+    background: rgb(52, 52, 52);
+    color: white;
+}
+
+QPushButton#AiSendButton {
+    background: rgb(73, 73, 73);
+    border: none;
+    border-radius: 14px;
+    padding: 0px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QPushButton#AiSendButton:hover {
+    background: rgb(91, 91, 91);
+}
+
+QLabel#AiFooterText {
+    color: rgb(135, 135, 135);
+    font-size: 10px;
+}
+
+/* Provider-specific interaction accents. These selectors are intentionally
+ * rooted at AiAssistant so the editor's default green remains unchanged. */
+QWidget#AiAssistant[providerTheme="openai"] QLabel#AiLink:hover {
+    color: rgb(151, 119, 224);
+}
+
+QWidget#AiAssistant[providerTheme="openai"] QComboBox:hover,
+QWidget#AiAssistant[providerTheme="openai"] QWidget#AiCredentialFrame:hover,
+QWidget#AiAssistant[providerTheme="openai"] QScrollArea#AiTranscript:hover,
+QWidget#AiAssistant[providerTheme="openai"] QLabel#AiUserBubble:hover,
+QWidget#AiAssistant[providerTheme="openai"] QLabel#AiAssistantBubble:hover,
+QWidget#AiAssistant[providerTheme="openai"] QLabel#AiErrorBubble:hover,
+QWidget#AiAssistant[providerTheme="openai"] QWidget#AiComposerFrame:hover,
+QWidget#AiAssistant[providerTheme="openai"] QPushButton:hover {
+    border: 1px solid rgb(139, 105, 211);
+}
+
+QWidget#AiAssistant[providerTheme="openai"] QComboBox:focus,
+QWidget#AiAssistant[providerTheme="openai"] QWidget#AiCredentialFrame[inputFocused="true"],
+QWidget#AiAssistant[providerTheme="openai"] QScrollArea#AiTranscript:focus,
+QWidget#AiAssistant[providerTheme="openai"] QWidget#AiComposerFrame[inputFocused="true"],
+QWidget#AiAssistant[providerTheme="openai"] QPushButton:focus {
+    border: 1px solid rgb(75, 132, 224);
+}
+
+QWidget#AiAssistant[providerTheme="openai"] QPushButton#AiSecondaryButton,
+QWidget#AiAssistant[providerTheme="openai"] QPushButton#AiCredentialSubmit:hover,
+QWidget#AiAssistant[providerTheme="openai"] QPushButton#AiSendButton:hover {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 rgb(65, 126, 216), stop: 1 rgb(132, 80, 187)
+    );
+}
+
+QWidget#AiAssistant[providerTheme="claude"] QLabel#AiLink:hover {
+    color: rgb(224, 137, 87);
+}
+
+QWidget#AiAssistant[providerTheme="claude"] QComboBox:hover,
+QWidget#AiAssistant[providerTheme="claude"] QWidget#AiCredentialFrame:hover,
+QWidget#AiAssistant[providerTheme="claude"] QScrollArea#AiTranscript:hover,
+QWidget#AiAssistant[providerTheme="claude"] QLabel#AiUserBubble:hover,
+QWidget#AiAssistant[providerTheme="claude"] QLabel#AiAssistantBubble:hover,
+QWidget#AiAssistant[providerTheme="claude"] QLabel#AiErrorBubble:hover,
+QWidget#AiAssistant[providerTheme="claude"] QWidget#AiComposerFrame:hover,
+QWidget#AiAssistant[providerTheme="claude"] QPushButton:hover {
+    border: 1px solid rgb(218, 123, 70);
+}
+
+QWidget#AiAssistant[providerTheme="claude"] QComboBox:focus,
+QWidget#AiAssistant[providerTheme="claude"] QWidget#AiCredentialFrame[inputFocused="true"],
+QWidget#AiAssistant[providerTheme="claude"] QScrollArea#AiTranscript:focus,
+QWidget#AiAssistant[providerTheme="claude"] QWidget#AiComposerFrame[inputFocused="true"],
+QWidget#AiAssistant[providerTheme="claude"] QPushButton:focus {
+    border: 1px solid rgb(239, 145, 83);
+}
+
+QWidget#AiAssistant[providerTheme="claude"] QPushButton#AiSecondaryButton,
+QWidget#AiAssistant[providerTheme="claude"] QPushButton#AiCredentialSubmit:hover,
+QWidget#AiAssistant[providerTheme="claude"] QPushButton#AiSendButton:hover {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 rgb(193, 86, 43), stop: 1 rgb(225, 139, 73)
+    );
+}
+
+QWidget#AiAssistant[providerTheme="gemini"] QLabel#AiLink:hover {
+    color: rgb(234, 67, 53);
+}
+
+QWidget#AiAssistant[providerTheme="gemini"] QComboBox:hover,
+QWidget#AiAssistant[providerTheme="gemini"] QWidget#AiCredentialFrame:hover,
+QWidget#AiAssistant[providerTheme="gemini"] QScrollArea#AiTranscript:hover,
+QWidget#AiAssistant[providerTheme="gemini"] QLabel#AiUserBubble:hover,
+QWidget#AiAssistant[providerTheme="gemini"] QLabel#AiAssistantBubble:hover,
+QWidget#AiAssistant[providerTheme="gemini"] QLabel#AiErrorBubble:hover,
+QWidget#AiAssistant[providerTheme="gemini"] QWidget#AiComposerFrame:hover,
+QWidget#AiAssistant[providerTheme="gemini"] QPushButton:hover {
+    border: 1px solid rgb(52, 168, 83);
+}
+
+QWidget#AiAssistant[providerTheme="gemini"] QComboBox:focus,
+QWidget#AiAssistant[providerTheme="gemini"] QWidget#AiCredentialFrame[inputFocused="true"],
+QWidget#AiAssistant[providerTheme="gemini"] QScrollArea#AiTranscript:focus,
+QWidget#AiAssistant[providerTheme="gemini"] QWidget#AiComposerFrame[inputFocused="true"],
+QWidget#AiAssistant[providerTheme="gemini"] QPushButton:focus {
+    border: 1px solid rgb(66, 133, 244);
+}
+
+QWidget#AiAssistant[providerTheme="gemini"] QPushButton#AiSecondaryButton,
+QWidget#AiAssistant[providerTheme="gemini"] QPushButton#AiCredentialSubmit:hover,
+QWidget#AiAssistant[providerTheme="gemini"] QPushButton#AiSendButton:hover {
+    background: qlineargradient(
+        x1: 0, y1: 0, x2: 1, y2: 0,
+        stop: 0 rgb(66, 133, 244),
+        stop: 0.34 rgb(234, 67, 53),
+        stop: 0.67 rgb(251, 188, 4),
+        stop: 1 rgb(52, 168, 83)
+    );
+}
