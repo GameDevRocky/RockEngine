@@ -20,7 +20,7 @@ public:
     void SignInWithApiKey(Provider provider, QByteArray apiKey);
     void SignOut(Provider provider);
 
-    void SendMessage(Provider provider, const QString& message);
+    void SendMessage(Provider provider, const QString& model, const QString& message);
     void Cancel();
     void NewConversation(Provider provider);
     void Shutdown();
@@ -36,6 +36,7 @@ signals:
     void AuthenticationOutput(ai::AiAgentService::Provider provider, const QString& text);
     void BusyChanged(bool busy);
     void ActivityChanged(const QString& text);
+    void ResponseUpdated(ai::AiAgentService::Provider provider, const QString& text);
     void ResponseReady(ai::AiAgentService::Provider provider, const QString& text);
     void RequestFailed(ai::AiAgentService::Provider provider, const QString& error);
 
@@ -65,8 +66,12 @@ private:
     void ReadStandardError();
     void ParseChatLine(const QByteArray& line);
     void ParseCodexEvent(const QJsonObject& event);
+    void SendCodexRequest(int id, const QString& method, const QJsonObject& params);
+    void StartCodexThread();
+    void StartCodexTurn(const QString& threadId);
     void ParseClaudeEvent(const QJsonObject& event);
     void ParseGeminiEvent(const QJsonObject& event);
+    void PublishResponse(const QString& text, bool append);
     void ProcessFinished(int exitCode, QProcess::ExitStatus status);
     void ProcessError(QProcess::ProcessError error);
     void FinishOperation();
@@ -80,6 +85,11 @@ private:
     QByteArray m_pendingStdin;
     QByteArray m_pendingCredential;
     QString m_responseText;
+    QString m_codexPrompt;
+    QString m_codexMessageItemId;
+    bool m_codexAppServer = false;
+    bool m_codexTurnCompleted = false;
+    bool m_codexResumeAttempted = false;
     bool m_cancelled = false;
     bool m_processErrorReported = false;
 };

@@ -24,6 +24,7 @@
 #include <QMouseEvent>
 #include <QScrollBar>
 #include "utils/SceneTreeItemDelegate.hpp"
+#include "utils/EditorUtils.hpp"
 #include <QStandardItem>
 #include <QModelIndexList>
 #include <QHeaderView>
@@ -88,7 +89,7 @@ GameObjectItem* CreateGameObjectItem(SceneTree* tree, GameObject* gameObject) {
     auto* item = new GameObjectItem(name.c_str());
     item->SetGameObjectId(id);
     item->setFlags(item->flags() | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled);
-    item->setIcon(QIcon(EngineUtils::GetAssetPath("Domain/lib/assets/icons/cube.png").c_str()));
+    item->setIcon(EditorUtils::CustomIconProvider::gameObjectIcon());
     item->SetActive(gameObject->GetActive());
 
     QPointer<QStandardItemModel> weakModel = model;

@@ -296,12 +296,17 @@ async def apply_force(object_id: str, x: float, y: float) -> Any:
 # --- Object lifecycle --------------------------------------------------------------
 
 @mcp.tool()
-async def create_object(sibling_id: str, name: str = "GameObject") -> Any:
-    """Create an empty GameObject in the same scene as sibling_id.
+async def create_object(sibling_id: str = "", name: str = "GameObject",
+                        scene_id: str = "") -> Any:
+    """Create an empty GameObject.
+
+    Pass sibling_id to create it in the same scene as an existing object. Otherwise,
+    pass scene_id; when neither is supplied, the only loaded scene is used. This lets
+    an empty scene receive its first object.
 
     Not undoable in the editor -- MCP edits bypass the undo stack, like script edits.
     """
-    return await call("object.instantiate", id=sibling_id, name=name)
+    return await call("object.instantiate", id=sibling_id, name=name, sceneId=scene_id)
 
 
 @mcp.tool()

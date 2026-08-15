@@ -1,0 +1,8 @@
+type: Texture2D
+id: 243d9cce48e0b6fa0070fc5c5661fab6
+name: up_arrow_icon
+path: Domain/lib/assets/icons/up_arrow_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

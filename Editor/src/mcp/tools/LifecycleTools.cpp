@@ -5,9 +5,14 @@
 #include "mcp/ToolSupport.hpp"
 
 #include "engine/components/Component.hpp"
+#include "engine/core/Container.hpp"
 #include "engine/core/GameObject.hpp"
+#include "engine/core/Scene.hpp"
+#include "engine/core/SceneManager.hpp"
 
 #include <QJsonObject>
+
+#include <algorithm>
 
 namespace py = pybind11;
 
@@ -44,28 +49,79 @@ McpResult CallGameObjectBinding(const char* function, const std::vector<std::str
     }
 }
 
+McpResult ResolveDestinationScene(const QJsonObject& params, Scene** out) {
+    const QString siblingId = params.value("id").toString();
+    const QString requestedSceneId = params.value("sceneId").toString();
+
+    if (!siblingId.isEmpty()) {
+        GameObject* sibling = support::FindGameObject(siblingId.toStdString());
+        if (!sibling)
+            return McpResult::Error(ObjectNotFound,
+                                    "no GameObject with id " + siblingId);
+
+        Scene* scene = sibling->GetScene();
+        if (!scene)
+            return McpResult::Error(ObjectNotFound,
+                                    "no scene for GameObject " + siblingId);
+
+        if (!requestedSceneId.isEmpty() &&
+            requestedSceneId != QString::fromStdString(scene->GetID())) {
+            return McpResult::Error(WrongMode,
+                "sibling " + siblingId + " does not belong to scene " + requestedSceneId);
+        }
+
+        *out = scene;
+        return McpResult::Ok();
+    }
+
+    Container* container = support::ActiveContainer();
+    SceneManager* sceneManager = container ? container->FindSystem<SceneManager>() : nullptr;
+    if (!sceneManager)
+        return McpResult::Error(WrongMode,
+                                "no SceneManager on the active container");
+
+    const std::vector<Scene*> scenes = sceneManager->GetScenes();
+    if (requestedSceneId.isEmpty()) {
+        if (scenes.size() != 1) {
+            return McpResult::Error(ObjectNotFound,
+                "pass \"scene_id\" -- there is not exactly one loaded scene to default to");
+        }
+        *out = scenes.front();
+        return McpResult::Ok();
+    }
+
+    const auto match = std::find_if(scenes.begin(), scenes.end(),
+        [&requestedSceneId](Scene* scene) {
+            return scene && QString::fromStdString(scene->GetID()) == requestedSceneId;
+        });
+    if (match == scenes.end())
+        return McpResult::Error(ObjectNotFound,
+                                "no loaded scene with id " + requestedSceneId);
+
+    *out = *match;
+    return McpResult::Ok();
+}
+
 } // namespace
 
 void RegisterLifecycleTools(McpDispatcher& dispatcher) {
-    // The new object lands in the same scene as `id`, which is how the underlying
-    // binding decides placement -- there is no scene-level instantiate.
+    // A sibling remains the most precise placement hint, but it cannot bootstrap an
+    // empty scene. In that case sceneId selects the destination, defaulting to the sole
+    // loaded scene when unambiguous.
     dispatcher.RegisterTool("object.instantiate", [](const QJsonObject& params) {
-        GameObject* sibling = nullptr;
-        if (McpResult resolved = support::ResolveGameObject(params, &sibling); !resolved.ok)
+        Scene* scene = nullptr;
+        if (McpResult resolved = ResolveDestinationScene(params, &scene); !resolved.ok)
             return resolved;
 
         const QString name = params.value("name").toString(QStringLiteral("GameObject"));
-        McpResult result = CallGameObjectBinding(
-            "instantiate", {sibling->GetID(), name.toStdString()});
-        if (!result.ok) return result;
+        auto* object = new GameObject();
+        object->SetName(name.toStdString());
+        scene->AddGameObject(object);
 
-        const QString newId = result.data.toString();
-        if (newId.isEmpty())
-            return McpResult::Error(ObjectNotFound, "instantiate failed (no scene for id " +
-                                                    QString::fromStdString(sibling->GetID()) + ")");
         QJsonObject data;
-        data["id"] = newId;
+        data["id"] = QString::fromStdString(object->GetID());
         data["name"] = name;
+        data["sceneId"] = QString::fromStdString(scene->GetID());
         return McpResult::Ok(data);
     });
 

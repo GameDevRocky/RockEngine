@@ -17,6 +17,13 @@ namespace EditorUtils {
 class CustomIconProvider : public QFileIconProvider {
 public:
     QIcon icon(const QFileInfo &info) const override;
+
+    // Shared semantic icons used outside QFileSystemModel-backed views. Keeping
+    // these here prevents the Hierarchy, property pickers, and AI attachments
+    // from each hard-coding their own bundled icon paths.
+    static QIcon gameObjectIcon();
+    static QIcon componentIcon(const std::string& typeName);
+    static QIcon aiSendIcon();
 };
 
 void OpenInVSCode(const std::string& fullPath);

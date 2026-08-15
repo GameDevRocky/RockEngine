@@ -74,15 +74,26 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 ## AI assistant
 
 - `AiChatGui` is the dockable editor surface; `ai::AiAgentService` owns asynchronous provider
-  CLI processes and JSONL event parsing. It never blocks the Qt event loop while an agent is
-  working. Provider conversation IDs are the only AI state stored in `QSettings`. All
-  widget-specific visual styling lives in `Domain/lib/assets/styling/ai_assistant.qss`; keep
+  CLI processes and their JSONL/JSON-RPC event parsing. It never blocks the Qt event loop while an agent is
+  working. Partial provider events update one in-progress assistant message, which is finalized
+  when the provider process completes. Provider conversation IDs and per-provider model choices
+  are stored in `QSettings`. All widget-specific visual styling lives in
+  `Domain/lib/assets/styling/ai_assistant.qss`; keep
   `AiChatGui.cpp` limited to structure, object names, and behavior.
+- Chat attachments preserve their source semantics. Ordinary files are read from disk when the
+  draft is sent. Hierarchy GameObjects and Inspector components travel as custom ID MIME payloads,
+  while materials/textures/sprites resolve through `AssetManager`; those IDs are serialized from
+  the current live in-memory object at send time and include their backing path when one exists.
+  Component drag sources use `kComponentMimeType` in `utils/DragDropMime.hpp`, alongside the
+  existing GameObject and sprite MIME contracts. Attachment drops must always finish as a copy so
+  the Hierarchy's internal-move model never removes the dragged row.
 - The assistant uses the providers' coding-agent CLIs rather than duplicating RockEngine's MCP
   schemas. Every run injects the existing `tools/mcp-server/server.py` as the `rockengine` stdio
   server, so live scene changes follow the same bridge and main-thread guarantees as an external
   MCP client. The MCP venv under `tools/mcp-server/.venv/` must be installed.
-- OpenAI runs through Codex. ChatGPT browser login and `codex login --with-api-key` are supported;
+- OpenAI chat runs through Codex app-server so `item/agentMessage/delta` notifications can be
+  rendered live; login still uses the Codex CLI. ChatGPT browser login and
+  `codex login --with-api-key` are supported;
   `CODEX_HOME` is isolated under Qt's local app-data directory and Codex is forced to use the OS
   keyring (`cli_auth_credentials_store="keyring"`) with no plaintext fallback.
 - Claude runs through Claude Code in non-interactive JSONL mode. Third-party Claude.ai OAuth is

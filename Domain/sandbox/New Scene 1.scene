@@ -1,6 +1,33 @@
 name: New Scene 1
 id: 87ad14aab549873122654a6dfa7d4cb0
-gameobjects:
-  []
 components:
-  []
+  - id: 688540f7298e472e16bffcd34d2926e5
+    enabled: true
+    type: Transform
+    gameobject: 7f81f26a11a469400fb24dc04092041e
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 68cfc8dff34342ca77d4e1bf3332ab8b
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 7f81f26a11a469400fb24dc04092041e
+    material_id: m1
+    sprite_id: default
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+gameobjects:
+  - id: 7f81f26a11a469400fb24dc04092041e
+    type: GameObject
+    name: Square
+    tag: Untagged
+    component_ids:
+      - 688540f7298e472e16bffcd34d2926e5
+      - 68cfc8dff34342ca77d4e1bf3332ab8b

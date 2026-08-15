@@ -258,6 +258,155 @@ ResizableTextEdit:disabled {
 
 
 /*===========================================================================
+ * QScrollBar
+ *
+ * A narrow, quiet track with a rounded thumb. The 17px extent intentionally
+ * becomes roughly the reference's 34px physical width on a 2x display, while
+ * remaining compact on a standard-density monitor. Arrow primitives remain
+ * style-drawn so vertical and horizontal bars share the platform's crisp DPI
+ * rendering without another set of bitmap assets.
+ *===========================================================================*/
+QScrollBar:vertical {
+    border: none;
+    width: 17px;
+    margin: 17px 0px 17px 0px;
+    color: rgb(54, 54, 54);
+}
+
+QScrollBar::handle:vertical {
+    background: rgb(53, 53, 53);
+    border: none;
+    border-radius: 5px;
+    min-height: 36px;
+    margin: 2px 4px 2px 4px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: rgb(66, 66, 66);
+}
+
+QScrollBar::handle:vertical:pressed {
+    background: rgb(78, 78, 78);
+}
+
+QScrollBar::sub-line:vertical,
+QScrollBar::add-line:vertical {
+    background: transparent;
+    border: none;
+    height: 17px;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:vertical {
+    subcontrol-position: top;
+}
+
+QScrollBar::add-line:vertical {
+    subcontrol-position: bottom;
+}
+
+QScrollBar::sub-line:vertical:hover,
+QScrollBar::add-line:vertical:hover,
+QScrollBar::sub-line:vertical:pressed,
+QScrollBar::add-line:vertical:pressed {
+    background: transparent;
+}
+
+QScrollBar::up-arrow:vertical {
+    background: transparent;
+    image: url("__SCROLL_ARROW_UP__");
+    width: 7px;
+    height: 5px;
+}
+
+QScrollBar::down-arrow:vertical {
+    background: transparent;
+    image: url("__SCROLL_ARROW_DOWN__");
+    width: 7px;
+    height: 5px;
+}
+
+QScrollBar:horizontal {
+    background: rgb(22, 22, 22);
+    border: none;
+    height: 17px;
+    margin: 0px 17px 0px 17px;
+    color: rgb(54, 54, 54);
+}
+
+QScrollBar::handle:horizontal {
+    background: rgb(53, 53, 53);
+    border: none;
+    border-radius: 5px;
+    min-width: 36px;
+    margin: 4px 2px 4px 2px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: rgb(66, 66, 66);
+}
+
+QScrollBar::handle:horizontal:pressed {
+    background: rgb(78, 78, 78);
+}
+
+QScrollBar::sub-line:horizontal,
+QScrollBar::add-line:horizontal {
+    background: transparent;
+    border: none;
+    width: 17px;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::sub-line:horizontal {
+    subcontrol-position: left;
+}
+
+QScrollBar::add-line:horizontal {
+    subcontrol-position: right;
+}
+
+QScrollBar::sub-line:horizontal:hover,
+QScrollBar::add-line:horizontal:hover,
+QScrollBar::sub-line:horizontal:pressed,
+QScrollBar::add-line:horizontal:pressed {
+    background: transparent;
+}
+
+QScrollBar::left-arrow:horizontal {
+    background: transparent;
+    image: url("__SCROLL_ARROW_LEFT__");
+    width: 5px;
+    height: 7px;
+}
+
+QScrollBar::right-arrow:horizontal {
+    background: transparent;
+    image: url("__SCROLL_ARROW_RIGHT__");
+    width: 5px;
+    height: 7px;
+}
+
+QScrollBar::sub-page:vertical,
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:horizontal,
+QScrollBar::add-page:horizontal {
+    background: transparent;
+    border: none;
+}
+
+QScrollBar::handle:vertical:disabled,
+QScrollBar::handle:horizontal:disabled {
+    background: transparent;
+}
+
+QAbstractScrollArea::corner {
+    background: rgb(22, 22, 22);
+    border: none;
+}
+
+
+/*===========================================================================
  * QSpinBox / QDoubleSpinBox
  *
  * Both are listed explicitly because QDoubleSpinBox is NOT a QSpinBox subclass --

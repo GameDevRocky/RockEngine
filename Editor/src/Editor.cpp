@@ -4,6 +4,8 @@
 #include <QTimer>
 #include <QFile>
 #include <QFileInfo>
+#include <QDir>
+#include <QFont>
 #include <QStringList>
 #include <QSurfaceFormat>
 // QOpenGLWidget comes transitively from dock-widgets/*.hpp below, which
@@ -54,6 +56,13 @@ void Editor::Init() {
     } else {
         app = qobject_cast<QApplication*>(QApplication::instance());
     }
+#ifdef Q_OS_WIN
+    // Fixedsys is a legacy GDI raster font that DirectWrite cannot load. Qt may
+    // request it as Windows' stock fixed-font fallback, so redirect only that
+    // family to a modern monospace font before any editor widgets are created.
+    QFont::insertSubstitution(QStringLiteral("Fixedsys"),
+                              QStringLiteral("Consolas"));
+#endif
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     // Gamepads are POLLED from the OS, not delivered as Qt events, so unlike the keyboard they
@@ -82,7 +91,24 @@ void Editor::Init() {
 
         QFile styleFile(styleInfo.absoluteFilePath());
         if (styleFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            app->setStyleSheet(QString::fromUtf8(styleFile.readAll()));
+            QString styleSheet = QString::fromUtf8(styleFile.readAll());
+            const QDir iconDirectory(
+                styleInfo.dir().absoluteFilePath(QStringLiteral("../icons")));
+            const auto iconPath = [&iconDirectory](const QString& filename) {
+                // Qt's stylesheet parser expects a local path here. A file://
+                // URL is incorrectly treated as relative on Windows.
+                return QDir::fromNativeSeparators(
+                    iconDirectory.absoluteFilePath(filename));
+            };
+            styleSheet.replace(QStringLiteral("__SCROLL_ARROW_UP__"),
+                               iconPath(QStringLiteral("scroll_arrow_up.svg")));
+            styleSheet.replace(QStringLiteral("__SCROLL_ARROW_DOWN__"),
+                               iconPath(QStringLiteral("scroll_arrow_down.svg")));
+            styleSheet.replace(QStringLiteral("__SCROLL_ARROW_LEFT__"),
+                               iconPath(QStringLiteral("scroll_arrow_left.svg")));
+            styleSheet.replace(QStringLiteral("__SCROLL_ARROW_RIGHT__"),
+                               iconPath(QStringLiteral("scroll_arrow_right.svg")));
+            app->setStyleSheet(styleSheet);
             styleLoaded = true;
             break;
         }

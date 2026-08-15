@@ -374,6 +374,9 @@ bool AiAgentService::BeginProcess(Provider provider, Operation operation,
     m_stdoutBuffer.clear();
     m_stderr.clear();
     m_responseText.clear();
+    m_codexMessageItemId.clear();
+    m_codexTurnCompleted = false;
+    m_codexResumeAttempted = false;
     m_cancelled = false;
     m_processErrorReported = false;
 
@@ -393,6 +396,16 @@ bool AiAgentService::BeginProcess(Provider provider, Operation operation,
     connect(m_process, &QProcess::errorOccurred,
             this, &AiAgentService::ProcessError);
     connect(m_process, &QProcess::started, this, [this]() {
+        if (m_codexAppServer) {
+            QJsonObject clientInfo;
+            clientInfo.insert(QStringLiteral("name"), QStringLiteral("rockengine"));
+            clientInfo.insert(QStringLiteral("title"), QStringLiteral("RockEngine Editor"));
+            clientInfo.insert(QStringLiteral("version"), QStringLiteral("1.0.0"));
+            QJsonObject params;
+            params.insert(QStringLiteral("clientInfo"), clientInfo);
+            SendCodexRequest(1, QStringLiteral("initialize"), params);
+            return;
+        }
         if (!m_pendingStdin.isEmpty()) {
             m_process->write(m_pendingStdin);
             m_pendingStdin.fill('\0');
@@ -524,9 +537,11 @@ void AiAgentService::SignOut(Provider provider) {
     }
 }
 
-void AiAgentService::SendMessage(Provider provider, const QString& message) {
+void AiAgentService::SendMessage(Provider provider, const QString& model,
+                                 const QString& message) {
     const QString trimmed = message.trimmed();
     if (trimmed.isEmpty()) return;
+    const QString selectedModel = model.trimmed();
 
     const QString cli = FindCli(provider);
     if (cli.isEmpty()) {
@@ -543,15 +558,15 @@ void AiAgentService::SendMessage(Provider provider, const QString& message) {
     if (provider == Provider::OpenAI) {
         arguments = CodexMcpArguments();
         arguments << QStringLiteral("-c")
-                  << QStringLiteral("cli_auth_credentials_store=\"keyring\"")
-                  << QStringLiteral("--ask-for-approval") << QStringLiteral("never")
-                  << QStringLiteral("--sandbox") << QStringLiteral("workspace-write")
-                  << QStringLiteral("--cd") << ProjectRoot()
-                  << QStringLiteral("exec") << QStringLiteral("--json")
-                  << QStringLiteral("--color") << QStringLiteral("never");
-        if (!sessionId.isEmpty())
-            arguments << QStringLiteral("resume") << sessionId;
-        arguments << QStringLiteral("-");
+                  << QStringLiteral("cli_auth_credentials_store=\"keyring\"");
+        if (!selectedModel.isEmpty()) {
+            arguments << QStringLiteral("-c")
+                      << QStringLiteral("model=%1").arg(TomlLiteral(selectedModel));
+        }
+        arguments << QStringLiteral("app-server") << QStringLiteral("--stdio");
+        m_codexAppServer = true;
+        m_codexPrompt = prompt;
+        m_pendingStdin.clear();
     } else if (provider == Provider::Claude) {
         QString vaultError;
         QByteArray key = SecureCredentialStore::Load(
@@ -580,6 +595,7 @@ void AiAgentService::SendMessage(Provider provider, const QString& message) {
         arguments << QStringLiteral("--bare")
                   << QStringLiteral("-p")
                   << QStringLiteral("--output-format") << QStringLiteral("stream-json")
+                  << QStringLiteral("--include-partial-messages")
                   << QStringLiteral("--verbose")
                   << QStringLiteral("--settings") << inlineSettings
                   << QStringLiteral("--permission-mode") << QStringLiteral("acceptEdits")
@@ -587,6 +603,8 @@ void AiAgentService::SendMessage(Provider provider, const QString& message) {
                   << QStringLiteral("Read,Glob,Grep,Edit,Write")
                   << QStringLiteral("--allowedTools")
                   << QStringLiteral("Read,Glob,Grep,Edit,Write,mcp__rockengine__*");
+        if (!selectedModel.isEmpty())
+            arguments << QStringLiteral("--model") << selectedModel;
         if (QFileInfo::exists(McpPythonPath()) && QFileInfo::exists(McpServerPath()))
             arguments << QStringLiteral("--mcp-config") << McpConfigurationJson();
         if (!sessionId.isEmpty())
@@ -616,6 +634,8 @@ void AiAgentService::SendMessage(Provider provider, const QString& message) {
                   << QStringLiteral("--approval-mode") << QStringLiteral("yolo")
                   << QStringLiteral("--allowed-mcp-server-names")
                   << QStringLiteral("rockengine");
+        if (!selectedModel.isEmpty())
+            arguments << QStringLiteral("--model") << selectedModel;
         if (!sessionId.isEmpty())
             arguments << QStringLiteral("--resume") << sessionId;
         arguments << QStringLiteral("--prompt") << prompt;
@@ -675,6 +695,73 @@ void AiAgentService::ParseChatLine(const QByteArray& line) {
 }
 
 void AiAgentService::ParseCodexEvent(const QJsonObject& event) {
+    if (m_codexAppServer) {
+        const QString method = event.value(QStringLiteral("method")).toString();
+        const QJsonObject params = event.value(QStringLiteral("params")).toObject();
+        if (method == QStringLiteral("item/agentMessage/delta")) {
+            const QString itemId = params.value(QStringLiteral("itemId")).toString();
+            if (!m_codexMessageItemId.isEmpty() && itemId != m_codexMessageItemId)
+                PublishResponse(QStringLiteral("\n\n"), true);
+            m_codexMessageItemId = itemId;
+            PublishResponse(params.value(QStringLiteral("delta")).toString(), true);
+        } else if (method == QStringLiteral("turn/completed")) {
+            const QJsonObject turn = params.value(QStringLiteral("turn")).toObject();
+            const QString status = turn.value(QStringLiteral("status")).toString();
+            if (status == QStringLiteral("failed")) {
+                const QString message = turn.value(QStringLiteral("error")).toObject()
+                                            .value(QStringLiteral("message")).toString();
+                if (!message.isEmpty()) m_stderr.append(message.toUtf8() + '\n');
+            }
+            m_codexTurnCompleted = true;
+            m_process->closeWriteChannel();
+        } else if (method == QStringLiteral("item/mcpToolCall/progress")) {
+            emit ActivityChanged(QStringLiteral("Using a RockEngine tool…"));
+        }
+
+        const int id = event.value(QStringLiteral("id")).toInt(-1);
+        if (id == 1) {
+            if (event.contains(QStringLiteral("error"))) {
+                m_stderr.append(QJsonDocument(event.value(QStringLiteral("error")).toObject())
+                                    .toJson(QJsonDocument::Compact) + '\n');
+                m_process->closeWriteChannel();
+            } else {
+                QJsonObject initialized;
+                initialized.insert(QStringLiteral("method"), QStringLiteral("initialized"));
+                m_process->write(QJsonDocument(initialized).toJson(QJsonDocument::Compact) + '\n');
+                StartCodexThread();
+            }
+        } else if (id == 2) {
+            const QJsonObject error = event.value(QStringLiteral("error")).toObject();
+            if (!error.isEmpty()) {
+                if (m_codexResumeAttempted) {
+                    SetSessionId(Provider::OpenAI, {});
+                    m_codexResumeAttempted = false;
+                    m_codexPrompt = InitialPrompt(m_codexPrompt);
+                    StartCodexThread();
+                } else {
+                    m_stderr.append(error.value(QStringLiteral("message")).toString().toUtf8() + '\n');
+                    m_process->closeWriteChannel();
+                }
+            } else {
+                const QString threadId = event.value(QStringLiteral("result")).toObject()
+                                             .value(QStringLiteral("thread")).toObject()
+                                             .value(QStringLiteral("id")).toString();
+                if (threadId.isEmpty()) {
+                    m_stderr.append("Codex app-server returned no thread ID\n");
+                    m_process->closeWriteChannel();
+                } else {
+                    SetSessionId(Provider::OpenAI, threadId);
+                    StartCodexTurn(threadId);
+                }
+            }
+        } else if (id == 3 && event.contains(QStringLiteral("error"))) {
+            m_stderr.append(event.value(QStringLiteral("error")).toObject()
+                                .value(QStringLiteral("message")).toString().toUtf8() + '\n');
+            m_process->closeWriteChannel();
+        }
+        return;
+    }
+
     const QString type = event.value(QStringLiteral("type")).toString();
     if (type == QStringLiteral("thread.started")) {
         SetSessionId(m_activeProvider, event.value(QStringLiteral("thread_id")).toString());
@@ -686,16 +773,24 @@ void AiAgentService::ParseCodexEvent(const QJsonObject& event) {
         if (!message.isEmpty()) m_stderr.append(message.toUtf8() + '\n');
         return;
     }
+    if (type == QStringLiteral("agent_message.delta") ||
+        type == QStringLiteral("response.output_text.delta")) {
+        QString delta = event.value(QStringLiteral("delta")).toString();
+        if (delta.isEmpty()) delta = event.value(QStringLiteral("text")).toString();
+        PublishResponse(delta, true);
+        return;
+    }
     if (!type.startsWith(QStringLiteral("item."))) return;
 
     const QJsonObject item = event.value(QStringLiteral("item")).toObject();
     const QString itemType = item.value(QStringLiteral("type")).toString();
-    if (type == QStringLiteral("item.completed") &&
-        itemType == QStringLiteral("agent_message")) {
-        const QString text = item.value(QStringLiteral("text")).toString().trimmed();
-        if (!text.isEmpty()) {
-            if (!m_responseText.isEmpty()) m_responseText.append(QStringLiteral("\n\n"));
-            m_responseText.append(text);
+    if (itemType == QStringLiteral("agent_message")) {
+        const QString text = item.value(QStringLiteral("text")).toString();
+        if (type == QStringLiteral("item.updated")) {
+            PublishResponse(text, false);
+        } else if (type == QStringLiteral("item.completed") && !text.isEmpty() &&
+                   m_responseText != text) {
+            PublishResponse(text, false);
         }
     } else if (itemType == QStringLiteral("mcp_tool_call")) {
         emit ActivityChanged(QStringLiteral("Using RockEngine tool: %1…")
@@ -707,12 +802,60 @@ void AiAgentService::ParseCodexEvent(const QJsonObject& event) {
     }
 }
 
+void AiAgentService::SendCodexRequest(int id, const QString& method,
+                                      const QJsonObject& params) {
+    if (!m_process) return;
+    QJsonObject request;
+    request.insert(QStringLiteral("id"), id);
+    request.insert(QStringLiteral("method"), method);
+    request.insert(QStringLiteral("params"), params);
+    m_process->write(QJsonDocument(request).toJson(QJsonDocument::Compact) + '\n');
+}
+
+void AiAgentService::StartCodexThread() {
+    QJsonObject params;
+    params.insert(QStringLiteral("cwd"), ProjectRoot());
+    params.insert(QStringLiteral("approvalPolicy"), QStringLiteral("never"));
+    params.insert(QStringLiteral("sandbox"), QStringLiteral("workspace-write"));
+    const QString threadId = SessionId(Provider::OpenAI);
+    if (threadId.isEmpty()) {
+        SendCodexRequest(2, QStringLiteral("thread/start"), params);
+    } else {
+        m_codexResumeAttempted = true;
+        params.insert(QStringLiteral("threadId"), threadId);
+        SendCodexRequest(2, QStringLiteral("thread/resume"), params);
+    }
+}
+
+void AiAgentService::StartCodexTurn(const QString& threadId) {
+    QJsonObject input;
+    input.insert(QStringLiteral("type"), QStringLiteral("text"));
+    input.insert(QStringLiteral("text"), m_codexPrompt);
+    QJsonObject params;
+    params.insert(QStringLiteral("threadId"), threadId);
+    params.insert(QStringLiteral("input"), QJsonArray{input});
+    params.insert(QStringLiteral("approvalPolicy"), QStringLiteral("never"));
+    QJsonObject sandbox;
+    sandbox.insert(QStringLiteral("type"), QStringLiteral("workspaceWrite"));
+    params.insert(QStringLiteral("sandboxPolicy"), sandbox);
+    SendCodexRequest(3, QStringLiteral("turn/start"), params);
+    m_codexPrompt.clear();
+}
+
 void AiAgentService::ParseClaudeEvent(const QJsonObject& event) {
     const QString sessionId = event.value(QStringLiteral("session_id")).toString();
     if (!sessionId.isEmpty()) SetSessionId(m_activeProvider, sessionId);
 
     const QString type = event.value(QStringLiteral("type")).toString();
-    if (type == QStringLiteral("assistant")) {
+    if (type == QStringLiteral("stream_event")) {
+        const QJsonObject streamEvent = event.value(QStringLiteral("event")).toObject();
+        if (streamEvent.value(QStringLiteral("type")).toString() ==
+            QStringLiteral("content_block_delta")) {
+            const QJsonObject delta = streamEvent.value(QStringLiteral("delta")).toObject();
+            if (delta.value(QStringLiteral("type")).toString() == QStringLiteral("text_delta"))
+                PublishResponse(delta.value(QStringLiteral("text")).toString(), true);
+        }
+    } else if (type == QStringLiteral("assistant")) {
         const QJsonArray content = event.value(QStringLiteral("message"))
                                        .toObject().value(QStringLiteral("content")).toArray();
         for (const QJsonValue& value : content) {
@@ -724,7 +867,7 @@ void AiAgentService::ParseClaudeEvent(const QJsonObject& event) {
         }
     } else if (type == QStringLiteral("result")) {
         const QString result = event.value(QStringLiteral("result")).toString().trimmed();
-        if (!result.isEmpty()) m_responseText = result;
+        if (!result.isEmpty() && m_responseText != result) PublishResponse(result, false);
         if (event.value(QStringLiteral("is_error")).toBool())
             m_stderr.append(result.toUtf8() + '\n');
     }
@@ -739,8 +882,8 @@ void AiAgentService::ParseGeminiEvent(const QJsonObject& event) {
     if (type == QStringLiteral("message") &&
         event.value(QStringLiteral("role")).toString() == QStringLiteral("assistant")) {
         const QString content = event.value(QStringLiteral("content")).toString();
-        if (event.value(QStringLiteral("delta")).toBool()) m_responseText.append(content);
-        else if (!content.isEmpty()) m_responseText = content;
+        if (event.value(QStringLiteral("delta")).toBool()) PublishResponse(content, true);
+        else if (!content.isEmpty()) PublishResponse(content, false);
     } else if (type == QStringLiteral("tool_use")) {
         QString toolName = event.value(QStringLiteral("tool_name")).toString();
         if (toolName.isEmpty()) toolName = event.value(QStringLiteral("name")).toString();
@@ -764,6 +907,13 @@ void AiAgentService::ParseGeminiEvent(const QJsonObject& event) {
     }
 }
 
+void AiAgentService::PublishResponse(const QString& text, bool append) {
+    if (text.isEmpty()) return;
+    if (append) m_responseText.append(text);
+    else m_responseText = text;
+    emit ResponseUpdated(m_activeProvider, m_responseText);
+}
+
 void AiAgentService::ProcessFinished(int exitCode, QProcess::ExitStatus status) {
     if (m_operation == Operation::Chat && !m_stdoutBuffer.trimmed().isEmpty())
         ParseChatLine(m_stdoutBuffer.trimmed());
@@ -771,6 +921,10 @@ void AiAgentService::ProcessFinished(int exitCode, QProcess::ExitStatus status) 
     const Operation completedOperation = m_operation;
     const Provider completedProvider = m_activeProvider;
     bool success = status == QProcess::NormalExit && exitCode == 0;
+    if (completedOperation == Operation::Chat && completedProvider == Provider::OpenAI &&
+        m_codexTurnCompleted) {
+        success = true;
+    }
 
     if (completedOperation == Operation::ApiKeyLogin &&
         completedProvider == Provider::Gemini && success) {
@@ -853,6 +1007,11 @@ void AiAgentService::FinishOperation() {
     m_stdoutBuffer.clear();
     m_stderr.clear();
     m_responseText.clear();
+    m_codexPrompt.clear();
+    m_codexMessageItemId.clear();
+    m_codexAppServer = false;
+    m_codexTurnCompleted = false;
+    m_codexResumeAttempted = false;
     m_operation = Operation::None;
     emit BusyChanged(false);
 }

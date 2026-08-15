@@ -846,8 +846,7 @@ private:
             // Game objects have no file path (and may have no sprite) — fall back
             // to the generic game-object (cube) icon.
             fallbackIconGen = [](const std::string&) -> QIcon {
-                return QIcon(QString::fromStdString(
-                    EngineUtils::GetAssetPath("Domain/lib/assets/icons/cube.png")));
+                return EditorUtils::CustomIconProvider::gameObjectIcon();
             };
 
         auto* picker = new AssetPickerWidget(std::move(items), std::move(thumbGen), std::move(fallbackIconGen), m_container);

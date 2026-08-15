@@ -18,6 +18,26 @@ static QIcon AssetIcon(const char* relativePath) {
     return QIcon(QString::fromStdString(EngineUtils::GetAssetPath(relativePath)));
 }
 
+QIcon CustomIconProvider::gameObjectIcon() {
+    return AssetIcon("Domain/lib/assets/icons/cube.png");
+}
+
+QIcon CustomIconProvider::componentIcon(const std::string& typeName) {
+    if (typeName == "Camera")
+        return AssetIcon("Domain/lib/assets/icons/camera_icon.png");
+    if (typeName == "ParticleComponent")
+        return AssetIcon("Domain/lib/assets/icons/particle_icons.png");
+    if (typeName == "Light")
+        return AssetIcon("Domain/lib/assets/icons/light_icon.png");
+    if (typeName == "ShadowCaster")
+        return AssetIcon("Domain/lib/assets/icons/shadow_caster_icon.png");
+    return {};
+}
+
+QIcon CustomIconProvider::aiSendIcon() {
+    return AssetIcon("Domain/lib/assets/icons/up_arrow_icon.png");
+}
+
 QIcon CustomIconProvider::icon(const QFileInfo &info) const {
     const QString& name = info.fileName();
     
