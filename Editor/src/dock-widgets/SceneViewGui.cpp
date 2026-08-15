@@ -159,6 +159,17 @@ public:
             "  border-radius: 3px;"
             "  selection-background-color: rgb(66, 148, 66);"
             "}"
+            "#SceneToolbarContents {"
+            "  background: transparent;"
+            "  border: none;"
+            "}"
+            "#SceneNativeToolbar #SceneToolbarCollapse {"
+            "  background: transparent;"
+            "  border: 1px solid transparent;"
+            "}"
+            "#SceneNativeToolbar #SceneToolbarCollapse:hover {"
+            "  background-color: rgb(59, 59, 59);"
+            "}"
         );
 
         auto* layout = new QVBoxLayout(this);
@@ -175,6 +186,26 @@ public:
         handle->setStyleSheet("color: rgb(135, 135, 135); background: transparent;");
         layout->addWidget(handle);
 
+        m_collapse = new QToolButton(this);
+        m_collapse->setObjectName(QStringLiteral("SceneToolbarCollapse"));
+        m_collapse->setFixedSize(kControlWidth, 18);
+        m_collapse->setFocusPolicy(Qt::NoFocus);
+        m_collapse->setCursor(Qt::PointingHandCursor);
+        m_collapse->setArrowType(Qt::UpArrow);
+        m_collapse->setToolTip(QStringLiteral("Collapse toolbar"));
+        connect(m_collapse, &QToolButton::clicked, this,
+                [this] { SetCollapsed(!m_collapsed); });
+        layout->addWidget(m_collapse, 0, Qt::AlignHCenter);
+
+        m_contents = new QWidget(this);
+        m_contents->setObjectName(QStringLiteral("SceneToolbarContents"));
+        m_contents->setAttribute(Qt::WA_StyledBackground, true);
+        auto* controlsLayout = new QVBoxLayout(m_contents);
+        controlsLayout->setContentsMargins(0, 0, 0, 0);
+        controlsLayout->setSpacing(3);
+        controlsLayout->setAlignment(Qt::AlignHCenter);
+        layout->addWidget(m_contents, 0, Qt::AlignHCenter);
+
         const int fontId = QFontDatabase::addApplicationFont(QString::fromStdString(
             EngineUtils::GetAssetPath("Domain/lib/assets/fonts/Font Awesome 7 Free-Solid-900.otf")));
         if (fontId >= 0) {
@@ -185,34 +216,34 @@ public:
             }
         }
 
-        m_hand = AddButton(layout, ICON_FA_HAND, "Hand tool");
+        m_hand = AddButton(controlsLayout, ICON_FA_HAND, "Hand tool");
         connect(m_hand, &QToolButton::clicked, this, [] {
             SetTransformOperation(ImGuizmo::OPERATION(-1));
         });
 
-        AddSeparator(layout);
+        AddSeparator(controlsLayout);
 
-        m_universal = AddButton(layout, ICON_FA_ARROWS_TO_DOT, "Universal transform");
+        m_universal = AddButton(controlsLayout, ICON_FA_ARROWS_TO_DOT, "Universal transform");
         connect(m_universal, &QToolButton::clicked, this, [] {
             SetTransformOperation(ImGuizmo::UNIVERSAL);
         });
 
-        m_translate = AddButton(layout, ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT, "Move");
+        m_translate = AddButton(controlsLayout, ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT, "Move");
         connect(m_translate, &QToolButton::clicked, this, [] {
             SetTransformOperation(ImGuizmo::TRANSLATE);
         });
 
-        m_rotate = AddButton(layout, ICON_FA_ROTATE, "Rotate");
+        m_rotate = AddButton(controlsLayout, ICON_FA_ROTATE, "Rotate");
         connect(m_rotate, &QToolButton::clicked, this, [] {
             SetTransformOperation(ImGuizmo::ROTATE);
         });
 
-        m_scale = AddButton(layout, ICON_FA_MAXIMIZE, "Scale");
+        m_scale = AddButton(controlsLayout, ICON_FA_MAXIMIZE, "Scale");
         connect(m_scale, &QToolButton::clicked, this, [] {
             SetTransformOperation(ImGuizmo::SCALE);
         });
 
-        m_spriteBox = AddButton(layout, ICON_FA_CROP_SIMPLE,
+        m_spriteBox = AddButton(controlsLayout, ICON_FA_CROP_SIMPLE,
                                 "Box edit sprite\nDrag handles to scale, drag inside to move");
         connect(m_spriteBox, &QToolButton::clicked, this, [] {
             auto* gizmos = GizmosManager::Get();
@@ -221,7 +252,7 @@ public:
                                        : GizmosManager::EditMode::SpriteBox);
         });
 
-        m_collider = AddButton(layout, ICON_FA_DRAW_POLYGON, "Edit collider");
+        m_collider = AddButton(controlsLayout, ICON_FA_DRAW_POLYGON, "Edit collider");
         connect(m_collider, &QToolButton::clicked, this, [] {
             auto* gizmos = GizmosManager::Get();
             const bool active = gizmos->GetEditMode() == GizmosManager::EditMode::Collider;
@@ -229,51 +260,51 @@ public:
                                        : GizmosManager::EditMode::Collider);
         });
 
-        AddSeparator(layout);
+        AddSeparator(controlsLayout);
 
-        m_snap = AddButton(layout, ICON_FA_MAGNET,
+        m_snap = AddButton(controlsLayout, ICON_FA_MAGNET,
                            "Snap\nAlways snap using the increments below; Ctrl snaps one drag.");
         connect(m_snap, &QToolButton::clicked, this, [](bool checked) {
             GridSettings::Get().SetSnapEnabled(checked);
         });
 
-        m_grid = AddButton(layout, ICON_FA_BORDER_ALL,
+        m_grid = AddButton(controlsLayout, ICON_FA_BORDER_ALL,
                            "Grid visibility\nHiding the grid does not disable snapping.");
         connect(m_grid, &QToolButton::clicked, this, [](bool checked) {
             GridSettings::Get().SetVisible(checked);
         });
 
-        AddSeparator(layout);
+        AddSeparator(controlsLayout);
 
         BindFloatProperty(
-            layout,
+            controlsLayout,
             [] { return GridSettings::Get().GetCellSize(); },
             [](float value) { GridSettings::Get().SetCellSize(value); },
             Properties::PropDesc().Tag(Properties::Tags::INT).Range(1.0f, 4096.0f).Step(1.0f),
             "Cell size\nGrid spacing in world units.");
 
         BindFloatProperty(
-            layout,
+            controlsLayout,
             [] { return GridSettings::Get().GetMoveSnap(); },
             [](float value) { GridSettings::Get().SetMoveSnap(value); },
             Properties::PropDesc().Tag(Properties::Tags::FLOAT).Range(0.01f, 4096.0f).Step(0.01f),
             "Move snap\nIncrement in world units.");
 
         BindFloatProperty(
-            layout,
+            controlsLayout,
             [] { return GridSettings::Get().GetRotateSnap(); },
             [](float value) { GridSettings::Get().SetRotateSnap(value); },
             Properties::PropDesc().Tag(Properties::Tags::INT).Range(1.0f, 180.0f).Step(1.0f),
             "Rotate snap\nIncrement in degrees.");
 
         BindFloatProperty(
-            layout,
+            controlsLayout,
             [] { return GridSettings::Get().GetScaleSnap(); },
             [](float value) { GridSettings::Get().SetScaleSnap(value); },
             Properties::PropDesc().Tag(Properties::Tags::FLOAT).Range(0.01f, 10.0f).Step(0.01f),
             "Scale snap\nIncrement as a multiplier.");
 
-        m_match = AddButton(layout, ICON_FA_LINK,
+        m_match = AddButton(controlsLayout, ICON_FA_LINK,
                             "Match move snap to cell size\nObjects will land on grid lines.");
         m_match->setCheckable(false);
         connect(m_match, &QToolButton::clicked, this, [] {
@@ -281,6 +312,20 @@ public:
         });
 
         SyncState();
+    }
+
+    void SetCollapsed(bool collapsed)
+    {
+        if (m_collapsed == collapsed) return;
+        m_collapsed = collapsed;
+        m_contents->setVisible(!collapsed);
+        m_collapse->setArrowType(collapsed ? Qt::DownArrow : Qt::UpArrow);
+        m_collapse->setToolTip(collapsed
+            ? QStringLiteral("Expand toolbar")
+            : QStringLiteral("Collapse toolbar"));
+        layout()->activate();
+        adjustSize();
+        ClampToParent();
     }
 
     void SyncState()
@@ -302,8 +347,8 @@ public:
                                             object->GetComponent<CircleCollider>() ||
                                             object->GetComponent<CapsuleCollider>());
 
-        const bool sizeChanged = m_spriteBox->isVisible() != hasSprite ||
-                                 m_collider->isVisible() != hasCollider;
+        const bool sizeChanged = (!m_spriteBox->isHidden()) != hasSprite ||
+                                 (!m_collider->isHidden()) != hasCollider;
         m_spriteBox->setVisible(hasSprite);
         m_collider->setVisible(hasCollider);
         m_spriteBox->setChecked(gizmos->GetEditMode() == GizmosManager::EditMode::SpriteBox);
@@ -384,7 +429,7 @@ private:
     };
 
     static constexpr int kControlHeight = 24;
-    static constexpr int kControlWidth = 48;
+    static constexpr int kControlWidth = 28;
 
     static void SetTransformOperation(ImGuizmo::OPERATION operation)
     {
@@ -437,6 +482,8 @@ private:
     }
 
     QFont m_iconFont;
+    QWidget* m_contents = nullptr;
+    QToolButton* m_collapse = nullptr;
     QToolButton* m_hand = nullptr;
     QToolButton* m_universal = nullptr;
     QToolButton* m_translate = nullptr;
@@ -451,6 +498,7 @@ private:
 
     QPoint m_dragOffset;
     bool m_dragging = false;
+    bool m_collapsed = false;
 };
 
 SceneViewGui::SceneViewGui(QWidget* parent)

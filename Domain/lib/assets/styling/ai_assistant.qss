@@ -366,6 +366,34 @@ QWidget#AiMessageRow {
     background: transparent;
 }
 
+QWidget#AiEmptyState {
+    background: transparent;
+    border: none;
+}
+
+QLabel#AiEmptyLogo {
+    background: rgb(238, 238, 239);
+    border: 1px solid rgb(205, 205, 207);
+    border-radius: 35px;
+    color: rgb(24, 24, 25);
+    font-size: 18px;
+    font-weight: 700;
+}
+
+QLabel#AiEmptyHeading {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+QWidget#AiSentMessageGroup,
+QWidget#AiSentContext {
+    background: transparent;
+    border: none;
+}
+
 QLabel#AiUserBubble {
     background: rgb(61, 61, 61);
     border: 1px solid rgb(76, 76, 76);
@@ -373,11 +401,62 @@ QLabel#AiUserBubble {
     padding: 9px 11px;
 }
 
-QLabel#AiAssistantBubble {
+QToolButton#AiSentContextToggle {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 7px;
+    color: rgb(158, 158, 162);
+    padding: 3px 6px;
+}
+
+QToolButton#AiSentContextToggle:hover,
+QToolButton#AiSentContextToggle:pressed,
+QToolButton#AiSentContextToggle:checked {
+    background: rgb(51, 51, 53);
+    border: 1px solid transparent;
+    color: rgb(213, 213, 216);
+}
+
+QWidget#AiSentContextBody {
+    background: rgb(45, 45, 46);
+    border: 1px solid rgb(65, 65, 67);
+    border-radius: 10px;
+}
+
+QWidget#AiSentContextItem {
+    background: transparent;
+    border: none;
+}
+
+QLabel#AiSentContextIcon {
+    background: rgb(27, 27, 28);
+    border: none;
+    border-radius: 8px;
+    color: rgb(200, 200, 203);
+}
+
+QLabel#AiSentContextTitle {
+    background: transparent;
+    border: none;
+    color: palette(text);
+}
+
+QLabel#AiSentContextKind {
+    background: transparent;
+    border: none;
+    color: rgb(145, 145, 149);
+}
+
+QTextBrowser#AiAssistantBubble,
+QTextBrowser#AiAssistantBubble > QWidget,
+QTextBrowser#AiAssistantBubble > QWidget > QWidget {
     background: transparent;
     border: none;
     border-radius: 0px;
-    padding: 5px 2px;
+    color: palette(text);
+    padding: 0px;
+    selection-background-color: rgb(72, 92, 77);
+    selection-color: white;
 }
 
 QLabel#AiErrorBubble {

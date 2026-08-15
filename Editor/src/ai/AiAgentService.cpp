@@ -28,6 +28,18 @@ QString ProviderKey(AiAgentService::Provider provider) {
     return {};
 }
 
+// Each provider's official CLI is also published as a global npm package,
+// so a single "npm install -g" code path covers all three instead of
+// juggling per-OS native installer scripts inside the editor.
+QString NpmPackage(AiAgentService::Provider provider) {
+    switch (provider) {
+    case AiAgentService::Provider::OpenAI: return QStringLiteral("@openai/codex");
+    case AiAgentService::Provider::Claude: return QStringLiteral("@anthropic-ai/claude-code");
+    case AiAgentService::Provider::Gemini: return QStringLiteral("@google/gemini-cli");
+    }
+    return {};
+}
+
 QString ProjectRoot() {
     return QDir::cleanPath(QString::fromUtf8(PROJECT_ROOT));
 }
@@ -59,6 +71,19 @@ QString FriendlyToolName(QString name) {
     name.replace(QStringLiteral("mcp__rockengine__"), QString());
     name.replace('_', ' ');
     return name.trimmed();
+}
+
+QString WithReferenceFormattingContract(const QString& userMessage) {
+    return userMessage + QStringLiteral(
+        "\n\nResponse formatting for the RockEngine chat surface:\n"
+        "- Use GitHub-style Markdown for headings, **bold text**, `inline code`, fenced code, "
+        "bullet/numbered lists, and tables. Use ==text== for highlighted text.\n"
+        "- When an exact live ID is known, link references as "
+        "[Object](rockengine://object/ID), [Component](rockengine://component/ID), or "
+        "[Asset](rockengine://asset/ID). A component link may add ?type=TYPE for its icon.\n"
+        "- Link project files as [file:line](rockengine://file?path=PROJECT_RELATIVE_PATH&line=LINE).\n"
+        "- Never invent an ID or path. Use ordinary Markdown text when the exact reference "
+        "is not known. Do not explain this formatting contract in the response.");
 }
 
 } // namespace
@@ -537,6 +562,22 @@ void AiAgentService::SignOut(Provider provider) {
     }
 }
 
+bool AiAgentService::IsNpmAvailable() const {
+    return !QStandardPaths::findExecutable(QStringLiteral("npm")).isEmpty();
+}
+
+void AiAgentService::InstallCli(Provider provider) {
+    const QString npm = QStandardPaths::findExecutable(QStringLiteral("npm"));
+    if (npm.isEmpty()) {
+        emit RequestFailed(provider,
+            QStringLiteral("npm was not found. Install Node.js from nodejs.org, then try again."));
+        return;
+    }
+    BeginProcess(provider, Operation::InstallCli, npm,
+                 {QStringLiteral("install"), QStringLiteral("-g"), NpmPackage(provider)},
+                 ProcessEnvironment(provider));
+}
+
 void AiAgentService::SendMessage(Provider provider, const QString& model,
                                  const QString& message) {
     const QString trimmed = message.trimmed();
@@ -550,7 +591,9 @@ void AiAgentService::SendMessage(Provider provider, const QString& model,
     }
 
     const QString sessionId = SessionId(provider);
-    const QString prompt = sessionId.isEmpty() ? InitialPrompt(trimmed) : trimmed;
+    const QString formattedRequest = WithReferenceFormattingContract(trimmed);
+    const QString prompt = sessionId.isEmpty()
+        ? InitialPrompt(formattedRequest) : formattedRequest;
     m_pendingStdin = prompt.toUtf8();
 
     QStringList arguments;
@@ -592,8 +635,7 @@ void AiAgentService::SendMessage(Provider provider, const QString& model,
         const QString inlineSettings = QString::fromUtf8(
             QJsonDocument(settings).toJson(QJsonDocument::Compact));
 
-        arguments << QStringLiteral("--bare")
-                  << QStringLiteral("-p")
+        arguments << QStringLiteral("-p")
                   << QStringLiteral("--output-format") << QStringLiteral("stream-json")
                   << QStringLiteral("--include-partial-messages")
                   << QStringLiteral("--verbose")
@@ -979,6 +1021,14 @@ void AiAgentService::ProcessFinished(int exitCode, QProcess::ExitStatus status) 
             emit RequestFailed(completedProvider,
                 QStringLiteral("Codex could not erase its OS-keyring credential: %1")
                     .arg(QString::fromUtf8(m_stderr).trimmed()));
+        }
+    } else if (completedOperation == Operation::InstallCli) {
+        if (!m_cancelled && !success) {
+            QString error = QString::fromUtf8(m_stderr).trimmed();
+            if (error.isEmpty()) {
+                error = QStringLiteral("npm install exited with code %1").arg(exitCode);
+            }
+            emit RequestFailed(completedProvider, error);
         }
     }
 

@@ -1,8 +1,12 @@
 #include "dock-widgets/AiChatGui.hpp"
+#include "dock-widgets/AiMarkdownMessage.hpp"
+#include "Engine.hpp"
 #include "engine/components/Component.hpp"
 #include "engine/components/SpriteRenderer.hpp"
+#include "engine/core/Container.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/Scene.hpp"
+#include "engine/core/SelectionManager.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/Material.hpp"
 #include "engine/rendering/core/Resource.hpp"
@@ -19,7 +23,9 @@
 #include <QAbstractTextDocumentLayout>
 #include <QAbstractItemView>
 #include <QComboBox>
+#include <QCursor>
 #include <QDateTime>
+#include <QDesktopServices>
 #include <QDir>
 #include <QDragEnterEvent>
 #include <QDragLeaveEvent>
@@ -47,6 +53,7 @@
 #include <QPixmap>
 #include <QPen>
 #include <QRandomGenerator>
+#include <QRegularExpression>
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QSettings>
@@ -56,6 +63,8 @@
 #include <QStyleOption>
 #include <QStylePainter>
 #include <QTimer>
+#include <QToolButton>
+#include <QToolTip>
 #include <QTextBlock>
 #include <QTextDocument>
 #include <QtMath>
@@ -63,6 +72,7 @@
 #include <QWheelEvent>
 #include <QWidgetAction>
 #include <QUrl>
+#include <QUrlQuery>
 
 #include <yaml-cpp/yaml.h>
 
@@ -192,6 +202,30 @@ QString ProjectRelativePath(const QString& path) {
         ? QString() : relative;
 }
 
+QString ResolveProjectReferencePath(const QString& path) {
+    if (path.isEmpty()) return {};
+
+    const QString root = NormalizedPath(QString::fromUtf8(PROJECT_ROOT));
+    const QString candidate = NormalizedPath(
+        QDir::isAbsolutePath(path) ? path : QDir(root).absoluteFilePath(path));
+    const QString relative = QDir(root).relativeFilePath(candidate);
+    if (relative == QStringLiteral("..") || relative.startsWith(QStringLiteral("../")))
+        return {};
+
+    const QFileInfo info(candidate);
+    return info.exists() && info.isFile() ? candidate : QString();
+}
+
+int ReferenceLine(const QUrl& url) {
+    bool valid = false;
+    int line = QUrlQuery(url).queryItemValue(QStringLiteral("line")).toInt(&valid);
+    if (valid && line > 0) return line;
+
+    static const QRegularExpression lineFragment(QStringLiteral("^L?(\\d+)$"));
+    const QRegularExpressionMatch match = lineFragment.match(url.fragment());
+    return match.hasMatch() ? match.captured(1).toInt() : -1;
+}
+
 bool IsTextFile(const QFileInfo& info) {
     const QMimeType mime = QMimeDatabase().mimeTypeForFile(
         info, QMimeDatabase::MatchExtension);
@@ -294,6 +328,25 @@ void RefreshDynamicStyle(QWidget* widget) {
     widget->style()->unpolish(widget);
     widget->style()->polish(widget);
     widget->update();
+}
+
+void AnimateWidgetFadeIn(QWidget* widget) {
+    auto* opacity = new QGraphicsOpacityEffect(widget);
+    opacity->setOpacity(0.0);
+    widget->setGraphicsEffect(opacity);
+
+    auto* animation = new QPropertyAnimation(opacity, "opacity", widget);
+    animation->setDuration(500);
+    animation->setStartValue(0.0);
+    animation->setEndValue(1.0);
+    animation->setEasingCurve(QEasingCurve::InOutSine);
+    QObject::connect(animation, &QPropertyAnimation::finished, widget,
+                     [widget, opacity, animation] {
+                         animation->deleteLater();
+                         if (widget->graphicsEffect() == opacity)
+                             widget->setGraphicsEffect(nullptr);
+                     });
+    animation->start();
 }
 
 } // namespace
@@ -450,6 +503,10 @@ void AiChatGui::BuildUi() {
     m_loginStatus->setWordWrap(true);
     m_loginStatus->hide();
     contentLayout->addWidget(m_loginStatus);
+
+    m_installCli = new QPushButton(loginContent);
+    m_installCli->setObjectName(QStringLiteral("AiSecondaryButton"));
+    contentLayout->addWidget(m_installCli);
 
     m_installLink = new QLabel(loginContent);
     m_installLink->setObjectName(QStringLiteral("AiLink"));
@@ -704,6 +761,7 @@ void AiChatGui::BuildUi() {
         ClearLoginError();
         m_messages.clear();
         m_messageErrors.clear();
+        m_messageAttachments.clear();
         m_streamingMessageIndex = -1;
         m_streamingBubble.clear();
         ClearAttachments();
@@ -724,6 +782,10 @@ void AiChatGui::BuildUi() {
         ai::AiAgentService::Get()->SignInWithApiKey(CurrentProvider(), key);
     });
     connect(m_apiKey, &QLineEdit::returnPressed, m_apiKeyLogin, &QPushButton::click);
+    connect(m_installCli, &QPushButton::clicked, this, [this]() {
+        ClearLoginError();
+        ai::AiAgentService::Get()->InstallCli(CurrentProvider());
+    });
     connect(m_loginCancel, &QPushButton::clicked, ai::AiAgentService::Get(),
             &ai::AiAgentService::Cancel);
     connect(m_send, &QPushButton::clicked, this, &AiChatGui::SubmitPrompt);
@@ -733,6 +795,7 @@ void AiChatGui::BuildUi() {
         ai::AiAgentService::Get()->NewConversation(CurrentProvider());
         m_messages.clear();
         m_messageErrors.clear();
+        m_messageAttachments.clear();
         m_streamingMessageIndex = -1;
         m_streamingBubble.clear();
         ClearAttachments();
@@ -750,6 +813,7 @@ void AiChatGui::BuildUi() {
         ai::AiAgentService::Get()->NewConversation(CurrentProvider());
         m_messages.clear();
         m_messageErrors.clear();
+        m_messageAttachments.clear();
         m_streamingMessageIndex = -1;
         m_streamingBubble.clear();
         ClearAttachments();
@@ -761,6 +825,7 @@ void AiChatGui::BuildUi() {
         ClearLoginError();
         m_messages.clear();
         m_messageErrors.clear();
+        m_messageAttachments.clear();
         m_streamingMessageIndex = -1;
         m_streamingBubble.clear();
         ClearAttachments();
@@ -796,6 +861,11 @@ void AiChatGui::BuildUi() {
         m_apiKeyLogin->setText(busy && m_pages->currentIndex() == 0
             ? QStringLiteral("…") : QStringLiteral("→"));
         m_apiKey->setEnabled(!busy);
+        const bool cliAvailable = m_auth[ProviderIndex(CurrentProvider())].cliAvailable;
+        m_installCli->setEnabled(!busy && !cliAvailable && ai::AiAgentService::Get()->IsNpmAvailable());
+        m_installCli->setText(busy && m_pages->currentIndex() == 0 && !cliAvailable
+            ? QStringLiteral("Installing…")
+            : QStringLiteral("Install %1").arg(CliName(CurrentProvider())));
         m_loginCancel->setVisible(busy && m_pages->currentIndex() == 0);
         m_prompt->setEnabled(!busy);
         m_addContext->setEnabled(!busy);
@@ -945,11 +1015,26 @@ void AiChatGui::RefreshProviderUi() {
     const QString apiUrl = ai::AiAgentService::ApiKeyPortal(provider);
     m_apiKeyLink->setText(QStringLiteral("<a href=\"%1\">Create/manage %2 API keys</a>")
                               .arg(apiUrl, providerName));
-    const bool showCliInstall = provider != ai::AiAgentService::Provider::Gemini &&
-                                !state.cliAvailable;
+    const bool showCliInstall = !state.cliAvailable;
+    const bool npmAvailable = ai::AiAgentService::Get()->IsNpmAvailable();
+    m_installCli->setVisible(showCliInstall);
+    m_installCli->setEnabled(showCliInstall && !m_busy && npmAvailable);
+    m_installCli->setText(QStringLiteral("Install %1").arg(CliName(provider)));
+    m_installCli->setToolTip(npmAvailable ? QString()
+        : QStringLiteral("Requires npm (Node.js) on PATH — install Node.js first"));
     m_installLink->setText(!showCliInstall ? QString() :
-        QStringLiteral("<a href=\"%1\">Install %2</a>")
-            .arg(InstallUrl(provider), CliName(provider)));
+        QStringLiteral("<a href=\"%1\">%2</a>").arg(InstallUrl(provider),
+            npmAvailable ? QStringLiteral("Other ways to install %1").arg(CliName(provider))
+                         : QStringLiteral("Install %1 manually").arg(CliName(provider))));
+
+    const QString unavailableReason = state.checked && !state.cliAvailable
+        ? (state.detail.isEmpty()
+               ? QStringLiteral("%1 was not found").arg(CliName(provider))
+               : state.detail)
+        : QString();
+    m_accountLogin->setToolTip(unavailableReason);
+    m_apiKeyLogin->setToolTip(unavailableReason.isEmpty()
+        ? QStringLiteral("Connect with this API key") : unavailableReason);
 
     RefreshSettingsMenu();
     m_pages->setCurrentIndex(state.authenticated ? 1 : 0);
@@ -1276,6 +1361,142 @@ void AiChatGui::RenderAttachments() {
     }
 }
 
+QWidget* AiChatGui::CreateSentContextWidget(
+        const QVector<Attachment>& attachments, QWidget* parent) {
+    auto* context = new QWidget(parent);
+    context->setObjectName(QStringLiteral("AiSentContext"));
+    context->setAttribute(Qt::WA_StyledBackground, true);
+    auto* contextLayout = new QVBoxLayout(context);
+    contextLayout->setContentsMargins(0, 0, 0, 0);
+    contextLayout->setSpacing(4);
+
+    auto* toggle = new QToolButton(context);
+    toggle->setObjectName(QStringLiteral("AiSentContextToggle"));
+    toggle->setText(QStringLiteral("Context (%1)").arg(attachments.size()));
+    toggle->setToolTip(QStringLiteral("Show attached context"));
+    toggle->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    toggle->setArrowType(Qt::RightArrow);
+    toggle->setCheckable(true);
+    toggle->setCursor(Qt::PointingHandCursor);
+    contextLayout->addWidget(toggle, 0, Qt::AlignRight);
+
+    auto* body = new QWidget(context);
+    body->setObjectName(QStringLiteral("AiSentContextBody"));
+    body->setAttribute(Qt::WA_StyledBackground, true);
+    body->setMaximumWidth(340);
+    body->hide();
+    auto* bodyLayout = new QVBoxLayout(body);
+    bodyLayout->setContentsMargins(7, 7, 7, 7);
+    bodyLayout->setSpacing(3);
+
+    const auto fallbackText = [](AttachmentKind kind) {
+        switch (kind) {
+        case AttachmentKind::File:       return QStringLiteral("F");
+        case AttachmentKind::GameObject: return QStringLiteral("O");
+        case AttachmentKind::Component:  return QStringLiteral("C");
+        case AttachmentKind::Material:   return QStringLiteral("M");
+        case AttachmentKind::Texture:    return QStringLiteral("T");
+        case AttachmentKind::Sprite:     return QStringLiteral("S");
+        }
+        return QStringLiteral("F");
+    };
+
+    const auto previewFor = [](const Attachment& attachment) -> QPixmap {
+        constexpr int previewSize = 28;
+        const auto iconPixmap = [](const QIcon& icon) {
+            return icon.isNull() ? QPixmap{} : icon.pixmap(previewSize, previewSize);
+        };
+
+        QPixmap preview;
+        switch (attachment.kind) {
+        case AttachmentKind::File: {
+            EditorUtils::CustomIconProvider provider;
+            preview = iconPixmap(provider.icon(QFileInfo(attachment.path)));
+            break;
+        }
+        case AttachmentKind::GameObject:
+            preview = iconPixmap(EditorUtils::CustomIconProvider::gameObjectIcon());
+            break;
+        case AttachmentKind::Component: {
+            Component* component = Registry::FindInRuntime<Component>(
+                attachment.id.toStdString());
+            if (auto* renderer = dynamic_cast<SpriteRenderer*>(component)) {
+                if (!renderer->GetSpriteID().empty())
+                    preview = AssetThumbnails::forSprite(renderer->GetSpriteID());
+            }
+            if (preview.isNull()) {
+                preview = iconPixmap(EditorUtils::CustomIconProvider::componentIcon(
+                    attachment.title.toStdString()));
+            }
+            break;
+        }
+        case AttachmentKind::Material:
+            preview = AssetThumbnails::forMaterial(attachment.id.toStdString());
+            break;
+        case AttachmentKind::Texture:
+            preview = AssetThumbnails::forTexture(attachment.id.toStdString());
+            break;
+        case AttachmentKind::Sprite:
+            preview = AssetThumbnails::forSprite(attachment.id.toStdString());
+            break;
+        }
+
+        if (preview.isNull() && !attachment.path.isEmpty()) {
+            EditorUtils::CustomIconProvider provider;
+            preview = iconPixmap(provider.icon(QFileInfo(attachment.path)));
+        }
+        return preview;
+    };
+
+    for (const Attachment& attachment : attachments) {
+        auto* item = new QWidget(body);
+        item->setObjectName(QStringLiteral("AiSentContextItem"));
+        item->setAttribute(Qt::WA_StyledBackground, true);
+        item->setToolTip(!attachment.path.isEmpty() ? attachment.path : attachment.id);
+        auto* itemLayout = new QHBoxLayout(item);
+        itemLayout->setContentsMargins(5, 4, 5, 4);
+        itemLayout->setSpacing(8);
+
+        auto* icon = new QLabel(item);
+        icon->setObjectName(QStringLiteral("AiSentContextIcon"));
+        icon->setAlignment(Qt::AlignCenter);
+        icon->setFixedSize(34, 34);
+        const QPixmap preview = previewFor(attachment);
+        if (preview.isNull()) {
+            icon->setText(fallbackText(attachment.kind));
+        } else {
+            icon->setPixmap(preview.scaled(
+                28, 28, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        }
+        itemLayout->addWidget(icon);
+
+        auto* textLayout = new QVBoxLayout();
+        textLayout->setContentsMargins(0, 0, 0, 0);
+        textLayout->setSpacing(0);
+        auto* title = new QLabel(attachment.title, item);
+        title->setObjectName(QStringLiteral("AiSentContextTitle"));
+        title->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        title->setToolTip(attachment.title);
+        auto* kind = new QLabel(attachment.subtitle, item);
+        kind->setObjectName(QStringLiteral("AiSentContextKind"));
+        textLayout->addWidget(title);
+        textLayout->addWidget(kind);
+        itemLayout->addLayout(textLayout, 1);
+        bodyLayout->addWidget(item);
+    }
+
+    contextLayout->addWidget(body, 0, Qt::AlignRight);
+    connect(toggle, &QToolButton::toggled, context,
+            [toggle, body](bool expanded) {
+                toggle->setArrowType(expanded ? Qt::DownArrow : Qt::RightArrow);
+                toggle->setToolTip(expanded
+                    ? QStringLiteral("Hide attached context")
+                    : QStringLiteral("Show attached context"));
+                body->setVisible(expanded);
+            });
+    return context;
+}
+
 void AiChatGui::UpdatePromptHeight() {
     if (!m_prompt || !m_prompt->document() ||
         !m_prompt->document()->documentLayout()) return;
@@ -1542,32 +1763,39 @@ void AiChatGui::SubmitPrompt() {
     if (m_busy) return;
     const QString message = m_prompt->toPlainText().trimmed();
     if (message.isEmpty() && m_attachments.isEmpty()) return;
+    const QVector<Attachment> sentAttachments = m_attachments;
     const QString request = BuildRequestMessage(message);
     const QString transcriptText = message.isEmpty()
         ? QStringLiteral("Use the attached context.") : message;
     m_prompt->clear();
     ClearAttachments();
-    AppendMessage(QStringLiteral("You"), transcriptText);
+    AppendMessage(QStringLiteral("You"), transcriptText, false, sentAttachments);
     ai::AiAgentService::Get()->SendMessage(CurrentProvider(), SelectedModel(), request);
 }
 
-void AiChatGui::AppendMessage(const QString& role, const QString& text, bool error) {
+void AiChatGui::AppendMessage(const QString& role, const QString& text, bool error,
+                              const QVector<Attachment>& attachments) {
     m_messages.append({role, text});
     m_messageErrors.append(error);
-    RenderTranscript();
+    m_messageAttachments.append(attachments);
+    RenderTranscript(m_messages.size() - 1);
 }
 
 void AiChatGui::UpdateStreamingMessage(const QString& text) {
     if (m_streamingMessageIndex < 0 || m_streamingMessageIndex >= m_messages.size()) {
         m_messages.append({QStringLiteral("Assistant"), text});
         m_messageErrors.append(false);
+        m_messageAttachments.append(QVector<Attachment>{});
         m_streamingMessageIndex = m_messages.size() - 1;
-        RenderTranscript();
+        RenderTranscript(m_streamingMessageIndex);
         return;
     }
 
     m_messages[m_streamingMessageIndex].second = text;
-    if (m_streamingBubble) m_streamingBubble->setText(text);
+    if (m_streamingBubble) {
+        m_streamingBubble->SetMarkdownText(text);
+        m_streamingBubble->AnimateStreamingUpdate();
+    }
     QTimer::singleShot(0, m_transcript, [this]() {
         m_transcript->verticalScrollBar()->setValue(
             m_transcript->verticalScrollBar()->maximum());
@@ -1579,13 +1807,16 @@ void AiChatGui::FinishStreamingMessage(const QString& text) {
         AppendMessage(QStringLiteral("Assistant"), text);
     } else {
         m_messages[m_streamingMessageIndex].second = text;
-        if (m_streamingBubble) m_streamingBubble->setText(text);
+        if (m_streamingBubble) {
+            m_streamingBubble->SetMarkdownText(text);
+            m_streamingBubble->FinishStreamingFade();
+        }
     }
     m_streamingMessageIndex = -1;
     m_streamingBubble.clear();
 }
 
-void AiChatGui::RenderTranscript() {
+void AiChatGui::RenderTranscript(qsizetype animatedMessageIndex) {
     m_streamingBubble.clear();
     while (QLayoutItem* item = m_messageLayout->takeAt(0)) {
         if (QWidget* widget = item->widget()) widget->deleteLater();
@@ -1593,6 +1824,34 @@ void AiChatGui::RenderTranscript() {
     }
 
     if (m_messages.isEmpty()) {
+        m_messageLayout->addStretch(1);
+
+        auto* emptyState = new QWidget(m_messageList);
+        emptyState->setObjectName(QStringLiteral("AiEmptyState"));
+        emptyState->setAttribute(Qt::WA_StyledBackground, true);
+        auto* emptyLayout = new QVBoxLayout(emptyState);
+        emptyLayout->setContentsMargins(0, 0, 0, 0);
+        emptyLayout->setSpacing(13);
+
+        auto* logo = new QLabel(emptyState);
+        logo->setObjectName(QStringLiteral("AiEmptyLogo"));
+        logo->setAlignment(Qt::AlignCenter);
+        logo->setFixedSize(70, 70);
+        const QPixmap providerLogo = ProviderLogo(CurrentProvider());
+        if (providerLogo.isNull()) {
+            logo->setText(QStringLiteral("AI"));
+        } else {
+            logo->setPixmap(providerLogo);
+        }
+        emptyLayout->addWidget(logo, 0, Qt::AlignHCenter);
+
+        auto* heading = new QLabel(
+            QStringLiteral("What should we work on?"), emptyState);
+        heading->setObjectName(QStringLiteral("AiEmptyHeading"));
+        heading->setAlignment(Qt::AlignCenter);
+        emptyLayout->addWidget(heading, 0, Qt::AlignHCenter);
+
+        m_messageLayout->addWidget(emptyState, 0, Qt::AlignCenter);
         m_messageLayout->addStretch(1);
     } else {
         for (qsizetype i = 0; i < m_messages.size(); ++i) {
@@ -1606,28 +1865,58 @@ void AiChatGui::RenderTranscript() {
             rowLayout->setContentsMargins(0, 0, 0, 0);
             rowLayout->setSpacing(0);
 
-            auto* bubble = new QLabel(row);
-            bubble->setObjectName(error ? QStringLiteral("AiErrorBubble")
-                                        : (userMessage ? QStringLiteral("AiUserBubble")
-                                                       : QStringLiteral("AiAssistantBubble")));
-            bubble->setText(error
-                ? QStringLiteral("Error\n\n%1").arg(m_messages[i].second)
-                : m_messages[i].second);
-            bubble->setTextFormat(Qt::PlainText);
-            bubble->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::LinksAccessibleByMouse);
-            bubble->setWordWrap(true);
-            if (userMessage || error) {
-                bubble->setMaximumWidth(userMessage ? 430 : 560);
-                bubble->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+            QWidget* messageWidget = nullptr;
+            AiMarkdownMessage* assistantBubble = nullptr;
+            if (!userMessage && !error) {
+                auto* markdown = new AiMarkdownMessage(row);
+                markdown->SetMarkdownText(m_messages[i].second);
+                connect(markdown, &QTextBrowser::anchorClicked,
+                        this, &AiChatGui::ActivateReference);
+                if (i == m_streamingMessageIndex) m_streamingBubble = markdown;
+                assistantBubble = markdown;
+                messageWidget = markdown;
             } else {
-                bubble->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+                auto* label = new QLabel(row);
+                label->setObjectName(error ? QStringLiteral("AiErrorBubble")
+                                           : QStringLiteral("AiUserBubble"));
+                label->setText(error
+                    ? QStringLiteral("Error\n\n%1").arg(m_messages[i].second)
+                    : m_messages[i].second);
+                label->setTextFormat(Qt::PlainText);
+                label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+                label->setWordWrap(true);
+                label->setMaximumWidth(userMessage ? 860 : 560);
+                label->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+                const bool hasSentContext = userMessage &&
+                    i < m_messageAttachments.size() &&
+                    !m_messageAttachments[i].isEmpty();
+                if (hasSentContext) {
+                    auto* group = new QWidget(row);
+                    group->setObjectName(QStringLiteral("AiSentMessageGroup"));
+                    group->setMaximumWidth(860);
+                    group->setSizePolicy(QSizePolicy::Preferred,
+                                         QSizePolicy::Minimum);
+                    auto* groupLayout = new QVBoxLayout(group);
+                    groupLayout->setContentsMargins(0, 0, 0, 0);
+                    groupLayout->setSpacing(4);
+                    groupLayout->addWidget(label, 0, Qt::AlignRight);
+                    groupLayout->addWidget(CreateSentContextWidget(
+                        m_messageAttachments[i], group), 0, Qt::AlignRight);
+                    messageWidget = group;
+                } else {
+                    messageWidget = label;
+                }
             }
-            if (i == m_streamingMessageIndex) m_streamingBubble = bubble;
 
             if (userMessage) rowLayout->addStretch(1);
-            rowLayout->addWidget(bubble, userMessage || error ? 0 : 1);
+            rowLayout->addWidget(messageWidget, userMessage || error ? 0 : 1);
             if (error) rowLayout->addStretch(1);
             m_messageLayout->addWidget(row);
+
+            if (i == animatedMessageIndex) {
+                if (assistantBubble) assistantBubble->StartFadeIn();
+                else AnimateWidgetFadeIn(messageWidget);
+            }
         }
         m_messageLayout->addStretch(1);
     }
@@ -1636,6 +1925,68 @@ void AiChatGui::RenderTranscript() {
         m_transcript->verticalScrollBar()->setValue(
             m_transcript->verticalScrollBar()->maximum());
     });
+}
+
+void AiChatGui::ActivateReference(const QUrl& url) {
+    const QString scheme = url.scheme().toLower();
+    if (scheme == QStringLiteral("http") || scheme == QStringLiteral("https")) {
+        QDesktopServices::openUrl(url);
+        return;
+    }
+
+    if (scheme.isEmpty()) {
+        const QString path = ResolveProjectReferencePath(url.path(QUrl::FullyDecoded));
+        if (!path.isEmpty()) {
+            QString target = path;
+            const int line = ReferenceLine(url);
+            if (line > 0) target += QStringLiteral(":%1").arg(line);
+            EditorUtils::OpenInVSCode(target.toStdString());
+            return;
+        }
+    }
+
+    if (scheme != QStringLiteral("rockengine")) {
+        QToolTip::showText(QCursor::pos(), QStringLiteral("Unsupported link"), this);
+        return;
+    }
+
+    const QString kind = url.host().toLower();
+    if (kind == QStringLiteral("object") || kind == QStringLiteral("component") ||
+        kind == QStringLiteral("asset")) {
+        const QString id = url.path(QUrl::FullyDecoded).mid(1);
+        Container* container = Engine::Get()->GetActiveContainer();
+        SelectionManager* selection = container
+            ? container->FindSystem<SelectionManager>() : nullptr;
+        if (!selection || !selection->GetSerializable(id.toStdString())) {
+            QToolTip::showText(QCursor::pos(),
+                QStringLiteral("This reference is no longer available."), this);
+            return;
+        }
+        selection->Select(id.toStdString());
+        return;
+    }
+
+    if (kind == QStringLiteral("file")) {
+        const QUrlQuery query(url);
+        QString reference = query.queryItemValue(
+            QStringLiteral("path"), QUrl::FullyDecoded);
+        if (reference.isEmpty()) reference = url.path(QUrl::FullyDecoded).mid(1);
+
+        const QString path = ResolveProjectReferencePath(reference);
+        if (path.isEmpty()) {
+            QToolTip::showText(QCursor::pos(),
+                QStringLiteral("File reference is missing or outside the project."), this);
+            return;
+        }
+
+        QString target = path;
+        const int line = ReferenceLine(url);
+        if (line > 0) target += QStringLiteral(":%1").arg(line);
+        EditorUtils::OpenInVSCode(target.toStdString());
+        return;
+    }
+
+    QToolTip::showText(QCursor::pos(), QStringLiteral("Unknown RockEngine reference"), this);
 }
 
 void AiChatGui::ClearLoginError() {

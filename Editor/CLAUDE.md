@@ -80,10 +80,17 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   are stored in `QSettings`. All widget-specific visual styling lives in
   `Domain/lib/assets/styling/ai_assistant.qss`; keep
   `AiChatGui.cpp` limited to structure, object names, and behavior.
+- Assistant responses are GitHub-style Markdown rendered by `AiMarkdownMessage`; raw HTML stays
+  disabled. Resolvable editor references use `rockengine://` anchors (`object`, `component`,
+  `asset`, and project-scoped `file`). Links are resolved against the active container at click
+  time, and file targets must remain inside `PROJECT_ROOT`. Never open a model-authored local
+  path without that validation.
 - Chat attachments preserve their source semantics. Ordinary files are read from disk when the
   draft is sent. Hierarchy GameObjects and Inspector components travel as custom ID MIME payloads,
   while materials/textures/sprites resolve through `AssetManager`; those IDs are serialized from
   the current live in-memory object at send time and include their backing path when one exists.
+  A sent user message keeps a display snapshot of those attachments in its collapsible context
+  section; later draft changes must not mutate context already shown in the transcript.
   Component drag sources use `kComponentMimeType` in `utils/DragDropMime.hpp`, alongside the
   existing GameObject and sprite MIME contracts. Attachment drops must always finish as a copy so
   the Hierarchy's internal-move model never removes the dragged row.

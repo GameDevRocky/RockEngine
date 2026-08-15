@@ -23,7 +23,9 @@ class QPropertyAnimation;
 class QPushButton;
 class QScrollArea;
 class QStackedWidget;
+class QUrl;
 class QVBoxLayout;
+class AiMarkdownMessage;
 
 class AiChatGui : public QWidget {
     Q_OBJECT
@@ -84,15 +86,19 @@ private:
     void RemoveAttachment(const QString& key);
     void ClearAttachments();
     void RenderAttachments();
+    QWidget* CreateSentContextWidget(const QVector<Attachment>& attachments,
+                                     QWidget* parent);
     void UpdatePromptHeight();
     QString BuildRequestMessage(const QString& prompt) const;
     QString BuildAttachmentContext(const Attachment& attachment) const;
     void SetAttachmentDropActive(bool active);
     void SubmitPrompt();
-    void AppendMessage(const QString& role, const QString& text, bool error = false);
+    void AppendMessage(const QString& role, const QString& text, bool error = false,
+                       const QVector<Attachment>& attachments = {});
     void UpdateStreamingMessage(const QString& text);
     void FinishStreamingMessage(const QString& text);
-    void RenderTranscript();
+    void RenderTranscript(qsizetype animatedMessageIndex = -1);
+    void ActivateReference(const QUrl& url);
     void ClearLoginError();
     void ShowLoginError(const QString& detail);
 
@@ -102,8 +108,9 @@ private:
     AuthState m_auth[3];
     QVector<QPair<QString, QString>> m_messages;
     QVector<bool> m_messageErrors;
+    QVector<QVector<Attachment>> m_messageAttachments;
     qsizetype m_streamingMessageIndex = -1;
-    QPointer<QLabel> m_streamingBubble;
+    QPointer<AiMarkdownMessage> m_streamingBubble;
 
     QComboBox* m_provider = nullptr;
     QStackedWidget* m_pages = nullptr;
@@ -116,6 +123,7 @@ private:
     QLabel* m_loginHeading = nullptr;
     QLabel* m_loginExplanation = nullptr;
     QLabel* m_loginStatus = nullptr;
+    QPushButton* m_installCli = nullptr;
     QLabel* m_installLink = nullptr;
     QPushButton* m_accountLogin = nullptr;
     QLabel* m_apiSeparator = nullptr;

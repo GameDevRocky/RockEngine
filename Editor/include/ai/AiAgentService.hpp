@@ -19,6 +19,8 @@ public:
     void SignInWithAccount(Provider provider);
     void SignInWithApiKey(Provider provider, QByteArray apiKey);
     void SignOut(Provider provider);
+    void InstallCli(Provider provider);
+    bool IsNpmAvailable() const;
 
     void SendMessage(Provider provider, const QString& model, const QString& message);
     void Cancel();
@@ -41,7 +43,7 @@ signals:
     void RequestFailed(ai::AiAgentService::Provider provider, const QString& error);
 
 private:
-    enum class Operation { None, AccountLogin, ApiKeyLogin, Logout, Chat };
+    enum class Operation { None, AccountLogin, ApiKeyLogin, Logout, Chat, InstallCli };
 
     explicit AiAgentService(QObject* parent = nullptr);
     ~AiAgentService() override;
