@@ -39,14 +39,23 @@ ComponentHeader::ComponentHeader(std::string label, QWidget* parent)
     // The label is a read-only QLineEdit; without this it eats right-clicks with its
     // own copy/paste menu. Defer to us so the delete menu works over the whole header.
     this->label->setContextMenuPolicy(Qt::NoContextMenu);
-    // The label is the broad, non-interactive part of a component header. It is
-    // also the drag handle used to attach this live component to AI chat.
+    // The non-interactive header surfaces all start one component drag. Dropping
+    // that drag back into the Inspector reorders it; dropping it into AI chat
+    // attaches the same live component as context.
     this->label->installEventFilter(this);
-    this->label->setToolTip(QStringLiteral("Drag to attach this component to AI chat"));
+    this->header->installEventFilter(this);
+    this->label->setCursor(Qt::OpenHandCursor);
+    this->header->setCursor(Qt::OpenHandCursor);
+    this->label->setToolTip(QStringLiteral(
+        "Drag to reorder or attach this component to AI chat"));
+    this->header->setToolTip(QStringLiteral(
+        "Drag to reorder or attach this component to AI chat"));
+
 }
 
 bool ComponentHeader::eventFilter(QObject* watched, QEvent* event) {
-    if (watched != label || component_id.empty())
+    const bool isHeaderDragSurface = watched == label || watched == header;
+    if (!isHeaderDragSurface || component_id.empty())
         return CollapsableWidget::eventFilter(watched, event);
 
     if (event->type() == QEvent::MouseButtonPress) {
@@ -54,6 +63,8 @@ bool ComponentHeader::eventFilter(QObject* watched, QEvent* event) {
         if (mouse->button() == Qt::LeftButton) {
             m_dragStart = mouse->position().toPoint();
             m_dragArmed = true;
+            if (auto* surface = qobject_cast<QWidget*>(watched))
+                surface->setCursor(Qt::ClosedHandCursor);
         }
     } else if (event->type() == QEvent::MouseMove) {
         auto* mouse = static_cast<QMouseEvent*>(event);
@@ -69,11 +80,15 @@ bool ComponentHeader::eventFilter(QObject* watched, QEvent* event) {
             m_dragStart = {};
             m_dragArmed = false;
             drag->exec(Qt::CopyAction, Qt::CopyAction);
+            if (auto* surface = qobject_cast<QWidget*>(watched))
+                surface->setCursor(Qt::OpenHandCursor);
             return true;
         }
     } else if (event->type() == QEvent::MouseButtonRelease) {
         m_dragStart = {};
         m_dragArmed = false;
+        if (auto* surface = qobject_cast<QWidget*>(watched))
+            surface->setCursor(Qt::OpenHandCursor);
     }
 
     return CollapsableWidget::eventFilter(watched, event);

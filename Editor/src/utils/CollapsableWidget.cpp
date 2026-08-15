@@ -10,12 +10,12 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
 {
     header = new QWidget(this);
     header->setObjectName("collapsableHeader");
-    header->setStyleSheet("#collapsableHeader { border: 1px solid rgb(67, 67, 67); }");
+    header->setAttribute(Qt::WA_StyledBackground, true);
 
     QHBoxLayout* headerLayout = new QHBoxLayout();
     header->setLayout(headerLayout);
-    headerLayout->setContentsMargins(0, 0, 0, 0);
-    headerLayout->setSpacing(0);
+    headerLayout->setContentsMargins(5, 0, 7, 0);
+    headerLayout->setSpacing(2);
 
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(0, 0, 0, 0);
@@ -38,6 +38,9 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     iconButton->hide();
 
     activeButton = new QCheckBox();
+    activeButton->setObjectName("CollapsableActiveToggle");
+    activeButton->setAutoFillBackground(false);
+    activeButton->setFixedSize(20, 20);
     activeButton->setEnabled(false);
     activeButton->setCheckable(true);
     activeButton->setChecked(false);

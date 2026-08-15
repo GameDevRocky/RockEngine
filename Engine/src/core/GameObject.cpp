@@ -76,6 +76,38 @@ void GameObject::RemoveComponent(Component* comp) {
     this->Notify(GameObject::REMOVE_COMPONENT_EVENT, compId);
 }
 
+bool GameObject::MoveComponent(const std::string& componentId, std::size_t targetIndex) {
+    auto from = std::find(component_ids.begin(), component_ids.end(), componentId);
+    if (from == component_ids.end()) return false;
+
+    Registry* reg = registry ? registry
+                             : (container ? container->FindSystem<Registry>() : nullptr);
+    Component* moved = reg ? reg->Find<Component>(componentId) : nullptr;
+    if (!moved) return false;
+
+    const std::size_t fromIndex = static_cast<std::size_t>(
+        std::distance(component_ids.begin(), from));
+    const std::size_t maximumIndex = component_ids.size() - 1u;
+    targetIndex = std::min(targetIndex, maximumIndex);
+    if (fromIndex == targetIndex) return false;
+
+    const std::string movedId = *from;
+    component_ids.erase(from);
+    component_ids.insert(component_ids.begin() + static_cast<std::ptrdiff_t>(targetIndex),
+                         movedId);
+
+    resolvedComponentsGen = 0;
+    Notify(GameObject::COMPONENT_ORDER_CHANGED_EVENT, movedId);
+    return true;
+}
+
+int GameObject::GetComponentIndex(const std::string& componentId) const {
+    const auto it = std::find(component_ids.begin(), component_ids.end(), componentId);
+    return it == component_ids.end()
+        ? -1
+        : static_cast<int>(std::distance(component_ids.begin(), it));
+}
+
 YAML::Node GameObject::Serialize() {
     YAML::Node node = Serializable::Serialize();
     node["name"] = name;

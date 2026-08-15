@@ -26,6 +26,7 @@ class GameObject : public RuntimeObject {
     static inline const Event ACTIVE_CHANGED_EVENT = GameObject::CreateEvent();
     static inline const Event ADD_COMPONENT_EVENT = GameObject::CreateEvent();
     static inline const Event REMOVE_COMPONENT_EVENT = GameObject::CreateEvent();
+    static inline const Event COMPONENT_ORDER_CHANGED_EVENT = GameObject::CreateEvent();
     static inline const Event SCENE_CHANGED_EVENT = GameObject::CreateEvent();
     static inline const Event NAME_CHANGED_EVENT = GameObject::CreateEvent();
     static inline const Event TAG_CHANGED_EVENT = GameObject::CreateEvent();
@@ -59,6 +60,13 @@ class GameObject : public RuntimeObject {
     // Detaches a component and queues it for deferred destruction (flushed next
     // frame). Fires REMOVE_COMPONENT_EVENT so observers (e.g. the inspector) refresh.
     void RemoveComponent(Component* comp);
+
+    // Moves an attached component to a final index in the authoritative ordered
+    // component list. The order is serialized and also drives component
+    // lifecycle iteration.
+    bool MoveComponent(const std::string& componentId, std::size_t targetIndex);
+    int GetComponentIndex(const std::string& componentId) const;
+    const std::vector<std::string>& GetComponentOrder() const { return component_ids; }
 
 
     // Returns the first attached component castable to T (insertion order), or

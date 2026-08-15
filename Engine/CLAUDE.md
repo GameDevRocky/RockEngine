@@ -105,6 +105,11 @@ Scenes are `.scene` YAML. There is no default/sample scene wired up — scenes l
 drag-and-drop onto the hierarchy panel (`Editor/src/dock-widgets/HierarchyGui.cpp`). The only
 scene checked into the repo is `Domain/sandbox/default.scene`.
 
+`GameObject::component_ids` is an ordered sequence, not just an ownership list. Its order is
+serialized, copied into play mode, displayed by the Inspector, and used by component lifecycle
+iteration. Authoring reorder operations must go through `GameObject::MoveComponent` so its
+resolved-component cache is invalidated and `COMPONENT_ORDER_CHANGED_EVENT` is emitted.
+
 ## Assets
 
 - **`AssetManager`** (singleton, `include/engine/rendering/core/AssetManager.hpp`) — maps of

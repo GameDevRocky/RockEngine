@@ -40,7 +40,10 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   `FileExplorerGui`, `AiChatGui`, `MenuBar`, `RuntimeBar` (play/pause/stop), `BuildWindow` (File → Build
   Game…, a top-level window rather than a dock).
 - **`src/component-widgets/`** — per-component inspector UI pieces: `ComponentHeader`,
-  `ObjectHeader`.
+  `ObjectHeader`. Dragging a `ComponentHeader` label or non-interactive header surface starts
+  the component MIME drag. A drop back in the Inspector commits through
+  `GameObject::MoveComponent` and an
+  undoable `ComponentOrderCommand`; a drop in AI chat attaches component context.
 - **`src/utils/`**:
   - `InspectorVisitor` — an `IVisitor` over `Serializable` that builds property editors from
     an object's reflected fields (the bridge from Engine reflection to Qt widgets).

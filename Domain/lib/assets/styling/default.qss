@@ -886,10 +886,29 @@ SceneTree::branch:selected:hover
     border: none;
 }
 
-CollapsableWidget ObjectHeader
+CollapsableWidget QWidget#collapsableHeader
 {
-    background-color : rgb(173, 59, 59);;
-    border: 1px solid rgb(67, 67, 67);
+    background: rgb(43, 43, 45);
+    border: none;
+    border-radius: 7px;
+}
+
+CollapsableWidget QWidget#collapsableHeader:hover
+{
+    background: rgb(49, 49, 51);
+}
+
+CollapsableWidget QCheckBox#CollapsableActiveToggle,
+CollapsableWidget QCheckBox#CollapsableActiveToggle:hover,
+CollapsableWidget QCheckBox#CollapsableActiveToggle:pressed,
+CollapsableWidget QCheckBox#CollapsableActiveToggle:checked,
+CollapsableWidget QCheckBox#CollapsableActiveToggle:disabled
+{
+    background: transparent;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+    spacing: 0px;
 }
 
 CollapsableWidget QLineEdit#Label 

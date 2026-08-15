@@ -21,6 +21,15 @@
 #include "engine/core/UndoSystem.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/commands/ComponentCommand.hpp"
+#include "engine/commands/ComponentOrderCommand.hpp"
+#include "utils/DragDropMime.hpp"
+#include <algorithm>
+#include <functional>
+#include <QDragEnterEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QApplication>
 #include <QPushButton>
 #include <QSizePolicy>
 #include <QScrollBar>
@@ -48,6 +57,169 @@ namespace {
             delete item;
         }
     }
+
+    // Accepts the same component MIME drag that AI chat consumes, but interprets
+    // a drop back onto the current Inspector as an ordered component move. This
+    // keeps one header gesture useful both inside and outside the Inspector.
+    class ComponentReorderDropController final : public QObject {
+    public:
+        using ReorderCallback =
+            std::function<void(const std::string& movedId,
+                               const std::string& nextVisibleId)>;
+
+        ComponentReorderDropController(QWidget* eventTarget, QWidget* rowsHost,
+                                       ReorderCallback onReorder, QObject* parent)
+            : QObject(parent),
+              m_eventTarget(eventTarget),
+              m_host(rowsHost),
+              m_onReorder(std::move(onReorder)) {
+            if (m_eventTarget) {
+                m_eventTarget->setAcceptDrops(true);
+                // Observe at application level so component drops still win over
+                // nested asset-reference fields, which are drop targets of their
+                // own. Events outside this Inspector viewport pass through.
+                if (QApplication* app = qobject_cast<QApplication*>(
+                        QApplication::instance()))
+                    app->installEventFilter(this);
+            }
+        }
+
+        void RegisterRow(QWidget* row, std::string componentId) {
+            m_rows.push_back(row);
+            m_componentIds.push_back(std::move(componentId));
+        }
+
+    protected:
+        bool eventFilter(QObject* watched, QEvent* event) override {
+            if (!m_eventTarget || !m_host)
+                return QObject::eventFilter(watched, event);
+
+            switch (event->type()) {
+            case QEvent::DragEnter: {
+                auto* drag = static_cast<QDragEnterEvent*>(event);
+                QPoint hostPosition;
+                if (!insideInspector(watched, drag->position().toPoint(), hostPosition) ||
+                    indexOfMime(drag->mimeData()) < 0) break;
+                accept(drag);
+                return true;
+            }
+            case QEvent::DragMove: {
+                auto* drag = static_cast<QDragMoveEvent*>(event);
+                QPoint hostPosition;
+                if (!insideInspector(watched, drag->position().toPoint(), hostPosition) ||
+                    indexOfMime(drag->mimeData()) < 0) break;
+                showIndicatorAt(targetSlot(hostPosition));
+                accept(drag);
+                return true;
+            }
+            case QEvent::DragLeave:
+                hideIndicator();
+                return false;
+            case QEvent::Drop: {
+                auto* drop = static_cast<QDropEvent*>(event);
+                QPoint hostPosition;
+                if (!insideInspector(watched, drop->position().toPoint(), hostPosition))
+                    break;
+                const int from = indexOfMime(drop->mimeData());
+                if (from < 0) break;
+
+                const int slot = targetSlot(hostPosition);
+                const int count = static_cast<int>(m_componentIds.size());
+                const int to = std::clamp(slot > from ? slot - 1 : slot,
+                                          0, count - 1);
+                hideIndicator();
+                accept(drop);
+
+                if (to != from && m_onReorder) {
+                    std::vector<std::string> visibleOrder = m_componentIds;
+                    const std::string movedId =
+                        visibleOrder[static_cast<std::size_t>(from)];
+                    visibleOrder.erase(visibleOrder.begin() + from);
+                    visibleOrder.insert(visibleOrder.begin() + to, movedId);
+                    const std::string nextVisibleId = to + 1 < count
+                        ? visibleOrder[static_cast<std::size_t>(to + 1)]
+                        : std::string{};
+                    m_onReorder(movedId, nextVisibleId);
+                }
+                return true;
+            }
+            default:
+                break;
+            }
+            return QObject::eventFilter(watched, event);
+        }
+
+    private:
+        static void accept(QDropEvent* event) {
+            event->setDropAction(Qt::CopyAction);
+            event->accept();
+        }
+
+        int indexOfMime(const QMimeData* mime) const {
+            if (!mime || !mime->hasFormat(kComponentMimeType)) return -1;
+            const std::string id = QString::fromUtf8(
+                mime->data(kComponentMimeType)).trimmed().toStdString();
+            const auto it = std::find(m_componentIds.begin(), m_componentIds.end(), id);
+            return it == m_componentIds.end()
+                ? -1
+                : static_cast<int>(std::distance(m_componentIds.begin(), it));
+        }
+
+        bool insideInspector(QObject* watched, const QPoint& eventPosition,
+                             QPoint& hostPosition) const {
+            auto* eventWidget = qobject_cast<QWidget*>(watched);
+            if (!eventWidget || !m_eventTarget || !m_host) return false;
+            const QPoint globalPosition = eventWidget->mapToGlobal(eventPosition);
+            const QPoint viewportPosition = m_eventTarget->mapFromGlobal(globalPosition);
+            if (!m_eventTarget->rect().contains(viewportPosition)) return false;
+            hostPosition = m_host->mapFromGlobal(globalPosition);
+            return true;
+        }
+
+        int targetSlot(const QPoint& hostPosition) const {
+            if (!m_host || m_rows.empty()) return 0;
+            const int y = hostPosition.y();
+            for (std::size_t i = 0; i < m_rows.size(); ++i) {
+                const QWidget* row = m_rows[i];
+                if (row && y < row->y() + row->height() / 2)
+                    return static_cast<int>(i);
+            }
+            return static_cast<int>(m_rows.size());
+        }
+
+        void showIndicatorAt(int slot) {
+            if (!m_host) return;
+            if (!m_indicator) {
+                m_indicator = new QWidget(m_host);
+                m_indicator->setFixedHeight(2);
+                m_indicator->setStyleSheet("background: rgb(87, 126, 100);");
+                m_indicator->setAttribute(Qt::WA_TransparentForMouseEvents);
+            }
+
+            int y = 0;
+            if (m_rows.empty()) {
+                y = 0;
+            } else if (slot >= static_cast<int>(m_rows.size())) {
+                y = m_rows.back()->geometry().bottom() + 1;
+            } else if (m_rows[static_cast<std::size_t>(slot)]) {
+                y = m_rows[static_cast<std::size_t>(slot)]->y();
+            }
+            m_indicator->setGeometry(0, y - 1, m_host->width(), 2);
+            m_indicator->show();
+            m_indicator->raise();
+        }
+
+        void hideIndicator() {
+            if (m_indicator) m_indicator->hide();
+        }
+
+        QWidget* m_eventTarget = nullptr;
+        QWidget* m_host = nullptr;
+        ReorderCallback m_onReorder;
+        std::vector<QWidget*> m_rows;
+        std::vector<std::string> m_componentIds;
+        QWidget* m_indicator = nullptr;
+    };
 }
 
 
@@ -269,9 +441,8 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         if (content) objectHeader->AddWidget(content);
         contentLayout->addWidget(objectHeader);
 
-        // Rebuild whenever a component is added or removed on this object (Add
-        // Component button, or a component header's delete menu). Torn down with the
-        // rest of m_inspectorSubs on the next rebuild.
+        // Rebuild whenever a component is added, removed, or reordered on this
+        // object. Torn down with the rest of m_inspectorSubs on the next rebuild.
         {
             std::string capturedId = id;
             int addSub = obj->Subscribe([this, capturedId](std::any) {
@@ -285,7 +456,55 @@ void InspectorGui::OnObjectSelected(const std::string& id)
                 return true;
             }, GameObject::REMOVE_COMPONENT_EVENT);
             m_inspectorSubs.emplace_back(obj, removeSub);
+
+            int orderSub = obj->Subscribe([this](std::any) {
+                // The source ComponentHeader may still be inside QDrag::exec();
+                // defer rebuilding so it survives until that drag unwinds.
+                RequestRebuild();
+                return true;
+            }, GameObject::COMPONENT_ORDER_CHANGED_EVENT);
+            m_inspectorSubs.emplace_back(obj, orderSub);
         }
+
+        // The header starts a normal component MIME drag. This controller catches
+        // that drag only when it returns to this Inspector, adds insertion-line
+        // feedback, and commits the authoritative engine order. The same drag can
+        // still leave the Inspector and be copied into AI chat as context.
+        auto* componentReorder = new ComponentReorderDropController(
+            scrollArea->viewport(),
+            contentWidget,
+            [objectId = obj->GetID()](const std::string& movedId,
+                                      const std::string& nextVisibleId) {
+                Container* active = Engine::Get()->GetActiveContainer();
+                Registry* registry = active ? active->FindSystem<Registry>() : nullptr;
+                GameObject* owner = registry ? registry->Find<GameObject>(objectId) : nullptr;
+                if (!owner) return;
+
+                // Remove the dragged component from the full order, then insert it
+                // immediately before its next visible neighbor (or at the end).
+                // Components without Inspector content retain their relative order.
+                std::vector<std::string> reducedOrder = owner->GetComponentOrder();
+                const auto movedIt = std::find(reducedOrder.begin(), reducedOrder.end(), movedId);
+                if (movedIt == reducedOrder.end()) return;
+                reducedOrder.erase(movedIt);
+
+                std::size_t targetIndex = reducedOrder.size();
+                if (!nextVisibleId.empty()) {
+                    const auto nextIt = std::find(
+                        reducedOrder.begin(), reducedOrder.end(), nextVisibleId);
+                    if (nextIt == reducedOrder.end()) return;
+                    targetIndex = static_cast<std::size_t>(
+                        std::distance(reducedOrder.begin(), nextIt));
+                }
+
+                auto command = ComponentOrderCommand::Capture(owner, movedId);
+                if (!command || !owner->MoveComponent(movedId, targetIndex)) return;
+
+                UndoSystem* undoSystem = active ? active->FindSystem<UndoSystem>() : nullptr;
+                if (undoSystem && command->Commit(owner))
+                    undoSystem->Push(std::move(command));
+            },
+            contentWidget);
 
         for (auto* comp : obj->GetAllComponents()) {
             InspectorVisitor compVisitor;
@@ -299,6 +518,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
             for (auto& r : compVisitor.GetRefreshers())     m_valueRefreshers.push_back(r);
             compWidget->AddWidget(content);
             contentLayout->addWidget(compWidget);
+            componentReorder->RegisterRow(compWidget, comp->GetID());
 
             if (auto* sc = dynamic_cast<ScriptComponent*>(comp)) {
                 std::string capturedId = id;
