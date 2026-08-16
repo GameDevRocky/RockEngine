@@ -116,6 +116,13 @@ QIcon CustomIconProvider::aiSettingsIcon() {
     return TintedAssetIcon("settings_icon.png", QColor(170, 170, 174));
 }
 
+QIcon CustomIconProvider::alertIcon() {
+    // The editor's one error mark — currently the Inspector's missing-script row.
+    // Shared here rather than pointed at from the call site so a second error
+    // surface can't drift onto a different glyph.
+    return AssetIcon("red_alert_icon.png");
+}
+
 QIcon CustomIconProvider::disclosureArrowRightIcon() {
     return AssetIcon("scene_tree_arrow_right.svg");
 }

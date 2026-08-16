@@ -56,8 +56,13 @@ private:
     void ShowContextMenu(const QPoint& pos);
     void CreateNewMaterial();
     void CreateNewScene();
-    // A non-colliding path in the current folder for "<baseName><ext>", adding
-    // " 1", " 2", … before the extension if needed.
+    void CreateNewScript();
+    // A non-colliding path in `folder` for "<baseName><ext>", adding "<sep>1",
+    // "<sep>2", … before the extension if needed. Scripts pass an empty separator
+    // because the file stem is also a Python module name.
+    QString UniquePathIn(const QString& folder, const QString& baseName,
+                         const QString& ext, const QString& separator = " ") const;
+    // The same, in the folder currently being browsed.
     QString UniqueAssetPath(const QString& baseName, const QString& ext) const;
 
     // Delete the currently selected asset(s) after a confirmation prompt. Removes

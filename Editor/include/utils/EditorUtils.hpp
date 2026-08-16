@@ -26,6 +26,7 @@ public:
     static QIcon assetIcon(const std::string& typeName);
     static QIcon aiSendIcon();
     static QIcon aiSettingsIcon();
+    static QIcon alertIcon();
     static QIcon disclosureArrowRightIcon();
     static QIcon disclosureArrowDownIcon();
 };

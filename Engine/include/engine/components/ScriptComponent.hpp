@@ -20,7 +20,8 @@
 // as std::vector<std::string> of IDs, like the scalar str-ref path.
 using ScriptFieldValue = std::variant<
     float, int, bool, std::string, glm::vec2, glm::vec3, glm::vec4,
-    std::vector<int>, std::vector<float>, std::vector<bool>, std::vector<std::string>>;
+    std::vector<int>, std::vector<float>, std::vector<bool>, std::vector<std::string>,
+    std::vector<glm::vec2>, std::vector<glm::vec3>, std::vector<glm::vec4>>;
 
 // A user script class available to attach to a ScriptComponent, identified by
 // its Python module (file stem) and class name. Pybind-free, editor-facing.
@@ -33,14 +34,37 @@ struct ScriptFieldInfo {
     std::string name;
     std::string typeName;      // "float", "int", "bool", "str", "vec2", "vec3", "vec4", "list"
     std::string refTypeName;   // For str fields: "material", "sprite", "gameobject:<ClassName>" (empty = plain string)
-    // For "list" fields only: the element type ("float"/"int"/"bool"/"str") and,
+    // For "list" fields only: the element type (any scalar typeName above) and,
     // when the element is an asset ref, its ref type ("material"/"sprite"/...).
+    //
+    // Everything below this line describes the ELEMENT when typeName == "list",
+    // because that is where a list's Reflect metadata is written:
+    // list[Reflect[float, Range(0, 1), Slider()]] annotates one row, not the
+    // list. Introspection validates it against elementTypeName for exactly that
+    // reason, so the editor can read min/max/step/widget/options the same way
+    // whether it is building a field or a row inside one.
     std::string elementTypeName;
     std::string elementRefTypeName;
     float min = -std::numeric_limits<float>::max();
     float max =  std::numeric_limits<float>::max();
     float step = 0.1f;
     std::string tooltip;
+    // Display-only in the inspector (Reflect[T, ReadOnly()]). The field is still
+    // read and still refreshes as the script mutates it — only editing is blocked.
+    bool readOnly = false;
+    // Reflect[T, Options(...)] — dropdown choices, in display order. Empty for an
+    // ordinary field. Only "int" and "str" fields can carry them; introspection
+    // rejects the rest. optionValues is parallel to optionLabels and is what an
+    // int field stores (defaulting to the index); a str field stores the label
+    // itself, so the values are unused there.
+    std::vector<std::string> optionLabels;
+    std::vector<int> optionValues;
+    // Reflect[T, Slider()] / RangeSlider() — which editor to draw. "" is the
+    // default one for the type. Introspection only sets it once it has checked the
+    // field type and that a Range exists, so the editor can trust it.
+    //   "slider"       — float, dragged along [min, max]
+    //   "range_slider" — vec2 (x = low, y = high) spanning [min, max]
+    std::string widget;
     Observable::Event changeEvent = 0;
 };
 
@@ -74,6 +98,21 @@ public:
     std::string GetTypeName() const override { return "ScriptComponent"; }
     std::string GetScriptModuleName() const { return moduleName; }
     std::string GetScriptClassName() const { return className; }
+
+    // True when a script IS assigned but its class could not be resolved — the .py
+    // file was deleted or renamed, or the class was removed from it. Distinct from
+    // an unassigned component (empty module/class), which is not an error state.
+    //
+    // A missing script keeps its module/class and its last known field values, and
+    // still serializes both, so restoring the file restores the component exactly
+    // (the file watcher does it live). SCRIPT_RELOADED_EVENT fires on every
+    // transition into and out of this state, so the inspector reflects it.
+    bool IsScriptMissing() const { return m_missing; }
+
+    // Absolute path of the .py file backing this script — the resolved module file
+    // when it loaded, otherwise where the module is expected to live. Empty only
+    // when no script is assigned.
+    std::string GetScriptFilePath() const { return m_scriptFilePath; }
 
     // Enumerate every ScriptableComponent subclass under the sandbox scripts
     // folder (for the inspector's script picker). No instance required.
@@ -109,13 +148,25 @@ private:
     void IntrospectFields();
     void ApplyPendingFields();
     void SubscribeFileWatch();   // (re)subscribe hot-reload watch for m_scriptFilePath
+    void UnsubscribeFileWatch();
+    // instantiate -> introspect -> apply pending -> init(). The shared tail of
+    // Init(), SetScript(), and recovery from the missing state.
+    void RebuildInstance();
+    // Enter the missing state: snapshot the live field values as pending (so they
+    // survive and can be restored), drop the Python instance, notify.
+    void MarkMissing();
+    // Read every field off the live instance into m_pendingFieldValues, in the same
+    // YAML shape Deserialize() feeds it. No-op without an instance.
+    void CaptureFieldsAsPending();
     void CallMethod(const char* funcName);
     void CallMethodStr(const char* funcName, const char* arg);
 
-    std::string moduleName;  
+    std::string moduleName;
     std::string className;
     std::string m_scriptFilePath;
+    bool m_missing = false;
     int m_fileWatchSubId = -1;
+    int m_fileDeleteSubId = -1;
     std::unique_ptr<ScriptInstanceData> m_pyData;
     std::vector<ScriptFieldInfo> m_fields;
     std::map<std::string, YAML::Node> m_pendingFieldValues;

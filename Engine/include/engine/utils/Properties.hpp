@@ -10,7 +10,8 @@ namespace Properties {
     enum class Tags {
         NONE,
         COLOR,
-        SLIDER,
+        SLIDER,        // float, dragged along a bounded Range
+        RANGE_SLIDER,  // vec2 (x = low, y = high), two handles on one bounded Range
         ANGLE,
         FILEPATH,
         VECTOR2,

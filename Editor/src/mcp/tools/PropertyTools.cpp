@@ -77,6 +77,12 @@ QJsonValue ToJson(bool v) { return v; }
 QJsonValue ToJson(int v) { return v; }
 QJsonValue ToJson(float v) { return static_cast<double>(v); }
 
+// True for the std::vector alternatives of ScriptFieldValue (list[T] script
+// fields), so the visits below dispatch on "is a list" rather than naming every
+// element type -- there are seven and the set grows with the scripting API.
+template <typename T> constexpr bool kIsVector = false;
+template <typename T> constexpr bool kIsVector<std::vector<T>> = true;
+
 template <typename T>
 QJsonValue VectorToJson(const std::vector<T>& values) {
     QJsonArray result;
@@ -385,13 +391,60 @@ PropertyBag BuildComponentBag(Component* component) {
         const auto fields = s->GetFields();
         for (const ScriptFieldInfo& field : fields) {
             const QString key = "field." + QString::fromStdString(field.name);
+
+            // Reflect[T, Options(...)] surfaces as an MCP enum carrying its choice
+            // list, so an agent picks a name instead of guessing an int -- the
+            // schema contract in Editor/CLAUDE.md calls out enum choices on dynamic
+            // ScriptComponent fields specifically. A str field stores the label; an
+            // int field stores the option's value (see ScriptFieldInfo).
+            //
+            // A list[Reflect[T, Options(...)]] is excluded: its choices describe
+            // each element, so the field is still an array and belongs on the
+            // generic path below -- describing it as a scalar enum would advertise
+            // a get/set contract neither side can honour.
+            if (!field.optionLabels.empty() && field.typeName != "list") {
+                Property p; p.name=key; p.type="enum"; p.description=QString::fromStdString(field.tooltip);
+                QStringList labels; std::vector<int> values;
+                for (std::size_t i=0;i<field.optionLabels.size();++i) {
+                    labels.push_back(QString::fromStdString(field.optionLabels[i]));
+                    values.push_back(i<field.optionValues.size()?field.optionValues[i]:static_cast<int>(i));
+                    p.choices.append(labels.back());
+                }
+                const std::string optionField=field.name;
+                const bool byLabel=(field.typeName=="str");
+                p.get=[s,optionField,labels,values,byLabel]()->QJsonValue{
+                    ScriptFieldValue v=s->GetFieldValue(optionField);
+                    if(byLabel) return std::holds_alternative<std::string>(v)?QJsonValue(QString::fromStdString(std::get<std::string>(v))):QJsonValue(QString());
+                    const int cur=std::holds_alternative<int>(v)?std::get<int>(v):0;
+                    for(std::size_t i=0;i<values.size();++i) if(values[i]==cur) return QJsonValue(labels[static_cast<int>(i)]);
+                    return QJsonValue(cur);   // stored value matches no option -- report it raw rather than lie
+                };
+                if(field.readOnly) p.readOnly=true;
+                else p.set=[s,optionField,labels,values,byLabel](const QJsonValue& value)->QString{
+                    int index=-1;
+                    if(value.isString()){for(int i=0;i<labels.size();++i) if(labels[i].compare(value.toString(),Qt::CaseInsensitive)==0){index=i;break;}}
+                    else if(value.isDouble()&&!byLabel){const int raw=static_cast<int>(value.toDouble());for(std::size_t i=0;i<values.size();++i) if(values[i]==raw){index=static_cast<int>(i);break;}}
+                    else return QString("expected one of: %1").arg(labels.join(", "));
+                    if(index<0) return QString("unknown option; expected one of: %1").arg(labels.join(", "));
+                    if(byLabel) s->SetFieldValue(optionField,labels[index].toStdString());
+                    else        s->SetFieldValue(optionField,values[static_cast<std::size_t>(index)]);
+                    return QString{};
+                };
+                b.Add(std::move(p));
+                continue;
+            }
+
             Property p; p.name=key; p.type=field.typeName=="list" ? "list["+QString::fromStdString(field.elementTypeName)+"]" : QString::fromStdString(field.typeName); p.referenceType=QString::fromStdString(field.refTypeName.empty()?field.elementRefTypeName:field.refTypeName); if(field.typeName=="float"||field.typeName=="int"){p.minimum=field.min;p.maximum=field.max;p.step=field.step;} p.description=QString::fromStdString(field.tooltip);
             const std::string fieldName=field.name;
             const QString referenceType=p.referenceType;
             const std::string fieldType=field.typeName;
             const float fieldMin=field.min, fieldMax=field.max;
-            p.get=[s,fieldName]{ ScriptFieldValue v=s->GetFieldValue(fieldName); return std::visit([](const auto& x)->QJsonValue { using T=std::decay_t<decltype(x)>; if constexpr (std::is_same_v<T,std::vector<int>>||std::is_same_v<T,std::vector<float>>||std::is_same_v<T,std::vector<bool>>||std::is_same_v<T,std::vector<std::string>>) return VectorToJson(x); else return ToJson(x); },v); };
-            p.set=[s,fieldName,referenceType,fieldType,fieldMin,fieldMax](const QJsonValue& value){ ScriptFieldValue current=s->GetFieldValue(fieldName); QString error; ScriptFieldValue parsed=std::visit([&](const auto& old)->ScriptFieldValue { using T=std::decay_t<decltype(old)>; T n{}; if constexpr(std::is_same_v<T,bool>) error=ParseBool(value,n); else if constexpr(std::is_same_v<T,int>) error=ParseInt(value,n); else if constexpr(std::is_same_v<T,float>) error=ParseFloat(value,n); else if constexpr(std::is_same_v<T,std::string>) { error=ParseString(value,n); if(error.isEmpty())error=ValidateReference(referenceType,n); } else if constexpr(std::is_same_v<T,glm::vec2>) error=ParseVec<2>(value,n); else if constexpr(std::is_same_v<T,glm::vec3>) error=ParseVec<3>(value,n); else if constexpr(std::is_same_v<T,glm::vec4>) error=ParseVec<4>(value,n); else { if(!value.isArray()){error="expected an array";return n;} for(const QJsonValue& x:value.toArray()){typename T::value_type item{}; if constexpr(std::is_same_v<typename T::value_type,bool>) error=ParseBool(x,item); else if constexpr(std::is_same_v<typename T::value_type,int>) error=ParseInt(x,item); else if constexpr(std::is_same_v<typename T::value_type,float>) error=ParseFloat(x,item); else {error=ParseString(x,item);if(error.isEmpty())error=ValidateReference(referenceType,item);} if(!error.isEmpty()) break; n.push_back(item);} } return n; },current); if(error.isEmpty()&&fieldType=="float"){float n=std::get<float>(parsed);if(n<fieldMin||n>fieldMax)error=QString("must be between %1 and %2").arg(fieldMin).arg(fieldMax);} if(error.isEmpty()&&fieldType=="int"){int n=std::get<int>(parsed);if(n<fieldMin||n>fieldMax)error=QString("must be between %1 and %2").arg(fieldMin).arg(fieldMax);} if(error.isEmpty()) s->SetFieldValue(fieldName,parsed); return error; };
+            p.get=[s,fieldName]{ ScriptFieldValue v=s->GetFieldValue(fieldName); return std::visit([](const auto& x)->QJsonValue { using T=std::decay_t<decltype(x)>; if constexpr (kIsVector<T>) return VectorToJson(x); else return ToJson(x); },v); };
+            // Reflect[T, ReadOnly()] fields stay describable but unwritable, so the
+            // MCP schema matches what the Inspector allows (see this file's contract
+            // in Editor/CLAUDE.md). Leaving p.set unassigned is what makes
+            // set_component_property and the batch setter reject it.
+            if(field.readOnly) p.readOnly=true; else p.set=[s,fieldName,referenceType,fieldType,fieldMin,fieldMax](const QJsonValue& value){ ScriptFieldValue current=s->GetFieldValue(fieldName); QString error; ScriptFieldValue parsed=std::visit([&](const auto& old)->ScriptFieldValue { using T=std::decay_t<decltype(old)>; T n{}; if constexpr(std::is_same_v<T,bool>) error=ParseBool(value,n); else if constexpr(std::is_same_v<T,int>) error=ParseInt(value,n); else if constexpr(std::is_same_v<T,float>) error=ParseFloat(value,n); else if constexpr(std::is_same_v<T,std::string>) { error=ParseString(value,n); if(error.isEmpty())error=ValidateReference(referenceType,n); } else if constexpr(std::is_same_v<T,glm::vec2>) error=ParseVec<2>(value,n); else if constexpr(std::is_same_v<T,glm::vec3>) error=ParseVec<3>(value,n); else if constexpr(std::is_same_v<T,glm::vec4>) error=ParseVec<4>(value,n); else { if(!value.isArray()){error="expected an array";return n;} for(const QJsonValue& x:value.toArray()){typename T::value_type item{}; if constexpr(std::is_same_v<typename T::value_type,bool>) error=ParseBool(x,item); else if constexpr(std::is_same_v<typename T::value_type,int>) error=ParseInt(x,item); else if constexpr(std::is_same_v<typename T::value_type,float>) error=ParseFloat(x,item); else if constexpr(std::is_same_v<typename T::value_type,glm::vec2>) error=ParseVec<2>(x,item); else if constexpr(std::is_same_v<typename T::value_type,glm::vec3>) error=ParseVec<3>(x,item); else if constexpr(std::is_same_v<typename T::value_type,glm::vec4>) error=ParseVec<4>(x,item); else {error=ParseString(x,item);if(error.isEmpty())error=ValidateReference(referenceType,item);} if(!error.isEmpty()) break; n.push_back(item);} } return n; },current); if(error.isEmpty()&&fieldType=="float"){float n=std::get<float>(parsed);if(n<fieldMin||n>fieldMax)error=QString("must be between %1 and %2").arg(fieldMin).arg(fieldMax);} if(error.isEmpty()&&fieldType=="int"){int n=std::get<int>(parsed);if(n<fieldMin||n>fieldMax)error=QString("must be between %1 and %2").arg(fieldMin).arg(fieldMax);} if(error.isEmpty()) s->SetFieldValue(fieldName,parsed); return error; };
             // PropertyBag intentionally keeps storage private; use the generic insertion hook below.
             b.Add(std::move(p));
         }

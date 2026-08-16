@@ -58,7 +58,8 @@ namespace {
     // the field's type annotation changed (e.g. list[float] -> int). Keeps the
     // stored value castable to the declared type so the inspector never casts a
     // list to an int (which threw an uncaught pybind cast_error and crashed).
-    bool ValueMatchesFieldType(const py::object& cur, const std::string& typeName) {
+    bool ValueMatchesFieldType(const py::object& cur, const std::string& typeName,
+                               const std::string& elementTypeName = "") {
         if (typeName == "bool")  return py::isinstance<py::bool_>(cur);
         // bool subclasses int in Python, so exclude it from int/float.
         if (typeName == "int")   return py::isinstance<py::int_>(cur) && !py::isinstance<py::bool_>(cur);
@@ -67,7 +68,18 @@ namespace {
         // "str" covers plain strings and ref fields, whose value is None (unassigned)
         // or a handler object carrying an .id — all valid, so none are reset.
         if (typeName == "str")   return cur.is_none() || py::isinstance<py::str>(cur) || py::hasattr(cur, "id");
-        if (typeName == "list")  return py::isinstance<py::list>(cur);
+        if (typeName == "list") {
+            if (!py::isinstance<py::list>(cur)) return false;
+            // A list carried across a hot-reload keeps its old ELEMENTS, and being
+            // a list is not enough to make them readable: vec elements are read by
+            // attribute (.x/.y/.z), so a list[float] re-annotated as
+            // list[Vector3] would throw on every read and show up as an empty
+            // list. One element decides it — a list of mixed types cannot be
+            // authored from the inspector or expressed by the annotation.
+            py::list elements = py::reinterpret_borrow<py::list>(cur);
+            if (elements.empty() || elementTypeName.empty()) return true;
+            return ValueMatchesFieldType(elements[0].cast<py::object>(), elementTypeName);
+        }
         if (typeName == "vec2" || typeName == "vec3" || typeName == "vec4") {
             if (cur.is_none()) return false;
             std::string qual;
@@ -112,10 +124,67 @@ namespace {
         return el.cast<std::string>();
     }
 
+    // Normalize a path exactly the way file_watcher.py normalizes the paths it
+    // reports (os.path.normcase(os.path.abspath(p))), so the two can be compared
+    // as plain strings. Going through Python rather than std::filesystem is the
+    // point: matching its casing/separator rules by hand is what would drift.
+    // Caller must hold the GIL.
+    std::string NormalizeWatchPath(const std::string& path) {
+        if (path.empty()) return path;
+        try {
+            py::object os_path = py::module::import("os").attr("path");
+            return os_path.attr("normcase")(os_path.attr("abspath")(path)).cast<std::string>();
+        } catch (const py::error_already_set&) {
+            return path;
+        }
+    }
+
+    // Component count of a "vec2"/"vec3"/"vec4" type name, 0 for anything else.
+    // Lets the list paths below treat the three vector widths as one case.
+    int VecWidth(const std::string& typeName) {
+        if (typeName == "vec2") return 2;
+        if (typeName == "vec3") return 3;
+        if (typeName == "vec4") return 4;
+        return 0;
+    }
+
+    // Read the first `n` components of a Python Vector2/3/4 handler. Widened to a
+    // vec4 so one signature covers all three; the caller truncates.
+    glm::vec4 ReadVecObject(const py::handle& val, int n) {
+        static const char* kComponents[4] = { "x", "y", "z", "w" };
+        glm::vec4 out(0.0f);
+        for (int i = 0; i < n; ++i)
+            out[i] = py::getattr(val, kComponents[i]).cast<float>();
+        return out;
+    }
+
+    // The inverse: build the Python Vector`n` from a widened vec4.
+    py::object MakeVecObject(const glm::vec4& v, int n) {
+        py::module re_math = py::module::import("Domain.lib.utils.re_math");
+        if (n <= 2) return re_math.attr("Vector2")(v.x, v.y);
+        if (n == 3) return re_math.attr("Vector3")(v.x, v.y, v.z);
+        return re_math.attr("Vector4")(v.x, v.y, v.z, v.w);
+    }
+
     // Read a Python list attribute into the matching ScriptFieldValue vector
     // alternative, dispatching on the field's element type.
     ScriptFieldValue ReadListField(const py::object& val, const ScriptFieldInfo& f) {
         const bool isList = py::isinstance<py::list>(val);
+        if (f.elementTypeName == "vec2") {
+            std::vector<glm::vec2> out;
+            if (isList) for (auto el : val) out.push_back(glm::vec2(ReadVecObject(el, 2)));
+            return out;
+        }
+        if (f.elementTypeName == "vec3") {
+            std::vector<glm::vec3> out;
+            if (isList) for (auto el : val) out.push_back(glm::vec3(ReadVecObject(el, 3)));
+            return out;
+        }
+        if (f.elementTypeName == "vec4") {
+            std::vector<glm::vec4> out;
+            if (isList) for (auto el : val) out.push_back(ReadVecObject(el, 4));
+            return out;
+        }
         if (f.elementTypeName == "float") {
             std::vector<float> out;
             if (isList) for (auto el : val) out.push_back(el.cast<float>());
@@ -213,10 +282,20 @@ YAML::Node ScriptComponent::Serialize()
                     fieldsNode[field.name].push_back(py::getattr(val, "w").cast<float>());
                 } else if (field.typeName == "list") {
                     // Variable-length sequence of the element type.
+                    const int elemWidth = VecWidth(field.elementTypeName);
                     YAML::Node seq(YAML::NodeType::Sequence);
                     if (py::isinstance<py::list>(val)) {
                         for (auto el : val) {
-                            if (field.elementTypeName == "float")
+                            if (elemWidth > 0) {
+                                // Vector elements nest: the scalar vecN branches
+                                // above write a flat sequence of components, so a
+                                // list of them is a sequence of those.
+                                const glm::vec4 c = ReadVecObject(el, elemWidth);
+                                YAML::Node comps(YAML::NodeType::Sequence);
+                                for (int i = 0; i < elemWidth; ++i) comps.push_back(c[i]);
+                                seq.push_back(comps);
+                            }
+                            else if (field.elementTypeName == "float")
                                 seq.push_back(el.cast<float>());
                             else if (field.elementTypeName == "int")
                                 seq.push_back(el.cast<int>());
@@ -237,6 +316,19 @@ YAML::Node ScriptComponent::Serialize()
         if (fieldsNode.size() > 0) {
             node["fields"] = fieldsNode;
         }
+    }
+    else if (!m_pendingFieldValues.empty()) {
+        // No live instance to read from — either the script is missing, or this
+        // component was deserialized and never initialized. Either way the pending
+        // values are the last thing known about these fields, and they are already
+        // in exactly the shape Deserialize() expects. Writing them back out is what
+        // keeps a missing script's authored values from being erased by the next
+        // scene save; without this, deleting a .py file and saving would silently
+        // discard every value tuned on it.
+        YAML::Node fieldsNode;
+        for (const auto& [name, value] : m_pendingFieldValues)
+            fieldsNode[name] = value;
+        node["fields"] = fieldsNode;
     }
 
     return node;
@@ -259,29 +351,112 @@ void ScriptComponent::Deserialize(const YAML::Node& node)
 }
  
 void ScriptComponent::Init(){
-    InstantiateScript();
-    IntrospectFields();
-    ApplyPendingFields();
-    CallMethod("init");
-
+    RebuildInstance();
     SubscribeFileWatch();
 
     state = State::Initialized;
 }
 
-// Subscribe to FileWatcherSystem for hot-reload of the current script file.
+// Subscribe to FileWatcherSystem for hot-reload of the current script file, and
+// for its disappearance. InstantiateScript leaves m_scriptFilePath pointing at
+// where the module is expected to live even when the import failed, so a missing
+// script is watched too — that is what lets restoring the file heal it live.
 void ScriptComponent::SubscribeFileWatch()
 {
     if (m_scriptFilePath.empty()) return;
     auto* fws = container ? container->FindSystem<FileWatcherSystem>() : nullptr;
     if (!fws) return;
     m_fileWatchSubId = fws->Subscribe([this](std::any data) {
-        if (std::any_cast<std::string>(data) == m_scriptFilePath)
+        if (std::any_cast<std::string>(data) != m_scriptFilePath) return true;
+        // A missing script has no instance to transfer state from, and its module
+        // may never have imported at all, so ApplyHotReload has nothing to work
+        // with — rebuild from scratch instead.
+        if (m_missing) {
+            RebuildInstance();
+            // Unconditional: a successful rebuild clears the banner, and a failed
+            // one keeps it — either way the inspector must re-read the state.
+            Notify(SCRIPT_RELOADED_EVENT);
+        } else {
             ApplyHotReload();
+        }
         return true;
     }, FileWatcherSystem::FILE_CHANGED_EVENT);
+
+    m_fileDeleteSubId = fws->Subscribe([this](std::any data) {
+        if (std::any_cast<std::string>(data) == m_scriptFilePath)
+            MarkMissing();
+        return true;
+    }, FileWatcherSystem::FILE_DELETED_EVENT);
 }
-void ScriptComponent::Awake(){ 
+
+void ScriptComponent::UnsubscribeFileWatch()
+{
+    auto* fws = container ? container->FindSystem<FileWatcherSystem>() : nullptr;
+    if (fws) {
+        if (m_fileWatchSubId  != -1) fws->Unsubscribe(m_fileWatchSubId);
+        if (m_fileDeleteSubId != -1) fws->Unsubscribe(m_fileDeleteSubId);
+    }
+    m_fileWatchSubId  = -1;
+    m_fileDeleteSubId = -1;
+}
+
+void ScriptComponent::RebuildInstance()
+{
+    InstantiateScript();
+    IntrospectFields();
+    ApplyPendingFields();
+    CallMethod("init");
+}
+
+void ScriptComponent::MarkMissing()
+{
+    if (m_missing) return;
+
+    // Trust the filesystem over the event. A rename reports a deletion of the old
+    // path, and several editors save by writing a temp file and renaming it over
+    // the target — both of which can name a path that exists again by the time this
+    // runs, one frame later. Only a path that is really gone is a missing script.
+    if (!m_scriptFilePath.empty() && std::filesystem::exists(m_scriptFilePath)) return;
+
+    // Preserve whatever the user tuned before the instance goes away. These are
+    // re-applied verbatim by ApplyPendingFields when the script comes back, and
+    // written straight back out by Serialize() in the meantime.
+    CaptureFieldsAsPending();
+
+    if (Py_IsInitialized() && m_pyData) {
+        py::gil_scoped_acquire gil;
+        // Clearing the cached bound methods matters as much as clearing the
+        // instance: updateFn and friends hold their own strong reference, so a
+        // deleted script would otherwise keep ticking every frame.
+        m_pyData->scriptInstance = py::object();
+        RefreshMethodCache();
+    }
+    m_fields.clear();
+    m_lastPolledValues.clear();
+    m_missing = true;
+
+    std::cerr << "[ScriptComponent] Script '" << className << "' is missing — "
+              << m_scriptFilePath << " no longer exists.\n";
+
+    Notify(SCRIPT_RELOADED_EVENT);
+}
+
+void ScriptComponent::CaptureFieldsAsPending()
+{
+    if (m_fields.empty()) return;
+    auto& inst = m_pyData->scriptInstance;
+    if (!inst || inst.is_none()) return;
+
+    // Serialize() already marshals every field type (lists and refs included) into
+    // the shape m_pendingFieldValues holds, so reuse it rather than maintaining a
+    // second copy of that marshalling here — the same reasoning as Copy().
+    YAML::Node serialized = Serialize();
+    if (!serialized["fields"]) return;
+    for (auto it = serialized["fields"].begin(); it != serialized["fields"].end(); ++it)
+        m_pendingFieldValues[it->first.as<std::string>()] = it->second;
+}
+
+void ScriptComponent::Awake(){
     if (state >= State::Awakened) return;
     if (container->GetMode() == Container::Mode::Runtime){ 
         CallMethod("awake");
@@ -328,12 +503,7 @@ void ScriptComponent::Shutdown() {
     if (container->GetMode() == Container::Mode::Runtime)
         CallMethod("on_shutdown");
 
-    // Unsubscribe from FileWatcherSystem
-    if (m_fileWatchSubId != -1) {
-        auto* fws = container->FindSystem<FileWatcherSystem>();
-        if (fws) fws->Unsubscribe(m_fileWatchSubId);
-        m_fileWatchSubId = -1;
-    }
+    UnsubscribeFileWatch();
 
     if (Py_IsInitialized() && m_pyData) {
         py::gil_scoped_acquire gil;
@@ -363,11 +533,20 @@ void ScriptComponent::InstantiateScript()
     py::gil_scoped_acquire gil;
 
     if (moduleName.empty() || className.empty()) {
-        std::cerr << "[ScriptComponent] Module or class empty\n";
+        // Unassigned, not broken — the inspector's script picker covers this case,
+        // so it is deliberately not the missing-script error state.
         m_pyData->scriptInstance = py::none();
         RefreshMethodCache();
+        m_missing = false;
+        m_scriptFilePath.clear();
         return;
     }
+
+    // Where the module is expected to live, established up front so a failed
+    // import still has a path to watch for the file coming back. A successful
+    // import overwrites it with the module's real __file__ below.
+    m_scriptFilePath = NormalizeWatchPath(
+        GetAssetPath("Domain/sandbox/scripts/" + moduleName + ".py"));
 
     try {
         EnsureScriptPathsOnSysPath();
@@ -393,26 +572,30 @@ void ScriptComponent::InstantiateScript()
             std::cerr << "[ScriptComponent] Warning: GameObject not found for script.\n";
 
         // Store normalized file path for hot-reload matching
-        py::module os = py::module::import("os");
-        py::object os_path = os.attr("path");
         if (sys_modules.contains(moduleName.c_str())) {
             py::object mod_file = py::getattr(sys_modules[moduleName.c_str()], "__file__", py::none());
-            if (!mod_file.is_none()) {
-                m_scriptFilePath = os_path.attr("normcase")(
-                    os_path.attr("abspath")(mod_file)).cast<std::string>();
-            }
+            if (!mod_file.is_none())
+                m_scriptFilePath = NormalizeWatchPath(mod_file.cast<std::string>());
         }
 
+        m_missing = false;
     }
     catch (const py::error_already_set& e) {
+        // The class could not be resolved: a deleted/renamed .py file, a class
+        // removed from it, or a script that fails at import. All of them leave the
+        // component pointing at something that isn't there, which is the missing
+        // state — module/class and pending field values are kept so restoring the
+        // file restores the component.
         std::cerr << "[ScriptComponent] Python error in InstantiateScript():\n"
             << e.what() << std::endl;
         m_pyData->scriptInstance = py::none();
+        m_missing = true;
     }
     catch (const std::exception& e) {
         std::cerr << "[ScriptComponent] C++ exception in InstantiateScript():\n"
             << e.what() << std::endl;
         m_pyData->scriptInstance = py::none();
+        m_missing = true;
     }
     RefreshMethodCache();
 }
@@ -486,12 +669,8 @@ void ScriptComponent::SetScript(const std::string& module, const std::string& cl
 {
     if (module == moduleName && cls == className) return;
 
-    // Tear down the current instance's hot-reload watch.
-    if (m_fileWatchSubId != -1) {
-        auto* fws = container ? container->FindSystem<FileWatcherSystem>() : nullptr;
-        if (fws) fws->Unsubscribe(m_fileWatchSubId);
-        m_fileWatchSubId = -1;
-    }
+    // Tear down the current instance's hot-reload / deletion watch.
+    UnsubscribeFileWatch();
 
     // Drop the old Python instance and its introspected/pending state — the
     // pending values belonged to the previous script and no longer apply.
@@ -502,16 +681,15 @@ void ScriptComponent::SetScript(const std::string& module, const std::string& cl
     }
     m_fields.clear();
     m_pendingFieldValues.clear();
+    m_lastPolledValues.clear();
     m_scriptFilePath.clear();
+    m_missing = false;
 
     moduleName = module;
     className  = cls;
 
     // Same sequence as Init(): instantiate → introspect → apply → init → watch.
-    InstantiateScript();
-    IntrospectFields();
-    ApplyPendingFields();
-    CallMethod("init");
+    RebuildInstance();
     SubscribeFileWatch();
 
     Notify(SCRIPT_RELOADED_EVENT);
@@ -542,6 +720,27 @@ void ScriptComponent::IntrospectFields()
             info.step = d["step"].cast<float>();
             info.tooltip = d["tooltip"].cast<std::string>();
 
+            // Guarded like the other optional keys below: a script module left
+            // over from before this key existed would otherwise KeyError here and
+            // take the whole field list with it.
+            if (d.contains("read_only"))
+                info.readOnly = d["read_only"].cast<bool>();
+            if (d.contains("widget"))
+                info.widget = d["widget"].cast<std::string>();
+
+            // Read element-wise rather than through pybind11/stl.h: this TU
+            // deliberately does its own list marshalling everywhere (see
+            // ReadListField), and pulling in stl.h would change how every
+            // container in it converts.
+            if (d.contains("option_labels")) {
+                for (auto label : d["option_labels"])
+                    info.optionLabels.push_back(label.cast<std::string>());
+            }
+            if (d.contains("option_values")) {
+                for (auto value : d["option_values"])
+                    info.optionValues.push_back(value.cast<int>());
+            }
+
             if (!d["min"].is_none())
                 info.min = d["min"].cast<float>();
 
@@ -568,7 +767,7 @@ void ScriptComponent::IntrospectFields()
             bool applyDefault = !py::hasattr(scriptInstance, info.name.c_str());
             if (!applyDefault) {
                 py::object cur = py::getattr(scriptInstance, info.name.c_str());
-                applyDefault = !ValueMatchesFieldType(cur, info.typeName);
+                applyDefault = !ValueMatchesFieldType(cur, info.typeName, info.elementTypeName);
             }
             if (applyDefault) {
                 py::object defaultVal = d["default"];
@@ -685,10 +884,23 @@ void ScriptComponent::ApplyPendingFields()
                     py::setattr(scriptInstance, field.name.c_str(), vec4Cls(seq[0], seq[1], seq[2], seq[3]));
                 }
             } else if (field.typeName == "list") {
+                const int elemWidth = VecWidth(field.elementTypeName);
                 py::list lst;
                 if (val.IsSequence()) {
                     for (const auto& elNode : val) {
-                        if (field.elementTypeName == "float")
+                        if (elemWidth > 0) {
+                            // Nested sequence of components, as Serialize wrote it.
+                            // A short or malformed entry keeps its leading
+                            // components and zeroes the rest rather than dropping
+                            // the whole row and silently shortening the list.
+                            auto comps = elNode.IsSequence() ? elNode.as<std::vector<float>>()
+                                                             : std::vector<float>{};
+                            glm::vec4 v(0.0f);
+                            for (int i = 0; i < elemWidth && i < static_cast<int>(comps.size()); ++i)
+                                v[i] = comps[i];
+                            lst.append(MakeVecObject(v, elemWidth));
+                        }
+                        else if (field.elementTypeName == "float")
                             lst.append(py::float_(elNode.as<float>()));
                         else if (field.elementTypeName == "int")
                             lst.append(py::int_(elNode.as<int>()));
@@ -912,6 +1124,18 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
             } else if constexpr (std::is_same_v<T, std::vector<std::string>>) {
                 py::list lst;
                 for (const auto& s : v) lst.append(MakeListElement(s, elementRefType));
+                py::setattr(scriptInstance, name.c_str(), lst);
+            } else if constexpr (std::is_same_v<T, std::vector<glm::vec2>>) {
+                py::list lst;
+                for (const auto& x : v) lst.append(MakeVecObject(glm::vec4(x, 0.0f, 0.0f), 2));
+                py::setattr(scriptInstance, name.c_str(), lst);
+            } else if constexpr (std::is_same_v<T, std::vector<glm::vec3>>) {
+                py::list lst;
+                for (const auto& x : v) lst.append(MakeVecObject(glm::vec4(x, 0.0f), 3));
+                py::setattr(scriptInstance, name.c_str(), lst);
+            } else if constexpr (std::is_same_v<T, std::vector<glm::vec4>>) {
+                py::list lst;
+                for (const auto& x : v) lst.append(MakeVecObject(x, 4));
                 py::setattr(scriptInstance, name.c_str(), lst);
             }
         }, value);

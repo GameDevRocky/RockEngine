@@ -16,6 +16,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QComboBox>
+#include <QSlider>
 #include <QStyle>
 #include <QApplication>
 #include <QMouseEvent>
@@ -55,6 +56,40 @@ public:
     virtual T    GetValue() = 0;
 };
 
+// True when a descriptor asks for a display-only field, by either of the two
+// routes that mean it. PropDesc::tag holds a single value, so Tags::READONLY and
+// a type tag such as Tags::FLOAT are mutually exclusive -- a caller that needs
+// both a type and read-only sets the PropDesc::ReadOnly() flag alongside its type
+// tag instead. Script fields declared Reflect[T, ReadOnly()] arrive by that route.
+//
+// Widgets below apply this two different ways, deliberately. A control with a real
+// read-only mode (QLineEdit, QAbstractSpinBox) uses it: edits are blocked while the
+// value stays at full contrast and stays selectable/copyable, which is what
+// read-only rows in the Camera and AudioClip inspectors have always looked like.
+// A control with no such mode (checkbox, combo box, colour and picker buttons) is
+// disabled instead, which the stylesheet already dresses properly -- see
+// .QCheckBox::indicator:checked:disabled, which keeps a disabled `true` visibly
+// checked. Don't unify these by disabling the spin boxes too: that would grey out
+// every existing read-only row in the editor.
+inline bool IsReadOnly(const Properties::PropDesc& desc) {
+    return desc.readOnly || desc.tag == Properties::Tags::READONLY;
+}
+
+// True when a descriptor declares real bounds, i.e. Range() was called with
+// something narrower than the whole float line. PropDesc::min/max default to
+// -/+FLT_MAX rather than NaN, so std::isfinite would answer "yes" for a field
+// that was never given a range -- this compares against those sentinels instead.
+//
+// This is the gate on both slider widgets. A slider is a position along a span,
+// so without a span there is nothing to draw and nothing a drag could mean; the
+// factory falls back to the ordinary numeric editor rather than rendering a
+// control whose handle would never visibly move.
+inline bool HasFiniteRange(const Properties::PropDesc& desc) {
+    return desc.min > -std::numeric_limits<float>::max()
+        && desc.max <  std::numeric_limits<float>::max()
+        && desc.max >  desc.min;
+}
+
 // Shared setup for every numeric field in the inspector -- a lone float and each
 // component of a vector -- so how they look is decided in one place rather than
 // in four constructors that had already drifted apart.
@@ -75,6 +110,12 @@ inline void ConfigureSpinBox(QDoubleSpinBox* spin, const Properties::PropDesc& d
     spin->setRange(desc.min, desc.max);
     spin->setSingleStep(desc.step);
     spin->setButtonSymbols(QAbstractSpinBox::NoButtons);
+    // Read-only lives here rather than in each constructor so it reaches the
+    // vector widgets too -- they build their components through this helper and
+    // previously ignored the flag entirely. QAbstractSpinBox::stepEnabled()
+    // returns StepNone when read-only, so the wheel and arrow keys are covered
+    // as well as typing.
+    if (IsReadOnly(desc)) spin->setReadOnly(true);
 }
 
 class FloatPropertyWidget : public PropertyWidget<float> {
@@ -84,12 +125,6 @@ public:
         ConfigureSpinBox(spin, desc);
         spin->setDecimals(desc.tag == Properties::Tags::INT ? 0 : 2);
         spin->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-
-        // PropDesc::tag holds a single value, so Tags::READONLY and a type tag such
-        // as Tags::FLOAT are mutually exclusive. Accept either signal so a caller can
-        // keep its type tag and still be display-only via PropDesc::ReadOnly().
-        if (desc.readOnly || desc.tag == Properties::Tags::READONLY)
-            spin->setReadOnly(true);
 
         QObject::connect(spin, &QDoubleSpinBox::valueChanged, [this](double val) {
             if (onChanged) onChanged(static_cast<float>(val));
@@ -112,6 +147,288 @@ public:
 
 private:
     QPointer<QDoubleSpinBox> spin;
+};
+
+
+// Decimals to show for a field whose increment is `step`. Mirrors what the plain
+// float row does (2 places) while letting a coarse slider stop pretending it has
+// hundredths -- Step(1) on a 0..100 range should read "42", not "42.00".
+inline int DecimalsForStep(float step) {
+    if (step >= 1.0f)  return 0;
+    if (step >= 0.1f)  return 1;
+    return 2;
+}
+
+
+// A bounded float: drag handle on the left, exact number on the right. The number
+// is a real spin box, not a label, because a slider alone cannot express "exactly
+// 0.75" and every other numeric row in the inspector is typeable.
+//
+// Reachable only through Tags::SLIDER *and* a bounded Range -- see HasFiniteRange
+// and the factory below.
+class SliderPropertyWidget : public PropertyWidget<float> {
+public:
+    explicit SliderPropertyWidget(const Properties::PropDesc& desc)
+        : m_min(desc.min), m_max(desc.max),
+          m_step(desc.step > 0.0f ? desc.step : 0.01f)
+    {
+        // QSlider is integer-only, so the span is quantised into step-sized ticks:
+        // the handle then lands exactly on the increments the field declared.
+        // Capped because a tiny Step over a wide Range would otherwise ask for
+        // millions of positions, where a single pixel of drag skips hundreds of
+        // values and the handle can never address most of them anyway.
+        m_ticks = std::clamp(
+            static_cast<int>(std::lround((m_max - m_min) / m_step)), 1, 10000);
+
+        m_container = new QWidget();
+        m_container->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        auto* layout = new QHBoxLayout(m_container);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(6);
+
+        m_slider = new QSlider(Qt::Horizontal);
+        m_slider->setRange(0, m_ticks);
+        m_slider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        layout->addWidget(m_slider, 1);
+
+        m_spin = new QDoubleSpinBox();
+        ConfigureSpinBox(m_spin, desc);
+        m_spin->setDecimals(DecimalsForStep(m_step));
+        m_spin->setFixedWidth(54);
+        m_spin->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        layout->addWidget(m_spin);
+
+        // ConfigureSpinBox already made the number read-only; the slider has no
+        // read-only mode of its own, so it is disabled (see IsReadOnly).
+        if (IsReadOnly(desc)) m_slider->setEnabled(false);
+
+        // Each direction writes the other with signals blocked. Without that the
+        // echo comes straight back -- slider moves spin moves slider -- and the
+        // rounding through the tick grid makes it oscillate rather than settle.
+        QObject::connect(m_slider, &QSlider::valueChanged, [this](int tick) {
+            if (m_syncing || m_spin.isNull()) return;
+            m_syncing = true;
+            const float v = FromTick(tick);
+            m_spin->blockSignals(true);
+            m_spin->setValue(v);
+            m_spin->blockSignals(false);
+            m_syncing = false;
+            if (onChanged) onChanged(static_cast<float>(m_spin->value()));
+        });
+        QObject::connect(m_spin, &QDoubleSpinBox::valueChanged, [this](double v) {
+            if (m_syncing || m_slider.isNull()) return;
+            m_syncing = true;
+            m_slider->blockSignals(true);
+            m_slider->setValue(ToTick(static_cast<float>(v)));
+            m_slider->blockSignals(false);
+            m_syncing = false;
+            if (onChanged) onChanged(static_cast<float>(v));
+        });
+    }
+
+    QWidget* GetWidget() override { return m_container; }
+    bool IsValid() override { return !m_slider.isNull() && !m_spin.isNull(); }
+
+    void SetValue(const float& val) override {
+        if (!IsValid()) return;
+        m_spin->blockSignals(true);
+        m_slider->blockSignals(true);
+        m_spin->setValue(val);
+        m_slider->setValue(ToTick(val));
+        m_slider->blockSignals(false);
+        m_spin->blockSignals(false);
+    }
+
+    // The spin box is authoritative: it holds the unquantised value, so a number
+    // typed between two ticks survives being displayed on the slider.
+    float GetValue() override {
+        return m_spin.isNull() ? 0.0f : static_cast<float>(m_spin->value());
+    }
+
+private:
+    int ToTick(float v) const {
+        const float t = (v - m_min) / (m_max - m_min);
+        return std::clamp(static_cast<int>(std::lround(t * m_ticks)), 0, m_ticks);
+    }
+    float FromTick(int tick) const {
+        return m_min + (m_max - m_min) * (static_cast<float>(tick) / static_cast<float>(m_ticks));
+    }
+
+    float m_min, m_max, m_step;
+    int   m_ticks = 1;
+    bool  m_syncing = false;
+    QWidget* m_container = nullptr;
+    QPointer<QSlider> m_slider;
+    QPointer<QDoubleSpinBox> m_spin;
+};
+
+
+// The two-handle bar behind RangeSliderPropertyWidget. Qt ships no two-handle
+// slider, so this paints its own groove, span and handles and does its own hit
+// testing -- there is no QStyle primitive to borrow, which is why the colours are
+// literals here instead of living in default.qss like every other widget's.
+// They are lifted from the stylesheet's existing palette (QProgressBar::chunk
+// green, the checkbox hover green) so it still reads as part of the same theme.
+//
+// No Q_OBJECT: it reports changes through a std::function like the rest of this
+// header's widgets, so it needs no moc pass.
+class RangeSliderBar : public QWidget {
+public:
+    std::function<void()> onChanged;
+
+    RangeSliderBar(float lo, float hi, float step, QWidget* parent = nullptr)
+        : QWidget(parent), m_min(lo), m_max(hi), m_step(step > 0.0f ? step : 0.01f),
+          m_low(lo), m_high(hi) {
+        setFixedHeight(kHeight);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        setMouseTracking(true);
+        setCursor(Qt::PointingHandCursor);
+    }
+
+    void SetSpan(float low, float high) {
+        m_low  = std::clamp(low,  m_min, m_max);
+        m_high = std::clamp(high, m_min, m_max);
+        if (m_low > m_high) std::swap(m_low, m_high);
+        update();
+    }
+    float Low()  const { return m_low; }
+    float High() const { return m_high; }
+
+protected:
+    void paintEvent(QPaintEvent*) override {
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
+
+        const QRect tr = Track();
+        const int cy = tr.center().y();
+        const int xLo = HandleX(m_low);
+        const int xHi = HandleX(m_high);
+        const bool on = isEnabled();
+
+        // Groove, then the selected span over it.
+        p.setPen(Qt::NoPen);
+        p.setBrush(QColor(45, 45, 45));
+        p.drawRoundedRect(QRect(tr.left(), cy - 2, tr.width(), 4), 2, 2);
+        p.setBrush(on ? QColor(87, 126, 100) : QColor(70, 78, 72));
+        p.drawRoundedRect(QRect(xLo, cy - 2, std::max(1, xHi - xLo), 4), 2, 2);
+
+        // Values above their handles, each nudged inside the widget so neither
+        // gets clipped at the ends. They may overlap when the span is nearly
+        // empty, at which point both read the same number anyway.
+        p.setPen(QColor(on ? 200 : 120, on ? 200 : 120, on ? 200 : 120));
+        const QString loText = Format(m_low);
+        const QString hiText = Format(m_high);
+        const QFontMetrics fm = fontMetrics();
+        auto drawLabel = [&](int x, const QString& text, bool rightOfHandle) {
+            int w = fm.horizontalAdvance(text);
+            int tx = rightOfHandle ? x - w : x;
+            tx = std::clamp(tx, 0, std::max(0, width() - w));
+            p.drawText(QRect(tx, 0, w, kTextH), Qt::AlignVCenter | Qt::AlignLeft, text);
+        };
+        drawLabel(xLo, loText, false);
+        drawLabel(xHi, hiText, true);
+
+        // Handles last so they sit above the span.
+        for (int i = 0; i < 2; ++i) {
+            const int x = i == 0 ? xLo : xHi;
+            const bool active = on && (m_hover == i || m_active == i);
+            p.setBrush(active ? QColor(131, 176, 145) : QColor(on ? 170 : 100, on ? 170 : 100, on ? 170 : 100));
+            p.setPen(QPen(QColor(30, 30, 30), 1));
+            p.drawEllipse(QPoint(x, cy), kHandleR, kHandleR);
+        }
+    }
+
+    void mousePressEvent(QMouseEvent* e) override {
+        if (!isEnabled() || e->button() != Qt::LeftButton) return;
+        m_active = NearestHandle(e->position().x());
+        MoveActive(e->position().x());
+    }
+    void mouseMoveEvent(QMouseEvent* e) override {
+        if (!isEnabled()) return;
+        if (m_active >= 0) { MoveActive(e->position().x()); return; }
+        const int h = NearestHandle(e->position().x());
+        if (h != m_hover) { m_hover = h; update(); }
+    }
+    void mouseReleaseEvent(QMouseEvent*) override { m_active = -1; update(); }
+    void leaveEvent(QEvent*) override { m_hover = -1; update(); }
+
+private:
+    static constexpr int kHeight  = 34;
+    static constexpr int kTextH   = 14;
+    static constexpr int kHandleR = 6;
+
+    // Where the handle CENTRES may travel: inset by the handle radius so neither
+    // circle is clipped at the ends of the widget.
+    QRect Track() const {
+        return QRect(kHandleR, kTextH, std::max(1, width() - 2 * kHandleR), height() - kTextH);
+    }
+    int HandleX(float v) const {
+        const QRect tr = Track();
+        const float t = (v - m_min) / (m_max - m_min);
+        return tr.left() + static_cast<int>(std::lround(t * tr.width()));
+    }
+    float ValueAt(int x) const {
+        const QRect tr = Track();
+        const float t = static_cast<float>(x - tr.left()) / static_cast<float>(tr.width());
+        return Snap(m_min + std::clamp(t, 0.0f, 1.0f) * (m_max - m_min));
+    }
+    float Snap(float v) const {
+        const float snapped = m_min + std::round((v - m_min) / m_step) * m_step;
+        return std::clamp(snapped, m_min, m_max);
+    }
+    // Whichever handle is closer, so a click anywhere on the bar grabs the one the
+    // user plainly meant rather than requiring a hit on a 12px circle.
+    int NearestHandle(int x) const {
+        return std::abs(x - HandleX(m_low)) <= std::abs(x - HandleX(m_high)) ? 0 : 1;
+    }
+    void MoveActive(int x) {
+        if (m_active < 0) return;
+        const float v = ValueAt(x);
+        // The handles cannot cross: dragging one past the other pins them equal,
+        // which keeps x <= y true for every consumer of the pair.
+        if (m_active == 0) m_low  = std::min(v, m_high);
+        else               m_high = std::max(v, m_low);
+        update();
+        if (onChanged) onChanged();
+    }
+    QString Format(float v) const {
+        return QString::number(static_cast<double>(v), 'f', DecimalsForStep(m_step));
+    }
+
+    float m_min, m_max, m_step, m_low, m_high;
+    int m_active = -1;   // handle being dragged, -1 = none
+    int m_hover  = -1;
+};
+
+
+// A (low, high) pair carried in a glm::vec2: x is the low end, y the high end.
+// vec2 rather than a bespoke type because that is already how this engine spells
+// a min/max pair -- see ParticleComponent's "Lifetime (min,max)" rows.
+class RangeSliderPropertyWidget : public PropertyWidget<glm::vec2> {
+public:
+    explicit RangeSliderPropertyWidget(const Properties::PropDesc& desc) {
+        m_bar = new RangeSliderBar(desc.min, desc.max, desc.step);
+        if (IsReadOnly(desc)) m_bar->setEnabled(false);
+        m_bar->onChanged = [this]() {
+            if (onChanged) onChanged(GetValue());
+        };
+    }
+
+    QWidget* GetWidget() override { return m_bar; }
+    bool IsValid() override { return !m_bar.isNull(); }
+
+    void SetValue(const glm::vec2& val) override {
+        if (m_bar.isNull()) return;
+        m_bar->SetSpan(val.x, val.y);
+    }
+
+    glm::vec2 GetValue() override {
+        if (m_bar.isNull()) return glm::vec2(0.0f);
+        return { m_bar->Low(), m_bar->High() };
+    }
+
+private:
+    QPointer<RangeSliderBar> m_bar;
 };
 
 
@@ -296,8 +613,9 @@ private:
 
 class BoolPropertyWidget : public PropertyWidget<bool> {
 public:
-    explicit BoolPropertyWidget(const Properties::PropDesc&) {
+    explicit BoolPropertyWidget(const Properties::PropDesc& desc) {
         checkbox = new QCheckBox();
+        if (IsReadOnly(desc)) checkbox->setEnabled(false);
 
         QObject::connect(checkbox, &QCheckBox::toggled, [this](bool val) {
             if (onChanged) onChanged(val);
@@ -324,10 +642,13 @@ private:
 
 class Vec4ColorPropertyWidget : public PropertyWidget<glm::vec4> {
 public:
-    explicit Vec4ColorPropertyWidget(const Properties::PropDesc&) {
+    explicit Vec4ColorPropertyWidget(const Properties::PropDesc& desc) {
         btn = new QPushButton();
         btn->setObjectName("ColorButton");
         btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        // The swatch IS the control, so disabling it is the whole story — there is
+        // no colour dialog to open and nothing else on the row to interact with.
+        if (IsReadOnly(desc)) btn->setEnabled(false);
 
         QObject::connect(btn, &QPushButton::clicked, [this]() {
             glm::vec4 current = GetValue();
@@ -395,7 +716,7 @@ class StringPropertyWidget : public PropertyWidget<std::string> {
 public:
     explicit StringPropertyWidget(const Properties::PropDesc& desc) {
         edit = new QLineEdit();
-        if (desc.tag == Properties::Tags::READONLY)
+        if (IsReadOnly(desc))
             edit->setReadOnly(true);
 
         QObject::connect(edit, &QLineEdit::textChanged, [this](const QString& text) {
@@ -553,7 +874,7 @@ public:
         // Read by InspectorVisitor::AddRow: a row this tall reads better with its
         // label pinned to the first line of text than floating at the midpoint.
         edit->setProperty("labelTopAlign", true);
-        if (desc.readOnly || desc.tag == Properties::Tags::READONLY)
+        if (IsReadOnly(desc))
             edit->setReadOnly(true);
 
         QObject::connect(edit, &QPlainTextEdit::textChanged, [this]() {
@@ -718,19 +1039,37 @@ public:
         m_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         layout->addWidget(m_btn);
 
-        QObject::connect(m_btn, &QPushButton::clicked, [this]() { openPicker(); });
-        QObject::connect(m_edit, &ClickableLineEdit::clicked, [this]() { openPicker(); });
+        // A display-only reference keeps its name field (and the hover preview
+        // below) but loses every way to reassign it: the picker is disabled rather
+        // than removed so the row keeps the same shape as its editable siblings,
+        // and neither entry point into openPicker() is connected. Note m_edit is
+        // ALWAYS setReadOnly above -- that stops typing into the name, which is
+        // display formatting, not the property being read-only.
+        const bool readOnly = IsReadOnly(desc);
+        if (readOnly) {
+            m_btn->setEnabled(false);
+            m_btn->setToolTip("Read-only");
+            // ClickableLineEdit claims the pointing-hand cursor in its constructor,
+            // which would keep advertising a click that no longer does anything.
+            m_edit->setCursor(Qt::IBeamCursor);
+        } else {
+            QObject::connect(m_btn, &QPushButton::clicked, [this]() { openPicker(); });
+            QObject::connect(m_edit, &ClickableLineEdit::clicked, [this]() { openPicker(); });
+        }
 
         // Drag & drop: accept a compatible Hierarchy GameObject / Folder-view
         // asset dropped onto this row (see RefDropFilter). The read-only line
         // edit would otherwise swallow drops, so let them fall through to the
-        // container that hosts the filter.
+        // container that hosts the filter. Skipped entirely when display-only --
+        // a drop is an edit, and it would bypass the disabled picker.
         m_edit->setAcceptDrops(false);
-        m_container->setAcceptDrops(true);
-        m_container->installEventFilter(new RefDropFilter(m_desc, [this](const std::string& id) {
-            SetValue(id);
-            if (onChanged) onChanged(id);
-        }, m_container));
+        if (!readOnly) {
+            m_container->setAcceptDrops(true);
+            m_container->installEventFilter(new RefDropFilter(m_desc, [this](const std::string& id) {
+                SetValue(id);
+                if (onChanged) onChanged(id);
+            }, m_container));
+        }
 
         // Ref fields with a previewable thumbnail get a hover preview: a popup that
         // fades in above the field (replacing the old always-on collapsible
@@ -1227,6 +1566,9 @@ public:
     explicit DropdownPropertyWidget(const Properties::PropDesc& desc) {
         combo = new QComboBox();
         combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        // A non-editable QComboBox has no read-only mode — setReadOnly exists only
+        // on the line edit an editable one owns, and this one has none.
+        if (IsReadOnly(desc)) combo->setEnabled(false);
 
         for (const auto& [label, value] : desc.dropdownOptions) {
             combo->addItem(QString::fromStdString(label), std::any_cast<int>(value));
@@ -1253,6 +1595,53 @@ public:
     int GetValue() override {
         if (combo.isNull() || combo->currentIndex() < 0) return 0;
         return combo->itemData(combo->currentIndex()).toInt();
+    }
+
+private:
+    QPointer<QComboBox> combo;
+};
+
+// A dropdown whose value IS the chosen label, for str fields carrying
+// Reflect[str, Options(...)].
+//
+// DropdownPropertyWidget above is a PropertyWidget<int>, so a scalar str field
+// reaches it by converting label <-> index in its getter/setter (see
+// InspectorVisitor). A list ELEMENT has no such layer to hide in -- its rows are
+// bound as std::string by ListPropertyWidget<std::string> -- so the widget itself
+// has to speak strings.
+//
+// Unlike its int sibling, a value matching no option shows blank rather than
+// snapping to the first entry: a row added with +Add starts as an empty string,
+// and "nothing picked yet" is the honest reading of that.
+class StringDropdownPropertyWidget : public PropertyWidget<std::string> {
+public:
+    explicit StringDropdownPropertyWidget(const Properties::PropDesc& desc) {
+        combo = new QComboBox();
+        combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+        if (IsReadOnly(desc)) combo->setEnabled(false);
+
+        for (const auto& [label, value] : desc.dropdownOptions)
+            combo->addItem(QString::fromStdString(label));
+
+        QObject::connect(combo, &QComboBox::currentIndexChanged, [this](int index) {
+            if (index < 0 || combo.isNull()) return;
+            if (onChanged) onChanged(combo->itemText(index).toStdString());
+        });
+    }
+
+    QWidget* GetWidget() override { return combo; }
+    bool IsValid() override { return !combo.isNull(); }
+
+    void SetValue(const std::string& val) override {
+        if (combo.isNull()) return;
+        combo->blockSignals(true);
+        combo->setCurrentIndex(combo->findText(QString::fromStdString(val)));
+        combo->blockSignals(false);
+    }
+
+    std::string GetValue() override {
+        if (combo.isNull() || combo->currentIndex() < 0) return {};
+        return combo->currentText().toStdString();
     }
 
 private:

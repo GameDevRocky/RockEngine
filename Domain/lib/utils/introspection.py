@@ -1,5 +1,6 @@
+import sys
 import typing
-from .properties import Range, Step, Tooltip
+from .properties import Range, Step, Tooltip, ReadOnly, Options, Slider, RangeSlider
 
 
 def _get_ref_classes():
@@ -62,6 +63,21 @@ def make_gameobject_ref(gameobject_id):
     return get_gameobject(gameobject_id)
 
 
+def _unwrap_annotated(hint):
+    """Split ``Reflect[T, meta...]`` into ``(T, [meta...])``.
+
+    A bare type comes back unchanged with an empty metadata list, so callers can
+    run this over anything. It is applied at two levels: the field's own
+    annotation, and — for ``list[...]`` fields — the element type, because
+    ``list[Reflect[Vector3, Range(0, 1)]]`` puts the metadata on the ELEMENT and
+    that is the thing the inspector draws a widget for.
+    """
+    if typing.get_origin(hint) is typing.Annotated:
+        args = typing.get_args(hint)
+        return args[0], list(args[1:])
+    return hint, []
+
+
 def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls,
               ComponentCls=None, ScriptableComponentCls=None):
     """Map a single Python type to (type_name, ref_type_name).
@@ -117,7 +133,8 @@ def get_exposed_fields(cls):
     """Introspect a ScriptableComponent subclass for editor-exposed fields.
 
     Returns a list of dicts with keys:
-        name, type_name, default, min, max, step, tooltip, ref_type_name
+        name, type_name, default, min, max, step, tooltip, read_only, widget,
+        option_labels, option_values, ref_type_name
 
     Only class-level annotated fields are returned. Fields starting with '_' are excluded.
 
@@ -131,6 +148,17 @@ def get_exposed_fields(cls):
         skin: Material          # material asset picker in inspector
         icon: Sprite            # sprite asset picker in inspector
         target: Enemy           # GameObject picker filtered to Enemy script
+
+    ``list[T]`` of any of the above becomes a resizable list of rows, and the
+    element may carry its own ``Reflect`` metadata — which is where metadata
+    belongs for a list, since it is a ROW that gets a widget::
+
+        volumes: list[Reflect[float, Range(0, 1), Slider()]]
+        states:  list[Reflect[str, Options("Idle", "Run")]]
+
+    Such element metadata is returned in the same min/max/step/widget/option
+    keys a scalar field uses; ``type_name == "list"`` is what marks them as
+    describing each element rather than the field.
     """
     try:
         hints = typing.get_type_hints(cls, include_extras=True)
@@ -144,6 +172,27 @@ def get_exposed_fields(cls):
         if name.startswith('_'):
             continue
 
+        # ---- Unpack Reflect[T, metadata...] or use the raw type ----
+        base_type, metadata = _unwrap_annotated(hint)
+
+        # A list[...] field's element type carries its own Reflect metadata, and
+        # that metadata describes each ROW the inspector draws rather than the
+        # list as a whole -- list[Reflect[float, Range(0, 1), Slider()]] is a
+        # column of sliders. Element metadata is merged in last so it wins over
+        # anything an outer Reflect[list[...], ...] said about the same thing.
+        is_list = typing.get_origin(base_type) is list
+        element_type = None
+        if is_list:
+            list_args = typing.get_args(base_type)
+            if not list_args:
+                continue  # bare `list` annotation is ambiguous — skip
+            element_type, element_metadata = _unwrap_annotated(list_args[0])
+            metadata = metadata + element_metadata
+            if typing.get_origin(element_type) is list:
+                print(f"[introspection] Ignoring '{name}': a list of lists has no "
+                      f"inspector widget.", file=sys.stderr)
+                continue
+
         # ---- Resolve default value ----
         default = None
         has_default = False
@@ -153,23 +202,18 @@ def get_exposed_fields(cls):
                 has_default = True
                 break
 
-        if not has_default:
-            base_type_check = hint
-            if typing.get_origin(hint) is typing.Annotated:
-                base_type_check = typing.get_args(hint)[0]
-
-            # list[...] fields with no class-level default → empty list
-            if typing.get_origin(base_type_check) is list:
-                default = []
-                has_default = True
+        # list[...] fields with no class-level default → empty list
+        if not has_default and is_list:
+            default = []
+            has_default = True
 
         if not has_default:
             from .re_math import Vector2, Vector3, Vector4
             fallbacks = {float: 0.0, int: 0, bool: False, str: ""}
-            default = fallbacks.get(base_type_check)
+            default = fallbacks.get(base_type)
 
             if default is None:
-                qual = getattr(base_type_check, '__qualname__', '') or ''
+                qual = getattr(base_type, '__qualname__', '') or ''
                 if 'Vector4' in qual:
                     default = Vector4()
                 elif 'Vector3' in qual:
@@ -178,35 +222,27 @@ def get_exposed_fields(cls):
                     default = Vector2()
 
             # Material, Sprite, and any other class type (custom scripts) default to empty ID
-            if default is None and isinstance(base_type_check, type):
+            if default is None and isinstance(base_type, type):
                 default = ""
 
             if default is None:
                 continue
-
-        # ---- Unpack Annotated[T, metadata...] or use the raw type ----
-        base_type = hint
-        metadata = []
-        if typing.get_origin(hint) is typing.Annotated:
-            args = typing.get_args(hint)
-            base_type = args[0]
-            metadata = list(args[1:])
 
         # ---- Map type to engine type name ----
         field_ref_type_name = ""
         element_type_name = ""
         element_ref_type_name = ""
 
-        if typing.get_origin(base_type) is list:
-            # list[T] field — map the element type. Nested lists are unsupported.
-            list_args = typing.get_args(base_type)
-            if not list_args:
-                continue  # bare `list` annotation is ambiguous — skip
+        if is_list:
+            # list[T] field — map the element type, which has already had any
+            # Reflect[...] wrapper stripped off it above.
             element_type_name, element_ref_type_name = _map_type(
-                list_args[0], MaterialCls, SpriteCls, GameObjectCls,
+                element_type, MaterialCls, SpriteCls, GameObjectCls,
                 ComponentCls, ScriptableComponentCls)
-            if element_type_name is None or element_type_name == "list":
-                continue  # unmappable or nested list element
+            if element_type_name is None:
+                print(f"[introspection] Ignoring '{name}': {element_type!r} is not a "
+                      f"type the inspector can list.", file=sys.stderr)
+                continue
             type_name = "list"
             if not isinstance(default, list):
                 default = []
@@ -227,11 +263,15 @@ def get_exposed_fields(cls):
         if type_name is None:
             continue
 
-        # ---- Extract optional metadata (Range / Step / Tooltip) ----
-        field_min     = None
-        field_max     = None
-        field_step    = 0.1
-        field_tooltip = ""
+        # ---- Extract optional metadata (Range / Step / Tooltip / ReadOnly / Options) ----
+        field_min       = None
+        field_max       = None
+        field_step      = 0.1
+        field_tooltip   = ""
+        field_read_only = False
+        field_widget    = ""
+        option_labels   = []
+        option_values   = []
 
         for m in metadata:
             if isinstance(m, Range):
@@ -241,6 +281,54 @@ def get_exposed_fields(cls):
                 field_step = m.value
             elif isinstance(m, Tooltip):
                 field_tooltip = m.text
+            elif isinstance(m, ReadOnly):
+                field_read_only = bool(m.value)
+            elif m is ReadOnly:
+                # Written without parentheses. Annotated takes any object as
+                # metadata, so this is legal Python that would otherwise be
+                # dropped on the floor — honour the obvious intent.
+                field_read_only = True
+            elif isinstance(m, Options):
+                option_labels = list(m.labels)
+                option_values = list(m.values)
+            elif isinstance(m, Slider) or m is Slider:
+                field_widget = "slider"
+            elif isinstance(m, RangeSlider) or m is RangeSlider:
+                field_widget = "range_slider"
+
+        # Every check below is about the type the WIDGET carries, which for a list
+        # is one row's element type -- `list` itself is never what a Slider or an
+        # Options() was asking for.
+        widget_type = element_type_name if type_name == "list" else type_name
+        described = (f"a list of {widget_type}" if type_name == "list" else widget_type)
+
+        # Both sliders are bounded controls: the Range IS the thing being dragged
+        # along, and the field type has to be one the widget can carry. Anything
+        # else drops back to the ordinary editor with a reason, because a slider
+        # that silently renders as a number box looks like the metadata was
+        # ignored rather than rejected.
+        if field_widget:
+            wanted = "vec2" if field_widget == "range_slider" else "float"
+            if widget_type != wanted:
+                print(f"[introspection] Ignoring {field_widget} on '{name}': needs a "
+                      f"{'Vector2' if wanted == 'vec2' else 'float'} field "
+                      f"(this one is {described}).", file=sys.stderr)
+                field_widget = ""
+            elif field_min is None or field_max is None or field_max <= field_min:
+                print(f"[introspection] Ignoring {field_widget} on '{name}': it needs a "
+                      f"Range(min, max) to slide along.", file=sys.stderr)
+                field_widget = ""
+
+        # A dropdown needs a value the combo box can carry: an int (the option's
+        # value) or a str (the label itself). Anything else is a mistake worth
+        # saying out loud, since silently rendering a normal field would just look
+        # like Options() did nothing.
+        if option_labels and widget_type not in ("int", "str"):
+            print(f"[introspection] Ignoring Options() on '{name}': only int and "
+                  f"str fields can be dropdowns (this one is {described}).",
+                  file=sys.stderr)
+            option_labels = []
+            option_values = []
 
         fields.append({
             "name":                  name,
@@ -250,6 +338,10 @@ def get_exposed_fields(cls):
             "max":                   field_max,
             "step":                  field_step,
             "tooltip":               field_tooltip,
+            "read_only":             field_read_only,
+            "widget":                field_widget,
+            "option_labels":         option_labels,
+            "option_values":         option_values,
             "ref_type_name":         field_ref_type_name,
             "element_type_name":     element_type_name,
             "element_ref_type_name": element_ref_type_name,

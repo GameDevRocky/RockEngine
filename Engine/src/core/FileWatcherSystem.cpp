@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <utility>
 
 using namespace EngineUtils;
 namespace py = pybind11;
@@ -26,21 +27,26 @@ void FileWatcherSystem::Update()
 {
     if (!m_pyWatcher || m_pyWatcher.is_none()) return;
 
-    std::vector<std::string> changes;
+    // (kind, path) pairs, drained under the GIL and dispatched without it — a
+    // handler may run arbitrary engine work (a script re-instantiation) that
+    // takes the GIL itself.
+    std::vector<std::pair<std::string, std::string>> changes;
     {
         py::gil_scoped_acquire gil;
         try {
             py::list result = m_pyWatcher.attr("poll_changes")();
             for (auto& item : result) {
-                changes.push_back(item.cast<std::string>());
+                auto entry = item.cast<py::tuple>();
+                changes.emplace_back(entry[0].cast<std::string>(),
+                                     entry[1].cast<std::string>());
             }
         } catch (const py::error_already_set& e) {
             std::cerr << "[FileWatcherSystem] Python error in Update(): " << e.what() << std::endl;
         }
     }
 
-    for (const auto& path : changes) {
-        Notify(FILE_CHANGED_EVENT, path);
+    for (const auto& [kind, path] : changes) {
+        Notify(kind == "deleted" ? FILE_DELETED_EVENT : FILE_CHANGED_EVENT, path);
     }
 }
 

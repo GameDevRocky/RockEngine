@@ -556,6 +556,7 @@ void FolderViewGui::ShowContextMenu(const QPoint& pos) {
     QMenu* newMenu = menu.addMenu("New");
     newMenu->addAction("Material", this, [this]() { CreateNewMaterial(); });
     newMenu->addAction("Scene",    this, [this]() { CreateNewScene(); });
+    newMenu->addAction("Script",   this, [this]() { CreateNewScript(); });
 
     const auto selected = GetSelectedFilePaths();
     if (!selected.empty()) {
@@ -649,12 +650,17 @@ void FolderViewGui::DeleteOneAsset(const QString& filePath) {
     }
 }
 
-QString FolderViewGui::UniqueAssetPath(const QString& baseName, const QString& ext) const {
-    QDir dir(currentPath);
+QString FolderViewGui::UniquePathIn(const QString& folder, const QString& baseName,
+                                   const QString& ext, const QString& separator) const {
+    QDir dir(folder);
     QString candidate = baseName + ext;
     for (int n = 1; QFileInfo::exists(dir.filePath(candidate)); ++n)
-        candidate = QString("%1 %2%3").arg(baseName).arg(n).arg(ext);
+        candidate = QString("%1%2%3%4").arg(baseName, separator).arg(n).arg(ext);
     return dir.filePath(candidate);
+}
+
+QString FolderViewGui::UniqueAssetPath(const QString& baseName, const QString& ext) const {
+    return UniquePathIn(currentPath, baseName, ext);
 }
 
 void FolderViewGui::CreateNewMaterial() {
@@ -680,4 +686,56 @@ void FolderViewGui::CreateNewScene() {
         return;
     }
     out << node;
+}
+
+void FolderViewGui::CreateNewScript() {
+    // Scripts are always created in Domain/sandbox/scripts, wherever the browser
+    // happens to be: that folder is the only one script discovery scans and the
+    // only one on the interpreter's sys.path, so a .py written anywhere else
+    // would be a file the engine can never attach. The view then navigates there
+    // so the new file is visible and immediately renameable.
+    const QString scriptsDir =
+        QString::fromStdString(EngineUtils::GetAssetPath("Domain/sandbox/scripts"));
+    if (!QDir().mkpath(scriptsDir)) {
+        std::cerr << "[FolderViewGui] Failed to create scripts folder: "
+                  << scriptsDir.toStdString() << std::endl;
+        return;
+    }
+
+    // No separator before the counter, and no spaces in the base name: the stem
+    // is imported as a Python module name, so it has to stay an identifier.
+    const QString path = UniquePathIn(scriptsDir, "NewScript", ".py", "");
+    const QString className = QFileInfo(path).completeBaseName();
+
+    // Class named after the file — the one-class-per-file convention the script
+    // picker and the .py drag-and-drop resolution both prefer (see
+    // RefDropFilter::ScriptRefForFile).
+    const QString source = QString(
+        "from Domain import *\n"
+        "\n"
+        "\n"
+        "class %1(ScriptableComponent):\n"
+        "    \"\"\"A new RockEngine script. Annotated class attributes become\n"
+        "    inspector fields, e.g. `speed: float = 5.0`.\n"
+        "    \"\"\"\n"
+        "\n"
+        "    def start(self):\n"
+        "        pass\n"
+        "\n"
+        "    def update(self):\n"
+        "        pass\n").arg(className);
+
+    std::ofstream out(path.toStdString());
+    if (!out.is_open()) {
+        std::cerr << "[FolderViewGui] Failed to create script: " << path.toStdString() << std::endl;
+        return;
+    }
+    out << source.toStdString();
+    out.close();
+
+    // The file is discoverable as soon as it lands on disk — script_discovery
+    // invalidates the import caches on every scan — so nothing needs registering
+    // here, unlike materials and scenes.
+    if (QDir(currentPath) != QDir(scriptsDir))
+        Navigate(scriptsDir.toStdString());
 }

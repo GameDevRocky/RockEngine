@@ -1,0 +1,8 @@
+type: Texture2D
+id: f298ab69b9109b994174c31c95a901f2
+name: red_alert_icon
+path: Domain/lib/assets/icons/red_alert_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

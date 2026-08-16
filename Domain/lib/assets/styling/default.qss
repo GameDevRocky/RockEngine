@@ -647,6 +647,87 @@ QPushButton#ListRemoveButton:pressed {
 
 
 /*===========================================================================
+ * QSlider (the Tags::SLIDER property widget)
+ *
+ * There was no rule for this at all, because until the slider widget existed
+ * nothing in the editor ever constructed a QSlider -- Tags::SLIDER fell through
+ * to a spin box. Left unstyled it would render in raw Fusion colours against the
+ * dark theme, exactly the way QProgressBar did before it got a rule.
+ *
+ * Deliberately the same groove background and fill green as QProgressBar above:
+ * both are "a value along a track", and a second palette for one of them would
+ * read as a different kind of control. The handle borrows the checkbox's
+ * resting/hover greens for the same reason.
+ *===========================================================================*/
+QSlider::groove:horizontal {
+    background: rgb(45, 45, 45);
+    border: none;
+    border-radius: 2px;
+    height: 4px;
+}
+
+QSlider::sub-page:horizontal {
+    background: rgb(87, 126, 100);
+    border-radius: 2px;
+}
+
+QSlider::handle:horizontal {
+    background: rgb(170, 170, 170);
+    border: 1px solid rgb(30, 30, 30);
+    border-radius: 6px;
+    width: 11px;
+    /* Pulls the 12px handle out over the 4px groove so it stays centred. */
+    margin: -4px 0;
+}
+
+QSlider::handle:horizontal:hover {
+    background: rgb(131, 176, 145);
+}
+
+QSlider::groove:horizontal:disabled,
+QSlider::sub-page:horizontal:disabled {
+    background: rgb(58, 58, 58);
+}
+
+QSlider::handle:horizontal:disabled {
+    background: rgb(100, 100, 100);
+    border-color: rgb(45, 45, 45);
+}
+
+
+/*===========================================================================
+ * MissingScriptBanner (Inspector: a ScriptComponent whose .py file is gone)
+ *
+ * Shaped like every other bubble in the editor -- same 7px radius as the
+ * collapsable headers it sits under -- so it reads as part of the Inspector
+ * rather than a system dialog that wandered in. The border is what carries the
+ * error: it is the only red outline in a panel of borderless rows, and it shares
+ * the ListRemoveButton hover red so the editor has one "this is wrong" colour.
+ *
+ * The child rules are not cosmetic filler: the global QWidget rule paints every
+ * widget with the window background, so an unqualified QLabel inside would punch
+ * an opaque grey rectangle through the tinted card.
+ *===========================================================================*/
+QFrame#MissingScriptBanner {
+    background: rgb(58, 32, 32);
+    border: 1px solid rgb(190, 78, 78);
+    border-radius: 7px;
+}
+
+QFrame#MissingScriptBanner QLabel {
+    background: transparent;
+    border: none;
+    color: rgb(226, 172, 172);
+}
+
+QFrame#MissingScriptBanner QLabel#MissingScriptTitle {
+    color: rgb(244, 206, 206);
+    font-weight: bold;
+    font-size: 12px;
+}
+
+
+/*===========================================================================
  * CToggleSwitch
  *===========================================================================*/
 CToggleSwitch

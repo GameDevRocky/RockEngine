@@ -16,11 +16,22 @@ public:
 
 template<>
 inline PropertyWidget<float>* PropertyFactory::Create<float>(const Properties::PropDesc& desc) {
+    // Tags::SLIDER had no widget behind it until now -- it fell through to the
+    // spin box, so the four call sites that asked for a slider silently got a
+    // number. The bounded-range check is the feature's rule, not a safety net:
+    // an unbounded slider has no span to drag along, so it degrades to the
+    // ordinary editor rather than rendering a handle that cannot move.
+    if (desc.tag == Properties::Tags::SLIDER && HasFiniteRange(desc))
+        return new SliderPropertyWidget(desc);
     return new FloatPropertyWidget(desc);
 }
 
 template<>
 inline PropertyWidget<glm::vec2>* PropertyFactory::Create<glm::vec2>(const Properties::PropDesc& desc) {
+    // Same rule as the float slider above; without bounds this is just a pair of
+    // numbers, which is exactly what Vec2PropertyWidget already shows.
+    if (desc.tag == Properties::Tags::RANGE_SLIDER && HasFiniteRange(desc))
+        return new RangeSliderPropertyWidget(desc);
     return new Vec2PropertyWidget(desc);
 }
 
@@ -48,6 +59,10 @@ inline PropertyWidget<std::string>* PropertyFactory::Create<std::string>(const P
         // ref type — no more always-visible collapsible thumbnail.
         return new ObjectRefPropertyWidget(desc);
     }
+    // Reflect[str, Options(...)] on a list element: the row's value is the label
+    // itself, so it needs the string-valued combo box rather than the int one.
+    if (desc.tag == Properties::Tags::DROPDOWN)
+        return new StringDropdownPropertyWidget(desc);
     // Paragraph text (a TextRenderer's string, a font's charset) gets the
     // resizable multi-line box; everything else stays a one-line field.
     if (desc.tag == Properties::Tags::MULTILINE)
@@ -287,4 +302,28 @@ inline PropertyWidget<std::vector<float>>* PropertyFactory::Create<std::vector<f
 template<>
 inline PropertyWidget<std::vector<std::string>>* PropertyFactory::Create<std::vector<std::string>>(const Properties::PropDesc& desc) {
     return new ListPropertyWidget<std::string>(desc);
+}
+
+// Int rows go through Create<int>, which is always the dropdown -- there is no
+// plain int editor (a lone int field is edited as a float and converted at the
+// boundary). So this is for list[Reflect[int, Options(...)]] and nothing else;
+// an int list without options binds as std::vector<float> instead.
+template<>
+inline PropertyWidget<std::vector<int>>* PropertyFactory::Create<std::vector<int>>(const Properties::PropDesc& desc) {
+    return new ListPropertyWidget<int>(desc);
+}
+
+template<>
+inline PropertyWidget<std::vector<glm::vec2>>* PropertyFactory::Create<std::vector<glm::vec2>>(const Properties::PropDesc& desc) {
+    return new ListPropertyWidget<glm::vec2>(desc);
+}
+
+template<>
+inline PropertyWidget<std::vector<glm::vec3>>* PropertyFactory::Create<std::vector<glm::vec3>>(const Properties::PropDesc& desc) {
+    return new ListPropertyWidget<glm::vec3>(desc);
+}
+
+template<>
+inline PropertyWidget<std::vector<glm::vec4>>* PropertyFactory::Create<std::vector<glm::vec4>>(const Properties::PropDesc& desc) {
+    return new ListPropertyWidget<glm::vec4>(desc);
 }

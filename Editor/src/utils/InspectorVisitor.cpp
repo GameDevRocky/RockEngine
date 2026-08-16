@@ -46,6 +46,10 @@
 #include <QLabel>
 #include <QSizePolicy>
 #include <QPushButton>
+#include <QFrame>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QDir>
 #include <map>
 
 using namespace Properties;
@@ -805,8 +809,58 @@ void InspectorVisitor::Visit(MotorJoint* joint){
 }
 
 void InspectorVisitor::Visit(ScriptComponent* sc){
-    // Script selector — always the first row, so an unassigned ScriptComponent
-    // still shows a way to pick a class. Uses the same asset-picker widget as
+    // Missing script banner — a full-width row above everything else, because the
+    // component is in an error state and that has to read before the fields do.
+    // Only for an assigned-but-unresolvable script; an unassigned component just
+    // shows the empty picker below. The component rebuilds this inspector on
+    // SCRIPT_RELOADED_EVENT, which the engine fires on both edges of the missing
+    // state, so restoring the .py file makes this disappear on its own.
+    if (sc->IsScriptMissing()) {
+        auto* banner = new QFrame();
+        banner->setObjectName("MissingScriptBanner");
+        auto* row = new QHBoxLayout(banner);
+        row->setContentsMargins(10, 8, 10, 8);
+        row->setSpacing(10);
+
+        auto* icon = new QLabel();
+        icon->setObjectName("MissingScriptIcon");
+        icon->setPixmap(EditorUtils::CustomIconProvider::alertIcon().pixmap(20, 20));
+        icon->setFixedSize(20, 20);
+        icon->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
+        row->addWidget(icon, 0, Qt::AlignTop);
+
+        auto* text = new QVBoxLayout();
+        text->setContentsMargins(0, 0, 0, 0);
+        text->setSpacing(2);
+
+        auto* title = new QLabel("Missing Script");
+        title->setObjectName("MissingScriptTitle");
+        text->addWidget(title);
+
+        // Name what is missing and where it was expected — the two things needed to
+        // either restore the file or repoint the component at another class.
+        const std::string path = sc->GetScriptFilePath();
+        QString detail = QString("\"%1\" could not be loaded")
+                             .arg(QString::fromStdString(sc->GetScriptClassName()));
+        if (!path.empty()) {
+            detail += QString(" from %1").arg(
+                QDir::toNativeSeparators(QString::fromStdString(path)));
+        }
+        detail += ".\nField values are kept and restored if the file comes back; "
+                  "otherwise pick another script below.";
+
+        auto* body = new QLabel(detail);
+        body->setObjectName("MissingScriptDetail");
+        body->setWordWrap(true);
+        body->setTextInteractionFlags(Qt::TextSelectableByMouse);
+        text->addWidget(body);
+
+        row->addLayout(text, 1);
+        AddFullRow(banner);
+    }
+
+    // Script selector — always the first editable row, so an unassigned
+    // ScriptComponent still shows a way to pick a class. Uses the same asset-picker widget as
     // Sprite/Material/GameObject refs: a "…" picker listing every
     // ScriptableComponent subclass, plus drag-and-drop of a .py script file from
     // the Folder view. The value is carried as "module:class" (see the SCRIPT tag
@@ -841,8 +895,60 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
     for (const auto& field : fields) {
         std::string label = field.name + ": ";
         auto it = allValues.find(field.name);
+        // Reflect[T, ReadOnly()] — applied to every branch below rather than to
+        // the widget, so a display-only field is still bound normally and still
+        // refreshes as the script mutates it. Only the editor's edit path is cut.
+        const bool ro = field.readOnly;
 
-        if (field.typeName == "float") {
+        // Reflect[T, Options(...)] — a dropdown, checked before the plain int/str
+        // branches so it wins for those two types. Both flavours bind as
+        // BindProperty<int> because DropdownPropertyWidget is a PropertyWidget<int>;
+        // what differs is what the int MEANS, and a str field converts at the
+        // boundary. That index<->value mapping in the getter/setter is the same
+        // shape Visit(GameObject*) uses for the Tag dropdown.
+        if (!field.optionLabels.empty() &&
+            (field.typeName == "int" || field.typeName == "str")) {
+            const auto& labels = field.optionLabels;
+            const bool byLabel = (field.typeName == "str");
+
+            std::vector<std::pair<std::string, std::any>> options;
+            for (std::size_t i = 0; i < labels.size(); ++i) {
+                // A str field carries the index; an int field carries the option's
+                // value, falling back to the index if Python sent a short list.
+                const int data = byLabel
+                    ? static_cast<int>(i)
+                    : (i < field.optionValues.size() ? field.optionValues[i]
+                                                     : static_cast<int>(i));
+                options.push_back({ labels[i], data });
+            }
+
+            // Captured by value, never as a pointer: the setter outlives this
+            // inspector on the undo stack (see the contract on BindProperty).
+            auto getter = [sc, name = field.name, labels, byLabel]() -> int {
+                auto val = sc->GetFieldValue(name);
+                if (!byLabel)
+                    return std::holds_alternative<int>(val) ? std::get<int>(val) : 0;
+                const std::string current =
+                    std::holds_alternative<std::string>(val) ? std::get<std::string>(val)
+                                                             : std::string();
+                auto it = std::find(labels.begin(), labels.end(), current);
+                // A value that isn't one of the options (renamed choice, hand-edited
+                // scene) shows as the first entry. Deliberately display-only — the
+                // setter fires on user interaction, so the stored value is left
+                // alone until the user actually picks something.
+                return it != labels.end()
+                    ? static_cast<int>(std::distance(labels.begin(), it)) : 0;
+            };
+            auto setter = [name = field.name, labels, byLabel](ScriptComponent* sc, const int& v) {
+                if (!byLabel) { sc->SetFieldValue(name, v); return; }
+                if (v >= 0 && v < static_cast<int>(labels.size()))
+                    sc->SetFieldValue(name, labels[static_cast<std::size_t>(v)]);
+            };
+
+            BindProperty<int>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::DROPDOWN).DropVals(options).ReadOnly(ro), getter());
+        }
+        else if (field.typeName == "float") {
             float initial = (it != allValues.end() && std::holds_alternative<float>(it->second))
                 ? std::get<float>(it->second) : 0.0f;
             auto getter = [sc, name = field.name]() -> float {
@@ -852,8 +958,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [name = field.name](ScriptComponent* sc, const float& v) {
                 sc->SetFieldValue(name, v);
             };
+            // Reflect[float, Range(...), Slider()] swaps the number box for a
+            // handle; the factory still falls back to the box if the range turns
+            // out unbounded, so this only ever asks.
+            const auto tag = field.widget == "slider" ? Tags::SLIDER : Tags::FLOAT;
             BindProperty<float>(sc, label, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(field.step), initial);
+                PropDesc().Tag(tag).Range(field.min, field.max).Step(field.step).ReadOnly(ro), initial);
         }
         else if (field.typeName == "int") {
             float initial = (it != allValues.end() && std::holds_alternative<int>(it->second))
@@ -866,7 +976,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 sc->SetFieldValue(name, static_cast<int>(v));
             };
             BindProperty<float>(sc, label, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(1), initial);
+                PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max).Step(1).ReadOnly(ro), initial);
         }
         else if (field.typeName == "bool") {
             bool initial = (it != allValues.end() && std::holds_alternative<bool>(it->second))
@@ -879,7 +989,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 sc->SetFieldValue(name, v);
             };
             BindProperty<bool>(sc, label, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::TOGGLE), initial);
+                PropDesc().Tag(Tags::TOGGLE).ReadOnly(ro), initial);
         }
         else if (field.typeName == "str") {
             std::string initial = (it != allValues.end() && std::holds_alternative<std::string>(it->second))
@@ -908,7 +1018,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             // else: plain string — PropDesc defaults produce a StringPropertyWidget
 
             BindProperty<std::string>(sc, label, getter, setter, field.changeEvent,
-                strDesc, initial);
+                strDesc.ReadOnly(ro), initial);
         }
         else if (field.typeName == "vec2") {
             glm::vec2 initial = (it != allValues.end() && std::holds_alternative<glm::vec2>(it->second))
@@ -920,8 +1030,17 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             auto setter = [name = field.name](ScriptComponent* sc, const glm::vec2& v) {
                 sc->SetFieldValue(name, v);
             };
+            // Reflect[Vector2, Range(...), RangeSlider()] reads the pair as a span
+            // (x = low, y = high) on one bounded bar instead of two X/Y boxes.
+            // Either way the Range reaches the descriptor: on the plain row it
+            // bounds each component's spin box, which is what a Range on a vector
+            // has always meant for the engine's own components (see
+            // ParticleComponent's bounded vec2 rows).
+            const auto tag = field.widget == "range_slider" ? Tags::RANGE_SLIDER
+                                                            : Tags::VECTOR2;
             BindProperty<glm::vec2>(sc, label, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::VECTOR2).Step(field.step), initial);
+                PropDesc().Tag(tag).Range(field.min, field.max)
+                          .Step(field.step).ReadOnly(ro), initial);
         }
         else if (field.typeName == "vec3") {
             glm::vec3 initial = (it != allValues.end() && std::holds_alternative<glm::vec3>(it->second))
@@ -934,7 +1053,8 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 sc->SetFieldValue(name, v);
             };
             BindProperty<glm::vec3>(sc, label, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::VECTOR3).Step(field.step), initial);
+                PropDesc().Tag(Tags::VECTOR3).Range(field.min, field.max)
+                          .Step(field.step).ReadOnly(ro), initial);
         }
         else if (field.typeName == "vec4") {
             glm::vec4 initial = (it != allValues.end() && std::holds_alternative<glm::vec4>(it->second))
@@ -947,9 +1067,23 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 sc->SetFieldValue(name, v);
             };
             BindProperty<glm::vec4>(sc, label, getter, setter, field.changeEvent,
-                PropDesc().Tag(Tags::VECTOR4).Step(field.step), initial);
+                PropDesc().Tag(Tags::VECTOR4).Range(field.min, field.max)
+                          .Step(field.step).ReadOnly(ro), initial);
         }
         else if (field.typeName == "list") {
+            // A list's Reflect metadata describes its ELEMENTS -- that is where it
+            // is written (list[Reflect[float, Range(0, 1), Slider()]]) and a row is
+            // what gets a widget -- so field.min/max/step/widget/options are built
+            // into the element descriptor here, exactly as the scalar branches
+            // above build them into the field's own. See ScriptFieldInfo.
+            std::vector<std::pair<std::string, std::any>> elemOptions;
+            for (std::size_t i = 0; i < field.optionLabels.size(); ++i) {
+                elemOptions.push_back({ field.optionLabels[i],
+                    i < field.optionValues.size() ? field.optionValues[i]
+                                                  : static_cast<int>(i) });
+            }
+            const bool elemDropdown = !elemOptions.empty();
+
             if (field.elementTypeName == "bool") {
                 auto getter = [sc, name = field.name]() -> std::vector<bool> {
                     auto val = sc->GetFieldValue(name);
@@ -960,7 +1094,7 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                     sc->SetFieldValue(name, v);
                 };
                 BindProperty<std::vector<bool>>(sc, label, getter, setter, field.changeEvent,
-                    PropDesc().Tag(Tags::LIST).Element(PropDesc().Tag(Tags::TOGGLE)));
+                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(PropDesc().Tag(Tags::TOGGLE).ReadOnly(ro)));
             }
             else if (field.elementTypeName == "float") {
                 auto getter = [sc, name = field.name]() -> std::vector<float> {
@@ -971,8 +1105,30 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 auto setter = [name = field.name](ScriptComponent* sc, const std::vector<float>& v) {
                     sc->SetFieldValue(name, v);
                 };
+                // Reflect[float, Range(...), Slider()] on the element turns each row
+                // into a handle, same rule and same fallback as the scalar float
+                // branch above.
+                const auto elemTag = field.widget == "slider" ? Tags::SLIDER : Tags::FLOAT;
                 BindProperty<std::vector<float>>(sc, label, getter, setter, field.changeEvent,
-                    PropDesc().Tag(Tags::LIST).Element(PropDesc().Tag(Tags::FLOAT).Step(field.step)));
+                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(
+                        PropDesc().Tag(elemTag).Range(field.min, field.max)
+                                  .Step(field.step).ReadOnly(ro)));
+            }
+            else if (field.elementTypeName == "int" && elemDropdown) {
+                // Options() rows are dropdowns, so they bind as vector<int> (what
+                // DropdownPropertyWidget carries) rather than taking the float-row
+                // conversion below.
+                auto getter = [sc, name = field.name]() -> std::vector<int> {
+                    auto val = sc->GetFieldValue(name);
+                    return std::holds_alternative<std::vector<int>>(val)
+                        ? std::get<std::vector<int>>(val) : std::vector<int>{};
+                };
+                auto setter = [name = field.name](ScriptComponent* sc, const std::vector<int>& v) {
+                    sc->SetFieldValue(name, v);
+                };
+                BindProperty<std::vector<int>>(sc, label, getter, setter, field.changeEvent,
+                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(
+                        PropDesc().Tag(Tags::DROPDOWN).DropVals(elemOptions).ReadOnly(ro)));
             }
             else if (field.elementTypeName == "int") {
                 // Int lists are edited with float rows (like scalar ints), converting
@@ -991,7 +1147,9 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                     sc->SetFieldValue(name, out);
                 };
                 BindProperty<std::vector<float>>(sc, label, getter, setter, field.changeEvent,
-                    PropDesc().Tag(Tags::LIST).Element(PropDesc().Tag(Tags::FLOAT).Step(1)));
+                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(
+                        PropDesc().Tag(Tags::FLOAT).Range(field.min, field.max)
+                                  .Step(1).ReadOnly(ro)));
             }
             else if (field.elementTypeName == "str") {
                 auto getter = [sc, name = field.name]() -> std::vector<std::string> {
@@ -1003,9 +1161,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                     sc->SetFieldValue(name, v);
                 };
 
-                // Element descriptor mirrors the scalar str path (plain / asset ref / GO ref).
+                // Element descriptor mirrors the scalar str path (dropdown / plain /
+                // asset ref / GO ref).
                 PropDesc elemDesc;
-                if (field.elementRefTypeName == "material") {
+                if (elemDropdown) {
+                    elemDesc = PropDesc().Tag(Tags::DROPDOWN).DropVals(elemOptions);
+                } else if (field.elementRefTypeName == "material") {
                     elemDesc = PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF);
                 } else if (field.elementRefTypeName == "sprite") {
                     elemDesc = PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF);
@@ -1018,7 +1179,53 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 }
 
                 BindProperty<std::vector<std::string>>(sc, label, getter, setter, field.changeEvent,
-                    PropDesc().Tag(Tags::LIST).Element(elemDesc));
+                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(elemDesc.ReadOnly(ro)));
+            }
+            else if (field.elementTypeName == "vec2") {
+                auto getter = [sc, name = field.name]() -> std::vector<glm::vec2> {
+                    auto val = sc->GetFieldValue(name);
+                    return std::holds_alternative<std::vector<glm::vec2>>(val)
+                        ? std::get<std::vector<glm::vec2>>(val) : std::vector<glm::vec2>{};
+                };
+                auto setter = [name = field.name](ScriptComponent* sc, const std::vector<glm::vec2>& v) {
+                    sc->SetFieldValue(name, v);
+                };
+                // RangeSlider() on the element makes each row a span bar, matching
+                // the scalar vec2 branch.
+                const auto elemTag = field.widget == "range_slider" ? Tags::RANGE_SLIDER
+                                                                   : Tags::VECTOR2;
+                BindProperty<std::vector<glm::vec2>>(sc, label, getter, setter, field.changeEvent,
+                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(
+                        PropDesc().Tag(elemTag).Range(field.min, field.max)
+                                  .Step(field.step).ReadOnly(ro)));
+            }
+            else if (field.elementTypeName == "vec3") {
+                auto getter = [sc, name = field.name]() -> std::vector<glm::vec3> {
+                    auto val = sc->GetFieldValue(name);
+                    return std::holds_alternative<std::vector<glm::vec3>>(val)
+                        ? std::get<std::vector<glm::vec3>>(val) : std::vector<glm::vec3>{};
+                };
+                auto setter = [name = field.name](ScriptComponent* sc, const std::vector<glm::vec3>& v) {
+                    sc->SetFieldValue(name, v);
+                };
+                BindProperty<std::vector<glm::vec3>>(sc, label, getter, setter, field.changeEvent,
+                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(
+                        PropDesc().Tag(Tags::VECTOR3).Range(field.min, field.max)
+                                  .Step(field.step).ReadOnly(ro)));
+            }
+            else if (field.elementTypeName == "vec4") {
+                auto getter = [sc, name = field.name]() -> std::vector<glm::vec4> {
+                    auto val = sc->GetFieldValue(name);
+                    return std::holds_alternative<std::vector<glm::vec4>>(val)
+                        ? std::get<std::vector<glm::vec4>>(val) : std::vector<glm::vec4>{};
+                };
+                auto setter = [name = field.name](ScriptComponent* sc, const std::vector<glm::vec4>& v) {
+                    sc->SetFieldValue(name, v);
+                };
+                BindProperty<std::vector<glm::vec4>>(sc, label, getter, setter, field.changeEvent,
+                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(
+                        PropDesc().Tag(Tags::VECTOR4).Range(field.min, field.max)
+                                  .Step(field.step).ReadOnly(ro)));
             }
         }
     }
