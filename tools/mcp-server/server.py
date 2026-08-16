@@ -38,6 +38,64 @@ async def call(method: str, **params: Any) -> Any:
             return {"error": f"could not reach the RockEngine editor: {e}"}
 
 
+def _editor_data(result: Any) -> dict[str, Any]:
+    """Unwrap the editor bridge's {data, worldMode} result for local orchestration."""
+    if isinstance(result, dict) and isinstance(result.get("data"), dict):
+        return result["data"]
+    return result if isinstance(result, dict) else {}
+
+
+async def _wait_for_clarification(request_id: str, timeout_seconds: int = 300) -> Any:
+    """Poll without holding the editor pipe or blocking its event loop."""
+    timeout_seconds = max(5, min(timeout_seconds, 900))
+    deadline = asyncio.get_running_loop().time() + timeout_seconds
+    while asyncio.get_running_loop().time() < deadline:
+        result = await call("user.clarification_status", requestId=request_id)
+        data = _editor_data(result)
+        if data.get("status") != "pending":
+            return result
+        await asyncio.sleep(0.25)
+    return {
+        "error": "user clarification timed out",
+        "requestId": request_id,
+        "status": "timed_out",
+    }
+
+
+# --- User clarification -------------------------------------------------------------
+
+@mcp.tool()
+async def ask_user_clarification(
+    question: str,
+    options: list[dict[str, str]],
+    context: str = "",
+    allow_multiple: bool = False,
+    title: str = "Clarification needed",
+    timeout_seconds: int = 300,
+) -> Any:
+    """Ask the user an in-editor clarification question and wait for their answer.
+
+    Call this before acting when required information is missing, several materially
+    different interpretations are plausible, or the operation has important side
+    effects the user did not explicitly acknowledge. Each option requires an `id` and
+    `label`; an optional `description` should explain its consequence or next step.
+    Set allow_multiple=True only when choices are independent and can be combined.
+    The editor always appends an Other option with free-form input.
+    """
+    started = await call(
+        "user.request_clarification",
+        title=title,
+        question=question,
+        context=context,
+        options=options,
+        allowMultiple=allow_multiple,
+    )
+    request_id = _editor_data(started).get("requestId", "")
+    if not request_id:
+        return started
+    return await _wait_for_clarification(request_id, timeout_seconds)
+
+
 # --- Scene and hierarchy ------------------------------------------------------------
 
 @mcp.tool()
@@ -139,9 +197,35 @@ async def set_parent(object_id: str, parent_id: str = "") -> Any:
 
 
 @mcp.tool()
-async def remove_component(object_id: str, component_id: str) -> Any:
-    """Detach a component. Get component ids from get_object. Not undoable."""
-    return await call("object.remove_component", id=object_id, componentId=component_id)
+async def remove_component(object_id: str, component_id: str, confirm: bool = False) -> Any:
+    """Detach an exact component after mandatory in-editor impact clarification.
+
+    RockEngine calculates cascaded removals and behavioral effects first. For example,
+    removing a RigidBody lists its Collider shapes and own/connected Joints. The user
+    can approve removal, disable instead, inspect affected IDs, cancel, or choose Other.
+    `confirm` is retained for older clients but cannot bypass the user answer bank.
+    Transform cannot be removed.
+    """
+    _ = confirm
+    started = await call("object.remove_component", id=object_id, componentId=component_id)
+    impact = _editor_data(started)
+    if impact.get("status") != "clarification_required":
+        return started
+    request_id = impact.get("requestId", "")
+    answered_result = await _wait_for_clarification(request_id)
+    answer = _editor_data(answered_result)
+    selected = set(answer.get("selectedIds", []))
+    if answer.get("status") == "answered" and "remove" in selected:
+        return await call("object.remove_component", id=object_id,
+                          componentId=component_id, clarificationId=request_id)
+    if answer.get("status") == "answered" and "disable" in selected:
+        result = await call("component.set_property", componentId=component_id,
+                            property="enabled", value=False)
+        return {"status": "alternative_applied", "choice": "disable",
+                "result": result, "clarification": answer, "affected": impact.get("affected", [])}
+    return {"status": "not_removed", "choice": next(iter(selected), "cancel"),
+            "clarification": answer, "affected": impact.get("affected", []),
+            "otherText": answer.get("otherText", "")}
 
 
 @mcp.tool()
@@ -207,6 +291,48 @@ async def list_assets(asset_type: str = "", name_contains: str = "", limit: int 
 
 
 @mcp.tool()
+async def describe_asset(asset_id: str) -> Any:
+    """Describe one loaded asset by exact id, including every MCP-editable property,
+    its current value, type, enum choices, range, reference target and writeability."""
+    return await call("asset.describe", assetId=asset_id)
+
+
+@mcp.tool()
+async def get_asset_property(asset_id: str, property_name: str) -> Any:
+    """Read one discovered asset property. Call describe_asset for valid names."""
+    return await call("asset.get_property", assetId=asset_id, property=property_name)
+
+
+@mcp.tool()
+async def set_asset_property(asset_id: str, property_name: str, value: Any) -> Any:
+    """Set one discovered asset property through the same Resource setter used by the
+    Inspector. Existing asset auto-save therefore persists the edit to its meta file."""
+    return await call("asset.set_property", assetId=asset_id,
+                      property=property_name, value=value)
+
+
+@mcp.tool()
+async def set_asset_properties(asset_id: str, values: dict[str, Any]) -> Any:
+    """Atomically set several properties on one asset. On validation failure, all
+    earlier writes are rolled back. Assets remain non-undoable, matching the Inspector."""
+    return await call("asset.set_properties", assetId=asset_id, values=values)
+
+
+@mcp.tool()
+async def save_asset(asset_id: str) -> Any:
+    """Explicitly persist a loaded asset's current in-memory state. Property setters
+    normally auto-save already; this is useful as a synchronization checkpoint."""
+    return await call("asset.save", assetId=asset_id)
+
+
+@mcp.tool()
+async def resolve_reference(reference_id: str) -> Any:
+    """Resolve an exact GameObject, component, or loaded asset id into metadata. This
+    is the shared reference format used by component and asset property schemas."""
+    return await call("reference.resolve", id=reference_id)
+
+
+@mcp.tool()
 async def set_sprite(object_id: str, sprite_id: str = "") -> Any:
     """Assign a sprite to a SpriteRenderer by asset id (from list_assets).
     Pass no sprite_id to clear it."""
@@ -226,6 +352,58 @@ async def set_audio_clip(object_id: str, clip_id: str = "") -> Any:
 
 
 # --- Components --------------------------------------------------------------------
+
+@mcp.tool()
+async def get_capabilities() -> Any:
+    """Discover bridge version, registered component types, generic tools, exact-id
+    addressing, transaction support and undo behavior."""
+    return await call("capabilities.get")
+
+
+@mcp.tool()
+async def list_components(object_id: str) -> Any:
+    """List every component on a GameObject in serialized order. Each entry includes
+    its exact component id and full property schema. Use exact ids for repeatable
+    components such as colliders, joints, scripts and audio sources."""
+    return await call("component.list", objectId=object_id)
+
+
+@mcp.tool()
+async def describe_component(component_id: str) -> Any:
+    """Describe one exact component, including all current values, enum choices,
+    numeric constraints, asset/object reference types and supported actions."""
+    return await call("component.describe", componentId=component_id)
+
+
+@mcp.tool()
+async def get_component_property(component_id: str, property_name: str) -> Any:
+    """Read one property from an exact component id."""
+    return await call("component.get_property", componentId=component_id,
+                      property=property_name)
+
+
+@mcp.tool()
+async def set_component_property(component_id: str, property_name: str, value: Any) -> Any:
+    """Set one property on an exact component id. The edit uses the engine setter and
+    is recorded in the active world's Undo stack."""
+    return await call("component.set_property", componentId=component_id,
+                      property=property_name, value=value)
+
+
+@mcp.tool()
+async def set_component_properties(component_id: str, values: dict[str, Any]) -> Any:
+    """Atomically set multiple properties on an exact component. Invalid values roll
+    the complete batch back; a successful batch becomes one editor Undo operation."""
+    return await call("component.set_properties", componentId=component_id, values=values)
+
+
+@mcp.tool()
+async def invoke_component_action(component_id: str, action: str,
+                                  arguments: dict[str, Any] | None = None) -> Any:
+    """Invoke a discovered transient component action, such as AudioSource play,
+    ParticleComponent emit_burst, Animator play/set_parameter, or set_script."""
+    return await call("component.invoke", componentId=component_id, action=action,
+                      arguments=arguments or {})
 
 @mcp.tool()
 async def set_component_enabled(object_id: str, component_type: str, enabled: bool) -> Any:
@@ -350,9 +528,31 @@ async def duplicate_object(object_id: str) -> Any:
 
 
 @mcp.tool()
-async def destroy_object(object_id: str) -> Any:
-    """Destroy a GameObject and its children. Not undoable -- there is no way to get it back."""
-    return await call("object.destroy", id=object_id)
+async def destroy_object(object_id: str, confirm: bool = False) -> Any:
+    """Destroy a GameObject only after mandatory in-editor impact clarification.
+
+    The answer bank reports descendants, component count, and external Joints that
+    will cascade. The user can approve, deactivate instead, inspect, cancel, or use
+    Other. `confirm` is retained for compatibility but cannot bypass clarification.
+    """
+    _ = confirm
+    started = await call("object.destroy", id=object_id)
+    impact = _editor_data(started)
+    if impact.get("status") != "clarification_required":
+        return started
+    request_id = impact.get("requestId", "")
+    answered_result = await _wait_for_clarification(request_id)
+    answer = _editor_data(answered_result)
+    selected = set(answer.get("selectedIds", []))
+    if answer.get("status") == "answered" and "destroy" in selected:
+        return await call("object.destroy", id=object_id, clarificationId=request_id)
+    if answer.get("status") == "answered" and "deactivate" in selected:
+        result = await call("object.set_active", id=object_id, value=False)
+        return {"status": "alternative_applied", "choice": "deactivate",
+                "result": result, "clarification": answer, "affected": impact.get("affected", [])}
+    return {"status": "not_destroyed", "choice": next(iter(selected), "cancel"),
+            "clarification": answer, "affected": impact.get("affected", []),
+            "otherText": answer.get("otherText", "")}
 
 
 # --- Engine mode -------------------------------------------------------------------
@@ -409,6 +609,21 @@ async def build_game(output_dir: str = "", run_after: bool = False) -> Any:
 async def get_build_status() -> Any:
     """Check whether a build is running, and how the last one finished."""
     return await call("build.get_status")
+
+
+# --- Inspection --------------------------------------------------------------------
+
+@mcp.tool()
+async def get_console_messages(message_type: str = "", limit: int = 100) -> Any:
+    """Read recent engine/editor console messages, newest first. message_type may be
+    comment, warning, or alert."""
+    return await call("console.get_messages", type=message_type, limit=limit)
+
+
+@mcp.tool()
+async def capture_scene_view() -> Any:
+    """Capture the visible Scene view as a PNG data URL for visual inspection."""
+    return await call("scene.capture_view")
 
 
 @mcp.tool()

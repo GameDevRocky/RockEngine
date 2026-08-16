@@ -43,6 +43,8 @@ void McpServer::Start() {
     RegisterEngineModeTools(m_dispatcher);
     RegisterBuildTools(m_dispatcher);
     RegisterDebugTools(m_dispatcher);
+    RegisterPropertyTools(m_dispatcher);
+    RegisterClarificationTools(m_dispatcher);
 
     m_server = new QLocalServer(this);
     // An unclean exit leaves the socket file behind on Unix and the next listen()

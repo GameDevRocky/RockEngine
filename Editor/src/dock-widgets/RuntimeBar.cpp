@@ -94,7 +94,23 @@ void RuntimeBar::Init() {
     });
 
     layout->addStretch();
+    layout->setSpacing(2);
+
+    runtimeButton->setStyleSheet(QStringLiteral(
+        "border-top-left-radius: 7px;"
+        "border-bottom-left-radius: 7px;"
+        "border-top-right-radius: 0px;"
+        "border-bottom-right-radius: 0px;"));
+    pauseButton->setStyleSheet(QStringLiteral(
+        "border-radius: 0px;"));
+    stepButton->setStyleSheet(QStringLiteral(
+        "border-top-left-radius: 0px;"
+        "border-bottom-left-radius: 0px;"
+        "border-top-right-radius: 7px;"
+        "border-bottom-right-radius: 7px;"));
+
     layout->addWidget(runtimeButton);
+
     layout->addWidget(pauseButton);
     layout->addWidget(stepButton);
     layout->addStretch();

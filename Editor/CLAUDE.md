@@ -55,7 +55,11 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 - **`src/utils/`**:
   - `InspectorVisitor` — an `IVisitor` over `Serializable` that builds property editors from
     an object's reflected fields (the bridge from Engine reflection to Qt widgets).
-  - `AssetThumbnails` / `AssetPreviewDelegate` — asset-browser previews (current branch focus).
+  - `GizmoUndoBridge` — converts completed Engine gizmo gestures into editor undo commands,
+    including `AudioSource` minimum/maximum distance handle drags.
+  - `AssetThumbnails` / `AssetPreviewDelegate` — asset-browser previews. The Folder grid's
+    delegate bypasses Qt's item-style painter, so it paints the default stylesheet's rounded
+    hover/selection bubbles itself rather than relying on `QListView::item` rules.
   - `SceneTree` / `SceneTreeItemDelegate` — hierarchy tree model/rendering.
   - `ImGuiInstance` — ImGui + ImGuizmo for in-viewport gizmos, rendered over the Qt GL widget.
   - `CollapsableWidget`, `EditorUtils`, `MessageGui`.
@@ -109,6 +113,22 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   schemas. Every run injects the existing `tools/mcp-server/server.py` as the `rockengine` stdio
   server, so live scene changes follow the same bridge and main-thread guarantees as an external
   MCP client. The MCP venv under `tools/mcp-server/.venv/` must be installed.
+- New MCP integrations use `component.describe` / `asset.describe` and exact component or resource
+  IDs. Property schemas are discoverable and must remain synchronized with Inspector-accessible
+  component/resource setters, including enum choices and dynamic ScriptComponent fields or
+  Material uniforms. Repeatable components must never be addressed only by owner plus type.
+  Component property batches roll back on failure and enter the active container's Undo stack as
+  one command; asset setters retain the Inspector's non-undoable, metadata-auto-save behavior.
+- AI clarification questions are first-class `AiChatGui` transcript entries presented by
+  `AiClarificationWidget`, never top-level windows. Pending cards stay expanded; resolved cards
+  collapse to their answer summary and retain a read-only expandable body. The
+  `UserClarificationService` emits request/resolution state while `user.clarification_status`
+  polling keeps the MCP call asynchronous—never wait with `QDialog::exec()` or
+  `QApplication::processEvents()`. Generic ambiguous decisions go through
+  `ask_user_clarification`, whose answer bank always adds Other and supports multi-select for
+  independent choices. Destructive MCP handlers must analyze their current impact and require a
+  scope-bound, one-use editor-owned answer before mutating state. A model-supplied boolean must
+  never bypass that authorization.
 - OpenAI chat runs through Codex app-server so `item/agentMessage/delta` notifications can be
   rendered live; login still uses the Codex CLI. ChatGPT browser login and
   `codex login --with-api-key` are supported;

@@ -9,8 +9,9 @@ class SceneTreeItemDelegate : public QStyledItemDelegate {
 public:
     explicit SceneTreeItemDelegate(QObject* parent = nullptr);
 
-    // Space reserved on the left for the active-toggle button
-    static constexpr int LEFT_MARGIN = 26;
+    // Reserve exactly the active-toggle footprint. SceneTree::item's own left
+    // padding supplies the small visual gap before the GameObject icon.
+    static constexpr int LEFT_MARGIN = 18;
 
     QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
     void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override;

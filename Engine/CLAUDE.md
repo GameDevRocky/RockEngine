@@ -203,7 +203,10 @@ separate fake volume/pan blend — real panning and distance attenuation fall ou
 own spatializer at any blend in between. The active listener is resolved once per frame in
 `Engine::Update` (pull, not push, same rule the render cameras follow) via
 `AudioListener::GetMain()`, falling back to `Camera::GetMain()` so positional audio works with
-zero setup. miniaudio is vendored as `External/miniaudio/miniaudio.h` (single-header, like
+zero setup. `GizmosManager` displays the `audio_source_icon` at active source objects; selected,
+enabled sources also get scale-independent min/max distance rings with draggable handles that
+emit one `minDistance` or `maxDistance` edit on release for the editor undo bridge. miniaudio is
+vendored as `External/miniaudio/miniaudio.h` (single-header, like
 stb/glad); `AudioEngine.cpp` is the one translation unit with `MINIAUDIO_IMPLEMENTATION` defined.
 
 **Two Windows gotchas, both already handled — don't undo them:**

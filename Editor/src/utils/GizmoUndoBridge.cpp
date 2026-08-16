@@ -15,6 +15,7 @@
 #include "engine/components/Camera.hpp"
 #include "engine/components/Light.hpp"
 #include "engine/components/ShadowCaster.hpp"
+#include "engine/components/AudioSource.hpp"
 #include "engine/rendering/core/GizmosManager.hpp"
 
 // Translates a committed gizmo gesture into undo commands.
@@ -121,6 +122,20 @@ std::unique_ptr<Command> MakeGizmoCommand(const GizmoEdit& edit) {
             std::any_cast<float>(edit.after),
             [](Light* l, const float& v){ l->SetOuterAngle(v); }, "Change Spot Angle");
     }
+    if (p == "minDistance") {
+        return std::make_unique<PropertyCommand<AudioSource, float>>(
+            edit.targetId, p, std::any_cast<float>(edit.before),
+            std::any_cast<float>(edit.after),
+            [](AudioSource* s, const float& v){ s->SetMinDistance(v); },
+            "Change Audio Min Distance");
+    }
+    if (p == "maxDistance") {
+        return std::make_unique<PropertyCommand<AudioSource, float>>(
+            edit.targetId, p, std::any_cast<float>(edit.before),
+            std::any_cast<float>(edit.after),
+            [](AudioSource* s, const float& v){ s->SetMaxDistance(v); },
+            "Change Audio Max Distance");
+    }
     // ShadowCaster's size/radius carry distinct property names: a collider
     // already owns the plain "size"/"radius" branches above and dispatch here is
     // by property string alone.
@@ -163,6 +178,8 @@ std::string DescribeGesture(const std::vector<GizmoEdit>& edits) {
         else if (p == "innerRadius")   verb = "Change Light Falloff";
         else if (p == "innerAngle" ||
                  p == "outerAngle")    verb = "Change Spot Angle";
+        else if (p == "minDistance")   verb = "Change Audio Min Distance";
+        else if (p == "maxDistance")   verb = "Change Audio Max Distance";
         else if (p == "casterSize" ||
                  p == "casterRadius")  verb = "Resize Shadow Caster";
         else                           verb = "Resize Collider";

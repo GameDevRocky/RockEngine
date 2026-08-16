@@ -1,8 +1,10 @@
 #include "mcp/Tools.hpp"
 
 #include "mcp/McpDispatcher.hpp"
+#include "mcp/DestructiveImpact.hpp"
 #include "mcp/PyApiCall.hpp"
 #include "mcp/ToolSupport.hpp"
+#include "mcp/UserClarification.hpp"
 
 #include "engine/components/Component.hpp"
 #include "engine/core/GameObject.hpp"
@@ -88,11 +90,42 @@ void RegisterObjectTools(McpDispatcher& dispatcher) {
                                                QString::fromStdString(object->GetID()));
 
         const QString typeName = QString::fromStdString(component->GetTypeName());
+        if (typeName == "Transform")
+            return McpResult::Error(InvalidParams, "Transform is required and cannot be removed");
+
+        ImpactClarification impact = AnalyzeComponentRemoval(object, component);
+        const QString clarificationId = params.value("clarificationId").toString();
+        if (clarificationId.isEmpty()) {
+            const QString requestId = UserClarificationService::Get()->Create(
+                std::move(impact.request));
+            QJsonObject data{
+                {"status", "clarification_required"},
+                {"requestId", requestId},
+                {"action", "remove_component"},
+                {"componentId", componentId},
+                {"type", typeName},
+                {"affected", impact.affected},
+                {"affectedTotal", impact.affectedTotal},
+                {"truncated", impact.truncated}
+            };
+            return McpResult::Ok(data);
+        }
+
+        QJsonObject clarification;
+        QString authorizationError;
+        if (!UserClarificationService::Get()->Consume(
+                clarificationId, impact.request.scope, QStringLiteral("remove"),
+                &clarification, &authorizationError)) {
+            return McpResult::Error(InvalidParams, authorizationError);
+        }
         object->RemoveComponent(component);   // deferred destruction; fires REMOVE_COMPONENT_EVENT
 
         QJsonObject data;
+        data["status"] = "removed";
         data["removed"] = componentId;
         data["type"] = typeName;
+        data["clarification"] = clarification;
+        data["affected"] = impact.affected;
         return McpResult::Ok(data);
     });
 }

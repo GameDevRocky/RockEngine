@@ -10,6 +10,7 @@
 #include "engine/components/ParticleComponent.hpp"
 #include "engine/components/Light.hpp"
 #include "engine/components/ShadowCaster.hpp"
+#include "engine/components/AudioSource.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/Joint.hpp"
@@ -25,6 +26,7 @@
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "imgui.h"
+#include <algorithm>
 #include <cmath>
 
 #include "engine/rendering/core/GridSettings.hpp"
@@ -81,6 +83,7 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
     m_hoveredHandle = -1;        // reset each frame; DrawBoxColliderGizmo sets it if applicable
     m_hoveredCameraCorner = -1;  // reset each frame; DrawCameraGizmo sets it if applicable
     m_hoveredLightHandle = -1;   // reset each frame; DrawLightGizmos sets it if applicable
+    m_hoveredAudioHandle = -1;   // reset each frame; DrawAudioSourceGizmos sets it if applicable
     m_hoveredScaleHandle = -1;   // reset each frame; DrawSpriteBoxGizmo sets it if applicable
 
     // Camera view-region rects, light shapes and component icons are drawn for
@@ -88,6 +91,7 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
     // no-selection early-return below.
     DrawCameraGizmos(view, proj, viewWidth, viewHeight);
     DrawLightGizmos(view, proj, viewWidth, viewHeight);
+    DrawAudioSourceGizmos(view, proj, viewWidth, viewHeight);
     DrawComponentIcons(view, proj, viewWidth, viewHeight);
 
     Container* container = Engine::Get()->GetActiveContainer();
@@ -227,7 +231,8 @@ void GizmosManager::DrawSpriteBoxGizmo(const glm::mat4& view, const glm::mat4& p
     if (hovered >= 0) m_hoveredScaleHandle = hovered;
 
     if (io.MouseClicked[0] && hovered >= 0 && !ImGuizmo::IsUsing() &&
-        m_dragHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0 && m_dragScaleHandle < 0) {
+        m_dragHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0 &&
+        m_dragAudioHandle < 0 && m_dragScaleHandle < 0) {
         // Box frame = parentWorld * T * R (this object's scale deliberately left out).
         glm::mat4 parentWorld(1.0f);
         if (Transform* parent = transform->GetParent()) parentWorld = parent->GetWorldMatrix();
@@ -1499,11 +1504,153 @@ void GizmosManager::CommitLightDrag()
     if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
 }
 
+// ─── AudioSource gizmos ──────────────────────────────────────────────────────
+// Audio attenuation rings are selected-only because their authored ranges are
+// commonly much larger than lights and would otherwise obscure the viewport.
+// The component icon remains visible on every active object.
+namespace {
+    enum AudioHandle {
+        kAudioMinDistance = 0,
+        kAudioMaxDistance = 1,
+    };
+}
+
+void GizmosManager::DrawAudioSourceGizmos(const glm::mat4& view, const glm::mat4& proj,
+                                          float viewWidth, float viewHeight) {
+    Container* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+
+    // Commit once on release, after all live drag updates have finished.
+    if (!ImGui::GetIO().MouseDown[0]) {
+        if (m_dragAudioHandle >= 0 && !m_dragAudioId.empty()) CommitAudioSourceDrag();
+        m_dragAudioHandle = -1;
+        m_dragAudioId.clear();
+    }
+
+    SceneManager* sceneManager = container->FindSystem<SceneManager>();
+    SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+    if (!sceneManager || !selectionManager || !selectionManager->HasSelection()) return;
+
+    const glm::mat4 vp = proj * view;
+    for (Scene* scene : sceneManager->GetScenes()) {
+        if (!scene) continue;
+        for (GameObject* obj : scene->GetAllGameObjects()) {
+            if (!obj || !obj->GetActive() || !selectionManager->IsSelected(obj->GetID())) continue;
+
+            Transform* transform = obj->GetComponent<Transform>();
+            if (!transform) continue;
+
+            for (AudioSource* source : obj->GetComponents<AudioSource>()) {
+                if (source && source->GetEnabled())
+                    DrawAudioSourceGizmo(vp, viewWidth, viewHeight, transform, source);
+            }
+        }
+    }
+}
+
+void GizmosManager::DrawAudioSourceGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                                         Transform* transform, AudioSource* source) {
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+    // miniaudio consumes these as world distances, independent of Transform
+    // scale. Clamp only for drawing so legacy negative values cannot invert the
+    // screen radius; the first handle drag repairs such a value.
+    const glm::vec2 worldCenter = transform->GetWorldPosition();
+    const float minDistance = std::max(0.0f, source->GetMinDistance());
+    const float maxDistance = std::max(0.0f, source->GetMaxDistance());
+    const ImVec2 screenCenter = WorldToScreen(worldCenter, vp, viewWidth, viewHeight);
+    const float minRadiusPx = ScreenDistance(
+        WorldToScreen(worldCenter + glm::vec2(minDistance, 0.0f), vp, viewWidth, viewHeight),
+        screenCenter);
+    const float maxRadiusPx = ScreenDistance(
+        WorldToScreen(worldCenter + glm::vec2(maxDistance, 0.0f), vp, viewWidth, viewHeight),
+        screenCenter);
+
+    const ImU32 minRingColor = IM_COL32(80, 220, 175, 220);
+    const ImU32 maxRingColor = IM_COL32(255, 185, 75, 220);
+    if (minRadiusPx > 0.5f)
+        drawList->AddCircle(screenCenter, minRadiusPx, minRingColor, 64, 1.5f);
+    if (maxRadiusPx > 0.5f)
+        drawList->AddCircle(screenCenter, maxRadiusPx, maxRingColor, 64, 1.5f);
+
+    // Different directions keep both grips accessible when min and max are
+    // equal. A minimum screen offset keeps zero-distance values editable.
+    constexpr float kDiagonal = 0.70710678f;
+    // Keep zero/small-distance grips clear of the fixed-size source icon drawn
+    // over the object's center.
+    constexpr float kMinAudioHandleOffsetPx = kComponentIconSizePx + 12.0f;
+    const float minHandleOffset = std::max(minRadiusPx, kMinAudioHandleOffsetPx);
+    const float maxHandleOffset = std::max(maxRadiusPx, kMinAudioHandleOffsetPx);
+    const ImVec2 handles[2] = {
+        ImVec2(screenCenter.x + minHandleOffset * kDiagonal,
+               screenCenter.y - minHandleOffset * kDiagonal),
+        ImVec2(screenCenter.x + maxHandleOffset, screenCenter.y),
+    };
+
+    int hovered = -1;
+    if (m_dragAudioHandle < 0) {
+        for (int i = 0; i < 2; ++i) {
+            if (HitTest(io.MousePos, handles[i])) {
+                hovered = i;
+                break;
+            }
+        }
+    }
+    if (hovered >= 0) m_hoveredAudioHandle = hovered;
+
+    if (io.MouseClicked[0] && hovered >= 0 && !ImGuizmo::IsUsing() &&
+        m_dragHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0 &&
+        m_dragAudioHandle < 0 && m_dragScaleHandle < 0) {
+        m_dragAudioHandle = hovered;
+        m_dragAudioId = source->GetID();
+        m_dragStartMinDistance = source->GetMinDistance();
+        m_dragStartMaxDistance = source->GetMaxDistance();
+    }
+
+    if (m_dragAudioHandle >= 0 && m_dragAudioId == source->GetID() && io.MouseDown[0]) {
+        const glm::vec2 mouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+        const float distance = glm::length(mouseWorld - worldCenter);
+        if (m_dragAudioHandle == kAudioMinDistance) {
+            source->SetMinDistance(std::min(distance, std::max(0.0f, source->GetMaxDistance())));
+        } else if (m_dragAudioHandle == kAudioMaxDistance) {
+            source->SetMaxDistance(std::max(distance, std::max(0.0f, source->GetMinDistance())));
+        }
+    }
+
+    const ImU32 minHandleColor = IM_COL32(100, 245, 195, 255);
+    const ImU32 maxHandleColor = IM_COL32(255, 205, 105, 255);
+    const ImU32 hotColor = IM_COL32(255, 255, 255, 255);
+    const bool draggingThis = m_dragAudioHandle >= 0 && m_dragAudioId == source->GetID();
+    for (int i = 0; i < 2; ++i) {
+        const bool isHot = i == hovered || (draggingThis && i == m_dragAudioHandle);
+        const ImU32 color = isHot ? hotColor
+                                  : (i == kAudioMinDistance ? minHandleColor : maxHandleColor);
+        drawList->AddCircleFilled(handles[i], kHandleRadiusPx, color);
+    }
+}
+
+void GizmosManager::CommitAudioSourceDrag() {
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    AudioSource* source = registry ? registry->Find<AudioSource>(m_dragAudioId) : nullptr;
+    if (!source) return;
+
+    std::vector<GizmoEdit> edits;
+    if (source->GetMinDistance() != m_dragStartMinDistance) {
+        edits.push_back({ source->GetID(), "minDistance", m_dragStartMinDistance,
+                          source->GetMinDistance() });
+    }
+    if (source->GetMaxDistance() != m_dragStartMaxDistance) {
+        edits.push_back({ source->GetID(), "maxDistance", m_dragStartMaxDistance,
+                          source->GetMaxDistance() });
+    }
+    if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
+}
+
 // ─── Component-type icons ────────────────────────────────────────────────────
-// To add an icon for a new component type: drop its PNG in Domain's icons
-// folder (registered by AssetManager under the file stem) and add one entry
-// here mapping that texture name to a "does this object have the component?"
-// predicate. Everything else -- lookup, positioning, alpha -- is generic.
+// To add a type, register the PNG stem and a component
+// predicate here; lazy texture lookup, positioning, and alpha remain generic.
 void GizmosManager::RegisterComponentIcons() {
     m_componentIcons.push_back({
         "camera_icon",
@@ -1523,6 +1670,11 @@ void GizmosManager::RegisterComponentIcons() {
     m_componentIcons.push_back({
         "shadow_caster_icon",
         [](GameObject* obj) { return obj->GetComponent<ShadowCaster>() != nullptr; },
+        nullptr,
+    });
+    m_componentIcons.push_back({
+        "audio_source_icon",
+        [](GameObject* obj) { return obj->GetComponent<AudioSource>() != nullptr; },
         nullptr,
     });
 }
@@ -1684,7 +1836,8 @@ void GizmosManager::DrawBoxColliderGizmo(const glm::mat4& view, const glm::mat4&
 
     // Handle mouse press - start dragging. Guard on m_dragHandle < 0 so only one
     // collider claims the drag when several are drawn in the same frame.
-    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 && hoveredHandle >= 0) {
+    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 &&
+        m_dragAudioHandle < 0 && hoveredHandle >= 0) {
         m_dragHandle = hoveredHandle;
         m_dragColliderId = boxCollider->GetID();
         m_dragStartMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
@@ -1880,7 +2033,8 @@ void GizmosManager::DrawCircleColliderGizmo(const glm::mat4& view, const glm::ma
     if (hoveredHandle >= 0) m_hoveredHandle = hoveredHandle;
 
     // Start drag — guard so only one collider claims the drag per frame.
-    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 && hoveredHandle >= 0) {
+    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 &&
+        m_dragAudioHandle < 0 && hoveredHandle >= 0) {
         m_dragHandle = hoveredHandle;
         m_dragColliderId = circleCollider->GetID();
         m_dragStartMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);
@@ -2039,7 +2193,8 @@ void GizmosManager::DrawCapsuleColliderGizmo(const glm::mat4& view, const glm::m
     if (hoveredHandle >= 0) m_hoveredHandle = hoveredHandle;
 
     // Start drag — guard so only one collider claims the drag per frame.
-    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 && hoveredHandle >= 0) {
+    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 &&
+        m_dragAudioHandle < 0 && hoveredHandle >= 0) {
         m_dragHandle = hoveredHandle;
         m_dragColliderId = capsuleCollider->GetID();
         m_dragStartMouseWorld = ScreenToWorld(mousePos, vp, viewWidth, viewHeight);

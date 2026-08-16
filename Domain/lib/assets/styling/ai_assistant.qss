@@ -719,3 +719,153 @@ QWidget#AiAssistant QPushButton#AiAttachmentRemove:focus {
     border: 1px solid transparent;
     color: rgb(25, 25, 26);
 }
+
+/* Inline clarification answer bank. It is a transcript bubble, not a top-level
+ * dialog, so narrow dock layouts wrap naturally and the transcript owns scrolling. */
+QWidget#AiAssistant QWidget#AiClarificationBubble {
+    background: rgb(45, 45, 47);
+    border: 1px solid rgb(67, 67, 70);
+    border-radius: 14px;
+}
+
+QWidget#AiAssistant QWidget#AiClarificationHeader,
+QWidget#AiAssistant QWidget#AiClarificationHeaderText,
+QWidget#AiAssistant QWidget#AiClarificationBody,
+QWidget#AiAssistant QWidget#AiClarificationOptions,
+QWidget#AiAssistant QWidget#AiClarificationOptionText {
+    background: transparent;
+    border: none;
+}
+
+QWidget#AiAssistant QToolButton#AiClarificationDisclosure {
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    padding: 2px;
+}
+
+QWidget#AiAssistant QToolButton#AiClarificationDisclosure:hover,
+QWidget#AiAssistant QToolButton#AiClarificationDisclosure:pressed {
+    background: rgb(56, 56, 59);
+    border: none;
+}
+
+QWidget#AiAssistant QLabel#AiClarificationTitle {
+    background: transparent;
+    border: none;
+    color: rgb(238, 238, 240);
+    font-weight: 650;
+}
+
+QWidget#AiAssistant QLabel#AiClarificationSummary {
+    background: transparent;
+    border: none;
+    color: rgb(163, 163, 168);
+}
+
+QWidget#AiAssistant QLabel#AiClarificationQuestion {
+    background: transparent;
+    border: none;
+    color: rgb(225, 225, 228);
+}
+
+QWidget#AiAssistant QLabel#AiClarificationContext {
+    background: rgb(38, 38, 40);
+    border: 1px solid rgb(57, 57, 60);
+    border-radius: 10px;
+    color: rgb(176, 176, 181);
+    padding: 8px;
+}
+
+QWidget#AiAssistant QLabel#AiClarificationInstruction {
+    background: transparent;
+    border: none;
+    color: rgb(188, 188, 192);
+}
+
+QWidget#AiAssistant QFrame#AiClarificationOption {
+    background: rgb(52, 52, 54);
+    border: 1px solid rgb(65, 65, 68);
+    border-radius: 10px;
+}
+
+QWidget#AiAssistant QFrame#AiClarificationOption:hover {
+    background: rgb(57, 57, 60);
+    border-color: rgb(83, 83, 87);
+}
+
+QWidget#AiAssistant QFrame#AiClarificationOption[selected="true"] {
+    background: rgb(55, 61, 57);
+    border-color: rgb(78, 132, 95);
+}
+
+/* QRadioButton/QCheckBox inherit QWidget's opaque palette background from
+ * default.qss. The control has no text of its own here, so that background was
+ * visible as a black square around the otherwise round indicator. */
+QWidget#AiAssistant QRadioButton#AiClarificationChoice,
+QWidget#AiAssistant QRadioButton#AiClarificationChoice:hover,
+QWidget#AiAssistant QRadioButton#AiClarificationChoice:pressed,
+QWidget#AiAssistant QRadioButton#AiClarificationChoice:checked,
+QWidget#AiAssistant QRadioButton#AiClarificationChoice:disabled,
+QWidget#AiAssistant QCheckBox#AiClarificationChoice,
+QWidget#AiAssistant QCheckBox#AiClarificationChoice:hover,
+QWidget#AiAssistant QCheckBox#AiClarificationChoice:pressed,
+QWidget#AiAssistant QCheckBox#AiClarificationChoice:checked,
+QWidget#AiAssistant QCheckBox#AiClarificationChoice:disabled {
+    background: transparent;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+    spacing: 0px;
+}
+
+QWidget#AiAssistant QLabel#AiClarificationOptionLabel {
+    background: transparent;
+    border: none;
+    color: rgb(235, 235, 237);
+    font-weight: 600;
+}
+
+QWidget#AiAssistant QLabel#AiClarificationOptionDescription {
+    background: transparent;
+    border: none;
+    color: rgb(158, 158, 163);
+}
+
+QWidget#AiAssistant QPlainTextEdit#AiClarificationOtherText {
+    background: rgb(38, 38, 40);
+    border: 1px solid rgb(63, 63, 66);
+    border-radius: 10px;
+    padding: 7px;
+}
+
+QWidget#AiAssistant QPlainTextEdit#AiClarificationOtherText:focus {
+    border-color: rgb(91, 131, 103);
+}
+
+QWidget#AiAssistant QPushButton#AiClarificationCancel,
+QWidget#AiAssistant QPushButton#AiClarificationContinue {
+    border: 1px solid transparent;
+    border-radius: 9px;
+    padding: 6px 11px;
+}
+
+QWidget#AiAssistant QPushButton#AiClarificationCancel {
+    background: rgb(54, 54, 57);
+    color: rgb(213, 213, 216);
+}
+
+QWidget#AiAssistant QPushButton#AiClarificationContinue {
+    background: rgb(65, 133, 87);
+    color: white;
+}
+
+QWidget#AiAssistant QPushButton#AiClarificationContinue:hover {
+    background: rgb(75, 150, 98);
+}
+
+QWidget#AiAssistant QPushButton#AiClarificationContinue:disabled {
+    background: rgb(54, 54, 57);
+    border: 1px solid transparent;
+    color: rgb(112, 112, 116);
+}

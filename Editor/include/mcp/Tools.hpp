@@ -14,5 +14,7 @@ void RegisterLifecycleTools(McpDispatcher& dispatcher);
 void RegisterEngineModeTools(McpDispatcher& dispatcher);
 void RegisterBuildTools(McpDispatcher& dispatcher);
 void RegisterDebugTools(McpDispatcher& dispatcher);
+void RegisterPropertyTools(McpDispatcher& dispatcher);
+void RegisterClarificationTools(McpDispatcher& dispatcher);
 
 } // namespace mcp

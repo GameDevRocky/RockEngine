@@ -1,8 +1,10 @@
 #include "mcp/Tools.hpp"
 
 #include "mcp/McpDispatcher.hpp"
+#include "mcp/DestructiveImpact.hpp"
 #include "mcp/PyBind.hpp"
 #include "mcp/ToolSupport.hpp"
+#include "mcp/UserClarification.hpp"
 
 #include "engine/components/Component.hpp"
 #include "engine/core/Container.hpp"
@@ -180,11 +182,37 @@ void RegisterLifecycleTools(McpDispatcher& dispatcher) {
             return resolved;
 
         const std::string id = target->GetID();
+        ImpactClarification impact = AnalyzeObjectDestruction(target);
+        const QString clarificationId = params.value("clarificationId").toString();
+        if (clarificationId.isEmpty()) {
+            const QString requestId = UserClarificationService::Get()->Create(
+                std::move(impact.request));
+            return McpResult::Ok(QJsonObject{
+                {"status", "clarification_required"},
+                {"requestId", requestId},
+                {"action", "destroy_object"},
+                {"objectId", QString::fromStdString(id)},
+                {"affected", impact.affected},
+                {"affectedTotal", impact.affectedTotal},
+                {"truncated", impact.truncated}
+            });
+        }
+
+        QJsonObject clarification;
+        QString authorizationError;
+        if (!UserClarificationService::Get()->Consume(
+                clarificationId, impact.request.scope, QStringLiteral("destroy"),
+                &clarification, &authorizationError)) {
+            return McpResult::Error(InvalidParams, authorizationError);
+        }
         McpResult result = CallGameObjectBinding("shut_down", {id});
         if (!result.ok) return result;
 
         QJsonObject data;
+        data["status"] = "destroyed";
         data["destroyed"] = QString::fromStdString(id);
+        data["clarification"] = clarification;
+        data["affected"] = impact.affected;
         return McpResult::Ok(data);
     });
 }

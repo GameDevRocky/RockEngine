@@ -1,0 +1,8 @@
+type: Texture2D
+id: 2f86c180b5dbbd64aaf4ec713d49d764
+name: texture_icon
+path: Domain/lib/assets/icons/texture_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

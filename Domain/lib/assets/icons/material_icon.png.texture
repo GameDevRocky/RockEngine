@@ -1,0 +1,8 @@
+type: Texture2D
+id: e227e164c611d136ee621e6606d6b155
+name: material_icon
+path: Domain/lib/assets/icons/material_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

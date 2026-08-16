@@ -8,10 +8,10 @@
 // Shared vocabulary for the MCP bridge (see McpServer.hpp for the subsystem overview).
 namespace mcp {
 
-// Application-specific JSON-RPC error codes. The -32000..-32099 range is reserved
-// for implementation-defined server errors by the spec, so these sit inside it and
-// never collide with the standard parse/invalid-request codes the dispatcher emits.
+// InvalidParams is the standard JSON-RPC code. The remaining application-specific
+// errors use the spec-reserved -32000..-32099 implementation range.
 enum ErrorCode {
+    InvalidParams    = -32602,
     ObjectNotFound   = -32001,
     BuildInProgress  = -32002,
     PythonError      = -32003,

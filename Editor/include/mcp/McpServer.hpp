@@ -29,6 +29,8 @@ class McpConnection;
 //     this editor never exec()s a dialog (see LoadingOverlay.hpp).
 //   - Long operations must not run inline. Game builds go through GameBuilder's
 //     existing JobSystem split instead, and their tool returns as soon as it submits.
+//     User questions become inline AI transcript cards and use later status-poll
+//     requests for the same reason; never hold this callback open for UI input.
 class McpServer : public QObject {
     Q_OBJECT
 public:

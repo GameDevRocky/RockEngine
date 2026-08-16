@@ -25,7 +25,7 @@ public:
     static constexpr int kThumbSize   = 48;
     static constexpr int kThumbTopPad = 8;
     static constexpr int kLabelGap    = 12;
-    static constexpr int kLabelHeight = 16;   // one elided line + breathing room
+    static constexpr int kLabelHeight = 24;   // one elided line + breathing room
     static constexpr int kCellWidth   = 64;
     static constexpr int kCellHeight  = kThumbSize + kLabelGap + kLabelHeight;
 

@@ -107,7 +107,8 @@ void AssetPreviewDelegate::paint(QPainter* painter,
     // item text, and clearing State_Selected first did not reliably suppress it.
     // drawCell never consults the style at all, so routing everything through it
     // removes the highlight by construction and makes both kinds of cell lay out
-    // identically. Selection is shown by drawCell's grey outline instead.
+    // identically. It reproduces the default stylesheet's rounded hover and
+    // selection bubbles itself.
     QPixmap px;
     QString label;
 
@@ -178,10 +179,18 @@ void AssetPreviewDelegate::drawCell(QPainter* p,
                                      const QString& label) const {
     p->save();
 
-    // Gray border on selection (no fill)
-    if (opt.state & QStyle::State_Selected) {
-        p->setPen(QPen(QColor(160, 160, 160), 1));
-        p->drawRect(opt.rect.adjusted(0, 0, -1, -1));
+    // This delegate owns all cell painting, so QListView::item rules cannot draw
+    // its hover/selection states. Mirror default.qss here: a slightly lighter
+    // rounded bubble on hover and a stronger one on selection, with transparent
+    // resting cells and the grid spacing left visible around every item.
+    const bool selected = opt.state.testFlag(QStyle::State_Selected);
+    const bool hovered = opt.state.testFlag(QStyle::State_MouseOver);
+    if (selected || hovered) {
+        p->setRenderHint(QPainter::Antialiasing, true);
+        p->setPen(Qt::NoPen);
+        p->setBrush(selected ? QColor(59, 59, 61) : QColor(49, 49, 51));
+        const QRectF bubble = QRectF(opt.rect).adjusted(1.0, 1.0, -1.0, -1.0);
+        p->drawRoundedRect(bubble, 7.0, 7.0);
     }
 
     // Thumbnail centred in top portion of cell
@@ -203,7 +212,7 @@ void AssetPreviewDelegate::drawCell(QPainter* p,
                    opt.rect.top() + kThumbSize + kLabelGap,
                    opt.rect.width() - 4,
                    opt.rect.height() - kThumbSize - kLabelGap);
-    p->setPen(QPen(opt.palette.text().color()));
+    p->setPen(QPen(selected ? QColor(Qt::white) : opt.palette.text().color()));
     const QString elided = p->fontMetrics().elidedText(label, Qt::ElideRight, textArea.width());
     p->drawText(textArea, Qt::AlignHCenter | Qt::AlignTop, elided);
 

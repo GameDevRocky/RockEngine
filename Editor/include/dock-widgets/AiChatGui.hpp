@@ -2,6 +2,7 @@
 
 #include "ai/AiAgentService.hpp"
 
+#include <QJsonObject>
 #include <QPair>
 #include <QPointer>
 #include <QVector>
@@ -62,6 +63,16 @@ private:
         QString path;
     };
 
+    struct ClarificationEntry {
+        QString requestId;
+        QJsonObject request;
+        QString status = QStringLiteral("pending");
+        QJsonObject answer;
+        qsizetype afterMessageIndex = -1;
+        bool expanded = true;
+        QPointer<QWidget> widget;
+    };
+
     explicit AiChatGui(QWidget* parent = nullptr);
     ~AiChatGui() override = default;
 
@@ -95,9 +106,15 @@ private:
     void SubmitPrompt();
     void AppendMessage(const QString& role, const QString& text, bool error = false,
                        const QVector<Attachment>& attachments = {});
+    QString StreamSegment(const QString& text) const;
+    void SealStreamingMessage();
     void UpdateStreamingMessage(const QString& text);
     void FinishStreamingMessage(const QString& text);
     void RenderTranscript(qsizetype animatedMessageIndex = -1);
+    void AddClarification(const QString& requestId, const QJsonObject& request);
+    void ResolveClarification(const QString& requestId, const QJsonObject& result);
+    QWidget* CreateClarificationWidget(qsizetype index, QWidget* parent);
+    void ClearClarifications();
     void ActivateReference(const QUrl& url);
     void ClearLoginError();
     void ShowLoginError(const QString& detail);
@@ -109,7 +126,12 @@ private:
     QVector<QPair<QString, QString>> m_messages;
     QVector<bool> m_messageErrors;
     QVector<QVector<Attachment>> m_messageAttachments;
+    QVector<ClarificationEntry> m_clarifications;
     qsizetype m_streamingMessageIndex = -1;
+    // Providers publish the whole turn on every update. This holds the part
+    // already committed to sealed bubbles above a clarification card, so the
+    // continuation renders as a new message under it.
+    QString m_streamPrefix;
     QPointer<AiMarkdownMessage> m_streamingBubble;
 
     QComboBox* m_provider = nullptr;

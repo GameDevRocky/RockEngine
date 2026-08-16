@@ -1,4 +1,5 @@
 #include "dock-widgets/AiChatGui.hpp"
+#include "dock-widgets/AiClarificationWidget.hpp"
 #include "dock-widgets/AiMarkdownMessage.hpp"
 #include "Engine.hpp"
 #include "engine/components/Component.hpp"
@@ -14,6 +15,7 @@
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/utils/EngineUtils.hpp"
+#include "mcp/UserClarification.hpp"
 #include "utils/AssetThumbnails.hpp"
 #include "utils/DragDropMime.hpp"
 #include "utils/EditorUtils.hpp"
@@ -764,8 +766,10 @@ void AiChatGui::BuildUi() {
         m_messages.clear();
         m_messageErrors.clear();
         m_messageAttachments.clear();
+        ClearClarifications();
         m_streamingMessageIndex = -1;
         m_streamingBubble.clear();
+        m_streamPrefix.clear();
         ClearAttachments();
         RenderTranscript();
         RefreshProviderUi();
@@ -798,8 +802,10 @@ void AiChatGui::BuildUi() {
         m_messages.clear();
         m_messageErrors.clear();
         m_messageAttachments.clear();
+        ClearClarifications();
         m_streamingMessageIndex = -1;
         m_streamingBubble.clear();
+        m_streamPrefix.clear();
         ClearAttachments();
         RenderTranscript();
         m_activity->clear();
@@ -816,8 +822,10 @@ void AiChatGui::BuildUi() {
         m_messages.clear();
         m_messageErrors.clear();
         m_messageAttachments.clear();
+        ClearClarifications();
         m_streamingMessageIndex = -1;
         m_streamingBubble.clear();
+        m_streamPrefix.clear();
         ClearAttachments();
         RenderTranscript();
         m_activity->clear();
@@ -828,14 +836,23 @@ void AiChatGui::BuildUi() {
         m_messages.clear();
         m_messageErrors.clear();
         m_messageAttachments.clear();
+        ClearClarifications();
         m_streamingMessageIndex = -1;
         m_streamingBubble.clear();
+        m_streamPrefix.clear();
         ClearAttachments();
         RenderTranscript();
         ai::AiAgentService::Get()->SignOut(CurrentProvider());
     });
 
     auto* service = ai::AiAgentService::Get();
+    auto* clarificationService = mcp::UserClarificationService::Get();
+    connect(clarificationService,
+            &mcp::UserClarificationService::ClarificationRequested,
+            this, &AiChatGui::AddClarification);
+    connect(clarificationService,
+            &mcp::UserClarificationService::ClarificationResolved,
+            this, &AiChatGui::ResolveClarification);
     connect(service, &ai::AiAgentService::AuthenticationChanged, this,
             [this](ai::AiAgentService::Provider provider, bool available,
                    bool authenticated, const QString& detail) {
@@ -853,9 +870,19 @@ void AiChatGui::BuildUi() {
     });
     connect(service, &ai::AiAgentService::BusyChanged, this, [this](bool busy) {
         m_busy = busy;
-        if (!busy && m_streamingMessageIndex >= 0) {
+        if (!busy) {
+            QStringList pending;
+            for (const ClarificationEntry& entry : m_clarifications) {
+                if (entry.status == QStringLiteral("pending"))
+                    pending.push_back(entry.requestId);
+            }
+            for (const QString& requestId : pending)
+                mcp::UserClarificationService::Get()->Cancel(requestId);
+        }
+        if (!busy) {
             m_streamingMessageIndex = -1;
             m_streamingBubble.clear();
+            m_streamPrefix.clear();
         }
         m_provider->setEnabled(!busy);
         m_accountLogin->setEnabled(!busy && m_auth[ProviderIndex(CurrentProvider())].cliAvailable);
@@ -899,6 +926,7 @@ void AiChatGui::BuildUi() {
         else {
             m_streamingMessageIndex = -1;
             m_streamingBubble.clear();
+            m_streamPrefix.clear();
             AppendMessage(QStringLiteral("Error"), error, true);
         }
     });
@@ -962,6 +990,7 @@ void AiChatGui::Init() {
 }
 
 void AiChatGui::Shutdown() {
+    ClearClarifications();
     ai::AiAgentService::Get()->Shutdown();
 }
 
@@ -1776,6 +1805,7 @@ void AiChatGui::SubmitPrompt() {
         ? QStringLiteral("Use the attached context.") : message;
     m_prompt->clear();
     ClearAttachments();
+    m_streamPrefix.clear();
     AppendMessage(QStringLiteral("You"), transcriptText, false, sentAttachments);
     ai::AiAgentService::Get()->SendMessage(CurrentProvider(), SelectedModel(), request);
 }
@@ -1788,9 +1818,35 @@ void AiChatGui::AppendMessage(const QString& role, const QString& text, bool err
     RenderTranscript(m_messages.size() - 1);
 }
 
+QString AiChatGui::StreamSegment(const QString& text) const {
+    if (m_streamPrefix.isEmpty()) return text;
+    if (text.startsWith(m_streamPrefix)) return text.mid(m_streamPrefix.size());
+    // The turn is republished trimmed at completion, so match the trimmed
+    // prefix too. Providers that replace rather than append (Codex
+    // item.updated, Claude's result event) send only the continuation
+    // already, and fall through untouched.
+    const QString trimmedPrefix = m_streamPrefix.trimmed();
+    if (!trimmedPrefix.isEmpty() && text.startsWith(trimmedPrefix))
+        return text.mid(trimmedPrefix.size());
+    return text;
+}
+
+void AiChatGui::SealStreamingMessage() {
+    if (m_streamingMessageIndex < 0 || m_streamingMessageIndex >= m_messages.size())
+        return;
+    m_streamPrefix.append(m_messages[m_streamingMessageIndex].second);
+    if (m_streamingBubble) m_streamingBubble->FinishStreamingFade();
+    m_streamingMessageIndex = -1;
+    m_streamingBubble.clear();
+}
+
 void AiChatGui::UpdateStreamingMessage(const QString& text) {
+    const QString segment = StreamSegment(text);
     if (m_streamingMessageIndex < 0 || m_streamingMessageIndex >= m_messages.size()) {
-        m_messages.append({QStringLiteral("Assistant"), text});
+        // Don't open a bubble for the separator whitespace a provider emits
+        // between two agent messages.
+        if (segment.trimmed().isEmpty()) return;
+        m_messages.append({QStringLiteral("Assistant"), segment});
         m_messageErrors.append(false);
         m_messageAttachments.append(QVector<Attachment>{});
         m_streamingMessageIndex = m_messages.size() - 1;
@@ -1798,9 +1854,9 @@ void AiChatGui::UpdateStreamingMessage(const QString& text) {
         return;
     }
 
-    m_messages[m_streamingMessageIndex].second = text;
+    m_messages[m_streamingMessageIndex].second = segment;
     if (m_streamingBubble) {
-        m_streamingBubble->SetMarkdownText(text);
+        m_streamingBubble->SetMarkdownText(segment);
         m_streamingBubble->AnimateStreamingUpdate();
     }
     QTimer::singleShot(0, m_transcript, [this]() {
@@ -1810,27 +1866,108 @@ void AiChatGui::UpdateStreamingMessage(const QString& text) {
 }
 
 void AiChatGui::FinishStreamingMessage(const QString& text) {
+    const QString segment = StreamSegment(text);
     if (m_streamingMessageIndex < 0 || m_streamingMessageIndex >= m_messages.size()) {
-        AppendMessage(QStringLiteral("Assistant"), text);
+        // A sealed turn that ended without further text has nothing left to show.
+        if (!segment.trimmed().isEmpty())
+            AppendMessage(QStringLiteral("Assistant"), segment);
     } else {
-        m_messages[m_streamingMessageIndex].second = text;
+        m_messages[m_streamingMessageIndex].second = segment;
         if (m_streamingBubble) {
-            m_streamingBubble->SetMarkdownText(text);
+            m_streamingBubble->SetMarkdownText(segment);
             m_streamingBubble->FinishStreamingFade();
         }
     }
     m_streamingMessageIndex = -1;
     m_streamingBubble.clear();
+    m_streamPrefix.clear();
+}
+
+void AiChatGui::AddClarification(const QString& requestId,
+                                 const QJsonObject& request) {
+    for (const ClarificationEntry& entry : m_clarifications) {
+        if (entry.requestId == requestId) return;
+    }
+
+    // Close the assistant bubble the question interrupted. Without this the
+    // rest of the turn keeps growing that bubble, which renders above the card
+    // and leaves it pinned to the end of the transcript.
+    SealStreamingMessage();
+
+    ClarificationEntry entry;
+    entry.requestId = requestId;
+    entry.request = request;
+    entry.afterMessageIndex = m_messages.size() - 1;
+    m_clarifications.push_back(std::move(entry));
+    m_pages->setCurrentIndex(1);
+    RenderTranscript();
+    if (m_clarifications.back().widget)
+        AnimateWidgetFadeIn(m_clarifications.back().widget);
+}
+
+void AiChatGui::ResolveClarification(const QString& requestId,
+                                     const QJsonObject& result) {
+    for (ClarificationEntry& entry : m_clarifications) {
+        if (entry.requestId != requestId) continue;
+        entry.status = result.value(QStringLiteral("status")).toString();
+        entry.answer = result;
+        entry.expanded = false;
+        RenderTranscript();
+        return;
+    }
+}
+
+QWidget* AiChatGui::CreateClarificationWidget(qsizetype index, QWidget* parent) {
+    if (index < 0 || index >= m_clarifications.size()) return nullptr;
+    ClarificationEntry& entry = m_clarifications[index];
+    auto* widget = new AiClarificationWidget(
+        entry.request, entry.status, entry.answer, entry.expanded, parent);
+    entry.widget = widget;
+    const QString requestId = entry.requestId;
+    connect(widget, &AiClarificationWidget::AnswerSubmitted, this,
+            [this, requestId](const QStringList& selectedIds, const QString& otherText) {
+        QString error;
+        if (!mcp::UserClarificationService::Get()->Answer(
+                requestId, selectedIds, otherText, &error)) {
+            QToolTip::showText(QCursor::pos(), error, this);
+        }
+    });
+    connect(widget, &AiClarificationWidget::CancelRequested, this,
+            [requestId]() {
+        mcp::UserClarificationService::Get()->Cancel(requestId);
+    });
+    connect(widget, &AiClarificationWidget::ExpansionChanged, this,
+            [this, requestId](bool expanded) {
+        for (ClarificationEntry& current : m_clarifications) {
+            if (current.requestId == requestId) {
+                current.expanded = expanded;
+                break;
+            }
+        }
+    });
+    return widget;
+}
+
+void AiChatGui::ClearClarifications() {
+    QStringList pending;
+    for (const ClarificationEntry& entry : m_clarifications) {
+        if (entry.status == QStringLiteral("pending"))
+            pending.push_back(entry.requestId);
+    }
+    m_clarifications.clear();
+    for (const QString& requestId : pending)
+        mcp::UserClarificationService::Get()->Cancel(requestId);
 }
 
 void AiChatGui::RenderTranscript(qsizetype animatedMessageIndex) {
     m_streamingBubble.clear();
+    for (ClarificationEntry& entry : m_clarifications) entry.widget.clear();
     while (QLayoutItem* item = m_messageLayout->takeAt(0)) {
         if (QWidget* widget = item->widget()) widget->deleteLater();
         delete item;
     }
 
-    if (m_messages.isEmpty()) {
+    if (m_messages.isEmpty() && m_clarifications.isEmpty()) {
         m_messageLayout->addStretch(1);
 
         auto* emptyState = new QWidget(m_messageList);
@@ -1861,6 +1998,26 @@ void AiChatGui::RenderTranscript(qsizetype animatedMessageIndex) {
         m_messageLayout->addWidget(emptyState, 0, Qt::AlignCenter);
         m_messageLayout->addStretch(1);
     } else {
+        const auto appendClarificationsAfter = [this](qsizetype messageIndex) {
+            for (qsizetype clarificationIndex = 0;
+                 clarificationIndex < m_clarifications.size();
+                 ++clarificationIndex) {
+                if (m_clarifications[clarificationIndex].afterMessageIndex != messageIndex)
+                    continue;
+                auto* row = new QWidget(m_messageList);
+                row->setObjectName(QStringLiteral("AiMessageRow"));
+                auto* rowLayout = new QHBoxLayout(row);
+                rowLayout->setContentsMargins(0, 0, 0, 0);
+                rowLayout->setSpacing(0);
+                if (QWidget* clarification = CreateClarificationWidget(
+                        clarificationIndex, row)) {
+                    rowLayout->addWidget(clarification, 1);
+                }
+                m_messageLayout->addWidget(row);
+            }
+        };
+
+        appendClarificationsAfter(-1);
         for (qsizetype i = 0; i < m_messages.size(); ++i) {
             const QString& role = m_messages[i].first;
             const bool userMessage = role == QStringLiteral("You");
@@ -1924,6 +2081,7 @@ void AiChatGui::RenderTranscript(qsizetype animatedMessageIndex) {
                 if (assistantBubble) assistantBubble->StartFadeIn();
                 else AnimateWidgetFadeIn(messageWidget);
             }
+            appendClarificationsAfter(i);
         }
         m_messageLayout->addStretch(1);
     }

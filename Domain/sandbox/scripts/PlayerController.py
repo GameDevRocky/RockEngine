@@ -51,6 +51,12 @@ class PlayerController(ScriptableComponent):
     # Ignore the ground for this long after a jump; see _check_ground.
     jump_lockout_time: float = 0.08
 
+    # ── Wall Movement tuning ─────────────────────────────────────────────────
+    wall_slide_speed: float = 100.0     # how fast we fall while sliding on a wall
+    wall_check_distance: float = 20.0   # distance to check for a wall left/right
+    wall_jump_velocity: Vector2 = Vector2(400.0, 450.0) # x and y kick from a wall jump
+    wall_jump_time: float = 0.2         # how long you lose x-control after a wall jump
+    
     # ── Ground check ─────────────────────────────────────────────────────────
     ground_check: Transform = None      # optional: assign a child at the feet; auto-created if empty
     ground_check_offset: float = 40.0   # how far below the origin to place the auto-created check
@@ -80,6 +86,10 @@ class PlayerController(ScriptableComponent):
         self.jump_lockout_timer = 0.0       # >0 = ignore the ground ray (just jumped)
         self.jumps_left = self.max_jumps   # air jumps remaining until we touch ground again
 
+        self.is_wall_sliding = False
+        self.wall_direction = 0
+        self.wall_jump_lockout_timer = 0.0
+
         
         # A child at the feet is the ground-ray origin. Only spawn one if the
         # designer didn't wire an explicit ground_check in the inspector.
@@ -96,6 +106,11 @@ class PlayerController(ScriptableComponent):
         # Gamepad edges have exactly the same one-frame lifetime and the same rule.
         if self._jump_pressed():
             self.jump_buffer_timer = self.jump_buffer_time
+        
+        # Debug: Trigger Hit animation
+        if Input.is_key_pressed(Keys.H) and self.animator:
+            self.animator.set_trigger('Hit')
+            
         self._update_animation()
         self._follow_camera()
         self.particle_gen.sprite = self.sr.sprite
@@ -106,14 +121,46 @@ class PlayerController(ScriptableComponent):
         if not self.rb:
             return
         self._check_ground(dt)
+        self._check_walls(dt)
         self._move_horizontal(dt)
         self._handle_jump(dt)
         self._clamp_fall()
         self.sr.set_uniform("uTime", Time.elapsed_time)
 
+    def _check_walls(self, dt):
+        self.is_wall_sliding = False
+        self.wall_direction = 0
+        if self.grounded or self.rb.velocity.y > 0:
+            return
+
+        move = self._move_axis()
+        if move == 0:
+            return
+
+        direction = 1 if move > 0 else -1
+        
+        origin = self.transform.world_position
+        # Move origin up slightly to avoid catching the floor if sliding low
+        origin.y += self.ground_check_offset * 0.5
+        
+        ray_dir = Vector2(direction * self.wall_check_distance, 0)
+        
+        result = Physics.cast_ray(origin, ray_dir)
+        hit = bool(result and result.gameobject.id != self._gameobject_id)
+        
+        if hit:
+            self.is_wall_sliding = True
+            self.wall_direction = direction
+
+        Debug.draw_line(origin, origin + ray_dir)
+
     # ── movement ─────────────────────────────────────────────────────────────
     def _move_horizontal(self, dt):
         move = self._move_axis()
+
+        # Disable player horizontal control temporarily right after a wall jump
+        if self.wall_jump_lockout_timer > 0.0:
+            move = 0
 
         vel = self.rb.velocity
         target = move * self.move_speed
@@ -184,18 +231,25 @@ class PlayerController(ScriptableComponent):
         Debug.draw_line(origin, origin + down)
 
     def _handle_jump(self, dt):
+        self.wall_jump_lockout_timer = max(0.0, self.wall_jump_lockout_timer - dt)
         self.jump_buffer_timer = max(0.0, self.jump_buffer_timer - dt)
 
         can_ground_jump = self.coyote_timer > 0.0
+        can_wall_jump = self.is_wall_sliding
         # An air (double) jump is available once we've left the ground and still
         # have jumps banked. Coyote-jumping counts as the ground jump, so it
         # doesn't also burn a double jump.
-        can_air_jump = not can_ground_jump and self.jumps_left > 0
+        can_air_jump = not can_ground_jump and not can_wall_jump and self.jumps_left > 0
 
-        if self.jump_buffer_timer > 0.0 and (can_ground_jump or can_air_jump):
-            self.jump_sound.play()
+        if self.jump_buffer_timer > 0.0 and (can_ground_jump or can_air_jump or can_wall_jump):
             vel = self.rb.velocity
-            vel.y = self.jump_velocity          # crisp double jump: reset, don't add
+            if can_wall_jump:
+                vel.x = -self.wall_direction * self.wall_jump_velocity.x
+                vel.y = self.wall_jump_velocity.y
+                self.wall_jump_lockout_timer = self.wall_jump_time
+            else:
+                vel.y = self.jump_velocity          # crisp double jump: reset, don't add
+            
             self.rb.velocity = vel
             self.jump_buffer_timer = 0.0
             self.coyote_timer = 0.0
@@ -204,10 +258,14 @@ class PlayerController(ScriptableComponent):
             # it. coyote_timer is already zeroed, so _check_ground's ledge branch
             # won't also dock a jump for going airborne here.
             self.jump_lockout_timer = self.jump_lockout_time
-            self.jumps_left -= 1
+            if can_ground_jump or can_air_jump:
+                self.jumps_left -= 1
             if self.animator:
                 # Ground jump -> Jump clip; air jump -> DoubleJump clip.
-                self.animator.set_trigger('Jump' if can_ground_jump else 'DoubleJump')
+                if can_wall_jump:
+                    self.animator.set_trigger('Jump')
+                else:
+                    self.animator.set_trigger('Jump' if can_ground_jump else 'DoubleJump')
 
         # Variable jump height: releasing the jump key while rising cuts the ascent.
         if self.is_jumping and not self._jump_held():
@@ -219,9 +277,13 @@ class PlayerController(ScriptableComponent):
 
     def _clamp_fall(self):
         vel = self.rb.velocity
-        if vel.y < -self.max_fall_speed:
-            vel.y = -self.max_fall_speed
-            self.rb.velocity = vel
+        if self.is_wall_sliding:
+            if vel.y < -self.wall_slide_speed:
+                vel.y = -self.wall_slide_speed
+        else:
+            if vel.y < -self.max_fall_speed:
+                vel.y = -self.max_fall_speed
+        self.rb.velocity = vel
 
     # ── animation: just publish parameters; the state machine does the rest ──
     def _update_animation(self):
@@ -234,6 +296,7 @@ class PlayerController(ScriptableComponent):
         # Names match the scene's Animator: yvel (Float) + grounded (Bool).
         self.animator.set_float('yvel', yvel)
         self.animator.set_bool('grounded', self.grounded)
+        self.animator.set_bool('wallSliding', self.is_wall_sliding)
         # Also published for the Run state (Speed = horizontal speed).
         self.animator.set_float('Speed', abs(vel.x))
 

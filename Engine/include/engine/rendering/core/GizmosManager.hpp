@@ -18,11 +18,11 @@ class GameObject;
 // which is right for live feedback but must never become one undo entry per frame.
 // A GizmoEdit is emitted once per completed gesture instead.
 struct GizmoEdit {
-    std::string targetId;   // Transform / collider / Camera / Light / ShadowCaster id
+    std::string targetId;   // Transform / collider / Camera / Light / ShadowCaster / AudioSource id
     std::string property;   // "localPosition" | "localRotation" | "localScale"
                             // | "size" | "center" | "radius" | "height" | "orthoSize"
                             // | "range" | "innerRadius" | "innerAngle" | "outerAngle"
-                            // | "casterSize" | "casterRadius"
+                            // | "casterSize" | "casterRadius" | "minDistance" | "maxDistance"
                             // ShadowCaster's size/radius get their own names because
                             // a collider already claimed the plain ones and the
                             // bridge resolves purely by property string.
@@ -72,11 +72,13 @@ public:
 
     bool IsHandleHovered() const {
         return m_hoveredHandle >= 0 || m_hoveredCameraCorner >= 0 ||
-               m_hoveredLightHandle >= 0 || m_hoveredScaleHandle >= 0;
+               m_hoveredLightHandle >= 0 || m_hoveredAudioHandle >= 0 ||
+               m_hoveredScaleHandle >= 0;
     }
     bool IsDraggingHandle() const {
         return m_dragHandle >= 0 || m_dragCameraCorner >= 0 ||
-               m_dragLightHandle >= 0 || m_dragScaleHandle >= 0;
+               m_dragLightHandle >= 0 || m_dragAudioHandle >= 0 ||
+               m_dragScaleHandle >= 0;
     }
     // Every hover/drag state MUST be represented here. SceneViewGui checks this
     // before running object picking on a click -- a handle missing from this list
@@ -85,6 +87,7 @@ public:
         return m_hoveredHandle >= 0 || m_dragHandle >= 0 ||
                m_hoveredCameraCorner >= 0 || m_dragCameraCorner >= 0 ||
                m_hoveredLightHandle >= 0 || m_dragLightHandle >= 0 ||
+               m_hoveredAudioHandle >= 0 || m_dragAudioHandle >= 0 ||
                m_hoveredScaleHandle >= 0 || m_dragScaleHandle >= 0;
     }
 
@@ -121,6 +124,14 @@ private:
                                    class Transform* transform, class Light* light, int alpha);
     void DrawShadowCasterGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
                                class ShadowCaster* caster, int alpha, bool interactive);
+
+    // Audio-source attenuation rings follow the source position but not its
+    // Transform scale. They are shown for selected objects, with separate grips
+    // for the minimum (full-volume) and maximum (silent) distances.
+    void DrawAudioSourceGizmos(const glm::mat4& view, const glm::mat4& proj,
+                               float viewWidth, float viewHeight);
+    void DrawAudioSourceGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                              class Transform* transform, class AudioSource* source);
 
     // ─── Joint gizmos ────────────────────────────────────────────────────────
     // Both anchors plus the line linking them, drawn only for SELECTED objects.
@@ -201,6 +212,14 @@ private:
     float       m_dragStartCasterRadius = 0.0f;
     glm::vec2   m_dragStartCasterSize{ 0.0f };
 
+    // AudioSource attenuation-distance drag state, scoped by component id so
+    // multiple sources in the loaded scenes cannot claim the same gesture.
+    int         m_hoveredAudioHandle = -1;  // reset each frame
+    int         m_dragAudioHandle    = -1;  // -1 = none
+    std::string m_dragAudioId;              // owning AudioSource id ("" = none)
+    float       m_dragStartMinDistance = 0.0f;
+    float       m_dragStartMaxDistance = 0.0f;
+
     // ─── SpriteBox drag state ────────────────────────────────────────────────
     // Handles 0-3 are corners, 4-7 edge midpoints, 8 is the body (move).
     //
@@ -224,6 +243,7 @@ private:
     void CommitColliderDrag();
     void CommitCameraDrag();
     void CommitLightDrag();
+    void CommitAudioSourceDrag();
     void CommitSpriteBoxDrag();
 
     // Decompose `world` and write it onto `transform` via the SetWorld* trio.

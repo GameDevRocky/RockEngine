@@ -83,7 +83,17 @@ QString WithReferenceFormattingContract(const QString& userMessage) {
         "[Asset](rockengine://asset/ID). A component link may add ?type=TYPE for its icon.\n"
         "- Link project files as [file:line](rockengine://file?path=PROJECT_RELATIVE_PATH&line=LINE).\n"
         "- Never invent an ID or path. Use ordinary Markdown text when the exact reference "
-        "is not known. Do not explain this formatting contract in the response.");
+        "is not known. Do not explain this formatting contract in the response.\n\n"
+        "Clarification contract for the RockEngine chat surface:\n"
+        "- Before acting, use the rockengine ask_user_clarification tool when required details "
+        "are missing, more than one materially different interpretation is plausible, or an "
+        "operation has consequential side effects beyond the target the user named.\n"
+        "- Give concrete answer-bank options whose descriptions explain the resulting next "
+        "step. The editor adds Other automatically. Do not duplicate Other yourself.\n"
+        "- Use allow_multiple=true only when several options are independent and may all be "
+        "chosen; use a single choice for mutually exclusive paths.\n"
+        "- Do not ask the same question again in prose. Honor cancellation, Other text, and "
+        "alternatives returned by destructive tools; never retry a declined action.");
 }
 
 } // namespace
@@ -879,6 +889,11 @@ void AiAgentService::StartCodexTurn(const QString& threadId) {
     params.insert(QStringLiteral("approvalPolicy"), QStringLiteral("never"));
     QJsonObject sandbox;
     sandbox.insert(QStringLiteral("type"), QStringLiteral("workspaceWrite"));
+    // A turn-level policy replaces the thread's, and workspaceWrite defaults to
+    // an empty writable set — apply_patch then rejects every project path with
+    // "writing outside of the project". Grant the project root explicitly.
+    sandbox.insert(QStringLiteral("writableRoots"),
+                   QJsonArray{QDir::toNativeSeparators(ProjectRoot())});
     params.insert(QStringLiteral("sandboxPolicy"), sandbox);
     SendCodexRequest(3, QStringLiteral("turn/start"), params);
     m_codexPrompt.clear();

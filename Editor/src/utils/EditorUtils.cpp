@@ -15,18 +15,27 @@ using namespace EngineUtils;
 
 namespace EditorUtils {
 
-// Resolve a bundled editor asset (path relative to the project/app root) and load it
-// as an icon. Goes through GetAssetPath so it works regardless of the launch directory.
-static QIcon AssetIcon(const char* relativePath) {
-    return QIcon(QString::fromStdString(EngineUtils::GetAssetPath(relativePath)));
+// Every bundled editor icon lives in this one directory, so the loaders below take
+// a bare file name rather than repeating the path at ~40 call sites.
+static constexpr const char* kIconDir = "Domain/lib/assets/icons/";
+
+// Resolve a bundled icon by file name. Goes through GetAssetPath so it works
+// regardless of the launch directory, and from a bundled build where the assets sit
+// next to the executable instead of under PROJECT_ROOT.
+static std::string IconPath(const std::string& fileName) {
+    return EngineUtils::GetAssetPath(kIconDir + fileName);
+}
+
+static QIcon AssetIcon(const std::string& fileName) {
+    return QIcon(QString::fromStdString(IconPath(fileName)));
 }
 
 // Same as AssetIcon, but recolors the source image's opaque pixels to a flat
 // color while preserving its alpha shape. Several bundled icons are authored
 // dark-on-transparent (fine on a light background); this lets them still read
 // correctly against the editor's dark panels without editing the source PNG.
-static QIcon TintedAssetIcon(const char* relativePath, const QColor& color) {
-    const QPixmap source(QString::fromStdString(EngineUtils::GetAssetPath(relativePath)));
+static QIcon TintedAssetIcon(const std::string& fileName, const QColor& color) {
+    const QPixmap source(QString::fromStdString(IconPath(fileName)));
     if (source.isNull()) return {};
     QPixmap tinted(source.size());
     tinted.setDevicePixelRatio(source.devicePixelRatio());
@@ -40,75 +49,79 @@ static QIcon TintedAssetIcon(const char* relativePath, const QColor& color) {
 }
 
 QIcon CustomIconProvider::gameObjectIcon() {
-    return AssetIcon("Domain/lib/assets/icons/cube.png");
+    return AssetIcon("cube.png");
 }
 
 QIcon CustomIconProvider::componentIcon(const std::string& typeName) {
     if (typeName == "Transform")
-        return AssetIcon("Domain/lib/assets/icons/transform_icon.png");
+        return AssetIcon("transform_icon.png");
     if (typeName == "SpriteRenderer")
-        return AssetIcon("Domain/lib/assets/icons/sprite_renderer_icon.png");
+        return AssetIcon("sprite_renderer_icon.png");
     if (typeName == "TextRenderer")
-        return AssetIcon("Domain/lib/assets/icons/text_renderer_icon.png");
+        return AssetIcon("text_renderer_icon.png");
     if (typeName == "ScriptComponent")
-        return AssetIcon("Domain/lib/assets/icons/python_script_icon.png");
+        return AssetIcon("python_script_icon.png");
     if (typeName == "RigidBody")
-        return AssetIcon("Domain/lib/assets/icons/rigidbody_icon.png");
+        return AssetIcon("rigidbody_icon.png");
     if (typeName == "BoxCollider")
-        return AssetIcon("Domain/lib/assets/icons/box_collider_icon.png");
+        return AssetIcon("box_collider_icon.png");
     if (typeName == "CircleCollider")
-        return AssetIcon("Domain/lib/assets/icons/circle_collider_icon.png");
+        return AssetIcon("circle_collider_icon.png");
     if (typeName == "CapsuleCollider")
-        return AssetIcon("Domain/lib/assets/icons/capsule_collider_icon.png");
+        return AssetIcon("capsule_collider_icon.png");
     if (typeName == "Animator")
-        return AssetIcon("Domain/lib/assets/icons/animator_icon.png");
+        return AssetIcon("animator_icon.png");
     if (typeName == "Camera")
-        return AssetIcon("Domain/lib/assets/icons/camera_icon.png");
+        return AssetIcon("camera_icon.png");
     if (typeName == "ParticleComponent")
-        return AssetIcon("Domain/lib/assets/icons/particle_icons.png");
+        return AssetIcon("particle_icons.png");
     if (typeName == "Light")
-        return AssetIcon("Domain/lib/assets/icons/light_icon.png");
+        return AssetIcon("light_icon.png");
     if (typeName == "ShadowCaster")
-        return AssetIcon("Domain/lib/assets/icons/shadow_caster_icon.png");
+        return AssetIcon("shadow_caster_icon.png");
     if (typeName == "AudioSource")
-        return AssetIcon("Domain/lib/assets/icons/audio_source_icon.png");
+        return AssetIcon("audio_source_icon.png");
     if (typeName == "AudioListener")
-        return AssetIcon("Domain/lib/assets/icons/audio_listener_icon.png");
+        return AssetIcon("audio_listener_icon.png");
     if (typeName == "Joint" || typeName.ends_with("Joint"))
-        return AssetIcon("Domain/lib/assets/icons/joint_icon.png");
+        return AssetIcon("joint_icon.png");
     return {};
 }
 
 QIcon CustomIconProvider::assetIcon(const std::string& typeName) {
     if (typeName == "AudioClip")
-        return AssetIcon("Domain/lib/assets/icons/audio_clip_icon.png");
+        return AssetIcon("audio_clip_icon.png");
     if (typeName == "Font")
-        return AssetIcon("Domain/lib/assets/icons/font_icon.png");
+        return AssetIcon("font_icon.png");
+    if (typeName == "Material")
+        return AssetIcon("material_icon.png");
+    if (typeName == "Texture2D")
+        return AssetIcon("texture_icon.png");
     if (typeName == "Shader")
-        return AssetIcon("Domain/lib/assets/icons/shader_icon.png");
+        return AssetIcon("shader_icon.png");
     if (typeName == "Scene")
-        return AssetIcon("Domain/lib/assets/icons/scene_icon.png");
+        return AssetIcon("scene_icon.png");
     if (typeName == "PythonScript" || typeName == "Script")
-        return AssetIcon("Domain/lib/assets/icons/python_script_icon.png");
+        return AssetIcon("python_script_icon.png");
     return {};
 }
 
 QIcon CustomIconProvider::aiSendIcon() {
-    return AssetIcon("Domain/lib/assets/icons/up_arrow_icon.png");
+    return AssetIcon("up_arrow_icon.png");
 }
 
 QIcon CustomIconProvider::aiSettingsIcon() {
     // Matches QPushButton#AiTopAction's resting text color in ai_assistant.qss,
     // so this icon-based button reads the same as its glyph-text siblings.
-    return TintedAssetIcon("Domain/lib/assets/icons/settings_icon.png", QColor(170, 170, 174));
+    return TintedAssetIcon("settings_icon.png", QColor(170, 170, 174));
 }
 
 QIcon CustomIconProvider::disclosureArrowRightIcon() {
-    return AssetIcon("Domain/lib/assets/icons/scene_tree_arrow_right.svg");
+    return AssetIcon("scene_tree_arrow_right.svg");
 }
 
 QIcon CustomIconProvider::disclosureArrowDownIcon() {
-    return AssetIcon("Domain/lib/assets/icons/scene_tree_arrow_down.svg");
+    return AssetIcon("scene_tree_arrow_down.svg");
 }
 
 QIcon CustomIconProvider::icon(const QFileInfo &info) const {
@@ -116,38 +129,47 @@ QIcon CustomIconProvider::icon(const QFileInfo &info) const {
     const QString suffix = info.suffix().toLower();
     
     if (info.isDir()) {
-        return AssetIcon("Domain/lib/assets/icons/folder_icon.png");
+        return AssetIcon("folder_icon.png");
     } 
 
     else if (suffix == "scene"){
-        return AssetIcon("Domain/lib/assets/icons/scene_icon.png");
+        return AssetIcon("scene_icon.png");
     }
     else if (suffix == "config"){
-        return AssetIcon("Domain/lib/assets/icons/config_icon.png");
+        return AssetIcon("config_icon.png");
+    }
+    // The .material/.texture metas are what the folder view actually lists — a
+    // source .png is hidden behind its .texture meta (see AssetFilterProxyModel),
+    // so these are the entries a user sees and they share the Inspector's icons.
+    else if (suffix == "material"){
+        return AssetIcon("material_icon.png");
+    }
+    else if (suffix == "texture"){
+        return AssetIcon("texture_icon.png");
     }
     else if (name.startsWith("Cmake",  Qt::CaseInsensitive)){
-        return AssetIcon("Domain/lib/assets/icons/cmake_icon.png");
+        return AssetIcon("cmake_icon.png");
     }   
     else if (suffix == "yaml") {
-        return AssetIcon("Domain/lib/assets/icons/yaml_icon.png");
+        return AssetIcon("yaml_icon.png");
     } else if (suffix == "cpp") {
-        return AssetIcon("Domain/lib/assets/icons/cpp_icon.png");
+        return AssetIcon("cpp_icon.png");
     } else if (suffix == "hpp") {
-        return AssetIcon("Domain/lib/assets/icons/hpp_icon.png");
+        return AssetIcon("hpp_icon.png");
     } else if (suffix == "h") {
-        return AssetIcon("Domain/lib/assets/icons/hpp_icon.png");
+        return AssetIcon("hpp_icon.png");
     } else if (suffix == "shader" || suffix == "glsl") {
-        return AssetIcon("Domain/lib/assets/icons/shader_icon.png");
+        return AssetIcon("shader_icon.png");
     } else if (suffix == "font" || suffix == "ttf" || suffix == "otf") {
         // The .ttf/.otf cases are for the asset-ref picker and anywhere else a
         // source font is shown directly; the folder view hides those behind their
         // .font meta (see AssetFilterProxyModel).
-        return AssetIcon("Domain/lib/assets/icons/font_icon.png");
+        return AssetIcon("font_icon.png");
     } else if (suffix == "audio" || suffix == "wav" || suffix == "mp3" ||
                suffix == "ogg" || suffix == "flac") {
-        return AssetIcon("Domain/lib/assets/icons/audio_clip_icon.png");
+        return AssetIcon("audio_clip_icon.png");
     } else if (suffix == "py" || suffix == "pyw") {
-        return AssetIcon("Domain/lib/assets/icons/python_script_icon.png");
+        return AssetIcon("python_script_icon.png");
     } else if (suffix == "png" || suffix == "jpg" || suffix == "jpeg") {
         // Load the actual image file as a thumbnail
         return QIcon(info.absoluteFilePath());
