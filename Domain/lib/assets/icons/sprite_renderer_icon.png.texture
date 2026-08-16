@@ -1,0 +1,8 @@
+type: Texture2D
+id: 872e5c34b243de0bdf2eb583ea1302d8
+name: sprite_renderer_icon
+path: Domain/lib/assets/icons/sprite_renderer_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

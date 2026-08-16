@@ -23,6 +23,7 @@ public:
     // from each hard-coding their own bundled icon paths.
     static QIcon gameObjectIcon();
     static QIcon componentIcon(const std::string& typeName);
+    static QIcon assetIcon(const std::string& typeName);
     static QIcon aiSendIcon();
     static QIcon aiSettingsIcon();
     static QIcon disclosureArrowRightIcon();

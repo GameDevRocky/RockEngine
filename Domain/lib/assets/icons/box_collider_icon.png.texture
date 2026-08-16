@@ -1,0 +1,8 @@
+type: Texture2D
+id: 81de153dcc9913ec158ed6c4ac76f431
+name: box_collider_icon
+path: Domain/lib/assets/icons/box_collider_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

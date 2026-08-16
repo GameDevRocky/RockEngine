@@ -33,10 +33,11 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     toggleButton->setIcon(EditorUtils::CustomIconProvider::disclosureArrowDownIcon());
     toggleButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-    iconButton = new QPushButton();
-    iconButton->setFlat(true);
-    iconButton->setEnabled(false);
-    iconButton->hide();
+    iconLabel = new QLabel(this);
+    iconLabel->setObjectName("CollapsableHeaderIcon");
+    iconLabel->setFixedSize(20, 20);
+    iconLabel->setAlignment(Qt::AlignCenter);
+    iconLabel->setAttribute(Qt::WA_TransparentForMouseEvents);
 
     activeButton = new QCheckBox();
     activeButton->setObjectName("CollapsableActiveToggle");
@@ -90,7 +91,9 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
     });
 
     headerLayout->addWidget(toggleButton);
-    headerLayout->addWidget(iconButton);
+    // Keep the optional icon immediately before the enable toggle. The QLabel
+    // remains visible when empty so every header reserves the same icon column.
+    headerLayout->addWidget(iconLabel);
     headerLayout->addWidget(activeButton);
     headerLayout->addWidget(this->label);
 
@@ -118,6 +121,15 @@ void CollapsableWidget::SetExpanded(bool expanded) {
         : EditorUtils::CustomIconProvider::disclosureArrowRightIcon());
     contentWidget->setMaximumHeight(expanded ? QWIDGETSIZE_MAX : 0);
     contentWidget->setVisible(expanded);
+}
+
+void CollapsableWidget::SetIcon(const QIcon& icon) {
+    if (icon.isNull()) {
+        iconLabel->clear();
+        return;
+    }
+
+    iconLabel->setPixmap(icon.pixmap(QSize(16, 16), QIcon::Normal, QIcon::Off));
 }
 
 void CollapsableWidget::paintEvent(QPaintEvent *event) {

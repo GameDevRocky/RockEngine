@@ -1,0 +1,8 @@
+type: Texture2D
+id: 8224d4bba99ac7354fedb99fb3de24f1
+name: joint_icon
+path: Domain/lib/assets/icons/joint_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

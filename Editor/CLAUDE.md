@@ -46,7 +46,12 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   undoable `ComponentOrderCommand`; a drop in AI chat attaches component context.
   Inspector section expansion is editor-only per-session view state keyed by stable object,
   component, and asset IDs, so destructive Inspector rebuilds and component reordering restore
-  the prior layout without adding UI fields to scene or asset serialization.
+  the prior layout without adding UI fields to scene or asset serialization. Every collapsible
+  header reserves a fixed icon slot immediately before its enable toggle; `ObjectHeader` uses the
+  shared GameObject icon, while `ComponentHeader` resolves component and asset types through
+  `CustomIconProvider` and leaves the slot blank when no mapping exists. The provider also owns
+  matching file-suffix mappings so Inspector headers, Folder/File Explorer views, AI references,
+  and attachment cards share the same bundled component/asset icon vocabulary.
 - **`src/utils/`**:
   - `InspectorVisitor` — an `IVisitor` over `Serializable` that builds property editors from
     an object's reflected fields (the bridge from Engine reflection to Qt widgets).

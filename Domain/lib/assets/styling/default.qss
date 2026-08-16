@@ -898,6 +898,14 @@ CollapsableWidget QWidget#collapsableHeader:hover
     background: rgb(49, 49, 51);
 }
 
+CollapsableWidget QLabel#CollapsableHeaderIcon
+{
+    background: transparent;
+    border: none;
+    margin: 0px;
+    padding: 0px;
+}
+
 CollapsableWidget QCheckBox#CollapsableActiveToggle,
 CollapsableWidget QCheckBox#CollapsableActiveToggle:hover,
 CollapsableWidget QCheckBox#CollapsableActiveToggle:pressed,

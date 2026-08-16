@@ -18,6 +18,7 @@
 #include "engine/components/Component.hpp"
 #include "utils/ComponentPickerWidget.hpp"
 #include "utils/RefDropFilter.hpp"
+#include "utils/EditorUtils.hpp"
 #include "engine/core/UndoSystem.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/commands/ComponentCommand.hpp"
@@ -605,6 +606,8 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         ComponentHeader* header = new ComponentHeader(selectable->GetTypeName());
         // Do NOT call header->Bind() — it looks up a Component in the Registry and
         // self-destructs if not found. Assets live in AssetManager, not the Registry.
+        header->SetIcon(EditorUtils::CustomIconProvider::assetIcon(
+            selectable->GetTypeName()));
         if (auto* content = visitor.GetContent())
             header->AddWidget(content);
         TrackSectionExpansion(header, "asset:" + id);

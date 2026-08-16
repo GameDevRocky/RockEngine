@@ -1,0 +1,8 @@
+type: Texture2D
+id: ad0f70a263a008e2ed0ba30a8436ce8b
+name: rigidbody_icon
+path: Domain/lib/assets/icons/rigidbody_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

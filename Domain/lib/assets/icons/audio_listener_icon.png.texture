@@ -1,0 +1,8 @@
+type: Texture2D
+id: 81ed4134cdb8f85bf33b45864e7d017c
+name: audio_listener_icon
+path: Domain/lib/assets/icons/audio_listener_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

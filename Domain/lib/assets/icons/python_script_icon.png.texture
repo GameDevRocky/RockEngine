@@ -1,0 +1,8 @@
+type: Texture2D
+id: 81fb3cffd3baeee5e0b90c38b58dbac1
+name: python_script_icon
+path: Domain/lib/assets/icons/python_script_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

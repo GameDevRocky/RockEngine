@@ -44,6 +44,24 @@ QIcon CustomIconProvider::gameObjectIcon() {
 }
 
 QIcon CustomIconProvider::componentIcon(const std::string& typeName) {
+    if (typeName == "Transform")
+        return AssetIcon("Domain/lib/assets/icons/transform_icon.png");
+    if (typeName == "SpriteRenderer")
+        return AssetIcon("Domain/lib/assets/icons/sprite_renderer_icon.png");
+    if (typeName == "TextRenderer")
+        return AssetIcon("Domain/lib/assets/icons/text_renderer_icon.png");
+    if (typeName == "ScriptComponent")
+        return AssetIcon("Domain/lib/assets/icons/python_script_icon.png");
+    if (typeName == "RigidBody")
+        return AssetIcon("Domain/lib/assets/icons/rigidbody_icon.png");
+    if (typeName == "BoxCollider")
+        return AssetIcon("Domain/lib/assets/icons/box_collider_icon.png");
+    if (typeName == "CircleCollider")
+        return AssetIcon("Domain/lib/assets/icons/circle_collider_icon.png");
+    if (typeName == "CapsuleCollider")
+        return AssetIcon("Domain/lib/assets/icons/capsule_collider_icon.png");
+    if (typeName == "Animator")
+        return AssetIcon("Domain/lib/assets/icons/animator_icon.png");
     if (typeName == "Camera")
         return AssetIcon("Domain/lib/assets/icons/camera_icon.png");
     if (typeName == "ParticleComponent")
@@ -52,6 +70,26 @@ QIcon CustomIconProvider::componentIcon(const std::string& typeName) {
         return AssetIcon("Domain/lib/assets/icons/light_icon.png");
     if (typeName == "ShadowCaster")
         return AssetIcon("Domain/lib/assets/icons/shadow_caster_icon.png");
+    if (typeName == "AudioSource")
+        return AssetIcon("Domain/lib/assets/icons/audio_source_icon.png");
+    if (typeName == "AudioListener")
+        return AssetIcon("Domain/lib/assets/icons/audio_listener_icon.png");
+    if (typeName == "Joint" || typeName.ends_with("Joint"))
+        return AssetIcon("Domain/lib/assets/icons/joint_icon.png");
+    return {};
+}
+
+QIcon CustomIconProvider::assetIcon(const std::string& typeName) {
+    if (typeName == "AudioClip")
+        return AssetIcon("Domain/lib/assets/icons/audio_clip_icon.png");
+    if (typeName == "Font")
+        return AssetIcon("Domain/lib/assets/icons/font_icon.png");
+    if (typeName == "Shader")
+        return AssetIcon("Domain/lib/assets/icons/shader_icon.png");
+    if (typeName == "Scene")
+        return AssetIcon("Domain/lib/assets/icons/scene_icon.png");
+    if (typeName == "PythonScript" || typeName == "Script")
+        return AssetIcon("Domain/lib/assets/icons/python_script_icon.png");
     return {};
 }
 
@@ -75,38 +113,42 @@ QIcon CustomIconProvider::disclosureArrowDownIcon() {
 
 QIcon CustomIconProvider::icon(const QFileInfo &info) const {
     const QString& name = info.fileName();
+    const QString suffix = info.suffix().toLower();
     
     if (info.isDir()) {
         return AssetIcon("Domain/lib/assets/icons/folder_icon.png");
     } 
 
-    else if (info.suffix() == "scene"){
+    else if (suffix == "scene"){
         return AssetIcon("Domain/lib/assets/icons/scene_icon.png");
     }
-    else if (info.suffix() == "config"){
+    else if (suffix == "config"){
         return AssetIcon("Domain/lib/assets/icons/config_icon.png");
     }
     else if (name.startsWith("Cmake",  Qt::CaseInsensitive)){
         return AssetIcon("Domain/lib/assets/icons/cmake_icon.png");
     }   
-    else if (info.suffix() == "yaml") {
+    else if (suffix == "yaml") {
         return AssetIcon("Domain/lib/assets/icons/yaml_icon.png");
-    } else if (info.suffix() == "cpp") {
+    } else if (suffix == "cpp") {
         return AssetIcon("Domain/lib/assets/icons/cpp_icon.png");
-    } else if (info.suffix() == "hpp") {
+    } else if (suffix == "hpp") {
         return AssetIcon("Domain/lib/assets/icons/hpp_icon.png");
-    } else if (info.suffix() == "h") {
+    } else if (suffix == "h") {
         return AssetIcon("Domain/lib/assets/icons/hpp_icon.png");
-    } else if (info.suffix() == "shader" || info.suffix() == "glsl") {
+    } else if (suffix == "shader" || suffix == "glsl") {
         return AssetIcon("Domain/lib/assets/icons/shader_icon.png");
-
-    } else if (info.suffix() == "font" || info.suffix() == "ttf" || info.suffix() == "otf") {
+    } else if (suffix == "font" || suffix == "ttf" || suffix == "otf") {
         // The .ttf/.otf cases are for the asset-ref picker and anywhere else a
         // source font is shown directly; the folder view hides those behind their
         // .font meta (see AssetFilterProxyModel).
         return AssetIcon("Domain/lib/assets/icons/font_icon.png");
-
-    } else if (info.suffix() == "png" || info.suffix() == "jpg" || info.suffix() == "jpeg") {
+    } else if (suffix == "audio" || suffix == "wav" || suffix == "mp3" ||
+               suffix == "ogg" || suffix == "flac") {
+        return AssetIcon("Domain/lib/assets/icons/audio_clip_icon.png");
+    } else if (suffix == "py" || suffix == "pyw") {
+        return AssetIcon("Domain/lib/assets/icons/python_script_icon.png");
+    } else if (suffix == "png" || suffix == "jpg" || suffix == "jpeg") {
         // Load the actual image file as a thumbnail
         return QIcon(info.absoluteFilePath());
     }

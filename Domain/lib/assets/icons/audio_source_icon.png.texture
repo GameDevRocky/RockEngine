@@ -1,0 +1,8 @@
+type: Texture2D
+id: b03925a61d29dac8ccead28fa7d6549e
+name: audio_source_icon
+path: Domain/lib/assets/icons/audio_source_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

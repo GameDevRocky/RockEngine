@@ -1,0 +1,8 @@
+type: Texture2D
+id: 9fb8045d3d00c3fab4b9c2dbc23a2e6c
+name: circle_collider_icon
+path: Domain/lib/assets/icons/circle_collider_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

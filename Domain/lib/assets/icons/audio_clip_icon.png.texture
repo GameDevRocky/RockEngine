@@ -1,0 +1,8 @@
+type: Texture2D
+id: 629cebfbeca7b0f123876f39e0bc38dd
+name: audio_clip_icon
+path: Domain/lib/assets/icons/audio_clip_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

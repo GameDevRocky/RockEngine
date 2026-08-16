@@ -22,7 +22,9 @@ public:
     // not flash open before returning to its remembered state. User clicks still
     // use the animated toggle path below.
     void SetExpanded(bool expanded);
-    void SetIcon(QIcon& icon);
+    // The icon slot always occupies space, even when icon is null, keeping the
+    // enable toggle and title aligned across heterogeneous Inspector sections.
+    void SetIcon(const QIcon& icon);
     virtual void OnActiveToggled(bool val){};
     virtual void OnLabelEdited(const QString &name){};
     virtual void Bind(std::string id = ""){};
@@ -38,7 +40,7 @@ protected:
     QLineEdit* label = nullptr;
     QToolButton* toggleButton;
     QCheckBox* activeButton;
-    QPushButton* iconButton;
+    QLabel* iconLabel;
     QWidget* contentWidget;
     QVBoxLayout* mainLayout;
     QVBoxLayout* contentLayout;

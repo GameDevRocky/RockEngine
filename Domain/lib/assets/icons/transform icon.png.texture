@@ -1,0 +1,8 @@
+type: Texture2D
+id: a2eff4b08f7d374cfa7d5aa72a450cd1
+name: transform_icon
+path: Domain/lib/assets/icons/transform_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

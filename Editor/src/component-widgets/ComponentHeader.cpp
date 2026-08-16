@@ -26,6 +26,7 @@
 #include "engine/commands/PropertyCommand.hpp"
 #include "Engine.hpp"
 #include "utils/DragDropMime.hpp"
+#include "utils/EditorUtils.hpp"
 
 ComponentHeader::ComponentHeader(QWidget* parent)
     : ComponentHeader("Untitled Label", parent)
@@ -36,6 +37,7 @@ ComponentHeader::ComponentHeader(std::string label, QWidget* parent)
     : CollapsableWidget(label, parent)
 {
     this->activeButton->setEnabled(true);
+    SetIcon(EditorUtils::CustomIconProvider::componentIcon(label));
     // The label is a read-only QLineEdit; without this it eats right-clicks with its
     // own copy/paste menu. Defer to us so the delete menu works over the whole header.
     this->label->setContextMenuPolicy(Qt::NoContextMenu);
@@ -121,6 +123,7 @@ void ComponentHeader::Bind(std::string id){
     }
     this->component_id = comp->GetID();
     label->setText(QString::fromStdString(comp->GetTypeName()));
+    SetIcon(EditorUtils::CustomIconProvider::componentIcon(comp->GetTypeName()));
     activeButton->setChecked(comp->GetEnabled());
 
     int enabledSub = comp->Subscribe([safeThis](std::any data){

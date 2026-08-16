@@ -1,0 +1,8 @@
+type: Texture2D
+id: 4590419f21d44327d1612d5a8405e625
+name: text_renderer_icon
+path: Domain/lib/assets/icons/text_renderer_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

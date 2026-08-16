@@ -12,6 +12,7 @@
 #include "engine/core/Container.hpp"
 #include "engine/commands/PropertyCommand.hpp"
 #include "Engine.hpp"
+#include "utils/EditorUtils.hpp"
 #include <QHeaderView>
 #include <QFormLayout>
 #include <QDoubleSpinBox>
@@ -28,6 +29,7 @@ ObjectHeader::ObjectHeader(std::string label, QWidget* parent)
 {
     this->label->setReadOnly(false);
     this->activeButton->setEnabled(true);
+    SetIcon(EditorUtils::CustomIconProvider::gameObjectIcon());
 }
 void ObjectHeader::paintEvent(QPaintEvent *event) {
     QStyleOption opt;
