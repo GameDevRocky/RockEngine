@@ -364,6 +364,21 @@ void InspectorGui::SubscribeToSelector(){
     OnObjectSelected(selectionManager->GetSelectedId());
 }
 
+void InspectorGui::TrackSectionExpansion(CollapsableWidget* section,
+                                         const std::string& stateKey)
+{
+    if (!section || stateKey.empty()) return;
+
+    const auto remembered = m_sectionExpansion.find(stateKey);
+    if (remembered != m_sectionExpansion.end())
+        section->SetExpanded(remembered->second);
+
+    connect(section, &CollapsableWidget::ExpansionChanged, this,
+            [this, stateKey](bool expanded) {
+                m_sectionExpansion[stateKey] = expanded;
+            });
+}
+
 void InspectorGui::OnObjectSelected(const std::string& id)
 {
     // Preserve the scroll position across a rebuild of the SAME object (add/remove
@@ -439,6 +454,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         for (auto& r : visitor.GetRefreshers())           m_valueRefreshers.push_back(r);
         auto* content = visitor.GetContent();
         if (content) objectHeader->AddWidget(content);
+        TrackSectionExpansion(objectHeader, "object:" + obj->GetID());
         contentLayout->addWidget(objectHeader);
 
         // Rebuild whenever a component is added, removed, or reordered on this
@@ -517,6 +533,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
             for (auto& s : compWidget->GetSubscriptions())  m_inspectorSubs.push_back(s);
             for (auto& r : compVisitor.GetRefreshers())     m_valueRefreshers.push_back(r);
             compWidget->AddWidget(content);
+            TrackSectionExpansion(compWidget, "component:" + comp->GetID());
             contentLayout->addWidget(compWidget);
             componentReorder->RegisterRow(compWidget, comp->GetID());
 
@@ -590,6 +607,7 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         // self-destructs if not found. Assets live in AssetManager, not the Registry.
         if (auto* content = visitor.GetContent())
             header->AddWidget(content);
+        TrackSectionExpansion(header, "asset:" + id);
         contentLayout->addWidget(header);
 
         if (auto* mat = dynamic_cast<Material*>(selectable)) {

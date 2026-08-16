@@ -13,11 +13,13 @@
 #include <utility>
 #include <vector>
 #include <functional>
+#include <unordered_map>
 #include "component-widgets/ObjectHeader.hpp"
 #include "Engine.hpp"
 #include "engine/core/SelectionManager.hpp"
 
 class Observable;
+class CollapsableWidget;
 
 using namespace EngineUtils;
 
@@ -48,6 +50,10 @@ public:
 private:
     void SubscribeToSelector();
     void OnObjectSelected(const std::string& id);
+    // Associate a rebuilt section with stable editor-only view state. Component
+    // ids survive reordering/rebuilds, so each section can restore independently.
+    void TrackSectionExpansion(CollapsableWidget* section,
+                               const std::string& stateKey);
     // Add a ScriptComponent running the given "module:class" script to the
     // currently-selected GameObject (drag-drop of a .py from the Folder view onto
     // the inspector). No-op unless the selection is a GameObject.
@@ -88,6 +94,10 @@ private:
     // SAME id (add/remove component, script hot-reload), the scroll position is
     // preserved so the rebuild isn't jarring; a different id resets to the top.
     std::string m_currentInspectedId;
+    // Per-session Inspector view state. This deliberately stays out of scene and
+    // asset serialization because expanding a section is an editor preference,
+    // not authored game data.
+    std::unordered_map<std::string, bool> m_sectionExpansion;
     // Deferred value-refresh closures collected from the property visitors for the
     // current selection, flushed by RefreshDirtyValues on the m_pollTimer tick.
     // Cleared/rebuilt in OnObjectSelected alongside m_inspectorSubs.

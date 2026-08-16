@@ -44,6 +44,9 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   the component MIME drag. A drop back in the Inspector commits through
   `GameObject::MoveComponent` and an
   undoable `ComponentOrderCommand`; a drop in AI chat attaches component context.
+  Inspector section expansion is editor-only per-session view state keyed by stable object,
+  component, and asset IDs, so destructive Inspector rebuilds and component reordering restore
+  the prior layout without adding UI fields to scene or asset serialization.
 - **`src/utils/`**:
   - `InspectorVisitor` — an `IVisitor` over `Serializable` that builds property editors from
     an object's reflected fields (the bridge from Engine reflection to Qt widgets).

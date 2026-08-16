@@ -4,6 +4,7 @@
 #include <QStyleOption>
 #include <QPropertyAnimation>
 #include <QEasingCurve>
+#include <QSignalBlocker>
 #include "utils/EditorUtils.hpp"
 
 CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidget(parent) 
@@ -64,6 +65,7 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
         toggleButton->setIcon(checked
             ? EditorUtils::CustomIconProvider::disclosureArrowDownIcon()
             : EditorUtils::CustomIconProvider::disclosureArrowRightIcon());
+        emit ExpansionChanged(checked);
         collapseAnim->stop();
         if (checked) {
             contentWidget->setVisible(true);   // must be visible while it grows
@@ -101,6 +103,21 @@ CollapsableWidget::CollapsableWidget(std::string label, QWidget* parent) : QWidg
 
 void CollapsableWidget::AddWidget(QWidget* widget) {
     contentLayout->addWidget(widget);
+}
+
+bool CollapsableWidget::IsExpanded() const {
+    return toggleButton->isChecked();
+}
+
+void CollapsableWidget::SetExpanded(bool expanded) {
+    collapseAnim->stop();
+    const QSignalBlocker blocker(toggleButton);
+    toggleButton->setChecked(expanded);
+    toggleButton->setIcon(expanded
+        ? EditorUtils::CustomIconProvider::disclosureArrowDownIcon()
+        : EditorUtils::CustomIconProvider::disclosureArrowRightIcon());
+    contentWidget->setMaximumHeight(expanded ? QWIDGETSIZE_MAX : 0);
+    contentWidget->setVisible(expanded);
 }
 
 void CollapsableWidget::paintEvent(QPaintEvent *event) {

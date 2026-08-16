@@ -17,10 +17,19 @@ class CollapsableWidget : public QWidget {
 public: 
     explicit CollapsableWidget(std::string label, QWidget* parent = nullptr);
     void AddWidget(QWidget* widget);
+    bool IsExpanded() const;
+    // Programmatic restoration is immediate so a rebuilt Inspector section does
+    // not flash open before returning to its remembered state. User clicks still
+    // use the animated toggle path below.
+    void SetExpanded(bool expanded);
     void SetIcon(QIcon& icon);
     virtual void OnActiveToggled(bool val){};
     virtual void OnLabelEdited(const QString &name){};
     virtual void Bind(std::string id = ""){};
+
+signals:
+    void ExpansionChanged(bool expanded);
+
 protected:
     void paintEvent(QPaintEvent *event);
 
