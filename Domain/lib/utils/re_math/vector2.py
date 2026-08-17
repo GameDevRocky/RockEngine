@@ -55,7 +55,8 @@ class Vector2:
         return Vector2(-self.x, -self.y)
 
     # --- Geometry Logic ---
-    def length(self):
+    @property
+    def magnitude(self):
         return math.sqrt(self.x**2 + self.y**2)
 
     def dot(self, other):
@@ -73,8 +74,13 @@ class Vector2:
         angle_rad = math.atan2(self.cross(other), self.dot(other))
         return math.degrees(angle_rad)
 
+    def normalized(self):
+        L = self.magnitude
+        return Vector2(self.x / L, self.y / L) if L > 0 else Vector2(0, 0)
+
+
     def normalize(self):
-        L = self.length()
+        L = self.magnitude
         return Vector2(self.x / L, self.y / L) if L > 0 else Vector2(0, 0)
 
     # --- Boilerplate ---

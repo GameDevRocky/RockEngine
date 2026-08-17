@@ -1,0 +1,20 @@
+type: Texture2D
+id: ac675f8a863ca37b30fd98330f997bd4
+name: brick_texture
+path: Domain/sandbox/brick_texture.jpg
+filtering: linear
+wrap: repeat
+normal:
+  apply: true
+  strength: 99
+  blur: 0
+  invertX: false
+  invertY: false
+  source: luminance
+  filter: scharr
+sprites:
+  - id: 8e91d656d12bee9e3a9d7302e7b1b2c0
+    name: 8e91d656d12bee9e3a9d7302e7b1b2c0
+    uvMin: [0, 0]
+    uvMax: [1, 1]
+    pivot: [0, 0]

@@ -1,15 +1,12 @@
 type: Material
-name: New Material
-id: 2f14494f6050458c46aa8b85f5a18230
+name: New Material 2
+id: d79f037ae851df2cbb2db311569480f0
 shader_id: s1
 uniforms:
   textures:
-    uNormalMap: ac675f8a863ca37b30fd98330f997bd4
-    uTexture: ac675f8a863ca37b30fd98330f997bd4
+    uTexture: ""
   floats:
-    uTime: 0
     uLitAmount: 1
-    uHasNormalMap: 1
   vec2:
     uUVScale: [1, 1]
     uUVOffset: [0, 0]

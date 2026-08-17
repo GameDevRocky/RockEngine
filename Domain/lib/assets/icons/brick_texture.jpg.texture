@@ -1,0 +1,8 @@
+type: Texture2D
+id: d08d084c5a060f79f118608226c604a7
+name: brick_texture
+path: Domain/lib/assets/icons/brick_texture.jpg
+filtering: linear
+wrap: repeat
+sprites:
+  []

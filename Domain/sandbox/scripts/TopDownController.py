@@ -42,6 +42,9 @@ class TopDownController(ScriptableComponent):
 
         mouse_pos = Input.get_mouse_pos()
 
+        left Input.is_key_down(Keys.D) or Gamepad.axis(Gamepad.)
+
+
         input_ = Vector2(
             Input.is_key_down(Keys.D) - Input.is_key_down(Keys.A),
             Input.is_key_down(Keys.W) - Input.is_key_down(Keys.S)
