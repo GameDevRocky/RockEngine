@@ -989,6 +989,12 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 strDesc = PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF);
             } else if (field.refTypeName == "sprite") {
                 strDesc = PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF);
+            } else if (field.refTypeName.rfind("script:", 0) == 0) {
+                // A script ref picks a GameObject filtered to that script class,
+                // exactly like gameobject:<Class> — the two differ only in what
+                // the SCRIPT receives, never in what the editor picks or stores.
+                std::string cls = field.refTypeName.substr(std::string("script:").size());
+                strDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).RefClass(cls);
             } else if (field.refTypeName.rfind("gameobject:", 0) == 0) {
                 std::string cls = field.refTypeName.substr(std::string("gameobject:").size());
                 strDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).RefClass(cls);
@@ -1151,6 +1157,9 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                     elemDesc = PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF);
                 } else if (field.elementRefTypeName == "sprite") {
                     elemDesc = PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF);
+                } else if (field.elementRefTypeName.rfind("script:", 0) == 0) {
+                    std::string cls = field.elementRefTypeName.substr(std::string("script:").size());
+                    elemDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).RefClass(cls);
                 } else if (field.elementRefTypeName.rfind("gameobject:", 0) == 0) {
                     std::string cls = field.elementRefTypeName.substr(std::string("gameobject:").size());
                     elemDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).RefClass(cls);

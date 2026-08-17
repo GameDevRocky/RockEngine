@@ -3,6 +3,8 @@ from .scriptable_component_handler import ScriptableComponent
 from .sprite_renderer_handler import SpriteRenderer
 from .text_renderer_handler import TextRenderer, TextHAlign, TextVAlign
 from .camera_handler import Camera
+from .light_handler import Light, LightType
+from .script_ref import ScriptRef
 from .animator_handler import Animator
 from .particle_component_handler import ParticleComponent
 from ..rendering.sprite_handler import Sprite

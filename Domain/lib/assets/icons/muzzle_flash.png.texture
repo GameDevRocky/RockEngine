@@ -1,0 +1,8 @@
+type: Texture2D
+id: c5c72818f698609436c363ccf9562b88
+name: muzzle_flash
+path: Domain/lib/assets/icons/muzzle_flash.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

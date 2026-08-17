@@ -127,6 +127,17 @@ public:
     // when no script is assigned.
     std::string GetScriptFilePath() const { return m_scriptFilePath; }
 
+    // Borrowed PyObject* for the live script instance, handed out as void* so this
+    // header stays pybind11-free — the same reason GamepadService.hpp stores SDL
+    // pads as void*. nullptr when no instance is live (unassigned, missing .py, or
+    // a script that raised on construction).
+    //
+    // Only a translation unit that already includes pybind11 can do anything with
+    // it; ScriptComponentBindings.cpp is the one caller, resolving a
+    // script-to-script reference. Borrowed, not owned: it is valid only while this
+    // component holds the instance, so never store it across a hot-reload.
+    void* GetScriptInstanceHandle() const;
+
     // Enumerate every ScriptableComponent subclass under the sandbox scripts
     // folder (for the inspector's script picker). No instance required.
     static std::vector<ScriptClassInfo> GetAvailableScripts();

@@ -1,0 +1,12 @@
+type: Texture2D
+id: 84099d366fd297d288cff674dbc10107
+name: muzzle_flash
+path: Domain/sandbox/muzzle_flash.png
+filtering: linear
+wrap: repeat
+sprites:
+  - id: f25981b383d7c2160d48d94648db8464
+    name: f25981b383d7c2160d48d94648db8464
+    uvMin: [0.17129633, 0.38657403]
+    uvMax: [0.9270833, 0.6851852]
+    pivot: [0, 0]

@@ -107,6 +107,11 @@ namespace {
             py::module_ m = py::module_::import("Domain.lib.api.rendering.material_handler");
             return m.attr("Material")(s);
         }
+        if (elementRefType.rfind("script:", 0) == 0) {
+            std::string cls = elementRefType.substr(std::string("script:").size());
+            py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+            return intro.attr("make_script_ref")(s, cls);   // empty id → None
+        }
         if (elementRefType.rfind("gameobject:", 0) == 0) {
             py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
             return intro.attr("make_gameobject_ref")(s);   // empty id → None
@@ -846,6 +851,7 @@ void ScriptComponent::IntrospectFields()
                     const bool isRef = info.refTypeName == "sprite"
                                     || info.refTypeName == "material"
                                     || info.refTypeName.rfind("component:", 0) == 0
+                                    || info.refTypeName.rfind("script:", 0) == 0
                                     || info.refTypeName.rfind("gameobject:", 0) == 0;
                     if (isRef
                         && py::isinstance<py::str>(defaultVal)
@@ -879,6 +885,14 @@ void ScriptComponent::IntrospectFields()
         std::cerr << "[ScriptComponent] Python error in IntrospectFields():\n"
             << e.what() << std::endl;
     }
+}
+
+void* ScriptComponent::GetScriptInstanceHandle() const
+{
+    if (!m_pyData) return nullptr;
+    const auto& inst = m_pyData->scriptInstance;
+    if (!inst || inst.is_none()) return nullptr;
+    return inst.ptr();
 }
 
 void ScriptComponent::IntrospectActions()
@@ -1000,6 +1014,15 @@ void ScriptComponent::ApplyPendingFields()
                     py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
                     py::setattr(scriptInstance, field.name.c_str(),
                                 intro.attr("make_component_ref")(strVal, typeName));
+                } else if (field.refTypeName.rfind("script:", 0) == 0) {
+                    // Script ref: strVal is the owning GameObject's id; hand back a
+                    // live proxy onto the script instance running on it. Resolved
+                    // per access rather than captured, so a hot-reload of the
+                    // TARGET cannot leave this pointing at an orphaned instance.
+                    std::string cls = field.refTypeName.substr(std::string("script:").size());
+                    py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+                    py::setattr(scriptInstance, field.name.c_str(),
+                                intro.attr("make_script_ref")(strVal, cls));
                 } else if (field.refTypeName.rfind("gameobject:", 0) == 0) {
                     // GameObject ref: strVal is the object's id; wrap it in a
                     // GameObject handler (empty → None). The ":<ClassName>" suffix
@@ -1245,6 +1268,13 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
                     py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
                     py::setattr(scriptInstance, name.c_str(),
                                 intro.attr("make_component_ref")(v, typeName));
+                } else if (refTypeName.rfind("script:", 0) == 0) {
+                    // Script ref: `v` is the owning GameObject's id. See
+                    // introspection.make_script_ref.
+                    std::string cls = refTypeName.substr(std::string("script:").size());
+                    py::module_ intro = py::module_::import("Domain.lib.utils.introspection");
+                    py::setattr(scriptInstance, name.c_str(),
+                                intro.attr("make_script_ref")(v, cls));
                 } else if (refTypeName.rfind("gameobject:", 0) == 0) {
                     // GameObject ref: `v` is the object's id; wrap it in a GameObject
                     // handler (empty → None). See introspection.make_gameobject_ref.

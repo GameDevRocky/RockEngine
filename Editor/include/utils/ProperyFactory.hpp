@@ -647,6 +647,9 @@ private:
                 strDesc.Tag(Properties::Tags::SPRITE).RefType(Properties::Tags::OBJECT_REF);
             else if (arg.refTypeName == "material")
                 strDesc.Tag(Properties::Tags::MATERIAL).RefType(Properties::Tags::OBJECT_REF);
+            else if (arg.refTypeName.rfind("script:", 0) == 0)
+                strDesc.Tag(Properties::Tags::OBJECT_REF).RefType(Properties::Tags::OBJECT_REF)
+                       .RefClass(arg.refTypeName.substr(std::string("script:").size()));
             else if (arg.refTypeName.rfind("gameobject:", 0) == 0)
                 strDesc.Tag(Properties::Tags::OBJECT_REF).RefType(Properties::Tags::OBJECT_REF)
                        .RefClass(arg.refTypeName.substr(std::string("gameobject:").size()));

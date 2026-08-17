@@ -56,7 +56,11 @@ public:
     ~RigidBody() = default;
 
 private:
-    void OnTransformChanged();
+    // Which half of the pose an external write touched. Position and rotation are
+    // independent axes, so a change to one must not discard the momentum of the
+    // other — see OnTransformChanged.
+    enum class TransformChannel { Position, Rotation };
+    void OnTransformChanged(TransformChannel channel);
     
     PhysicsSystem* physicsSystem = nullptr;
     TimeManager* timeManager = nullptr;

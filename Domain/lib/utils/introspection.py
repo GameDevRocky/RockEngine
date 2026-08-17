@@ -64,6 +64,21 @@ def make_gameobject_ref(gameobject_id):
     return get_gameobject(gameobject_id)
 
 
+def make_script_ref(gameobject_id, class_name):
+    """Build a ScriptRef for a script's ``field : SomeScript`` reference.
+
+    Empty/falsy id → None (an unassigned reference). Called from the C++
+    ScriptComponent when applying a stored value, the script-class analogue of
+    ``make_gameobject_ref``. The stored value is still the target's GameObject
+    id — only what the script SEES differs, and it is a live proxy rather than a
+    captured instance so a hot-reload of the target cannot orphan it.
+    """
+    if not gameobject_id:
+        return None
+    from Domain.lib.api.components.script_ref import ScriptRef
+    return ScriptRef(gameobject_id, class_name)
+
+
 def _unwrap_annotated(hint):
     """Split ``Reflect[T, meta...]`` into ``(T, [meta...])``.
 
@@ -87,9 +102,13 @@ def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls,
     Material -> "material", Sprite -> "sprite", the base GameObject -> an
     unfiltered "gameobject:" reference, a native component handler (Camera,
     Rigidbody, a collider, ...) -> a "component:<EngineTypeName>" reference,
-    any other class (a user script subclass) -> a class-filtered
-    "gameobject:<ClassName>" reference. Returns (None, "") if unmappable. Used
-    for both top-level fields and the element type of list[...] fields.
+    a user script subclass -> a "script:<ClassName>" reference, and any other
+    class -> a class-filtered "gameobject:<ClassName>" reference. Returns
+    (None, "") if unmappable. Used for both top-level fields and the element type
+    of list[...] fields.
+
+    Every ref flavour stores the same thing — the target GameObject's id — and
+    they differ only in what the script receives when it reads the field.
     """
     type_map = {float: "float", int: "int", bool: "bool", str: "str"}
     type_name = type_map.get(base_type)
@@ -115,8 +134,11 @@ def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls,
             # Base GameObject → reference to ANY object (no script-class filter).
             ref_type_name = "gameobject:"
         elif (ScriptableComponentCls and issubclass(base_type, ScriptableComponentCls)):
-            # A user script subclass → filter the picker to that script class.
-            ref_type_name = f"gameobject:{base_type.__name__}"
+            # A user script subclass → the picker still filters GameObjects by that
+            # script class, but the script receives the SCRIPT, not the object:
+            # `manager: GameManager` then reads as self.manager.add_score(...)
+            # rather than forcing a get_component hop through the GameObject.
+            ref_type_name = f"script:{base_type.__name__}"
         elif (ComponentCls and issubclass(base_type, ComponentCls)):
             # A built-in component handler (Camera, Rigidbody, colliders, ...) →
             # pick a GameObject that HAS this native component. Stored as the

@@ -54,8 +54,8 @@ void RigidBody::PostInit(){
     UpdateTransform();
     
     Transform* transform = GetTransform();
-    transform->Subscribe([this](){ OnTransformChanged(); return true;}, Transform::POSITION_CHANGED_EVENT);
-    transform->Subscribe([this](){ OnTransformChanged(); return true;}, Transform::ROTATION_CHANGED_EVENT);
+    transform->Subscribe([this](){ OnTransformChanged(TransformChannel::Position); return true;}, Transform::POSITION_CHANGED_EVENT);
+    transform->Subscribe([this](){ OnTransformChanged(TransformChannel::Rotation); return true;}, Transform::ROTATION_CHANGED_EVENT);
     if (enabled) b2Body_Enable(bodyId); else b2Body_Disable(bodyId);
     state = State::PostInitialized;
 }
@@ -69,16 +69,32 @@ void RigidBody::UpdateTransform(){
     b2Body_SetTransform(bodyId, pos, rot);
 }
 
-void RigidBody::OnTransformChanged(){
+// An outside write to the Transform teleports the body to match it. Momentum on
+// the teleported axis is discarded, because carrying it across a jump would fling
+// the body off from its new pose — but ONLY that axis.
+//
+// Position and rotation are independent, and conflating them broke a routine
+// pattern: a top-down controller that aims at the cursor writes rotation every
+// fixed step, and zeroing linear velocity there wiped the movement the solver had
+// just integrated. The body then carried at most one frame of impulse, so it
+// crawled no matter how hard it was pushed and stopped dead the instant input
+// ceased — with nothing in the physics settings to explain it, since friction and
+// damping were never involved.
+//
+// The physics writeback in LateUpdate is exempt via writingToTransform: that is
+// the body's own pose coming back, not an external move.
+void RigidBody::OnTransformChanged(TransformChannel channel){
     if (writingToTransform) return;
     if (!b2Body_IsValid(bodyId)) return;
     if (bodyType == b2_kinematicBody) return;
 
     UpdateTransform();
-    
+
     if (bodyType == b2_dynamicBody) {
-        b2Body_SetLinearVelocity(bodyId, {0, 0});
-        b2Body_SetAngularVelocity(bodyId, 0);
+        if (channel == TransformChannel::Position)
+            b2Body_SetLinearVelocity(bodyId, {0, 0});
+        else
+            b2Body_SetAngularVelocity(bodyId, 0);
         b2Body_SetAwake(bodyId, true);
     }
 }
