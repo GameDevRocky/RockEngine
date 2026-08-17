@@ -107,6 +107,14 @@ class InspectorVisitor : public IVisitor{
     private:
         void AddRow(const std::string& text, QWidget* widget);
         void AddFullRow(QWidget* widget);
+        // Label on its own full-width line, then the widget on the next one.
+        // For PropDesc::FullRow editors, which need the whole panel width and so
+        // cannot keep the label beside them.
+        void AddLabeledFullRow(const std::string& text, QWidget* widget);
+        // NOTE: a script's @action methods deliberately have no rows of their own
+        // here. They are reached through an Event's call rows, which already name
+        // a target, carry the argument editor, and have a per-row invoke button —
+        // a second set of buttons below the fields duplicated all three.
 
         QGridLayout* layout = nullptr;
         int gridRow = 0;
@@ -191,5 +199,6 @@ void InspectorVisitor::BindProperty(TargetT* instance, const std::string& label,
         if (pw->IsValid()) pw->SetValue(getter());
     });
 
-    AddRow(label, pw->GetWidget());
+    if (desc.fullRow) AddLabeledFullRow(label, pw->GetWidget());
+    else              AddRow(label, pw->GetWidget());
 }

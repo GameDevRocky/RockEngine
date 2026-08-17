@@ -30,6 +30,7 @@ void BindGameObject(py::module_& m);
 
 // COMPONENTS
 void BindComponent(py::module_& m);
+void BindComponentActions(py::module_& m);
 void BindTransform(py::module_& m);
 void BindSpriteRenderer(py::module_& m);
 void BindTextRenderer(py::module_& m);
@@ -74,6 +75,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     // COMPONENTS
     py::module_ components = m.def_submodule("components", " RockEngine components APIs");
     BindComponent(components);
+    BindComponentActions(components);
     BindTransform(components);
     BindSpriteRenderer(components);
     BindTextRenderer(components);

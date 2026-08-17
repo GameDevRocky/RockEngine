@@ -1,3 +1,4 @@
+import inspect
 import sys
 import typing
 from .properties import Range, Step, Tooltip, ReadOnly, Options, Slider, RangeSlider
@@ -129,6 +130,111 @@ def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls,
     return type_name, ref_type_name
 
 
+def _is_event_type(base_type):
+    """True for the Event class itself or a subclass of it. Imported lazily for
+    the same circular-import reason as _get_ref_classes."""
+    try:
+        from Domain.lib.api.core.script_event import Event
+    except ImportError:
+        return False
+    return isinstance(base_type, type) and issubclass(base_type, Event)
+
+
+def _first_tooltip(metadata):
+    for m in metadata:
+        if isinstance(m, Tooltip):
+            return m.text
+    return ""
+
+
+def _prettify(name):
+    """"take_damage" -> "Take Damage". The editor's fallback label for an
+    @action that was not given one."""
+    return " ".join(part.capitalize() for part in name.replace("-", "_").split("_") if part)
+
+
+def get_exposed_actions(cls):
+    """Introspect a ScriptableComponent subclass for @action methods.
+
+    Returns a list of dicts with keys::
+
+        name, label, tooltip, has_arg, arg_name, arg_type_name, arg_ref_type_name
+
+    Each becomes a button in the Inspector and a selectable target for another
+    script's ``Event``. At most one argument is reported: a second one is a
+    mistake worth naming, because the editor has nowhere to put it and the call
+    would fail at runtime with a confusing TypeError instead.
+    """
+    MaterialCls, SpriteCls, GameObjectCls, ComponentCls, ScriptableComponentCls = _get_ref_classes()
+
+    actions = []
+    for name, fn in inspect.getmembers(cls, callable):
+        if name.startswith("_") or not getattr(fn, "_rock_action", False):
+            continue
+
+        label = getattr(fn, "_rock_action_label", None) or _prettify(name)
+        tooltip = getattr(fn, "_rock_action_tooltip", None)
+        if tooltip is None:
+            doc = inspect.getdoc(fn) or ""
+            tooltip = doc.strip().split("\n", 1)[0]
+
+        entry = {
+            "name": name, "label": label, "tooltip": tooltip,
+            "has_arg": False, "arg_name": "",
+            "arg_type_name": "", "arg_ref_type_name": "",
+        }
+
+        try:
+            params = [p for p in inspect.signature(fn).parameters.values()
+                      if p.name != "self"
+                      and p.kind not in (p.VAR_POSITIONAL, p.VAR_KEYWORD)]
+        except (TypeError, ValueError):
+            params = []
+
+        if len(params) > 1:
+            print(f"[introspection] Ignoring @action '{name}': it takes "
+                  f"{len(params)} arguments and the editor supports at most one.",
+                  file=sys.stderr)
+            continue
+
+        if params:
+            param = params[0]
+            # An unannotated argument is treated as str: it is the one type that
+            # accepts anything the user can type, so the action stays callable
+            # rather than being dropped for a missing annotation.
+            annotation = param.annotation
+            if annotation is inspect.Parameter.empty:
+                arg_type_name, arg_ref = "str", ""
+            else:
+                if isinstance(annotation, str):
+                    # `from __future__ import annotations` (or a quoted hint)
+                    # leaves the annotation as text; resolve it against the
+                    # defining module the same way get_type_hints would.
+                    try:
+                        annotation = typing.get_type_hints(fn).get(param.name, str)
+                    except Exception:
+                        annotation = str
+                annotation, _ = _unwrap_annotated(annotation)
+                arg_type_name, arg_ref = _map_type(
+                    annotation, MaterialCls, SpriteCls, GameObjectCls,
+                    ComponentCls, ScriptableComponentCls)
+
+            if arg_type_name is None or arg_type_name == "list":
+                print(f"[introspection] Ignoring @action '{name}': {param.annotation!r} "
+                      f"is not an argument type the editor can edit.", file=sys.stderr)
+                continue
+
+            entry["has_arg"] = True
+            entry["arg_name"] = param.name
+            entry["arg_type_name"] = arg_type_name
+            entry["arg_ref_type_name"] = arg_ref
+
+        actions.append(entry)
+
+    actions.sort(key=lambda a: a["label"])
+    return actions
+
+
 def get_exposed_fields(cls):
     """Introspect a ScriptableComponent subclass for editor-exposed fields.
 
@@ -174,6 +280,22 @@ def get_exposed_fields(cls):
 
         # ---- Unpack Reflect[T, metadata...] or use the raw type ----
         base_type, metadata = _unwrap_annotated(hint)
+
+        # An Event is reported as list[str] carrying widget="event". It really IS
+        # a list of encoded call entries (Event subclasses list), so describing it
+        # that way means the engine's existing list marshalling serializes it,
+        # copies it into play mode and diffs it with no separate path — only the
+        # editor needs to know to draw call rows instead of text boxes.
+        if _is_event_type(base_type):
+            fields.append({
+                "name": name, "type_name": "list", "default": [],
+                "min": None, "max": None, "step": 0.1,
+                "tooltip": _first_tooltip(metadata), "read_only": False,
+                "widget": "event", "option_labels": [], "option_values": [],
+                "ref_type_name": "", "element_type_name": "str",
+                "element_ref_type_name": "",
+            })
+            continue
 
         # A list[...] field's element type carries its own Reflect metadata, and
         # that metadata describes each ROW the inspector draws rather than the

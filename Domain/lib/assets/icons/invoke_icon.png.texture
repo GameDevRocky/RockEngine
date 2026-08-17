@@ -1,0 +1,8 @@
+type: Texture2D
+id: 1022ed301f4fe788c9117c8ec43d8dd3
+name: invoke_icon
+path: Domain/lib/assets/icons/invoke_icon.png
+filtering: linear
+wrap: repeat
+sprites:
+  []

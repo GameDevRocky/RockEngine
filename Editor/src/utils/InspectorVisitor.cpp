@@ -809,58 +809,8 @@ void InspectorVisitor::Visit(MotorJoint* joint){
 }
 
 void InspectorVisitor::Visit(ScriptComponent* sc){
-    // Missing script banner — a full-width row above everything else, because the
-    // component is in an error state and that has to read before the fields do.
-    // Only for an assigned-but-unresolvable script; an unassigned component just
-    // shows the empty picker below. The component rebuilds this inspector on
-    // SCRIPT_RELOADED_EVENT, which the engine fires on both edges of the missing
-    // state, so restoring the .py file makes this disappear on its own.
-    if (sc->IsScriptMissing()) {
-        auto* banner = new QFrame();
-        banner->setObjectName("MissingScriptBanner");
-        auto* row = new QHBoxLayout(banner);
-        row->setContentsMargins(10, 8, 10, 8);
-        row->setSpacing(10);
-
-        auto* icon = new QLabel();
-        icon->setObjectName("MissingScriptIcon");
-        icon->setPixmap(EditorUtils::CustomIconProvider::alertIcon().pixmap(20, 20));
-        icon->setFixedSize(20, 20);
-        icon->setAlignment(Qt::AlignTop | Qt::AlignHCenter);
-        row->addWidget(icon, 0, Qt::AlignTop);
-
-        auto* text = new QVBoxLayout();
-        text->setContentsMargins(0, 0, 0, 0);
-        text->setSpacing(2);
-
-        auto* title = new QLabel("Missing Script");
-        title->setObjectName("MissingScriptTitle");
-        text->addWidget(title);
-
-        // Name what is missing and where it was expected — the two things needed to
-        // either restore the file or repoint the component at another class.
-        const std::string path = sc->GetScriptFilePath();
-        QString detail = QString("\"%1\" could not be loaded")
-                             .arg(QString::fromStdString(sc->GetScriptClassName()));
-        if (!path.empty()) {
-            detail += QString(" from %1").arg(
-                QDir::toNativeSeparators(QString::fromStdString(path)));
-        }
-        detail += ".\nField values are kept and restored if the file comes back; "
-                  "otherwise pick another script below.";
-
-        auto* body = new QLabel(detail);
-        body->setObjectName("MissingScriptDetail");
-        body->setWordWrap(true);
-        body->setTextInteractionFlags(Qt::TextSelectableByMouse);
-        text->addWidget(body);
-
-        row->addLayout(text, 1);
-        AddFullRow(banner);
-    }
-
-    // Script selector — always the first editable row, so an unassigned
-    // ScriptComponent still shows a way to pick a class. Uses the same asset-picker widget as
+    // Script selector — always the first row, so an unassigned ScriptComponent
+    // still shows a way to pick a class. Uses the same asset-picker widget as
     // Sprite/Material/GameObject refs: a "…" picker listing every
     // ScriptableComponent subclass, plus drag-and-drop of a .py script file from
     // the Folder view. The value is carried as "module:class" (see the SCRIPT tag
@@ -873,6 +823,15 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
         if (!sc->GetScriptClassName().empty())
             current = sc->GetScriptModuleName() + ":" + sc->GetScriptClassName();
         pw->SetValue(current);
+
+        // A deleted .py file reads as Missing "PlayerController" behind a red
+        // outline on this row, rather than as a separate banner above it — the
+        // same treatment a dangling event target gets, so every broken reference
+        // in the inspector looks the same and nothing new appears to push the
+        // layout around. Told explicitly because answering "does this class still
+        // exist" means re-scanning the scripts folder, which is far too expensive
+        // for a widget refresh; the component already tracks it.
+        pw->SetMissingOverride(sc->IsScriptMissing());
 
         pw->onChanged = [sc](const std::string& ref) {
             // ref is "module:class"; split and reassign the script live. SetScript
@@ -899,6 +858,28 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
         // the widget, so a display-only field is still bound normally and still
         // refreshes as the script mutates it. Only the editor's edit path is cut.
         const bool ro = field.readOnly;
+
+        // An Event field: a list of wired calls. It arrives as list[str] (the
+        // encoded entries) so every marshalling path treats it as an ordinary
+        // string list; only the row widget differs, which is the whole reason
+        // events needed no new ScriptFieldValue alternative.
+        if (field.widget == "event") {
+            auto getter = [sc, name = field.name]() -> std::vector<std::string> {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<std::vector<std::string>>(val)
+                    ? std::get<std::vector<std::string>>(val) : std::vector<std::string>{};
+            };
+            auto setter = [name = field.name](ScriptComponent* sc, const std::vector<std::string>& v) {
+                sc->SetFieldValue(name, v);
+            };
+            // Full row: a call row carries a target picker, a method dropdown and
+            // an argument side by side, which does not fit the value column's
+            // third of the panel.
+            BindProperty<std::vector<std::string>>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::LIST).ReadOnly(ro).FullRow()
+                          .Element(PropDesc().Tag(Tags::CALL_ENTRY).ReadOnly(ro)));
+            continue;
+        }
 
         // Reflect[T, Options(...)] — a dropdown, checked before the plain int/str
         // branches so it wins for those two types. Both flavours bind as
@@ -1230,7 +1211,6 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
         }
     }
 }
-
 
 void InspectorVisitor::Visit(ParticleComponent* p) {
     using PC = ParticleComponent;
@@ -1633,6 +1613,17 @@ void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
 void InspectorVisitor::AddFullRow(QWidget* widget) {
     layout->addWidget(widget, gridRow, 0, 1, 2);
     gridRow++;
+}
+
+void InspectorVisitor::AddLabeledFullRow(const std::string& text, QWidget* widget) {
+    // No trailing colon, unlike AddRow: this reads as a heading over the block it
+    // introduces rather than the left half of a "label: value" pair.
+    auto* label = new QLabel(QString::fromStdString(EditorUtils::FormatLabel(text)));
+    auto font = label->font();
+    font.setBold(true);
+    label->setFont(font);
+    AddFullRow(label);
+    AddFullRow(widget);
 }
 
 // Asset visitors (Sprite / Material / Texture2D / Shader) below.

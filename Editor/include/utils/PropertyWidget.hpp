@@ -1,6 +1,7 @@
 #pragma once
 #include <functional>
 #include <algorithm>
+#include <optional>
 #include <QWidget>
 #include <QPointer>
 #include <QDoubleSpinBox>
@@ -18,6 +19,8 @@
 #include <QComboBox>
 #include <QSlider>
 #include <QStyle>
+#include <QStyleOptionFrame>
+#include <QFrame>
 #include <QApplication>
 #include <QMouseEvent>
 #include <QPropertyAnimation>
@@ -910,19 +913,171 @@ private:
 };
 
 // A QLineEdit that emits clicked() on mouse press — used by ObjectRefPropertyWidget.
+//
+// It also elides its display text. A QLineEdit normally just clips whatever does
+// not fit, so a long asset or object name ran off the edge mid-word with nothing
+// to say it had been cut; the inspector's value column is only two thirds of an
+// already narrow panel, so that was the common case rather than the rare one.
+// Every other truncating text in the editor ends in an ellipsis (see
+// ElidingLabel, and the Folder grid's ElideRight), and now so does this.
+//
+// The full string is kept separately and re-elided on every resize, so widening
+// the panel restores as much of the name as fits. Callers must go through
+// setFullText(): a plain setText() would be re-elided against itself on the next
+// resize, compounding an ellipsis onto an already shortened string.
 class ClickableLineEdit : public QLineEdit {
     Q_OBJECT
 public:
     explicit ClickableLineEdit(QWidget* parent = nullptr) : QLineEdit(parent) {
         setCursor(Qt::PointingHandCursor);
     }
+
+    void setFullText(const QString& text) {
+        if (m_full == text) return;
+        m_full = text;
+        applyElide();
+    }
+    QString fullText() const { return m_full; }
+
 signals:
     void clicked();
+
 protected:
     void mousePressEvent(QMouseEvent* e) override {
         emit clicked();
         QLineEdit::mousePressEvent(e);
     }
+
+    void resizeEvent(QResizeEvent* e) override {
+        QLineEdit::resizeEvent(e);
+        applyElide();
+    }
+
+private:
+    void applyElide() {
+        // Measured through the style rather than from contentsRect(): the
+        // stylesheet gives this field 4px of padding, and SE_LineEditContents is
+        // what accounts for that plus the frame. Getting it from the raw rect
+        // would elide against a width the text does not actually have.
+        QStyleOptionFrame opt;
+        initStyleOption(&opt);
+        const int available =
+            style()->subElementRect(QStyle::SE_LineEditContents, &opt, this).width();
+
+        const QString shown = available > 0
+            ? fontMetrics().elidedText(m_full, Qt::ElideRight, available)
+            : m_full;
+        if (shown == text()) return;
+
+        const bool blocked = blockSignals(true);
+        setText(shown);
+        blockSignals(blocked);
+    }
+
+    QString m_full;
+};
+
+// A call rendered the way it reads in code: a bold name, then its argument
+// between parentheses — TestFunction( 12.5 ). Used both for a script's @action
+// buttons and for the chosen function inside an event's call row, so the two say
+// the same thing the same way.
+//
+// Flat, not raised: it carries no surface of its own and shows only a hover
+// tint, the same way QToolButton does in this theme. The bold name and the
+// parentheses are what say it is a call; a lifted panel on every action row read
+// as heavier than the rows around it.
+//
+// The argument inside stays an ordinary input, which is why gating invocation
+// never goes through setEnabled(false) — that would grey out the argument along
+// with the frame, and setting an argument up before entering play mode is the
+// normal way to use these. SetInvocable() gates the click alone.
+class FunctionCallWidget : public QFrame {
+public:
+    std::function<void()> onActivated;
+
+    explicit FunctionCallWidget(QWidget* parent = nullptr) : QFrame(parent) {
+        setObjectName("FunctionCall");
+        setFrameShape(QFrame::NoFrame);
+        setCursor(Qt::PointingHandCursor);
+
+        m_layout = new QHBoxLayout(this);
+        m_layout->setContentsMargins(6, 3, 6, 3);
+        m_layout->setSpacing(1);
+
+        // ElidingLabel, so a long function name ends in an ellipsis instead of
+        // forcing the row wider than its column. Its zero minimumSizeHint is the
+        // part that matters: a plain QLabel's minimum width IS its full text, so
+        // it would win the layout argument outright and never be squeezed.
+        m_name = new EditorUtils::ElidingLabel(QString());
+        m_name->setObjectName("FunctionCallName");
+        QFont bold = m_name->font();
+        bold.setBold(true);
+        m_name->setFont(bold);
+        m_layout->addWidget(m_name, 1);
+
+        m_open = new QLabel("(");
+        m_open->setObjectName("FunctionCallParen");
+        m_layout->addWidget(m_open);
+
+        m_close = new QLabel(")");
+        m_close->setObjectName("FunctionCallParen");
+        m_layout->addWidget(m_close);
+    }
+
+    // ElidingLabel only captures its tooltip at construction, so the untruncated
+    // name has to be re-attached on every change — otherwise an elided name has
+    // no way back to the full text.
+    void SetName(const QString& name) {
+        if (!m_name) return;
+        m_name->setText(name);
+        m_name->setToolTip(name);
+    }
+
+    // Reparented into the layout between the parentheses. nullptr leaves them
+    // empty, which is exactly how a no-argument call should read.
+    //
+    // Centered on purpose, though it rarely shows: a spin box or line edit has a
+    // horizontal size policy that fills the whole stretch cell, and Qt ignores
+    // alignment on a widget that already consumes all the space it was given —
+    // so for those this is a no-op. A checkbox is the one argument editor with a
+    // fixed, small size instead, and without this it sat pinned to the left edge
+    // of a cell wider than it, off-centre in the parentheses around it.
+    void SetArgWidget(QWidget* widget) {
+        if (m_arg) { m_layout->removeWidget(m_arg); m_arg->deleteLater(); }
+        m_arg = widget;
+        if (m_arg) m_layout->insertWidget(m_layout->indexOf(m_close), m_arg, 1, Qt::AlignCenter);
+    }
+
+    // Whether clicking does anything. `reason` becomes the tooltip when it does
+    // not, so a dead-looking control always explains itself.
+    void SetInvocable(bool invocable, const QString& reason = {}) {
+        m_invocable = invocable;
+        setCursor(invocable ? Qt::PointingHandCursor : Qt::ArrowCursor);
+        if (!reason.isEmpty() || !invocable) setToolTip(reason);
+        if (property("armed").toBool() != invocable) {
+            setProperty("armed", invocable);
+            style()->unpolish(this);
+            style()->polish(this);
+        }
+    }
+
+protected:
+    void mousePressEvent(QMouseEvent* e) override {
+        // Clicks that land on the argument editor never reach here — a child
+        // widget consumes its own — so the argument stays usable while the rest
+        // of the surface acts as the button. A plain QLabel ignores mouse events,
+        // so pressing the name or a parenthesis does fall through to this.
+        if (e->button() == Qt::LeftButton && m_invocable && onActivated) onActivated();
+        QFrame::mousePressEvent(e);
+    }
+
+private:
+    bool m_invocable = true;
+    QHBoxLayout* m_layout = nullptr;
+    EditorUtils::ElidingLabel* m_name = nullptr;
+    QLabel* m_open = nullptr;
+    QLabel* m_close = nullptr;
+    QWidget* m_arg = nullptr;
 };
 
 // A frameless, click-through popup that fades in above a ref field and shows the
@@ -1098,14 +1253,82 @@ public:
         if (m_edit.isNull()) return;
         m_currentId = id;
         m_edit->blockSignals(true);
-        m_edit->setText(QString::fromStdString(nameForId(id)));
+        applyDisplay();
         m_edit->blockSignals(false);
     }
 
     // Always returns the ID, not the display name.
     std::string GetValue() override { return m_currentId; }
 
+    // Override the resolution check for a reference this widget cannot verify
+    // itself. A script ref is the case that needs it: answering "does this class
+    // still exist" means re-scanning and importing the scripts folder, far too
+    // expensive to run on every inspector refresh, and the owning ScriptComponent
+    // already tracks it (IsScriptMissing). Pass std::nullopt to go back to
+    // self-checking.
+    void SetMissingOverride(std::optional<bool> missing) {
+        m_forcedMissing = missing;
+        SetValue(m_currentId);
+    }
+
 private:
+    // Paint the field for the value it currently holds. A reference whose target
+    // is gone reads as Missing "<name or id>" behind a red outline, rather than
+    // showing a bare UUID that looks like an ordinary value: the row that is
+    // broken is the row that says so, which is why there is no separate banner
+    // anywhere in the inspector for a dangling reference.
+    void applyDisplay() {
+        const bool empty = m_currentId.empty();
+        const bool missing = empty ? false
+                           : m_forcedMissing.has_value() ? *m_forcedMissing
+                           : !resolves(m_currentId);
+        const QString shown = QString::fromStdString(nameForId(m_currentId));
+
+        // "None" rather than a blank box. An unassigned reference and a field that
+        // merely failed to render looked identical before, and blank reads as
+        // "nothing to fill in here" rather than "nothing assigned yet".
+        const QString display = missing ? QString("Missing \"%1\"").arg(shown)
+                              : empty   ? QStringLiteral("None")
+                                        : shown;
+        m_edit->setFullText(display);
+        // The tooltip is the elision's escape hatch as much as the broken
+        // reference's explanation, so it carries the untruncated text either way.
+        m_edit->setToolTip(missing
+            ? QString("%1\nThe target this field points at no longer exists (%2).")
+                  .arg(display, QString::fromStdString(m_currentId))
+            : empty ? QStringLiteral("Nothing assigned — click to pick one.")
+                    : display);
+
+        // Dynamic properties + repolish: the look lives in default.qss with the
+        // rest of the theme rather than in a per-widget setStyleSheet here. Both
+        // states are compared before repolishing, which is not free — SetValue
+        // runs on every inspector refresh, and the common case is neither changing.
+        if (m_edit->property("missing").toBool() != missing ||
+            m_edit->property("empty").toBool()   != empty) {
+            m_edit->setProperty("missing", missing);
+            m_edit->setProperty("empty", empty);
+            m_edit->style()->unpolish(m_edit);
+            m_edit->style()->polish(m_edit);
+        }
+    }
+
+    // Does this id still name something? Cheap per tag — a map lookup for assets,
+    // a scene scan for objects. SCRIPT is deliberately absent: see
+    // SetMissingOverride.
+    bool resolves(const std::string& id) const {
+        auto& am = AssetManager::Get();
+        switch (m_desc.tag) {
+            case Properties::Tags::MATERIAL:   return am.GetMaterial(id)  != nullptr;
+            case Properties::Tags::SPRITE:     return am.GetSprite(id)    != nullptr;
+            case Properties::Tags::TEXTURE:    return am.GetTexture(id)   != nullptr;
+            case Properties::Tags::SHADER:     return am.GetShader(id)    != nullptr;
+            case Properties::Tags::FONT:       return am.GetFont(id)      != nullptr;
+            case Properties::Tags::AUDIO_CLIP: return am.GetAudioClip(id) != nullptr;
+            case Properties::Tags::OBJECT_REF: return findGameObject(id)  != nullptr;
+            default:                           return true;   // nothing to check against
+        }
+    }
+
     void openPicker() {
         auto items = buildItems();
 
@@ -1322,6 +1545,9 @@ private:
 
     Properties::PropDesc m_desc;
     std::string m_currentId;
+    // Set only for references this widget cannot resolve on its own — see
+    // SetMissingOverride. Unset means "work it out from resolves()".
+    std::optional<bool> m_forcedMissing;
     QWidget* m_container = nullptr;
     QPointer<ClickableLineEdit> m_edit;
     QPointer<QPushButton> m_btn;

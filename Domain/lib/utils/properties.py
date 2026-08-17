@@ -17,6 +17,40 @@ class Tooltip:
         self.text = text
 
 
+def action(arg=None, *, tooltip=None):
+    """Mark a script method as invokable from the editor.
+
+    The method gets a button in the Inspector, and becomes selectable as the
+    target of an ``Event`` on any other script. Usable bare or with a label::
+
+        @action
+        def respawn(self):
+            ...
+
+        @action("Deal Damage", tooltip="Applies one hit of damage.")
+        def take_damage(self, amount: float):
+            ...
+
+    At most **one** argument, and its editor widget comes from the annotation:
+    ``amount: float`` gets a number box, ``name: str`` a text field, ``target:
+    Sprite`` an asset picker. An unannotated argument is treated as ``str``.
+
+    Buttons are live only in Play mode — an action is game logic, and running it
+    against the edit-time world would mutate a scene with nothing on the undo
+    stack to take it back.
+    """
+    def decorate(fn, label=None):
+        fn._rock_action = True
+        fn._rock_action_label = label
+        fn._rock_action_tooltip = tooltip
+        return fn
+
+    # Bare @action -- the decorated function arrives as the first positional arg.
+    if callable(arg):
+        return decorate(arg)
+    return lambda fn: decorate(fn, arg)
+
+
 class Slider:
     """Metadata descriptor rendering a bounded ``float`` as a drag slider.
 

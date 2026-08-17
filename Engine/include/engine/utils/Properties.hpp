@@ -31,6 +31,7 @@ namespace Properties {
         STRING,
         OBJECT_REF,
         SCRIPT,
+        CALL_ENTRY,    // one wired call inside an Event field (target + method + arg)
         DROPDOWN,
         LIST
     };
@@ -45,6 +46,11 @@ namespace Properties {
         std::string refClassFilter = "";  // For OBJECT_REF: filters GameObjects to those with this script class
         std::string componentTypeFilter = "";  // For OBJECT_REF: filters GameObjects that have this native component type (e.g. "Camera")
         bool readOnly = false;            // Display-only. Tags::LIST: no add/remove buttons. Scalars: non-editable input.
+        // Span both inspector columns, with the label on its own line above,
+        // instead of sitting in the narrow value column beside it. For editors
+        // too wide to be usable in a third of a panel — an Event's call rows put
+        // a target picker, a method dropdown and an argument on one line.
+        bool fullRow = false;
 
         std::vector<std::pair<std::string, std::any>> dropdownOptions;
 
@@ -68,5 +74,6 @@ namespace Properties {
             return *this;
         }
         PropDesc& ReadOnly(bool v = true) { readOnly = v; return *this; }
+        PropDesc& FullRow(bool v = true)  { fullRow = v; return *this; }
     };
 }

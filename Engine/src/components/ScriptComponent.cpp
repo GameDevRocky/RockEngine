@@ -5,6 +5,9 @@
 #include "engine/debug/FrameProfiler.hpp"
 #include <iostream>
 #include <filesystem>
+#include <sstream>
+#include <algorithm>
+#include <cctype>
 #include "engine/utils/EngineUtils.hpp"
 
 using namespace EngineUtils;
@@ -164,6 +167,62 @@ namespace {
         if (n <= 2) return re_math.attr("Vector2")(v.x, v.y);
         if (n == 3) return re_math.attr("Vector3")(v.x, v.y, v.z);
         return re_math.attr("Vector4")(v.x, v.y, v.z, v.w);
+    }
+
+    // Wrap a sequence of encoded call entries in the Python Event class, which is
+    // a list subclass carrying invoke(). Every path that writes an event field
+    // must go through this: assigning a plain py::list would leave the script
+    // holding entries it cannot fire. Falls back to the raw list if the import
+    // fails, so a broken Domain still yields a usable (if inert) field rather
+    // than an exception mid-introspection. Caller must hold the GIL.
+    py::object MakeEvent(py::object entries) {
+        try {
+            py::module_ mod = py::module_::import("Domain.lib.api.core.script_event");
+            return mod.attr("Event")(entries);
+        } catch (const py::error_already_set& e) {
+            std::cerr << "[ScriptComponent] Could not build Event:\n" << e.what() << std::endl;
+            return entries;
+        }
+    }
+
+    // Turn one serialized argument into the Python value an action expects. The
+    // string forms are the ones ComponentActions::Invoke documents. Returns None
+    // for an unparseable value rather than throwing -- the caller reports it.
+    py::object PyArgFromRaw(const std::string& raw, const std::string& typeName,
+                            const std::string& refTypeName, bool& ok) {
+        ok = true;
+        try {
+            if (typeName == "float") return py::float_(std::stof(raw));
+            if (typeName == "int")   return py::int_(std::stoi(raw));
+            if (typeName == "bool") {
+                std::string t = raw;
+                std::transform(t.begin(), t.end(), t.begin(),
+                               [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+                return py::bool_(t == "1" || t == "true" || t == "yes");
+            }
+            if (typeName == "vec2" || typeName == "vec3" || typeName == "vec4") {
+                std::vector<float> parts;
+                std::stringstream ss(raw);
+                std::string piece;
+                while (std::getline(ss, piece, ',')) parts.push_back(std::stof(piece));
+                const std::size_t want = typeName == "vec4" ? 4 : (typeName == "vec3" ? 3 : 2);
+                if (parts.size() != want) { ok = false; return py::none(); }
+                py::module re_math = py::module::import("Domain.lib.utils.re_math");
+                py::object cls = re_math.attr(typeName == "vec4" ? "Vector4"
+                                            : typeName == "vec3" ? "Vector3" : "Vector2");
+                if (want == 2) return cls(parts[0], parts[1]);
+                if (want == 3) return cls(parts[0], parts[1], parts[2]);
+                return cls(parts[0], parts[1], parts[2], parts[3]);
+            }
+            // "str": a plain string, or a ref id that becomes its handler object.
+            // MakeListElement already maps every ref flavour to a handler, and a
+            // ref argument is the same problem as a ref list element.
+            if (!refTypeName.empty()) return MakeListElement(raw, refTypeName);
+            return py::str(raw);
+        } catch (const std::exception&) {
+            ok = false;
+            return py::none();
+        }
     }
 
     // Read a Python list attribute into the matching ScriptFieldValue vector
@@ -404,6 +463,7 @@ void ScriptComponent::RebuildInstance()
 {
     InstantiateScript();
     IntrospectFields();
+    IntrospectActions();
     ApplyPendingFields();
     CallMethod("init");
 }
@@ -432,6 +492,7 @@ void ScriptComponent::MarkMissing()
         RefreshMethodCache();
     }
     m_fields.clear();
+    m_actions.clear();
     m_lastPolledValues.clear();
     m_missing = true;
 
@@ -636,7 +697,12 @@ void ScriptComponent::ApplyHotReload()
 
     if (!reloadSucceeded) return;
 
+    // Actions are re-read alongside fields, not just on Init/SetScript: adding an
+    // @action to a running editor is exactly as ordinary as adding a field, and
+    // leaving this out meant the new method never appeared on a button or in an
+    // event's method list until the whole editor was restarted.
     IntrospectFields();
+    IntrospectActions();
     Notify(SCRIPT_RELOADED_EVENT);
 }
 
@@ -680,6 +746,7 @@ void ScriptComponent::SetScript(const std::string& module, const std::string& cl
         RefreshMethodCache();
     }
     m_fields.clear();
+    m_actions.clear();
     m_pendingFieldValues.clear();
     m_lastPolledValues.clear();
     m_scriptFilePath.clear();
@@ -792,11 +859,16 @@ void ScriptComponent::IntrospectFields()
 
             // Give each instance its own copy of a list field so multiple
             // GameObjects sharing the same script class don't alias the
-            // class-level mutable default list.
+            // class-level mutable default list. An event field is a list
+            // subclass, so it must be rebuilt AS an Event -- py::list(cur) would
+            // copy the entries into a plain list and strip invoke() off the
+            // field for the rest of the instance's life.
             if (info.typeName == "list" && py::hasattr(scriptInstance, info.name.c_str())) {
                 py::object cur = py::getattr(scriptInstance, info.name.c_str());
-                if (py::isinstance<py::list>(cur))
-                    py::setattr(scriptInstance, info.name.c_str(), py::list(cur));
+                if (py::isinstance<py::list>(cur)) {
+                    py::setattr(scriptInstance, info.name.c_str(),
+                                info.widget == "event" ? MakeEvent(cur) : py::object(py::list(cur)));
+                }
             }
 
             info.changeEvent = Observable::CreateEvent();
@@ -806,6 +878,82 @@ void ScriptComponent::IntrospectFields()
     catch (const py::error_already_set& e) {
         std::cerr << "[ScriptComponent] Python error in IntrospectFields():\n"
             << e.what() << std::endl;
+    }
+}
+
+void ScriptComponent::IntrospectActions()
+{
+    m_actions.clear();
+    auto& scriptInstance = m_pyData->scriptInstance;
+    if (!scriptInstance || scriptInstance.is_none()) return;
+
+    py::gil_scoped_acquire gil;
+    try {
+        py::module introspection = py::module::import("Domain.lib.utils.introspection");
+        py::list found = introspection.attr("get_exposed_actions")(scriptInstance.attr("__class__"));
+
+        for (auto item : found) {
+            py::dict d = item.cast<py::dict>();
+            ScriptActionInfo info;
+            info.name    = d["name"].cast<std::string>();
+            info.label   = d["label"].cast<std::string>();
+            info.tooltip = d["tooltip"].cast<std::string>();
+            info.hasArg  = d["has_arg"].cast<bool>();
+            if (info.hasArg) {
+                info.argName        = d["arg_name"].cast<std::string>();
+                info.argTypeName    = d["arg_type_name"].cast<std::string>();
+                info.argRefTypeName = d["arg_ref_type_name"].cast<std::string>();
+            }
+            m_actions.push_back(std::move(info));
+        }
+    }
+    catch (const py::error_already_set& e) {
+        std::cerr << "[ScriptComponent] Python error in IntrospectActions():\n"
+            << e.what() << std::endl;
+    }
+}
+
+bool ScriptComponent::InvokeAction(const std::string& name, const std::string& rawArg,
+                                   std::string* error)
+{
+    auto fail = [error](std::string message) {
+        if (error) *error = std::move(message);
+        return false;
+    };
+
+    // Resolved from the introspected list rather than by probing the instance:
+    // that is what decides whether an argument is passed at all, and it keeps an
+    // arbitrary method name from being callable through the event system.
+    const ScriptActionInfo* action = nullptr;
+    for (const auto& a : m_actions)
+        if (a.name == name) { action = &a; break; }
+    if (!action) return fail("script has no action \"" + name + "\"");
+
+    py::gil_scoped_acquire gil;
+    auto& inst = m_pyData->scriptInstance;
+    if (!inst || inst.is_none()) return fail("script instance is not live");
+
+    try {
+        if (!py::hasattr(inst, name.c_str()))
+            return fail("script has no method \"" + name + "\"");
+        py::object fn = inst.attr(name.c_str());
+
+        if (!action->hasArg) { fn(); return true; }
+
+        bool ok = false;
+        py::object arg = PyArgFromRaw(rawArg, action->argTypeName, action->argRefTypeName, ok);
+        if (!ok)
+            return fail("could not read \"" + rawArg + "\" as " + action->argTypeName);
+        fn(arg);
+        return true;
+    }
+    catch (const py::error_already_set& e) {
+        // Swallowed on purpose: this runs from a frame tick (an event firing) or a
+        // button click, and a script author's exception must not take the editor
+        // or the running game with it. Same contract as CallMethod.
+        std::cerr << "[ScriptComponent] Python error in action " << name << "():\n"
+                  << e.what() << std::endl;
+        return fail("the script raised an exception — see the console");
     }
 }
 
@@ -910,7 +1058,10 @@ void ScriptComponent::ApplyPendingFields()
                             lst.append(MakeListElement(elNode.as<std::string>(), field.elementRefTypeName));
                     }
                 }
-                py::setattr(scriptInstance, field.name.c_str(), lst);
+                // An event's entries are a list of strings like any other, but the
+                // attribute has to end up an Event so the script can fire it.
+                py::setattr(scriptInstance, field.name.c_str(),
+                            field.widget == "event" ? MakeEvent(lst) : py::object(lst));
             }
         }
         catch (const std::exception& e) {
@@ -1052,8 +1203,14 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
     // Look up ref type so we can wrap Sprite/Material IDs properly
     std::string refTypeName;
     std::string elementRefType;
+    bool isEvent = false;
     for (const auto& f : m_fields) {
-        if (f.name == name) { refTypeName = f.refTypeName; elementRefType = f.elementRefTypeName; break; }
+        if (f.name == name) {
+            refTypeName = f.refTypeName;
+            elementRefType = f.elementRefTypeName;
+            isEvent = (f.widget == "event");
+            break;
+        }
     }
 
     try {
@@ -1123,8 +1280,12 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
                 py::setattr(scriptInstance, name.c_str(), lst);
             } else if constexpr (std::is_same_v<T, std::vector<std::string>>) {
                 py::list lst;
-                for (const auto& s : v) lst.append(MakeListElement(s, elementRefType));
-                py::setattr(scriptInstance, name.c_str(), lst);
+                // Event entries are opaque encoded strings, not refs -- running them
+                // through MakeListElement would try to resolve one as an asset id.
+                for (const auto& s : v)
+                    lst.append(isEvent ? py::str(s) : MakeListElement(s, elementRefType));
+                py::setattr(scriptInstance, name.c_str(),
+                            isEvent ? MakeEvent(lst) : py::object(lst));
             } else if constexpr (std::is_same_v<T, std::vector<glm::vec2>>) {
                 py::list lst;
                 for (const auto& x : v) lst.append(MakeVecObject(glm::vec4(x, 0.0f, 0.0f), 2));

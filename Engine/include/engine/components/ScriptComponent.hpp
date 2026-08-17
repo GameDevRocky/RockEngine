@@ -68,6 +68,19 @@ struct ScriptFieldInfo {
     Observable::Event changeEvent = 0;
 };
 
+// A Python method the script marked @action: a button in the inspector, and a
+// target for an event call entry. At most one argument, typed from the method's
+// own annotation — `def hit(self, amount: float)` gets a float field.
+struct ScriptActionInfo {
+    std::string name;      // the Python method name
+    std::string label;     // display text (the @action label, else a prettified name)
+    std::string tooltip;   // the method's docstring first line, unless overridden
+    bool hasArg = false;
+    std::string argName;
+    std::string argTypeName;     // same vocabulary as ScriptFieldInfo::typeName
+    std::string argRefTypeName;  // "sprite"/"material"/"gameobject:X"/"component:Y"
+};
+
 // Forward-declared opaque type hiding pybind11
 struct ScriptInstanceData;
 
@@ -123,6 +136,18 @@ public:
     // SCRIPT_RELOADED_EVENT so the inspector rebuilds.
     void SetScript(const std::string& module, const std::string& cls);
 
+    // Methods the script decorated with @action. Rebuilt on every (re)introspection,
+    // so a hot-reload that adds or renames one is picked up like a field change.
+    const std::vector<ScriptActionInfo>& GetScriptActions() const { return m_actions; }
+
+    // Call one, with its single argument in serialized string form (see
+    // ComponentActions::Invoke for the encoding; ignored when the action takes
+    // none). Returns false and fills `error` if the method is missing or the
+    // argument will not convert. Python exceptions are caught and reported, never
+    // propagated — a broken action must not take the frame down with it.
+    bool InvokeAction(const std::string& name, const std::string& rawArg,
+                      std::string* error = nullptr);
+
     // Exposed field introspection API (no pybind11 types in interface)
     const std::vector<ScriptFieldInfo>& GetFields() const { return m_fields; }
     ScriptFieldValue GetFieldValue(const std::string& name);
@@ -146,6 +171,7 @@ private:
     void InstantiateScript();
     void RefreshMethodCache(); // re-resolve cached lifecycle methods; caller holds the GIL
     void IntrospectFields();
+    void IntrospectActions();
     void ApplyPendingFields();
     void SubscribeFileWatch();   // (re)subscribe hot-reload watch for m_scriptFilePath
     void UnsubscribeFileWatch();
@@ -169,6 +195,7 @@ private:
     int m_fileDeleteSubId = -1;
     std::unique_ptr<ScriptInstanceData> m_pyData;
     std::vector<ScriptFieldInfo> m_fields;
+    std::vector<ScriptActionInfo> m_actions;
     std::map<std::string, YAML::Node> m_pendingFieldValues;
     // Last field values the inspector was synced to, keyed by field name. Seeded
     // and updated by PollFieldChanges; cleared on (re)introspection since a reload

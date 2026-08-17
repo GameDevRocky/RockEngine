@@ -7,6 +7,7 @@
 #include "engine/audio/AudioClip.hpp"
 #include "engine/commands/MacroCommand.hpp"
 #include "engine/components/Animator.hpp"
+#include "engine/components/ComponentActions.hpp"
 #include "engine/components/AudioListener.hpp"
 #include "engine/components/AudioSource.hpp"
 #include "engine/components/BoxCollider.hpp"
@@ -621,22 +622,70 @@ QJsonObject ComponentDescription(Component* component) {
     result["properties"]=bag.Describe(); result["serializedState"]=YamlToJson(component->Serialize()); return result;
 }
 
-QJsonArray ComponentActions(Component* component) {
+// Describes what ComponentActions::For reports, so the schema an agent sees is
+// generated from the same registry the Inspector's buttons and an Event's method
+// dropdown read. This used to be a hardcoded dynamic_cast chain duplicating that
+// knowledge, with nothing keeping the two in agreement -- and it could not see a
+// script's @action methods at all.
+QJsonArray ComponentActionSchema(Component* component) {
     QJsonArray actions;
-    if(dynamic_cast<ParticleComponent*>(component)) actions.append(QJsonObject{{"name","emit_burst"},{"arguments",QJsonArray{QJsonObject{{"name","count"},{"type","int"},{"minimum",1}}}}});
-    if(dynamic_cast<AudioSource*>(component)){for(const char* n:{"play","stop","pause","unpause"})actions.append(QJsonObject{{"name",n}});actions.append(QJsonObject{{"name","play_one_shot"},{"arguments",QJsonArray{QJsonObject{{"name","volume_scale"},{"type","float"},{"default",1.0}}}}});}
-    if(dynamic_cast<Animator*>(component)){actions.append(QJsonObject{{"name","play"},{"arguments",QJsonArray{QJsonObject{{"name","state"},{"type","string"}}}}});actions.append(QJsonObject{{"name","set_parameter"}});actions.append(QJsonObject{{"name","set_trigger"}});actions.append(QJsonObject{{"name","reset_trigger"}});}
+    for(const ComponentActionInfo& a:ComponentActions::For(component)){
+        QJsonObject entry{{"name",QString::fromStdString(a.name)}};
+        if(!a.label.empty())   entry["label"]=QString::fromStdString(a.label);
+        if(!a.tooltip.empty()) entry["description"]=QString::fromStdString(a.tooltip);
+        if(a.hasArg){
+            QJsonObject arg{{"name",QString::fromStdString(a.arg.name)},
+                            {"type",QString::fromStdString(a.arg.typeName)}};
+            if(!a.arg.refTypeName.empty()) arg["referenceType"]=QString::fromStdString(a.arg.refTypeName);
+            entry["arguments"]=QJsonArray{arg};
+        }
+        actions.append(entry);
+    }
+    // Not a runtime action -- reassigning which script a component runs is an
+    // authoring operation, so it stays declared here rather than in the registry
+    // the event system draws from.
     if(dynamic_cast<ScriptComponent*>(component)) actions.append(QJsonObject{{"name","set_script"},{"arguments",QJsonArray{QJsonObject{{"name","module"},{"type","string"}},QJsonObject{{"name","class"},{"type","string"}}}}});
     return actions;
 }
 
+// Flatten one JSON argument into the string form ComponentActions::Invoke parses.
+QString RawArgFromJson(const QJsonValue& v) {
+    if(v.isUndefined()||v.isNull()) return {};
+    if(v.isString()) return v.toString();
+    if(v.isBool())   return v.toBool()?"true":"false";
+    if(v.isDouble()) return QString::number(v.toDouble());
+    if(v.isArray()){QStringList parts;for(const QJsonValue& x:v.toArray())parts<<QString::number(x.toDouble());return parts.join(QChar(','));}
+    return {};
+}
+
 McpResult InvokeComponentAction(const QJsonObject& params) {
-    Component* component=nullptr;if(McpResult r=ResolveComponent(params,&component);!r.ok)return r;const QString action=params.value("action").toString();const QJsonObject args=params.value("arguments").toObject();
-    if(auto* p=dynamic_cast<ParticleComponent*>(component);p&&action=="emit_burst"){int count=0;QString e=ParseInt(args.value("count"),count);if(!e.isEmpty()||count<1)return McpResult::Error(InvalidParams,"count must be a positive integer");p->EmitBurst(count);return McpResult::Ok(QJsonObject{{"emitted",count}});}
-    if(auto* a=dynamic_cast<AudioSource*>(component)){if(action=="play")a->Play();else if(action=="stop")a->Stop();else if(action=="pause")a->Pause();else if(action=="unpause")a->UnPause();else if(action=="play_one_shot"){float scale=1.0f;if(args.contains("volume_scale")){QString e=ParseFloat(args.value("volume_scale"),scale);if(!e.isEmpty())return McpResult::Error(InvalidParams,e);}a->PlayOneShot(scale);}else goto unknown;return McpResult::Ok(QJsonObject{{"action",action}});}
-    if(auto* a=dynamic_cast<Animator*>(component)){const std::string name=args.value("name").toString().toStdString();if(action=="play")a->Play(args.value("state").toString().toStdString());else if(action=="set_trigger")a->SetTrigger(name);else if(action=="reset_trigger")a->ResetTrigger(name);else if(action=="set_parameter"){const QJsonValue v=args.value("value");if(v.isBool())a->SetBool(name,v.toBool());else if(v.isDouble()&&std::floor(v.toDouble())==v.toDouble())a->SetInt(name,v.toInt());else if(v.isDouble())a->SetFloat(name,static_cast<float>(v.toDouble()));else return McpResult::Error(InvalidParams,"Animator parameter value must be bool, int or float");}else goto unknown;return McpResult::Ok(QJsonObject{{"action",action}});}
+    Component* component=nullptr;if(McpResult r=ResolveComponent(params,&component);!r.ok)return r;
+    const QString action=params.value("action").toString();const QJsonObject args=params.value("arguments").toObject();
+
+    // Authoring-only, and not part of the shared registry -- see above.
     if(auto* s=dynamic_cast<ScriptComponent*>(component);s&&action=="set_script"){const QString module=args.value("module").toString(),klass=args.value("class").toString();if(module.isEmpty()||klass.isEmpty())return McpResult::Error(InvalidParams,"set_script requires module and class");s->SetScript(module.toStdString(),klass.toStdString());return McpResult::Ok(QJsonObject{{"module",module},{"class",klass}});}
-unknown:return McpResult::Error(InvalidParams,"unsupported action \""+action+"\" for "+QString::fromStdString(component->GetTypeName()));
+
+    // Animator's set_parameter is typed by the VALUE rather than by the action, so
+    // it does not fit the registry's one-declared-argument shape and keeps its own
+    // handler.
+    if(auto* a=dynamic_cast<Animator*>(component);a&&action=="set_parameter"){const std::string name=args.value("name").toString().toStdString();const QJsonValue v=args.value("value");if(v.isBool())a->SetBool(name,v.toBool());else if(v.isDouble()&&std::floor(v.toDouble())==v.toDouble())a->SetInt(name,v.toInt());else if(v.isDouble())a->SetFloat(name,static_cast<float>(v.toDouble()));else return McpResult::Error(InvalidParams,"Animator parameter value must be bool, int or float");return McpResult::Ok(QJsonObject{{"action",action}});}
+
+    // Everything else routes through the shared registry, which means a script's
+    // @action methods are invokable over MCP for free.
+    QString raw;
+    for(const ComponentActionInfo& info:ComponentActions::For(component)){
+        if(info.name!=action.toStdString()) continue;
+        if(info.hasArg){
+            QJsonValue v=args.value(QString::fromStdString(info.arg.name));
+            if(v.isUndefined()) v=args.value("value");
+            raw=RawArgFromJson(v);
+        }
+        break;
+    }
+    std::string error;
+    if(!ComponentActions::Invoke(component,action.toStdString(),raw.toStdString(),&error))
+        return McpResult::Error(InvalidParams,QString::fromStdString(error));
+    return McpResult::Ok(QJsonObject{{"action",action}});
 }
 
 } // namespace
@@ -649,7 +698,7 @@ void RegisterPropertyTools(McpDispatcher& dispatcher) {
         result["transactions"]="component.set_properties and asset.set_properties validate and roll back as one batch";result["componentUndo"]=true;result["assetUndo"]=false;result["destructiveClarification"]=QJsonArray{"object.destroy","object.remove_component"};result["clarificationOtherAlwaysIncluded"]=true;result["clarificationMultiSelect"]=true;return McpResult::Ok(result);
     });
     dispatcher.RegisterTool("component.list", [](const QJsonObject& params){GameObject* object=nullptr;if(McpResult r=support::ResolveGameObject(QJsonObject{{"id",params.value("objectId").toString(params.value("id").toString())}},&object);!r.ok)return r;QJsonArray items;for(Component* c:object->GetAllComponents())if(c)items.append(ComponentDescription(c));return McpResult::Ok(QJsonObject{{"objectId",QString::fromStdString(object->GetID())},{"components",items}});});
-    dispatcher.RegisterTool("component.describe", [](const QJsonObject& params){Component* c=nullptr;if(McpResult r=ResolveComponent(params,&c);!r.ok)return r;QJsonObject d=ComponentDescription(c);d["actions"]=ComponentActions(c);return McpResult::Ok(d);});
+    dispatcher.RegisterTool("component.describe", [](const QJsonObject& params){Component* c=nullptr;if(McpResult r=ResolveComponent(params,&c);!r.ok)return r;QJsonObject d=ComponentDescription(c);d["actions"]=ComponentActionSchema(c);return McpResult::Ok(d);});
     dispatcher.RegisterTool("component.get_property", [](const QJsonObject& params){Component* c=nullptr;if(McpResult r=ResolveComponent(params,&c);!r.ok)return r;const QString name=params.value("property").toString();PropertyBag b=BuildComponentBag(c);Property* p=b.Find(name);if(!p)return McpResult::Error(InvalidParams,"unknown property \""+name+"\"");return McpResult::Ok(QJsonObject{{"componentId",QString::fromStdString(c->GetID())},{"property",name},{"value",p->get()},{"schema",p->Describe(false)}});});
     dispatcher.RegisterTool("component.set_property", [](const QJsonObject& params){if(!params.contains("property")||!params.contains("value"))return McpResult::Error(InvalidParams,"set_property requires property and value");QJsonObject batch=params;batch["values"]=QJsonObject{{params.value("property").toString(),params.value("value")}};return SetComponentProperties(batch);});
     dispatcher.RegisterTool("component.set_properties", SetComponentProperties);

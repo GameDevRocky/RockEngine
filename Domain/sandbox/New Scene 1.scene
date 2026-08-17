@@ -5,8 +5,8 @@ components:
     enabled: true
     type: Transform
     gameobject: fdf9523b905ef98c2dce7d1afc8662ed
-    localPosition: [53.808228, 40.996696]
-    localRotation: 0
+    localPosition: [36.1056, 30.375145]
+    localRotation: -180
     localScale: [1, 1]
     parent_id: ~
   - id: 1c3fffc8ef7b98c6f47658d8d9085219
@@ -37,12 +37,28 @@ components:
       velocity:
         - 0
         - 0
+      test:
+        - 0
+        - 0
+        - 0
+      comboBox: 0
+      sliders:
+        - 29.4
+        - 52
+        - 78.4
+        - 12.7
+        - 59.8
+        - 100
+        - 85.3
+        - 44.1
+      obj:
+        - fdf9523b905ef98c2dce7d1afc8662ed|f07154fff273fc0be169683fa4935691|Test_Function|false
   - id: 2d7967f4224d173abdeb11b19d8a9f99
     enabled: true
     type: Transform
     gameobject: cdbbb567faeb648d6555b973bcfe8193
     localPosition: [0, 0]
-    localRotation: 0
+    localRotation: 90
     localScale: [1, 1]
     parent_id: 8f41fd652e947f2200bbeae0d1bc5d19
   - id: ef2a6bfacefd219272f787ec6a1701fd
@@ -71,7 +87,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 78abb3f0db5c7aa72955744510eb89d3
-    localPosition: [-0.4435959, 92.59742]
+    localPosition: [-0.44359398, 92.59742]
     localRotation: 0
     localScale: [1, 1]
     parent_id: 2d7967f4224d173abdeb11b19d8a9f99
@@ -93,7 +109,7 @@ components:
     enabled: true
     type: Transform
     gameobject: f25f2e450175e9a779d88718a22afff5
-    localPosition: [-3.2320786, -2.114029]
+    localPosition: [-3.2320747, -2.114029]
     localRotation: 0
     localScale: [1, 1]
     parent_id: 2d7967f4224d173abdeb11b19d8a9f99
@@ -137,15 +153,15 @@ components:
     enabled: true
     type: Transform
     gameobject: 2f261114e77f0a83fc0b07602161ee6e
-    localPosition: [0, 0]
+    localPosition: [1.9073486e-06, 0]
     localRotation: 0
     localScale: [1, 1]
-    parent_id: 8f41fd652e947f2200bbeae0d1bc5d19
+    parent_id: 2d7967f4224d173abdeb11b19d8a9f99
   - id: c15b87b76f55bc24f5ebb53f713c1c4c
     enabled: true
     type: Transform
     gameobject: 0f988cbafbfe8b595bb7b4c73d4507e5
-    localPosition: [-15.485504, -132.54507]
+    localPosition: [-15.485502, -132.54507]
     localRotation: 0
     localScale: [1, 1]
     parent_id: cb3a71cc2afae4ab4faead5ba3cb1e26

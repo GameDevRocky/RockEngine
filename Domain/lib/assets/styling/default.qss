@@ -647,6 +647,40 @@ QPushButton#ListRemoveButton:pressed {
 
 
 /*===========================================================================
+ * InvokeButton (the play-this-call button on an event's call row)
+ *
+ * Sits beside the trash button on a list row, so it takes the same 24px square
+ * and the same explicit padding reset -- the generic QPushButton rule's 14px
+ * side padding would otherwise push a 14px icon straight out of the button.
+ *
+ * Green rather than neutral because it is the row's one ACTION, and it borrows
+ * the QProgressBar/QSlider fill green so "go" means the same colour everywhere
+ * in the editor. Muted at rest for the same reason ListRemoveButton is: a long
+ * event list should not be a row of traffic lights.
+ *===========================================================================*/
+QPushButton#InvokeButton {
+    background: rgb(52, 68, 57);
+    border: 1px solid rgb(70, 92, 77);
+    border-radius: 2px;
+    padding: 0px;
+}
+
+QPushButton#InvokeButton:hover {
+    background: rgb(74, 108, 85);
+    border: 1px solid rgb(103, 148, 118);
+}
+
+QPushButton#InvokeButton:pressed {
+    background: rgb(44, 58, 48);
+}
+
+QPushButton#InvokeButton:disabled {
+    background: rgb(47, 47, 47);
+    border: 1px solid rgb(58, 58, 58);
+}
+
+
+/*===========================================================================
  * QSlider (the Tags::SLIDER property widget)
  *
  * There was no rule for this at all, because until the slider widget existed
@@ -696,34 +730,89 @@ QSlider::handle:horizontal:disabled {
 
 
 /*===========================================================================
- * MissingScriptBanner (Inspector: a ScriptComponent whose .py file is gone)
+ * FunctionCall (Inspector: a script @action button, and an event's chosen call)
  *
- * Shaped like every other bubble in the editor -- same 7px radius as the
- * collapsable headers it sits under -- so it reads as part of the Inspector
- * rather than a system dialog that wandered in. The border is what carries the
- * error: it is the only red outline in a panel of borderless rows, and it shares
- * the ListRemoveButton hover red so the editor has one "this is wrong" colour.
+ * Reads as a call expression -- bold name, parentheses, the argument editor
+ * inside them. Deliberately FLAT: it carries no surface at rest and only tints on
+ * hover, borrowing QToolButton's shape above so the editor has one idiom for
+ * "clickable but not a raised button". The bold name and the parentheses are what
+ * say it is a call.
  *
- * The child rules are not cosmetic filler: the global QWidget rule paints every
- * widget with the window background, so an unqualified QLabel inside would punch
- * an opaque grey rectangle through the tinted card.
+ * [armed="false"] is the not-yet-invocable state -- an action outside Play mode.
+ * It dims the NAME only: the argument editor inside keeps full contrast because
+ * setting a call up before pressing Play is the normal way to use these, which
+ * is also why the widget is never setEnabled(false) to gate it.
  *===========================================================================*/
-QFrame#MissingScriptBanner {
-    background: rgb(58, 32, 32);
-    border: 1px solid rgb(190, 78, 78);
+QFrame#FunctionCall {
+    background: transparent;
+    border: 1px solid transparent;
     border-radius: 7px;
 }
 
-QFrame#MissingScriptBanner QLabel {
-    background: transparent;
-    border: none;
-    color: rgb(226, 172, 172);
+QFrame#FunctionCall:hover {
+    background: rgb(26, 26, 26);
 }
 
-QFrame#MissingScriptBanner QLabel#MissingScriptTitle {
-    color: rgb(244, 206, 206);
+/* The global QWidget rule would otherwise paint each child with the window
+ * background, punching opaque rectangles through the hover tint. The checkbox
+ * needs the same treatment as the labels so only its round indicator is drawn. */
+QFrame#FunctionCall QLabel,
+QFrame#FunctionCall QCheckBox {
+    background: transparent;
+    border: none;
+}
+
+QFrame#FunctionCall QLabel#FunctionCallName {
+    color: rgb(228, 228, 232);
+}
+
+QFrame#FunctionCall[armed="false"] QLabel#FunctionCallName {
+    color: rgb(150, 150, 154);
+}
+
+/* Punctuation, not content -- muted so the name and the argument carry the row.
+ * Bold to match the name's weight; without it the parens looked like a thinner,
+ * different font next to a bold word rather than part of the same call. */
+QFrame#FunctionCall QLabel#FunctionCallParen {
+    color: rgb(140, 140, 146);
     font-weight: bold;
-    font-size: 12px;
+}
+
+
+/*===========================================================================
+ * Broken references (Inspector)
+ *
+ * A reference whose target no longer exists -- a deleted script file, a deleted
+ * event target, an unloaded asset -- marks ITSELF rather than raising a banner
+ * above the component. The row that is wrong is the row that says so, so nothing
+ * new appears to shove the layout around, and one visual language covers every
+ * kind of dangling reference instead of one per kind.
+ *
+ * Driven by a dynamic `missing` property on the field (see
+ * ObjectRefPropertyWidget::applyDisplay, which repolishes on the transition).
+ * Shares the ListRemoveButton hover red so the editor keeps one "this is wrong"
+ * colour, and keeps the 6px radius of the QLineEdit rule it overlays so the
+ * shape does not change when a reference breaks -- only the colour does.
+ *===========================================================================*/
+/* An unassigned reference reads "None" and sits on the same dark ground the
+ * QLineEdit rule gives a hovered field. Empty is the state a ref field spends
+ * most of its life in, so it gets a surface instead of dissolving into the panel
+ * -- it should look like a slot waiting to be filled, which is exactly what the
+ * hover shade already communicates for the ones that are. */
+QLineEdit#ObjectRefEdit[empty="true"] {
+    background: rgb(26, 26, 26);
+}
+
+QLineEdit#ObjectRefEdit[missing="true"] {
+    border: 1px solid rgb(190, 78, 78);
+    background: rgb(58, 32, 32);
+    color: rgb(236, 176, 176);
+}
+
+QLineEdit#ObjectRefEdit[missing="true"]:hover,
+QLineEdit#ObjectRefEdit[missing="true"]:focus {
+    border: 1px solid rgb(212, 96, 96);
+    background: rgb(66, 36, 36);
 }
 
 
