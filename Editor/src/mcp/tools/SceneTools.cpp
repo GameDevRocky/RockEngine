@@ -96,7 +96,8 @@ std::vector<Scene*> LoadedScenes() {
 
 } // namespace
 
-void RegisterSceneTools(McpDispatcher& dispatcher) {
+void RegisterSceneTools(McpDispatcher& 
+    dispatcher) {
     dispatcher.RegisterTool("scene.list", [](const QJsonObject&) {
         QJsonArray scenes;
         for (Scene* scene : LoadedScenes()) {

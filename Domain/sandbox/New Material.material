@@ -4,14 +4,11 @@ id: 2f14494f6050458c46aa8b85f5a18230
 shader_id: s1
 uniforms:
   textures:
-    uNormalMap: ac675f8a863ca37b30fd98330f997bd4
     uTexture: ac675f8a863ca37b30fd98330f997bd4
   floats:
-    uTime: 0
     uLitAmount: 1
-    uHasNormalMap: 1
   vec2:
-    uUVScale: [1, 1]
+    uUVScale: [10, 10]
     uUVOffset: [0, 0]
     uSize: [1, 1]
     uPivot: [0.5, 0.5]

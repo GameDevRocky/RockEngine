@@ -169,8 +169,19 @@ void SpriteRenderer::OverrideUniforms(int firstFreeTextureSlot)
         uvOffset.y = sprite->GetUVMax().y;
     }
 
-    uvScale *= this->uvScale;   
-    uvOffset += this->uvOffset; 
+    uvScale *= this->uvScale;
+    uvOffset += this->uvOffset;
+
+    // Fold in the material's own uUVScale/uUVOffset uniform (if the bound
+    // shader declares one -- Material::Validate seeds it from the shader's
+    // GLSL default, e.g. sprite.glsl). Without this, the write below always
+    // lands after Material::ApplyUniforms in the draw call and silently wins,
+    // making the material's UV Scale inspector row a dead control.
+    const auto& matVec2 = mat->GetVec2Uniforms();
+    if (auto it = matVec2.find("uUVScale"); it != matVec2.end())
+        uvScale *= it->second;
+    if (auto it = matVec2.find("uUVOffset"); it != matVec2.end())
+        uvOffset += it->second;
 
     shader->SetVec2("uUVScale", uvScale);
     shader->SetVec2("uUVOffset", uvOffset);
