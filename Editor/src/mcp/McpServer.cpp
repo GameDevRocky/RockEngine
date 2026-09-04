@@ -20,6 +20,7 @@ constexpr const char* kServerName = "RockEngine.McpBridge.v1";
 McpServer* McpServer::Get() {
     static McpServer* instance = new McpServer();
     return instance;
+
 }
 
 void McpServer::Install() { Get()->Start(); }

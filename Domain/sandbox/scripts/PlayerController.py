@@ -29,7 +29,8 @@ class PlayerController(ScriptableComponent):
 
     jump_sound : AudioSource = None
     song : AudioSource = None
-    test_ : list[Vector3]
+    test_ : list[bool]
+    Sapri : int
 
 
 

@@ -1,6 +1,57 @@
 name: New Scene
 id: d690c2e60c6326796de5daf96074153e
-gameobjects:
-  []
 components:
-  []
+  - id: f90a4e0fe2b56ac1a8805f83a3e824df
+    enabled: true
+    type: Transform
+    gameobject: c6fcedddc5c8b43218fd215b94f0ee12
+    localPosition: [-12.139229, 18.209076]
+    localRotation: 0
+    localScale: [0.0017580724, 4.939936]
+    parent_id: ~
+  - id: 54c73bc1c02f0cfcc298fe466085320c
+    enabled: true
+    type: ParticleComponent
+    gameobject: c6fcedddc5c8b43218fd215b94f0ee12
+    emissionRate: 104
+    maxParticles: 1081
+    duration: 53.8
+    looping: true
+    startBurst: 317
+    lifetimeMin: 1
+    lifetimeMax: 1
+    startSpeedMin: 250
+    startSpeedMax: 250
+    directionAngle: 90
+    spreadDegrees: 360
+    gravity: [0, 0]
+    damping: 0
+    space: 1
+    shape: 0
+    shapeSize: [32, 32]
+    coneAngle: 25
+    sprite_id: 80e3df6482971224026ba8d3c6779d3f
+    flipX: false
+    flipY: false
+    startColor: [1, 0.9, 0.4, 1]
+    endColor: [1, 0.2, 0, 0]
+    startSize: 166
+    endSize: 0
+    blendMode: 1
+    sortingLayer: Default
+    sortingOrder: 0
+  - id: 55254489371ad55ec9941cb2cf1a1d11
+    enabled: true
+    type: ScriptComponent
+    gameobject: c6fcedddc5c8b43218fd215b94f0ee12
+    module: ""
+    class: ""
+gameobjects:
+  - id: c6fcedddc5c8b43218fd215b94f0ee12
+    type: GameObject
+    name: Fire
+    tag: Untagged
+    component_ids:
+      - f90a4e0fe2b56ac1a8805f83a3e824df
+      - 54c73bc1c02f0cfcc298fe466085320c
+      - 55254489371ad55ec9941cb2cf1a1d11

@@ -6,7 +6,7 @@ filtering: linear
 wrap: repeat
 normal:
   apply: true
-  strength: 20
+  strength: 50
   blur: 0
   invertX: false
   invertY: false
