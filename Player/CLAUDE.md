@@ -4,11 +4,28 @@ The standalone game executable — what a person who is not you actually runs. L
 `RockEngineCore` and **nothing from `Editor/`**; no Qt anywhere. SDL3 owns the window and the
 GL context where the editor's `QOpenGLWidget` owns them.
 
-This is Unity's **export-template** model. The player is compiled once as part of the normal
-repo build and sits in `build/local/bin/` next to the editor; "File → Build Game…" then
-*copies* it. Nothing about making a game build invokes a compiler, because RockEngine's
+This is Unity's **export-template** model. The player is compiled once and "File → Build Game…"
+then *copies* it. Nothing about making a game build invokes a compiler, because RockEngine's
 scripts are Python — interpreted, never compiled — which is the same reason Unity's Mono
 backend needs no toolchain at build time.
+
+It is built **twice**, and the difference matters:
+
+| Where | Built by | What it is for |
+|---|---|---|
+| `build/local/bin/` | the normal `local` preset, alongside the editor | running the player yourself, straight out of the build tree |
+| `build/release/bin/` | `cmake --preset windows-msvc-release` | **the binary that ships.** Release, and on Windows `/MT` |
+
+`GameBuilder` prefers the second and warns when it falls back to the first, because the
+local one links the editor's CRT — for a Debug build that is `MSVCP140D.dll` /
+`VCRUNTIME140D.dll` / `ucrtbased.dll`, which exist only where Visual Studio is installed and
+cannot legally be redistributed. The release template imports no CRT DLL at all. See the
+`ROCKENGINE_STATIC_MSVC_RUNTIME` block in the root `CMakeLists.txt`.
+
+Two consequences of `WIN32_EXECUTABLE` being on outside Debug, both easy to trip over:
+the shipped player has **no console**, so `Console::*` output goes nowhere a user can see;
+and `main.cpp` must include `<SDL3/SDL_main.h>` for SDL to supply `WinMain`. Drop that
+include and Debug still builds while Release fails to link.
 
 ## Why this is even possible
 

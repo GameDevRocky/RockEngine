@@ -337,6 +337,16 @@ void BuildWindow::StartBuild(bool runAfter) {
         return;
     }
 
+    if (!inputs.playerIsExportTemplate) {
+        Console::Warn("Build: no export-template player found in build/release/bin, so this "
+                      "build uses the one from the editor's own tree. That binary links the "
+                      "same MSVC runtime the editor does -- from a Debug editor, the debug "
+                      "CRT, which ships only with Visual Studio and cannot be redistributed, "
+                      "so the game will not start on anyone else's machine. Build the "
+                      "shippable player with: cmake --preset windows-msvc-release && "
+                      "cmake --build --preset windows-msvc-release");
+    }
+
     if (inputs.pythonRuntime.empty()) {
         Console::Warn("Build: no staged Python runtime found (bin/player-runtime/python). "
                       "The game will only run on machines that already have Python "

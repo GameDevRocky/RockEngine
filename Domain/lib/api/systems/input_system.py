@@ -128,5 +128,13 @@ class Input:
 
     @staticmethod
     def get_mouse_pos():
+        """Cursor position in WORLD units, resolved against the camera on every call, so it
+        stays correct when the camera moves and the mouse does not."""
         return Vector2(input_module.get_mouse_pos())
+
+    @staticmethod
+    def get_mouse_screen_pos():
+        """Cursor position in panel pixels (top-left origin). Unaffected by the camera --
+        use it for screen-space UI hit-testing, not for aiming at things in the world."""
+        return Vector2(input_module.get_mouse_screen_pos())
 

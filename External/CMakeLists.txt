@@ -58,11 +58,19 @@ set(MSDFGEN_USE_SKIA         OFF CACHE BOOL "" FORCE)
 set(MSDFGEN_DISABLE_SVG      ON  CACHE BOOL "" FORCE)
 set(MSDFGEN_DISABLE_PNG      ON  CACHE BOOL "" FORCE)
 set(MSDFGEN_INSTALL          OFF CACHE BOOL "" FORCE)
-# MUST stay ON. msdfgen defaults this OFF, which forces its targets onto the STATIC
-# MSVC runtime (/MT) while the rest of RockEngine and all of Qt use the dynamic one
-# (/MD). Mixing the two links with LNK4098 warnings and then corrupts the heap at
-# runtime, because memory allocated by one CRT is freed by the other.
-set(MSDFGEN_DYNAMIC_RUNTIME  ON  CACHE BOOL "" FORCE)
+# MUST track ROCKENGINE_STATIC_MSVC_RUNTIME. msdfgen is the one submodule that does not
+# read CMAKE_MSVC_RUNTIME_LIBRARY -- it sets an explicit MSVC_RUNTIME_LIBRARY property on
+# each of its targets from its own option, which defaults OFF (= static /MT). Left at that
+# default in a normal build it drags msdfgen onto /MT while the rest of RockEngine and all
+# of Qt use the dynamic /MD; mixing the two links with LNK4098 warnings and then corrupts
+# the heap at runtime, because memory allocated by one CRT is freed by the other. So: ON
+# for the normal editor build, OFF only in the /MT export-template tree, where the WHOLE
+# build is static and msdfgen matching it is what keeps the link consistent.
+if(ROCKENGINE_STATIC_MSVC_RUNTIME)
+    set(MSDFGEN_DYNAMIC_RUNTIME OFF CACHE BOOL "" FORCE)
+else()
+    set(MSDFGEN_DYNAMIC_RUNTIME ON  CACHE BOOL "" FORCE)
+endif()
 add_subdirectory(msdfgen)
 
 # --- SDL3 (gamepads + the standalone player's window) ---
@@ -111,10 +119,10 @@ set(SDL_TEST_LIBRARY  OFF CACHE BOOL "" FORCE)
 set(SDL_TESTS         OFF CACHE BOOL "" FORCE)
 set(SDL_EXAMPLES      OFF CACHE BOOL "" FORCE)
 set(SDL_INSTALL       OFF CACHE BOOL "" FORCE)
-# Same /MD-vs-/MT trap documented on MSDFGEN_DYNAMIC_RUNTIME above: SDL defaults this OFF
-# (dynamic CRT), which is what we want. Pinned so a future default flip can't corrupt the
-# heap by linking a /MT SDL against a /MD engine + Qt.
-set(SDL_FORCE_STATIC_VCRT OFF CACHE BOOL "" FORCE)
+# No CRT pin here, deliberately. SDL3 removed the old SDL_FORCE_STATIC_VCRT option and
+# honours CMAKE_MSVC_RUNTIME_LIBRARY like every other well-behaved submodule, so it follows
+# ROCKENGINE_STATIC_MSVC_RUNTIME on its own -- dynamic /MD for the editor build, static /MT
+# for the export-template one. (msdfgen above is the exception that still needs telling.)
 add_subdirectory(SDL)
 
 # --- GLAD ---

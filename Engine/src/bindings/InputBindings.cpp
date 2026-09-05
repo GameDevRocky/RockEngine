@@ -23,8 +23,17 @@ void BindInputManager(pybind11::module_& m) {
         return inputManager->IsMouseButtonPressed(button);
     });
 
+    // World space, resolved against the camera at call time -- correct on any frame, not only
+    // frames where the mouse moved.
     input_module.def("get_mouse_pos", []() {
         glm::vec2 val = inputManager->GetMousePosition();
-        return std::make_tuple(val.x, val.y); 
+        return std::make_tuple(val.x, val.y);
+    });
+
+    // Panel pixels (DPI-scaled, top-left origin) -- for UI hit-testing that should not move
+    // with the camera.
+    input_module.def("get_mouse_screen_pos", []() {
+        glm::vec2 val = inputManager->GetMouseScreenPosition();
+        return std::make_tuple(val.x, val.y);
     });
 }

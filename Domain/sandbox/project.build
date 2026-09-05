@@ -1,4 +1,4 @@
-gameName: Test1
+gameName: topdown-build-test
 version: 1.0.0
 startupScene: Domain/sandbox/New Scene 1.scene
 windowWidth: 1280

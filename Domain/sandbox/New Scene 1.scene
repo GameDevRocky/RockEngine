@@ -128,7 +128,7 @@ components:
     enabled: true
     type: Transform
     gameobject: dfcc941c6d90526f092e34d0eb7d1e85
-    localPosition: [55.318436, -73.14552]
+    localPosition: [55.31845, -73.14549]
     localRotation: -8.537736e-06
     localScale: [1.0000001, 1.0000001]
     parent_id: 2d7967f4224d173abdeb11b19d8a9f99
@@ -228,13 +228,13 @@ components:
     type: Light
     gameobject: 6d2716c5bce63ad0ba3c81222dc008df
     lightType: 1
-    color: [0.95686275, 0.81960785, 0.5019608, 1]
-    intensity: 0.5
-    range: 4070.7917
+    color: [0.95686275, 0.45490196, 0.45490196, 1]
+    intensity: 1
+    range: 5199.5703
     innerRadius: 0
     falloff: 1
-    innerAngle: 42.281578
-    outerAngle: 57.383686
+    innerAngle: 26.77359
+    outerAngle: 42.499897
     height: 300
     normalInfluence: 1
     castShadows: true
@@ -273,7 +273,7 @@ components:
     type: Light
     gameobject: 64219757135ae15d86a2dadbcaea7fa8
     lightType: 2
-    color: [0.38431373, 0.3647059, 1, 1]
+    color: [0.14509805, 0.1882353, 1, 1]
     intensity: 0.4
     range: 300
     innerRadius: 0
@@ -328,7 +328,7 @@ components:
     gameobject: bf83147d9f61b9147047718874258b1f
     localPosition: [-6.1035156e-05, 0]
     localRotation: 90
-    localScale: [0.9999991, 0.9999991]
+    localScale: [0.99999905, 0.99999905]
     parent_id: 32fb44831bfc816b0201fc19ba633c86
   - id: bda87ed9f4243ba694891842e4102b21
     enabled: false
@@ -346,9 +346,9 @@ components:
     enabled: false
     type: Transform
     gameobject: a95ef85b0ef1e4acaac4b95f09b878d4
-    localPosition: [-79.5603, -43.134766]
-    localRotation: -2.5902552e-06
-    localScale: [0.9888296, 1.0000002]
+    localPosition: [-79.56018, -43.134705]
+    localRotation: -2.5902548e-06
+    localScale: [0.98882973, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: 6da58e7a8a7b1e88f273f2d551e1c18a
     enabled: false
@@ -378,8 +378,8 @@ components:
     enabled: false
     type: Transform
     gameobject: 91570af60a063648c1dbf65965161606
-    localPosition: [-0.4428711, 92.59784]
-    localRotation: -3.4150937e-06
+    localPosition: [-0.4428711, 92.5979]
+    localRotation: -4.2688675e-06
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: c2975f03a1621de61496da9fd2f087ae
@@ -410,8 +410,8 @@ components:
     enabled: false
     type: Transform
     gameobject: 716969e15ff084327807c99c32d47749
-    localPosition: [-3.230713, -2.1135254]
-    localRotation: -3.4150937e-06
+    localPosition: [-3.2305908, -2.1134644]
+    localRotation: -4.2688675e-06
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: 02d3241378d021171ccdf24dafb2f0e1
@@ -443,7 +443,7 @@ components:
     type: Transform
     gameobject: 5934f97a770f3d90d0ecef87f4dfa951
     localPosition: [55.319702, -73.14545]
-    localRotation: -3.4150937e-06
+    localRotation: -4.2688675e-06
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: 482fedf3a2377ab9832c002cff458720
@@ -474,17 +474,17 @@ components:
     enabled: false
     type: Transform
     gameobject: a46c57e9729fecbbfe6d522794177f58
-    localPosition: [0.0009765625, 0.00079345703]
-    localRotation: -3.4150937e-06
+    localPosition: [0.0009765625, 0.0008544922]
+    localRotation: -4.2688675e-06
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: d64e6281c521f949eabb0ddf75e5b801
     enabled: false
     type: Transform
     gameobject: 39aab30b6216e0ee461085d6ff0fa759
-    localPosition: [-15.484741, -132.54437]
-    localRotation: -5.976416e-06
-    localScale: [0.99999994, 0.99999994]
+    localPosition: [-15.484741, -132.54431]
+    localRotation: -5.9764166e-06
+    localScale: [0.9999999, 0.9999999]
     parent_id: fcdf1b93b3bc6625f1f93dd9aa8baf51
   - id: 544faff5bafd3855a432a212fcc116c1
     enabled: false
@@ -504,7 +504,7 @@ components:
     enabled: false
     type: Transform
     gameobject: 3b135ce2a0d6dc1bc918747a5daacfb4
-    localPosition: [150, 0.00045776367]
+    localPosition: [150.00012, 0.00045776367]
     localRotation: 101.23959
     localScale: [1.0000001, 1.0000001]
     parent_id: d64e6281c521f949eabb0ddf75e5b801
@@ -543,7 +543,7 @@ components:
     enabled: false
     type: Transform
     gameobject: 3fb3fc3d98e2c2cf4e3813b9b135a9b2
-    localPosition: [-10.002319, -286.053]
+    localPosition: [-10.002319, -286.05295]
     localRotation: -92.81315
     localScale: [0.9999996, 0.9999996]
     parent_id: fcdf1b93b3bc6625f1f93dd9aa8baf51

@@ -715,8 +715,7 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
     bool midDragPan  = (e->buttons() & Qt::MiddleButton);
 
     glm::vec2 fbPos(e->pos().x() * devicePixelRatioF(), e->pos().y() * devicePixelRatioF());
-    glm::vec2 worldPos = editorView->ScreenToWorld(fbPos);
-    inputManager->SetMousePosition(worldPos);
+    inputManager->SetMouseScreenPosition(editorView, fbPos);
 
     if (m_boxSelectArmed) {
         if (!m_boxSelecting &&

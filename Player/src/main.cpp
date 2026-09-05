@@ -1,16 +1,23 @@
 #include "PlayerApp.hpp"
 
 #include <SDL3/SDL.h>
+// SDL_main.h has to be included EXPLICITLY, in the one translation unit that defines main.
+// SDL3 split it out of SDL.h (SDL2 pulled it in for you), and it is what renames main to
+// SDL_main and emits the real platform entry point -- on Windows, a WinMain that parses the
+// command line into UTF-8 argv and calls SDL_SetMainReady.
+//
+// Without it a Release build fails to link with
+//     LIBCMT.lib(exe_winmain.obj) : LNK2019: unresolved external symbol WinMain
+// because WIN32_EXECUTABLE puts the exe on the /subsystem:windows entry point (see
+// Player/CMakeLists.txt) while this file still only provides main(). Debug builds hide it:
+// they keep the console subsystem, which does want main().
+#include <SDL3/SDL_main.h>
 
 // Entry point for RockEnginePlayer -- the standalone game executable.
 //
 // The editor's counterpart is src/main.cpp, which runs Engine::Init -> Editor::Init ->
 // Engine::PostInit -> Editor::PostInit. This is the same shape with the Qt half removed:
 // PlayerApp owns the window and the loop where Editor owned the QApplication.
-//
-// SDL_main: SDL3's headers rename main to SDL_main and supply the real platform entry
-// point, which is what makes a WIN32_EXECUTABLE (no console window) still get its argv.
-// Don't "simplify" this back to a bare main -- on Windows the link fails without it.
 int main(int argc, char* argv[])
 {
     PlayerApp app;

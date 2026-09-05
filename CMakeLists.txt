@@ -32,6 +32,48 @@ option(ROCKENGINE_BUILD_EDITOR         "Build the Qt6 editor (RockEngineEditor +
 option(ROCKENGINE_BUILD_TESTS          "Build the headless unit tests (RockEngineTests)"              OFF)
 option(ROCKENGINE_STAGE_PLAYER_RUNTIME "Stage the shippable Python runtime beside the Player"         ON)
 
+# --- Which MSVC runtime the build links ---------------------------------------------------
+# OFF by default, and it has to be: the editor links Qt, whose official binaries use the
+# DYNAMIC CRT (/MD). Two CRTs in one process means memory allocated by one is freed by the
+# other, which is heap corruption -- see the MSDFGEN_DYNAMIC_RUNTIME note in
+# External/CMakeLists.txt for the same trap arriving from the other direction.
+#
+# ON is for the export-template tree ONLY: the Engine + Player build (no editor, no Qt)
+# whose RockEnginePlayer.exe GameBuilder copies into every shipped game. It exists because
+# of what the shipped executable imports:
+#
+#   Debug   /MDd  -> MSVCP140D.dll, VCRUNTIME140D.dll, ucrtbased.dll
+#                    Ships ONLY with Visual Studio and may not be redistributed at all.
+#                    This is why a zipped game used to run on developer machines and
+#                    nowhere else.
+#   Release /MD   -> MSVCP140.dll, VCRUNTIME140.dll  (redistributable, but must be copied
+#                    next to the exe or installed by the user)
+#   Release /MT   -> nothing. The CRT is linked into the executable.
+#
+# The third is what a game should ship, so the release preset picks it. It must be set
+# globally rather than as a property on RockEnginePlayer: every static library the player
+# links (RockEngineCore, box2d, yaml-cpp, SDL, freetype, ...) has to use the same CRT or
+# the link fails with LNK2038.
+#
+# The one boundary this does NOT remove is python3XX.dll, which is a stock CPython build
+# using the dynamic CRT. That crossing already exists today and is safe for the same reason
+# it is safe today: everything passed across it is a PyObject*, allocated and freed by
+# CPython's own allocator. Do not start handing FILE* or malloc'd buffers to the C API.
+option(ROCKENGINE_STATIC_MSVC_RUNTIME "Link the static MSVC runtime (/MT). Export-template builds only." OFF)
+
+if(ROCKENGINE_STATIC_MSVC_RUNTIME)
+    if(NOT MSVC)
+        message(FATAL_ERROR "ROCKENGINE_STATIC_MSVC_RUNTIME is an MSVC-only option.")
+    endif()
+    if(ROCKENGINE_BUILD_EDITOR)
+        message(FATAL_ERROR
+            "ROCKENGINE_STATIC_MSVC_RUNTIME requires ROCKENGINE_BUILD_EDITOR=OFF. Qt's "
+            "binaries use the dynamic CRT and cannot be linked into a /MT process. Use the "
+            "windows-msvc-release preset, which builds Engine + Player only.")
+    endif()
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # AUTOMOC/AUTOUIC/AUTORCC exist for the Editor alone -- it is the only target with Q_OBJECT
 # in it. Engine/ and Player/ were being moc-scanned for nothing (Player already opted out
 # per-target; see the comment in Player/CMakeLists.txt), so these are scoped to the editor

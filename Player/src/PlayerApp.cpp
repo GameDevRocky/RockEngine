@@ -236,17 +236,17 @@ void PlayerApp::PumpEvents()
 
             case SDL_EVENT_MOUSE_MOTION:
                 if (input && view) {
-                    // InputManager stores mouse position in WORLD space, not screen space --
-                    // GameViewGui does the same ScreenToWorld conversion before pushing it in,
-                    // and Input.get_mouse_pos() in Python expects world units. SDL reports
-                    // window coordinates, so scale to framebuffer pixels first (they differ on
-                    // a high-DPI display, exactly like Qt's devicePixelRatioF).
+                    // InputManager stores mouse position in SCREEN space and converts to world
+                    // on read, so the value stays correct when the camera moves without the
+                    // mouse. It expects DPI-scaled framebuffer pixels, and SDL reports window
+                    // coordinates, so scale first (the two differ on a high-DPI display,
+                    // exactly like Qt's devicePixelRatioF).
                     int winW = 0, winH = 0;
                     SDL_GetWindowSize(window, &winW, &winH);
                     const float sx = winW > 0 ? static_cast<float>(pixelW) / winW : 1.0f;
                     const float sy = winH > 0 ? static_cast<float>(pixelH) / winH : 1.0f;
                     const glm::vec2 fbPos(e.motion.x * sx, e.motion.y * sy);
-                    input->SetMousePosition(view->ScreenToWorld(fbPos));
+                    input->SetMouseScreenPosition(view, fbPos);
                 }
                 break;
 

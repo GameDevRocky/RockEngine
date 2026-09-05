@@ -34,6 +34,46 @@ std::string SanitizeName(const std::string& name) {
     return out;
 }
 
+// Which RockEnginePlayer.exe a shipped game gets.
+//
+// This is not a preference, it is a correctness issue, and it is the whole reason the
+// windows-msvc-release preset exists. What the player imports depends on how it was built:
+//
+//   Debug     MSVCP140D.dll, VCRUNTIME140D.dll, ucrtbased.dll -- the DEBUG CRT, which
+//             Microsoft ships only with Visual Studio and forbids redistributing. A game
+//             built from a Debug player runs on developer machines and nowhere else, which
+//             looks exactly like "you need a compiler installed to play my game".
+//   Release   MSVCP140.dll / VCRUNTIME140.dll, redistributable but still needing to be
+//             copied or installed.
+//   Release + ROCKENGINE_STATIC_MSVC_RUNTIME   nothing. The CRT is inside the exe.
+//
+// So: prefer the export-template tree, which is the last of those. The player sitting next
+// to the editor is kept as a fallback -- a repo with no release build should still produce
+// something the developer can run -- but Prepare flags it and the Build window warns.
+struct PlayerLocation {
+    fs::path path;
+    bool     isExportTemplate = false;  // came from build/release/bin, i.e. shippable
+};
+
+PlayerLocation FindPlayer(const fs::path& editorBinDir)
+{
+    std::error_code ec;
+
+    // First candidate walks up from the editor's own bin dir, so it works whatever the
+    // editor's build directory is called: build/<preset>/bin -> build/release/bin. The
+    // second uses the compiled-in source root, for an editor configured somewhere that is
+    // not a sibling of the release tree.
+    const fs::path candidates[] = {
+        editorBinDir.parent_path().parent_path() / "release" / "bin" / kPlayerExeName,
+        fs::path(PROJECT_ROOT) / "build" / "release" / "bin" / kPlayerExeName,
+    };
+    for (const fs::path& candidate : candidates) {
+        if (fs::exists(candidate, ec)) return { candidate, true };
+    }
+
+    return { editorBinDir / kPlayerExeName, false };
+}
+
 // copy_directory with the overwrite behaviour we want and an error we can report. The
 // standard's recursive copy stops at the first problem, which is what we want -- a build
 // that half-copied its assets should fail loudly, not ship.
@@ -71,14 +111,19 @@ bool GameBuilder::Prepare(const BuildConfig& cfg, const std::string& parentDir,
         return false;
     }
 
-    // The player binary lives beside the editor: same CMAKE_RUNTIME_OUTPUT_DIRECTORY. This
-    // is why the player is built as part of the normal repo build rather than on demand.
-    const fs::path binDir  = fs::path(EngineUtils::ExecutableDir());
-    const fs::path playerExe = binDir / kPlayerExeName;
-    if (!fs::exists(playerExe, ec)) {
-        error = std::string("Player binary not found at ") + playerExe.string() +
-                "\n\nBuild the RockEnginePlayer target first "
-                "(cmake --build --preset local --target RockEnginePlayer).";
+    // binDir is the editor's own output directory, which is where the staged Python runtime
+    // lives. The PLAYER is looked up separately -- see FindPlayer -- because the shippable
+    // one comes from the export-template tree, not from beside the editor.
+    const fs::path binDir = fs::path(EngineUtils::ExecutableDir());
+
+    const PlayerLocation player = FindPlayer(binDir);
+    if (!fs::exists(player.path, ec)) {
+        error = std::string("Player binary not found at ") + player.path.string() +
+                "\n\nBuild the shippable player first:\n"
+                "  cmake --preset windows-msvc-release\n"
+                "  cmake --build --preset windows-msvc-release\n\n"
+                "Or, for a developer-only build, the player from this tree:\n"
+                "  cmake --build --preset local --target RockEnginePlayer";
         return false;
     }
 
@@ -98,7 +143,8 @@ bool GameBuilder::Prepare(const BuildConfig& cfg, const std::string& parentDir,
     }
 
     out.cfg           = cfg;
-    out.playerExe     = playerExe.string();
+    out.playerExe     = player.path.string();
+    out.playerIsExportTemplate = player.isExportTemplate;
     out.domainDir     = domainDir.string();
     out.outputDir     = OutputDirFor(cfg.gameName, parentDir);
 

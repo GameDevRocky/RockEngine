@@ -205,8 +205,7 @@ void GameViewGui::mouseMoveEvent(QMouseEvent* e)
     }
 
     glm::vec2 fbPos(e->pos().x() * devicePixelRatioF(), e->pos().y() * devicePixelRatioF());
-    glm::vec2 worldPos = gameView->ScreenToWorld(fbPos);
-    inputManager->SetMousePosition(worldPos);
+    inputManager->SetMouseScreenPosition(gameView, fbPos);
     e->accept();
 }
 

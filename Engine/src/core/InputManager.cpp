@@ -1,11 +1,19 @@
 #include "engine/core/InputManager.hpp"
 #include "engine/input/GamepadService.hpp"
+#include "engine/rendering/views/RenderView.hpp"
 #include <algorithm>
 #include <iostream>
 
 void InputManager::Init() {
-    mouse_pos = {0, 0};
+    m_mouseScreenPos = {0.0f, 0.0f};
     std::cout << "InputManager Initialized" << std::endl;
+}
+
+glm::vec2 InputManager::GetMousePosition() const {
+    // Resolved on read rather than stored, so the answer tracks the camera as it moves --
+    // see the note on SetMouseScreenPosition.
+    return m_mouseSourceView ? m_mouseSourceView->ScreenToWorld(m_mouseScreenPos)
+                             : m_mouseScreenPos;
 }
 
 void InputManager::Update(){
@@ -122,7 +130,8 @@ void InputManager::SeedGamepadButtons() {
 
 InputManager* InputManager::Copy(){
     InputManager* input = new InputManager();
-    input->mouse_pos = mouse_pos;
+    input->m_mouseSourceView = m_mouseSourceView;
+    input->m_mouseScreenPos  = m_mouseScreenPos;
     input->m_keyStates = m_keyStates;
     input->m_stickDeadzone = m_stickDeadzone;
 

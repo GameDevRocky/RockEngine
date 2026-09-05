@@ -109,6 +109,31 @@ GitHub Actions runs the identical suite on Linux/GCC for every push and pull req
 
 ---
 
+## Shipping a game
+
+**File → Build Game…** (Ctrl+Shift+B) copies a prebuilt `RockEnginePlayer` plus your `Domain/`
+content and a Python runtime into an output folder — seconds, and no toolchain on the player's
+machine. But it copies a binary that has to exist first, and **which one it copies decides
+whether your game runs on anyone else's computer**:
+
+```sh
+cmake --preset windows-msvc-release      # or macos-release / linux-release
+cmake --build --preset windows-msvc-release
+```
+
+This produces `build/release/bin/RockEnginePlayer` — Release, no Qt, and on Windows linked
+against the **static** C runtime, so the shipped executable imports no `VCRUNTIME`/`MSVCP`
+DLL and needs no Visual C++ redistributable installed. It builds into its own directory and
+leaves your `local` build alone; do it once and repeat only when engine code changes.
+
+Skip it and the Build window falls back to the player from your own build tree and warns you.
+That one links whatever runtime the editor does — from the default Debug build, the *debug*
+CRT (`VCRUNTIME140D.dll`, `ucrtbased.dll`), which ships only with Visual Studio and may not be
+redistributed. A game zipped from that runs on your machine and fails to start on everyone
+else's.
+
+---
+
 ## Project layout
 
 | Path | What it is |

@@ -9,6 +9,10 @@
 // test) rather than two independently-deadzoned scalars.
 enum class GamepadStick : int { Left = 0, Right };
 
+// Owned by Renderer and outlives any Container; only its ScreenToWorld is needed here, so a
+// forward declaration keeps the rendering headers out of every scripting translation unit.
+class RenderView;
+
 class InputManager : public System {
 public:
 
@@ -16,8 +20,29 @@ public:
     void Update() override;
     void Shutdown() override;
 
-    glm::vec2 GetMousePosition(){return mouse_pos;}
-    void SetMousePosition(glm::vec2 pos){ mouse_pos = pos;}
+    // --- Mouse position -------------------------------------------------------------------
+    // The stored position is SCREEN space (DPI-scaled panel pixels, top-left origin) plus the
+    // view that space belongs to -- never a world coordinate. World space is a function of the
+    // screen position AND the camera, so caching the world result freezes it against whatever
+    // the camera happened to be on the last motion event: pan or zoom without moving the mouse
+    // and every script reading get_mouse_pos() aims at a stale point. Resolving on read makes
+    // the value correct on any frame regardless of when the mouse last moved, and costs one
+    // matrix un-project per query rather than per frame.
+    //
+    // `source` is the RenderView the panelPos came from. Views are owned by Renderer, not by a
+    // Container, so the pointer stays valid across the play-mode container swap. Last writer
+    // wins when both the Scene and Game views see motion -- which is the behaviour that was
+    // already in place when both pushed world positions into the same field.
+    void SetMouseScreenPosition(RenderView* source, glm::vec2 panelPos) {
+        m_mouseSourceView = source;
+        m_mouseScreenPos  = panelPos;
+    }
+
+    glm::vec2 GetMouseScreenPosition() const { return m_mouseScreenPos; }
+
+    // World-space cursor, resolved against the source view's CURRENT camera. Falls back to the
+    // raw screen position before any host has pushed a view.
+    glm::vec2 GetMousePosition() const;
 
     void SetKeyState(int key, bool pressed) {
         if (pressed && !m_keyStates[key])
@@ -105,5 +130,6 @@ private:
     std::unordered_set<int> m_mouseButtonsJustPressedQueue;
     std::unordered_set<int> m_mouseButtonsJustPressed;
 
-    glm::vec2 mouse_pos;
+    RenderView* m_mouseSourceView = nullptr;   // non-owning; see SetMouseScreenPosition
+    glm::vec2   m_mouseScreenPos  = {0.0f, 0.0f};
 };

@@ -32,6 +32,12 @@ public:
         BuildConfig cfg;
         std::string outputDir;      // <chosen folder>/<GameName>
         std::string playerExe;      // source RockEnginePlayer.exe
+        // False means playerExe came from the editor's own build tree rather than from the
+        // export-template one (build/release/bin), so it links whatever CRT the editor does
+        // -- for a Debug editor that is the debug CRT, which only machines with Visual
+        // Studio installed have. Diagnostic only; the Build window warns on it. See
+        // FindPlayer in GameBuilder.cpp.
+        bool        playerIsExportTemplate = false;
         std::string domainDir;      // source Domain/
         std::string pythonRuntime;  // source bin/player-runtime/python (may be empty)
         // bin/player-runtime, which holds pythonXY.dll. Deliberately NOT the editor's own

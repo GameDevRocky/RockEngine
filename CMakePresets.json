@@ -41,6 +41,34 @@
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
     },
     {
+      "name": "release-base",
+      "hidden": true,
+      "description": "The export-template lane: Engine + Player only, no Qt and no editor. Produces the RockEnginePlayer.exe that GameBuilder copies into every shipped game. Runtime staging is off because GameBuilder takes bin/player-runtime from the editor's own tree, which already staged it.",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ROCKENGINE_BUILD_EDITOR": "OFF",
+        "ROCKENGINE_STAGE_PLAYER_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "windows-msvc-release",
+      "displayName": "Windows · MSVC Release (shippable player)",
+      "description": "Statically links the CRT, so a shipped game needs no Visual C++ redistributable and no Visual Studio on the player's machine.",
+      "inherits": ["release-base", "windows-msvc"],
+      "cacheVariables": { "ROCKENGINE_STATIC_MSVC_RUNTIME": "ON" }
+    },
+    {
+      "name": "macos-release",
+      "displayName": "macOS · Release (shippable player)",
+      "inherits": ["release-base", "macos"]
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux · Release (shippable player)",
+      "inherits": ["release-base", "linux"]
+    },
+    {
       "name": "ci-base",
       "hidden": true,
       "description": "The headless lane: Engine + Player + tests, no Qt and no Python runtime staging.",
@@ -67,6 +95,9 @@
     { "name": "windows-msvc", "configurePreset": "windows-msvc" },
     { "name": "macos", "configurePreset": "macos" },
     { "name": "linux", "configurePreset": "linux" },
+    { "name": "windows-msvc-release", "configurePreset": "windows-msvc-release" },
+    { "name": "macos-release", "configurePreset": "macos-release" },
+    { "name": "linux-release", "configurePreset": "linux-release" },
     { "name": "ci-linux", "configurePreset": "ci-linux" },
     { "name": "ci-windows", "configurePreset": "ci-windows" }
   ],

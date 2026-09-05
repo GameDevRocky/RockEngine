@@ -71,10 +71,29 @@ headers (embedded interpreter — see `requirements.txt`). `PROJECT_ROOT` is com
 Downloads folder and is never inside the repo.
 
 This is Unity's **export-template** model, not a compiler invocation: `RockEnginePlayer.exe` is
-already built and sitting in `build/local/bin/`, so a game build *copies* it plus `Domain/` plus
-the staged Python runtime and writes a `game.rock` beside them. Seconds, and the machine needs
-no toolchain — RockEngine's scripts are Python, so there is nothing to compile, exactly like
-Unity's Mono backend.
+already built, so a game build *copies* it plus `Domain/` plus the staged Python runtime and
+writes a `game.rock` beside them. Seconds, and the machine needs no toolchain — RockEngine's
+scripts are Python, so there is nothing to compile, exactly like Unity's Mono backend.
+
+**Build the export template before shipping anything.** `GameBuilder` prefers
+`build/release/bin/RockEnginePlayer.exe`, produced by a preset that exists only for this:
+
+```sh
+cmake --preset windows-msvc-release      # or macos-release / linux-release
+cmake --build --preset windows-msvc-release
+```
+
+It builds Engine + Player with no Qt and no editor, in Release, and on Windows with
+`ROCKENGINE_STATIC_MSVC_RUNTIME=ON` (`/MT`) so the shipped exe imports **no CRT DLL at all** —
+only `python314.dll`, which the build copies beside it. Without it `GameBuilder` falls back to
+the player next to the editor and the Build window warns, because that binary links whatever
+CRT the editor does: from the usual Debug build, `MSVCP140D.dll` / `VCRUNTIME140D.dll` /
+`ucrtbased.dll`, which ship only with Visual Studio and may not be redistributed — a zip built
+that way runs on developer machines and nowhere else.
+
+The static CRT is why the release lane cannot build the editor: Qt's binaries use the dynamic
+CRT, and the two in one process is heap corruption. The root `CMakeLists.txt` makes that a
+configure-time error rather than a runtime mystery.
 
 The copy runs as a `JobSystem` job (worker half — `std::filesystem` only, and all the
 worker-thread prohibitions in `Job.hpp` apply), with progress on the Build window's own progress
