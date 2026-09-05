@@ -38,7 +38,7 @@ public:
     void LateUpdate();
     void Accept(IVisitor* v) override;
     
-    std::string GetTypeName() override { return "Scene"; }
+    std::string GetTypeName() const override { return "Scene"; }
     
     void AddGameObject(GameObject* obj);
 

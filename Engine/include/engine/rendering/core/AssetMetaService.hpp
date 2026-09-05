@@ -8,7 +8,7 @@
 //   Source file          Meta file                     Asset type
 //   ────────────────     ─────────────────────────     ─────────────
 //   foo.png / .jpg       foo.png.texture               Texture2D
-//   foo.vert (+ .frag)   foo.vert.shader               Shader
+//   foo.glsl             foo.glsl.shader               Shader
 //   foo.ttf / .otf       foo.ttf.font                  Font
 //   foo.wav / .mp3 /     foo.wav.audio                 AudioClip
 //     .ogg / .flac
@@ -28,16 +28,16 @@ public:
     static void ScanAndGenerate(const std::string& rootDir);
 
     // Generate the meta for a single source file, if it maps to a known asset
-    // type (image → .texture, .glsl → .shader, .ttf/.otf → .font) and doesn't
-    // already have one. Used when importing one dropped file rather than
-    // rescanning a whole tree.
+    // type (image → .texture, .glsl → .shader, .ttf/.otf → .font, audio → .audio)
+    // and doesn't already have one. Used when importing one dropped file rather
+    // than rescanning a whole tree.
     static void GenerateFor(const std::string& sourceFile);
 
     // Returns true if ext is a meta extension (.texture / .shader / .material / .font / .audio)
     static bool IsMetaExtension(const std::string& ext);
 
     // Returns the meta extension for a given source extension, or "" if unknown.
-    //   ".png" → ".texture",  ".vert" → ".shader",  ".ttf" → ".font",  ".wav" → ".audio"
+    //   ".png" → ".texture",  ".glsl" → ".shader",  ".ttf" → ".font",  ".wav" → ".audio"
     static std::string MetaExtensionFor(const std::string& sourceExt);
 
 private:

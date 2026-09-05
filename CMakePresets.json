@@ -39,11 +39,45 @@
       "inherits": "base",
       "generator": "Ninja",
       "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Linux" }
+    },
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "description": "The headless lane: Engine + Player + tests, no Qt and no Python runtime staging.",
+      "cacheVariables": {
+        "ROCKENGINE_BUILD_EDITOR": "OFF",
+        "ROCKENGINE_BUILD_TESTS": "ON",
+        "ROCKENGINE_STAGE_PLAYER_RUNTIME": "OFF"
+      }
+    },
+    {
+      "name": "ci-linux",
+      "displayName": "CI · Linux headless (Engine + tests)",
+      "description": "What GitHub Actions runs. No Qt required.",
+      "inherits": ["ci-base", "linux"]
+    },
+    {
+      "name": "ci-windows",
+      "displayName": "CI · Windows headless (Engine + tests)",
+      "description": "The same headless lane as CI, runnable locally. Needs no Qt on CMAKE_PREFIX_PATH.",
+      "inherits": ["ci-base", "windows-msvc"]
     }
   ],
   "buildPresets": [
     { "name": "windows-msvc", "configurePreset": "windows-msvc" },
     { "name": "macos", "configurePreset": "macos" },
-    { "name": "linux", "configurePreset": "linux" }
+    { "name": "linux", "configurePreset": "linux" },
+    { "name": "ci-linux", "configurePreset": "ci-linux" },
+    { "name": "ci-windows", "configurePreset": "ci-windows" }
+  ],
+  "testPresets": [
+    {
+      "name": "ci-base",
+      "hidden": true,
+      "output": { "outputOnFailure": true },
+      "execution": { "noTestsAction": "error", "stopOnFailure": false }
+    },
+    { "name": "ci-linux", "inherits": "ci-base", "configurePreset": "ci-linux" },
+    { "name": "ci-windows", "inherits": "ci-base", "configurePreset": "ci-windows" }
   ]
 }

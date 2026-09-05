@@ -26,7 +26,7 @@ public:
     // safe to do eagerly at load like Texture2D's decode, rather than lazily like Font's bake.
     void Awake() override;
 
-    std::string GetTypeName() { return "AudioClip"; }
+    std::string GetTypeName() const override { return "AudioClip"; }
     void Accept(IVisitor* v) override;
 
     const std::string& GetPath() const { return path; }

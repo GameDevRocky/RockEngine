@@ -41,7 +41,7 @@ public:
     void Deserialize(const YAML::Node& node) override;
     void Awake() override;
 
-    std::string GetTypeName() override { return "Font"; }
+    std::string GetTypeName() const override { return "Font"; }
     void Accept(IVisitor* v) override;
 
     // Bake and upload if needed. MUST be called with a current GL context; cheap

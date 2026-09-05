@@ -84,6 +84,39 @@ top-level window.
 `Engine::AppMode` distinguishes the two processes at runtime and gates the authoring-only
 behaviour that would otherwise write into a read-only install. See `Engine/CLAUDE.md`.
 
+## Testing & CI
+
+`Tests/` is a headless doctest suite over `RockEngineCore` (`RockEngineTests`). Run it with
+the same preset CI uses, which needs **no Qt** and builds into its own directory:
+
+```sh
+cmake --preset ci-windows        # or ci-linux
+cmake --build --preset ci-windows
+ctest --preset ci-windows
+```
+
+(VS Code: the **RockEngine: test** task does all three.) It takes seconds — `ROCKENGINE_BUILD_EDITOR=OFF`
+skips Qt and moc entirely, and `ROCKENGINE_STAGE_PLAYER_RUNTIME=OFF` skips the CPython
+standard-library copy.
+
+**The rule for what goes in `Tests/`: no GPU, no window, no Qt, and no `Engine::PostInit()`**
+(which opens an audio device and calls `SDL_Init`). `Engine::Init()` itself is window- and
+GL-free, so a second tier covering `Scene` snapshot/restore, the `Container::Copy()` play-mode
+invariant, `UndoSystem`/`commands/` and `PhysicsSystem` stepping is possible and not yet
+written. Anything needing a GL context belongs in the `verify` skill, not here.
+
+`Tests/engine/SerializationRoundTripTests.cpp` is **data-driven over
+`SerializableFactory::GetRegisteredTypeNames()`** — register a new component in
+`ComponentRegistrars.cpp` and it is immediately covered for factory creation, YAML round-trip
+stability and `Copy()` fidelity (the play-mode deep-copy invariant). Write a dedicated test
+only for behaviour beyond that contract.
+
+`.github/workflows/ci.yml` runs the same suite on `ubuntu-latest` with GCC on every push and
+PR. It builds Engine + Player + tests but **not** the editor — the editor is exercised
+constantly by local Windows builds, whereas GCC catches what MSVC never will (missing
+transitive includes, stricter `-Wall -Wextra`). Adding an editor job is a ~20-line follow-up
+using `jurplel/install-qt-action`.
+
 ## Repo-wide conventions
 
 - C++20. MSVC: `/Zc:__cplusplus`, `/EHsc`. GCC/Clang: `-Wall -Wextra`.

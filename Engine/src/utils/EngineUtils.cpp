@@ -65,7 +65,20 @@ namespace EngineUtils {
         std::error_code ec;
         fs::path rel = fs::relative(fs::path(absPath), fs::path(GetAssetRoot()), ec);
         if (ec || rel.empty()) return absPath;
-        return rel.generic_string();
+
+        // fs::relative happily walks OUT of the root with "..", and such a path is not
+        // "relative to the asset root" in any sense a reader can use: every consumer feeds
+        // these back through GetAssetPath, which resolves them against the *player's*
+        // install directory. A stored "../../foo.scene" therefore lands somewhere arbitrary
+        // on the target machine -- the exact failure the absolute path was being converted
+        // to avoid. The documented contract is to hand the absolute path back untouched, so
+        // the caller can see it is out of range instead of silently getting a broken one.
+        // (Only reached for same-volume paths; a different Windows drive already errors out
+        // of fs::relative above, which is why this went unnoticed.)
+        const std::string generic = rel.generic_string();
+        if (generic == ".." || generic.rfind("../", 0) == 0) return absPath;
+
+        return generic;
     }
 
     std::string GenerateUUID() {

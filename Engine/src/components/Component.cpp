@@ -12,9 +12,16 @@ bool Component::IsSingleton(const std::string& typeName) {
 
 void Component::Deserialize(const YAML::Node& node){
     Serializable::Deserialize(node);
-    gameobject_id = node["gameobject"].as<std::string>();
-    enabled = node["enabled"].as<bool>();
-
+    // Guarded rather than read straight through: `.as<T>()` on a missing key throws, so a
+    // component node written before either field existed -- or hand-edited, or truncated --
+    // took down the whole scene load with a yaml-cpp exception instead of loading with
+    // sensible defaults. `enabled` defaults true because that is a Component's own default;
+    // an absent `gameobject` leaves the id empty, which GetGameObject already treats as
+    // "not attached".
+    if (node["gameobject"])
+        gameobject_id = node["gameobject"].as<std::string>();
+    if (node["enabled"])
+        enabled = node["enabled"].as<bool>(true);
 }
 
 void Component::SetGameObject(GameObject* obj){

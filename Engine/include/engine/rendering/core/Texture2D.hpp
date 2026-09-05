@@ -66,7 +66,7 @@ public:
 
     void ApplySettings() const;
 
-    std::string GetTypeName() {return "Texture2D";};
+    std::string GetTypeName() const override {return "Texture2D";};
 
     void Accept(IVisitor* v) override;
 

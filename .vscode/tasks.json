@@ -19,6 +19,25 @@
             },
             "problemMatcher": ["$gcc", "$msCompile"],
             "detail": "Build with the 'local' preset."
+        },
+        {
+            "label": "RockEngine: configure tests",
+            "type": "shell",
+            "command": "cmake --preset ci-windows",
+            "problemMatcher": [],
+            "detail": "Configure the headless test lane. Needs no Qt; separate build dir from 'local'."
+        },
+        {
+            "label": "RockEngine: test",
+            "type": "shell",
+            "command": "cmake --build --preset ci-windows && ctest --preset ci-windows",
+            "dependsOn": ["RockEngine: configure tests"],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": ["$msCompile"],
+            "detail": "Build and run the headless unit tests -- the same lane CI runs on Linux."
         }
     ]
 }

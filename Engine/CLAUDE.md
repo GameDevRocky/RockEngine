@@ -73,8 +73,8 @@ System / Component is an event source.
   `bool()` and `bool(std::any)` (payload-carrying).
 
 **Subscribe** — `Subscribe(lambda, event = ANY_EVENT)` returns an int id (for
-`Unsubscribe(id)`). `ANY_EVENT` (default) receives every notify on that object except
-`ALL_EVENT` broadcasts; a specific id receives only that event.
+`Unsubscribe(id)`). `ANY_EVENT` (default) receives every notify on that object, `ALL_EVENT`
+broadcasts included; a specific id receives only that event (and `ALL_EVENT`).
 
 **Notify** (`Notify(event = ANY_EVENT, data = {})`):
 1. Copy the matching callbacks first (handlers may safely (un)subscribe during dispatch).
@@ -84,9 +84,11 @@ System / Component is an event source.
 4. **A callback that returns `false` is auto-unsubscribed** — return `true` to persist,
    `false` for a one-shot handler. This is the core idiom.
 
-**Gotchas** — `ANY_EVENT` listeners do **not** hear `ALL_EVENT` broadcasts. Payload is
-type-erased `std::any`; sender and handler must agree on the type (commonly the object's
-string `id`, e.g. `Notify(SHUTDOWN_EVENT, id)`).
+**Gotchas** — `Notify(ALL_EVENT)` walks **every** bucket, so `ANY_EVENT` listeners *do* hear
+it; the asymmetry runs the other way — a plain `Notify(ANY_EVENT)` reaches only `ANY_EVENT`
+subscribers and never a specific event's. Payload is type-erased `std::any`; sender and
+handler must agree on the type (commonly the object's string `id`, e.g.
+`Notify(SHUTDOWN_EVENT, id)`). These rules are pinned by `Tests/engine/ObservableTests.cpp`.
 
 ## Serialization
 
@@ -117,7 +119,8 @@ resolved-component cache is invalidated and `COMPONENT_ORDER_CHANGED_EVENT` is e
   `LoadFromDirectory()` scans recursively for meta files and registers them.
 - **`AssetMetaService`** — generates "meta" descriptor files next to source assets:
   - `foo.png` → `foo.png.texture` (Texture2D)
-  - `foo.vert` (+`.frag`) → `foo.vert.shader` (Shader)
+  - `foo.glsl` → `foo.glsl.shader` (Shader) — one combined file, split by
+    `#pragma vertex` / `#pragma fragment`
   - `foo.mat` → Material (already a definition file)
   - `.sprite` files describe Sprites.
   Meta files are YAML carrying a `type:` field for factory dispatch. IDs are the sanitized

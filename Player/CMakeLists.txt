@@ -62,9 +62,14 @@ endif()
 #
 # No pip install step: requirements.txt contains only `watchdog`, which exists for
 # FileWatcherSystem's hot-reload, and AppMode::Player does not construct that system.
+#
+# ROCKENGINE_STAGE_PLAYER_RUNTIME exists for CI. The copy below is stamped, so locally it
+# runs once and never again -- but a CI runner starts from an empty build dir every time and
+# would pay the full standard-library copy (~2 minutes) on every single run, to produce
+# something no test ever reads. CI turns it off; every other build leaves it on.
 find_package(Python3 3.10 QUIET COMPONENTS Interpreter Development)
 
-if(Python3_FOUND)
+if(Python3_FOUND AND ROCKENGINE_STAGE_PLAYER_RUNTIME)
 	set(_runtime_dir "${CMAKE_BINARY_DIR}/bin/player-runtime")
 	set(_runtime_stamp "${CMAKE_BINARY_DIR}/player-runtime.stamp")
 
@@ -155,7 +160,9 @@ if(Python3_FOUND)
 	)
 	add_custom_target(RockEnginePlayerRuntime DEPENDS "${_runtime_stamp}")
 	add_dependencies(RockEnginePlayer RockEnginePlayerRuntime)
-else()
+elseif(NOT Python3_FOUND)
+	# Only a problem when Python is genuinely missing. Staging switched off on purpose
+	# (CI) is not worth warning about every configure.
 	message(WARNING
 		"Python3 not found: RockEnginePlayer will build, but no shippable Python runtime "
 		"will be staged and game builds will not run on machines without Python.")

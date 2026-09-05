@@ -101,7 +101,7 @@ class GameObject : public RuntimeObject {
     std::vector<Component*> GetAllComponents();
     
     Transform* GetTransform();
-    std::string GetTypeName() override {return "GameObject";}
+    std::string GetTypeName() const override {return "GameObject";}
     void Accept(IVisitor* v) override;
     void SetName(const std::string& name);
     std::string GetName() {return name;}

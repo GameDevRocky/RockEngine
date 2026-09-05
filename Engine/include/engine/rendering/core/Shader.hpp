@@ -19,7 +19,7 @@ public:
     void Bind() const;
     void Unbind() const;
 
-    std::string GetTypeName() {return "Shader";};
+    std::string GetTypeName() const override {return "Shader";};
 
     void Accept(IVisitor* v) override;
 

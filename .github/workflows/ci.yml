@@ -1,0 +1,80 @@
+# Headless CI for RockEngine.
+#
+# What this lane is for, and what it deliberately is not:
+#
+#   It builds RockEngineCore + RockEnginePlayer + the unit tests on Linux/GCC and runs the
+#   tests. It does NOT build the Qt editor. That is a deliberate trade -- the editor is
+#   built on Windows/MSVC constantly during normal development, so breakage there surfaces
+#   within minutes anyway, while GCC catches a genuinely different class of problem (missing
+#   transitive includes, stricter -Wall -Wextra, UB that MSVC tolerates) that nothing else
+#   here would ever catch.
+#
+#   No GPU, no window, no display. Everything in Tests/ is pure logic by construction; if a
+#   test ever needs a GL context it belongs somewhere else, not in this job.
+#
+# To add editor coverage later: a second job with jurplel/install-qt-action and
+# ROCKENGINE_BUILD_EDITOR=ON compiles it without running it. Linux runners bill at 1x where
+# Windows bills at 2x, so that is the cheap way to get it.
+
+name: CI
+
+on:
+  push:
+    branches: [main, cicd]
+  pull_request:
+
+# A new push to the same branch makes the in-flight run obsolete.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  linux-headless:
+    name: Linux · Engine + tests (GCC)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          # The External/ tree is all submodules and the build cannot configure without it.
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build \
+            python3-dev \
+            libgl1-mesa-dev \
+            libegl1-mesa-dev \
+            libx11-dev \
+            libxext-dev \
+            libxrandr-dev \
+            libxi-dev \
+            libxcursor-dev \
+            libxfixes-dev \
+            libwayland-dev \
+            libxkbcommon-dev
+          # python3-dev: RockEngineCore links Python3::Python and pybind11::embed, so the
+          #   test binary needs libpython to LINK even though these tests never start an
+          #   interpreter.
+          # The X11/Wayland/GL set: External/CMakeLists.txt force-sets SDL_VIDEO=ON for
+          #   RockEnginePlayer. Without these SDL silently configures with no video backend
+          #   -- it still builds, so the failure would only appear in a shipped game.
+          # No ALSA/Pulse: SDL_AUDIO is off, miniaudio owns audio.
+
+      - name: Set up ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ci-linux
+          max-size: 500M
+
+      - name: Configure
+        run: cmake --preset ci-linux -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build engine, player and tests
+        run: cmake --build --preset ci-linux
+
+      - name: Run tests
+        run: ctest --preset ci-linux

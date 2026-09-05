@@ -204,6 +204,19 @@ void Scene::Deserialize(const YAML::Node &data)
         std::string typeName = compNode["type"].as<std::string>();
         auto* created = SerializableFactory::Create(typeName);
         Component* comp = dynamic_cast<Component*>(created);
+        // Both halves can legitimately fail on a scene this build cannot fully understand:
+        // Create returns null for a type that is not registered (a scene saved by a newer
+        // build, or a component that was renamed/removed), and the dynamic_cast returns
+        // null for a registered type that is not a Component. Dereferencing either was a
+        // null-deref crash on load -- losing the whole scene over one unknown entry. Skip
+        // the component, keep the rest of the scene, and say which type went missing.
+        if (!comp)
+        {
+            Console::Alert("Scene '" + name + "': skipping unknown component type '"
+                           + typeName + "'.");
+            delete created;   // no-op when null; cleans up a non-Component that was created
+            continue;
+        }
         comp->Attach(container);
         comp->Deserialize(compNode);
         registry->Register(comp);

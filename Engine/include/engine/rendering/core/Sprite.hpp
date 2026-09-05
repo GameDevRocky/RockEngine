@@ -24,7 +24,7 @@ public:
     void Deserialize(const YAML::Node& node) override;
     void Awake() override;
 
-    std::string GetTypeName() override {return "Sprite";};
+    std::string GetTypeName() const override {return "Sprite";};
 
     glm::vec2 GetUVMin() {return uvMin;}
     glm::vec2 GetUVMax() {return uvMax;}

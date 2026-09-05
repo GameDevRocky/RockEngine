@@ -22,7 +22,7 @@ public:
     void Deserialize(const YAML::Node& node) override;
     void Awake() override;
 
-    std::string GetTypeName() override {return "Material";};
+    std::string GetTypeName() const override {return "Material";};
 
 
     void SetShader(std::string& id);

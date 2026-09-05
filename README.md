@@ -89,6 +89,26 @@ variable to your Qt install and use the per-OS presets directly:
 
 ---
 
+## Tests
+
+`Tests/` holds a headless [doctest](https://github.com/doctest/doctest) suite over the engine
+core — serialization round-trips, id remapping, the event system, the asset-meta conventions
+and the pure math. No GPU, no window, and **no Qt required**:
+
+```sh
+cmake --preset ci-windows        # or ci-linux / ci-macos-style equivalent
+cmake --build --preset ci-windows
+ctest --preset ci-windows
+```
+
+It builds into `build/ci-windows/` (separate from your `local` build) and runs in well under a
+second. In VS Code, the **RockEngine: test** task does all three steps.
+
+GitHub Actions runs the identical suite on Linux/GCC for every push and pull request
+(`.github/workflows/ci.yml`).
+
+---
+
 ## Project layout
 
 | Path | What it is |

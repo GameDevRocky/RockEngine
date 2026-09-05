@@ -15,7 +15,12 @@ public:
 
     virtual void Deserialize(const YAML::Node& node);
 
-    virtual std::string GetTypeName(){return "Serializable";};
+    // const so that Component's `GetTypeName() const = 0` genuinely OVERRIDES this rather
+    // than declaring a second, separate virtual that merely overloads it. While the two
+    // differed in constness, calling GetTypeName() through a Serializable* -- which is
+    // exactly what SerializableFactory::Create() hands back -- dispatched here and returned
+    // "Serializable" for every component in the engine.
+    virtual std::string GetTypeName() const { return "Serializable"; };
 
     void SetID(const std::string& id) { this->id = id; }
     const std::string& GetID() const { return id; }

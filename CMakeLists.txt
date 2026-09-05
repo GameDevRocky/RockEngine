@@ -24,19 +24,43 @@ endif()
  
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTORCC ON) 
+# --- What to build ---------------------------------------------------------------------
+# All three default to the full local-dev build, so the normal `--preset local` workflow is
+# unchanged. They exist for CI, which wants a fast headless lane: Engine + tests only, with
+# no Qt to find and no CPython standard library to copy. See the `ci-*` presets.
+option(ROCKENGINE_BUILD_EDITOR         "Build the Qt6 editor (RockEngineEditor + RockEngineLauncher)" ON)
+option(ROCKENGINE_BUILD_TESTS          "Build the headless unit tests (RockEngineTests)"              OFF)
+option(ROCKENGINE_STAGE_PLAYER_RUNTIME "Stage the shippable Python runtime beside the Player"         ON)
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets Network)
+# AUTOMOC/AUTOUIC/AUTORCC exist for the Editor alone -- it is the only target with Q_OBJECT
+# in it. Engine/ and Player/ were being moc-scanned for nothing (Player already opted out
+# per-target; see the comment in Player/CMakeLists.txt), so these are scoped to the editor
+# build rather than set globally.
+if(ROCKENGINE_BUILD_EDITOR)
+    set(CMAKE_AUTOMOC ON)
+    set(CMAKE_AUTOUIC ON)
+    set(CMAKE_AUTORCC ON)
+
+    find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets OpenGLWidgets Network)
+endif()
 
 add_subdirectory(External)
 add_subdirectory(Engine)
-add_subdirectory(Editor)
+if(ROCKENGINE_BUILD_EDITOR)
+    add_subdirectory(Editor)
+endif()
 # The standalone game executable. Links RockEngineCore only -- no Qt, no Editor. The
 # editor's Build window copies the binary this produces into each game build, which is why
 # it is built alongside the editor rather than on demand (Unity's "export template" model).
 add_subdirectory(Player)
+
+# Headless unit tests over RockEngineCore. No Qt, no GPU, no window -- see Tests/CMakeLists.txt.
+if(ROCKENGINE_BUILD_TESTS)
+    enable_testing()
+    add_subdirectory(Tests)
+endif()
+
+if(ROCKENGINE_BUILD_EDITOR)
 
 add_executable(RockEngineLauncher src/main.cpp)
 
@@ -105,3 +129,5 @@ if(ROCKENGINE_BUNDLE_PYTHON)
         VERBATIM
     )
 endif()
+
+endif() # ROCKENGINE_BUILD_EDITOR
