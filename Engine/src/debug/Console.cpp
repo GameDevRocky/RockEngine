@@ -45,18 +45,50 @@ void Console::CreateMessage(std::string text, std::string type, const std::sourc
     if (it == instance.messages.end()) {
         Message* msg = new Message(text, type, function, file_name, std::to_string(line), time_stamp);
         instance.messages[key] = msg;
-        
+        instance.insertion_order.push_back(key);
+
         msg->Notify();
+        EvictOverflow();
+
+        // The key rides along so ConsoleGui can add exactly this one widget. Without it the
+        // editor had to rescan the whole map on every message to find what was new, which is
+        // O(n) per log line inside the frame loop.
+        Get().Notify(Console::NEW_MESSAGE_EVENT, key);
     } else {
         Message* msg = it->second;
         msg->count++;
         msg->count = msg->count > 999 ? 999 : msg->count;
         msg->time_stamp = time_stamp;
+        // A repeat needs no new widget: MessageGui subscribes to its own Message and
+        // refreshes its count off this notify. Deliberately does NOT re-stamp the key's
+        // position in insertion_order -- eviction ages by first sighting, so a message
+        // repeating forever cannot pin the queue and starve out newer ones.
         msg->Notify();
-    }
-    
-    Get().Notify(Console::NEW_MESSAGE_EVENT);
 
+        Get().Notify(Console::NEW_MESSAGE_EVENT, key);
+    }
+}
+
+void Console::EvictOverflow() {
+    Console& instance = Get();
+    while (instance.messages.size() > kMaxMessages && !instance.insertion_order.empty()) {
+        const std::string oldest = instance.insertion_order.front();
+        instance.insertion_order.pop_front();
+
+        auto victim = instance.messages.find(oldest);
+        if (victim == instance.messages.end())
+            continue;   // already gone via Clear(); the queue entry was just stale
+
+        Message* dying = victim->second;
+        instance.messages.erase(victim);
+
+        // Destroy() before delete, and in that order. It flips isDestroyed and notifies,
+        // which is what makes MessageGui drop itself out of ConsoleGui::message_widgets and
+        // deleteLater() its widget. Freeing the Message without that leaves the editor
+        // holding a widget pointed at freed memory.
+        dying->Destroy();
+        delete dying;
+    }
 }
 
 void Console::Comment(const std::string &message,
@@ -80,9 +112,14 @@ void Console::Alert(const std::string &message,
 
 void Console::Clear(){
     for (auto& [_, msg] : Get().messages){
+        // Same order as EvictOverflow: Destroy() detaches the editor's widget, then the
+        // Message itself goes. This used to stop at Destroy(), so every message ever logged
+        // stayed allocated for the life of the process even after the panel looked empty.
         msg->Destroy();
+        delete msg;
     }
     Get().messages.clear();
+    Get().insertion_order.clear();
     Get().Notify(Console::CLEAR_EVENT);
     Console::Warn("Cleared");
 

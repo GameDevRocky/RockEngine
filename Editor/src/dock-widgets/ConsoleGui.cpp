@@ -33,9 +33,16 @@ ConsoleGui::ConsoleGui(QWidget* parent) : QWidget(parent)
     mainLayout->setContentsMargins(0,0,0,0);
     setLayout(mainLayout);
     resize(720, 200);
+    // Payload overload: Console sends the key of the message it just touched, so this adds
+    // one widget instead of rescanning the whole map looking for what changed. This runs
+    // synchronously inside Engine::Update() (Observable::Notify calls its subscribers
+    // directly on the calling thread), so its cost lands straight on frame time -- keep it
+    // proportional to the one new message, never to the number of messages held.
     Console::Get().Subscribe(
-        [this](){this->GenerateWidgets(); 
-        return true;
+        [this](std::any data) {
+            if (data.has_value() && data.type() == typeid(std::string))
+                this->AddWidget(std::any_cast<std::string>(data));
+            return true;
         }, Console::NEW_MESSAGE_EVENT);
 
     connect(clear_button, &QPushButton::clicked, [](bool) {
@@ -67,9 +74,31 @@ void ConsoleGui::GenerateWidgets()
         }
     }
 
+    // One relayout for the whole batch, not one per widget.
     if (added) {
         scrollLayout->parentWidget()->adjustSize();
         scrollLayout->update();
         content->updateGeometry();
     }
+}
+
+void ConsoleGui::AddWidget(const std::string& key)
+{
+    // Already shown: this was a repeat, and the MessageGui refreshes its own count off the
+    // Message's notify. Nothing to build.
+    if (message_widgets.find(key) != message_widgets.end())
+        return;
+
+    auto& messages = Console::Get().GetMessages();
+    auto it = messages.find(key);
+    if (it == messages.end())
+        return;     // evicted between the notify and here; nothing to show
+
+    MessageGui* gui = new MessageGui(this, it->second);
+    scrollLayout->addWidget(gui);
+    message_widgets.emplace(key, gui);
+
+    scrollLayout->parentWidget()->adjustSize();
+    scrollLayout->update();
+    content->updateGeometry();
 }
