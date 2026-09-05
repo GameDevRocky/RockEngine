@@ -2,6 +2,7 @@
 #include "dock-widgets/ConsoleGui.hpp"
 #include "dock-widgets/GameViewGui.hpp"
 #include "dock-widgets/SceneViewGui.hpp"
+#include "utils/NavigationHistory.hpp"
 #include "dock-widgets/HierarchyGui.hpp"
 #include "dock-widgets/InspectorGui.hpp"
 #include "dock-widgets/FileExplorerGui.hpp"
@@ -74,14 +75,23 @@ void MainWindow::Init()
 
     setCentralWidget(viewportArea);
 
+    // Among tabified docks only the raised one is visible, so this signal is also the
+    // "viewport tab changed" signal -- which is why both the frame driver and the
+    // navigation history hang off it. RecordCurrent self-filters no-op states and
+    // no-ops entirely while the history is applying a Back/Forward.
     connect(sceneviewDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
         if (visible)                         Editor::Get()->SetFrameDriver(SceneViewGui::Get());
         else if (gameviewDock->isVisible())  Editor::Get()->SetFrameDriver(GameViewGui::Get());
+        if (visible)                         NavigationHistory::Get()->RecordCurrent();
     });
     connect(gameviewDock, &QDockWidget::visibilityChanged, this, [this](bool visible) {
         if (visible)                          Editor::Get()->SetFrameDriver(GameViewGui::Get());
         else if (sceneviewDock->isVisible())  Editor::Get()->SetFrameDriver(SceneViewGui::Get());
+        if (visible)                          NavigationHistory::Get()->RecordCurrent();
     });
+
+    NavigationHistory::Get()->RegisterViewportDock(sceneviewDock);
+    NavigationHistory::Get()->RegisterViewportDock(gameviewDock);
 
     hierarchyDock = new QDockWidget("Hierarchy", this);
     hierarchyDock->setWidget(hierarchy);
@@ -166,9 +176,17 @@ void MainWindow::ShowAnimator(){
                                   QDockWidget::DockWidgetClosable);
         viewportArea->addDockWidget(Qt::LeftDockWidgetArea, animatorDock);
         viewportArea->tabifyDockWidget(sceneviewDock, animatorDock);
+
+        // Created lazily, so it registers here rather than alongside the other two.
+        // Registering is idempotent, which is what makes this safe on a dock that is
+        // only built the first time the Animator is opened.
+        NavigationHistory::Get()->RegisterViewportDock(animatorDock);
+        connect(animatorDock, &QDockWidget::visibilityChanged, this, [](bool visible) {
+            if (visible) NavigationHistory::Get()->RecordCurrent();
+        });
     }
-    animatorDock->show(); 
-    animatorDock->raise();    
+    animatorDock->show();
+    animatorDock->raise();
 }
 
 void MainWindow::SaveLayout()

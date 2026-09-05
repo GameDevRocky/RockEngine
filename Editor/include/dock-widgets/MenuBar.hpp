@@ -45,6 +45,8 @@ private:
     // Pushes the current history state onto the two QActions: enabled/disabled
     // plus the "Undo Change Rotation" style text.
     void RefreshUndoActions();
+    // Enables/disables Back and Forward from the navigation history's cursor.
+    void RefreshNavigationActions();
 
     bool initialized_ = false;
     int m_undoSubId = -1;
@@ -63,6 +65,9 @@ private:
 
     QAction* undoAction = nullptr;
     QAction* redoAction = nullptr;
+
+    QAction* backAction = nullptr;
+    QAction* forwardAction = nullptr;
 
     QAction* resetLayoutAction = nullptr;
 

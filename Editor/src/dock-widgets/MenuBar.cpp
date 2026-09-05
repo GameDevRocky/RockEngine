@@ -4,6 +4,7 @@
 #include "Engine.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/core/UndoSystem.hpp"
+#include "utils/NavigationHistory.hpp"
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent) {}
 
@@ -73,6 +74,33 @@ void MenuBar::Init() {
         if (auto* undoSystem = ActiveUndoSystem()) undoSystem->Redo();
     });
 
+    editMenu->addSeparator();
+
+    // Navigation, deliberately SEPARATE from Undo/Redo rather than folded into it.
+    // Back/Forward move through view state -- which viewport tab is raised and what is
+    // selected -- while Undo moves through changes to the document. Sharing one stack
+    // would let a minute of clicking around push real edits off the end of the 100-entry
+    // undo history, and would make Ctrl+Z unpredictable. See NavigationHistory.
+    backAction = editMenu->addAction("Back");
+    forwardAction = editMenu->addAction("Forward");
+
+    // Alt+Left / Alt+Right: the browser convention, and free of collisions here.
+    backAction->setShortcut(QKeySequence(QStringLiteral("Alt+Left")));
+    forwardAction->setShortcut(QKeySequence(QStringLiteral("Alt+Right")));
+
+    // Application-scoped for the same reason Undo/Redo are: a WindowShortcut would not
+    // fire while a QOpenGLWidget viewport has focus, which is exactly where you are when
+    // you want to step back to the last thing you had selected.
+    backAction->setShortcutContext(Qt::ApplicationShortcut);
+    forwardAction->setShortcutContext(Qt::ApplicationShortcut);
+
+    connect(backAction, &QAction::triggered, this, []() {
+        NavigationHistory::Get()->Back();
+    });
+    connect(forwardAction, &QAction::triggered, this, []() {
+        NavigationHistory::Get()->Forward();
+    });
+
     resetLayoutAction = windowMenu->addAction("Reset Layout");
 
     aboutAction = helpMenu->addAction("About RockEngine");
@@ -86,6 +114,7 @@ void MenuBar::Init() {
     connect(aboutAction, &QAction::triggered, this, &MenuBar::AboutRequested);
 
     RefreshUndoActions();
+    RefreshNavigationActions();
     initialized_ = true;
 }
 
@@ -94,6 +123,13 @@ void MenuBar::PostInit() {
     // UndoSystem, so the subscription has to be remade on both sides of the
     // play-mode swap — the editor's system object is not the runtime one.
     SubscribeToUndoSystem();
+
+    // Same deferral, same reason: the navigation history needs the container's
+    // SelectionManager. It handles its own play-mode re-subscription internally.
+    NavigationHistory::Get()->PostInit();
+    connect(NavigationHistory::Get(), &NavigationHistory::HistoryChanged,
+            this, &MenuBar::RefreshNavigationActions);
+    RefreshNavigationActions();
 
     Engine::Get()->Subscribe([this]() {
         SubscribeToUndoSystem();
@@ -144,4 +180,12 @@ void MenuBar::RefreshUndoActions() {
     redoAction->setText(canRedo
         ? QStringLiteral("Redo %1").arg(QString::fromStdString(undoSystem->RedoText()))
         : QStringLiteral("Redo"));
+}
+
+void MenuBar::RefreshNavigationActions() {
+    if (!backAction || !forwardAction) return;
+
+    auto* history = NavigationHistory::Get();
+    backAction->setEnabled(history->CanGoBack());
+    forwardAction->setEnabled(history->CanGoForward());
 }
