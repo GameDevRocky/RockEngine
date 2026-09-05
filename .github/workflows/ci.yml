@@ -35,7 +35,7 @@ jobs:
 
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # The External/ tree is all submodules and the build cannot configure without it.
           submodules: recursive
@@ -54,15 +54,32 @@ jobs:
             libxi-dev \
             libxcursor-dev \
             libxfixes-dev \
+            libxss-dev \
+            libxtst-dev \
+            libxkbcommon-dev \
             libwayland-dev \
-            libxkbcommon-dev
+            wayland-protocols \
+            libdecor-0-dev \
+            libdrm-dev \
+            libgbm-dev \
+            libudev-dev \
+            libdbus-1-dev
           # python3-dev: RockEngineCore links Python3::Python and pybind11::embed, so the
           #   test binary needs libpython to LINK even though these tests never start an
           #   interpreter.
-          # The X11/Wayland/GL set: External/CMakeLists.txt force-sets SDL_VIDEO=ON for
-          #   RockEnginePlayer. Without these SDL silently configures with no video backend
-          #   -- it still builds, so the failure would only appear in a shipped game.
-          # No ALSA/Pulse: SDL_AUDIO is off, miniaudio owns audio.
+          #
+          # Everything else is SDL3. External/CMakeLists.txt force-sets SDL_VIDEO=ON for
+          # RockEnginePlayer, and SDL does NOT quietly disable a backend whose headers are
+          # missing -- each SDL_X11_*/SDL_WAYLAND/SDL_KMSDRM option is default-ON and calls
+          # SDL_missing_dependency(), which is a hard CMake error. So this is deliberately
+          # the whole documented Linux set rather than the minimum that got past the last
+          # failure; discovering them one CI run at a time is a slow game of whack-a-mole.
+          #   libxss-dev  -> SDL_X11_XSCRNSAVER      libxtst-dev    -> SDL_X11_XTEST
+          #   libdrm/gbm  -> SDL_KMSDRM             libdecor-0-dev -> SDL_WAYLAND_LIBDECOR
+          #   wayland-protocols is needed to generate the Wayland client headers.
+          # (XDBE/XSHAPE/XSYNC ride along on libxext-dev.)
+          #
+          # No ALSA/Pulse/JACK: SDL_AUDIO is off, miniaudio owns audio.
 
       - name: Set up ccache
         uses: hendrikmuhs/ccache-action@v1.2
