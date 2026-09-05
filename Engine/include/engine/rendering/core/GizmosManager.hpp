@@ -43,6 +43,13 @@ public:
     // reports, and the editor decides whether the gesture is worth recording.
     static inline const Event EDIT_COMMITTED_EVENT = Observable::CreateEvent();
 
+    // The active tool changed: operation (translate/rotate/scale/...) or edit
+    // mode (transform/collider/sprite-box). Payload-free; subscribers re-read.
+    // Exists so the toolbar's tool buttons can follow the engine instead of
+    // polling GetOperation()/GetEditMode() every frame -- the tool changes when
+    // a user clicks, which is not a per-frame event.
+    static inline const Event TOOL_CHANGED_EVENT = Observable::CreateEvent();
+
     static GizmosManager* Get()
     {
         if (!instance) instance = new GizmosManager();
@@ -55,10 +62,13 @@ public:
 
     void DrawGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight);
 
-    void SetOperation(ImGuizmo::OPERATION op) { m_currentOperation = op; }
+    // Both notify TOOL_CHANGED_EVENT, and both are no-ops when the value is
+    // unchanged -- the toolbar calls SetEditMode(Transform) on every tool click,
+    // including re-clicks of the already-active tool.
+    void SetOperation(ImGuizmo::OPERATION op);
     ImGuizmo::OPERATION GetOperation() const { return m_currentOperation; }
 
-    void SetEditMode(EditMode mode) { m_editMode = mode; }
+    void SetEditMode(EditMode mode);
     EditMode GetEditMode() const { return m_editMode; }
 
     // Whether the transform gizmo should snap to the grid during a drag. Set by

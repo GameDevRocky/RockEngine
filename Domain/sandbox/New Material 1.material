@@ -1,20 +1,18 @@
 type: Material
 name: New Material 1
 id: 51c31cd30d572a21bdb1409464867b25
-shader_id: s9
+shader_id: s7
 uniforms:
   textures:
     uTexture: ""
   floats:
-    {}
+    uInvertAmount: 1
   vec2:
     uUVScale: [1, 1]
-    uUVOffset: [-0.7, 0]
-    uSize: [1, 1]
-    uPivot: [1, 1]
-    uShadowOffset: [-0.65, -0.05]
+    uUVOffset: [1.4901161e-09, 0]
+    uSize: [-1, 1]
+    uPivot: [1.1, 1]
   vec3:
     {}
   vec4:
-    uColor: [1, 1, 1, 1]
-    uShadowColor: [0, 0, 0, 0.5]
+    uColor: [0.75686276, 1, 0.74509805, 1]

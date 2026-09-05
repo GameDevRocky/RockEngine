@@ -1,4 +1,5 @@
 #include "dock-widgets/SceneViewGui.hpp"
+#include "dock-widgets/SceneToolbars.hpp"
 #include "engine/core/InputManager.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include <glm/glm.hpp>
@@ -36,16 +37,9 @@
 #include "engine/serialization/Registry.hpp"
 #include "engine/core/Scene.hpp"
 #include "engine/core/GameObject.hpp"
-#include "utils/ProperyFactory.hpp"
 #include <yaml-cpp/yaml.h>
 #include <QGuiApplication>
 #include <QApplication>
-#include <QFontDatabase>
-#include <QFrame>
-#include <QLabel>
-#include <QToolButton>
-#include <QVBoxLayout>
-#include <functional>
 #include <memory>
 #include <vector>
 #include <cfloat>
@@ -125,381 +119,6 @@ namespace {
 
 
 
-class DraggableSceneToolbar final : public QWidget {
-public:
-    explicit DraggableSceneToolbar(QWidget* parent)
-        : QWidget(parent)
-    {
-        setObjectName("SceneNativeToolbar");
-        setCursor(Qt::OpenHandCursor);
-        setAttribute(Qt::WA_StyledBackground, true);
-        setStyleSheet(
-            "#SceneNativeToolbar {"
-            "  background-color: rgba(42, 42, 42, 235);"
-            "  border: 1px solid rgb(78, 78, 78);"
-            "  border-radius: 4px;"
-            "}"
-            "#SceneNativeToolbar QToolButton {"
-            "  color: white;"
-            "  background-color: rgb(51, 51, 51);"
-            "  border: 1px solid rgb(72, 72, 72);"
-            "  border-radius: 3px;"
-            "}"
-            "#SceneNativeToolbar QToolButton:hover {"
-            "  background-color: rgb(82, 174, 82);"
-            "}"
-            "#SceneNativeToolbar QToolButton:checked,"
-            "#SceneNativeToolbar QToolButton:pressed {"
-            "  background-color: rgb(66, 148, 66);"
-            "}"
-            "#SceneNativeToolbar QDoubleSpinBox {"
-            "  color: white;"
-            "  background-color: rgb(51, 51, 51);"
-            "  border: 1px solid rgb(72, 72, 72);"
-            "  border-radius: 3px;"
-            "  selection-background-color: rgb(66, 148, 66);"
-            "}"
-            "#SceneToolbarContents {"
-            "  background: transparent;"
-            "  border: none;"
-            "}"
-            "#SceneNativeToolbar #SceneToolbarCollapse {"
-            "  background: transparent;"
-            "  border: 1px solid transparent;"
-            "}"
-            "#SceneNativeToolbar #SceneToolbarCollapse:hover {"
-            "  background-color: rgb(59, 59, 59);"
-            "}"
-        );
-
-        auto* layout = new QVBoxLayout(this);
-        layout->setContentsMargins(6, 5, 6, 6);
-        layout->setSpacing(3);
-        layout->setAlignment(Qt::AlignHCenter);
-        layout->setSizeConstraint(QLayout::SetFixedSize);
-
-        auto* handle = new QLabel(QStringLiteral("•••"), this);
-        handle->setAlignment(Qt::AlignCenter);
-        handle->setFixedHeight(14);
-        handle->setToolTip(QStringLiteral("Drag toolbar"));
-        handle->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-        handle->setStyleSheet("color: rgb(135, 135, 135); background: transparent;");
-        layout->addWidget(handle);
-
-        m_collapse = new QToolButton(this);
-        m_collapse->setObjectName(QStringLiteral("SceneToolbarCollapse"));
-        m_collapse->setFixedSize(kControlWidth, 18);
-        m_collapse->setFocusPolicy(Qt::NoFocus);
-        m_collapse->setCursor(Qt::PointingHandCursor);
-        m_collapse->setArrowType(Qt::UpArrow);
-        m_collapse->setToolTip(QStringLiteral("Collapse toolbar"));
-        connect(m_collapse, &QToolButton::clicked, this,
-                [this] { SetCollapsed(!m_collapsed); });
-        layout->addWidget(m_collapse, 0, Qt::AlignHCenter);
-
-        m_contents = new QWidget(this);
-        m_contents->setObjectName(QStringLiteral("SceneToolbarContents"));
-        m_contents->setAttribute(Qt::WA_StyledBackground, true);
-        auto* controlsLayout = new QVBoxLayout(m_contents);
-        controlsLayout->setContentsMargins(0, 0, 0, 0);
-        controlsLayout->setSpacing(3);
-        controlsLayout->setAlignment(Qt::AlignHCenter);
-        layout->addWidget(m_contents, 0, Qt::AlignHCenter);
-
-        const int fontId = QFontDatabase::addApplicationFont(QString::fromStdString(
-            EngineUtils::GetAssetPath("Domain/lib/assets/fonts/Font Awesome 7 Free-Solid-900.otf")));
-        if (fontId >= 0) {
-            const QStringList families = QFontDatabase::applicationFontFamilies(fontId);
-            if (!families.empty()) {
-                m_iconFont = QFont(families.front());
-                m_iconFont.setPixelSize(14);
-            }
-        }
-
-        m_hand = AddButton(controlsLayout, ICON_FA_HAND, "Hand tool");
-        connect(m_hand, &QToolButton::clicked, this, [] {
-            SetTransformOperation(ImGuizmo::OPERATION(-1));
-        });
-
-        AddSeparator(controlsLayout);
-
-        m_universal = AddButton(controlsLayout, ICON_FA_ARROWS_TO_DOT, "Universal transform");
-        connect(m_universal, &QToolButton::clicked, this, [] {
-            SetTransformOperation(ImGuizmo::UNIVERSAL);
-        });
-
-        m_translate = AddButton(controlsLayout, ICON_FA_ARROWS_UP_DOWN_LEFT_RIGHT, "Move");
-        connect(m_translate, &QToolButton::clicked, this, [] {
-            SetTransformOperation(ImGuizmo::TRANSLATE);
-        });
-
-        m_rotate = AddButton(controlsLayout, ICON_FA_ROTATE, "Rotate");
-        connect(m_rotate, &QToolButton::clicked, this, [] {
-            SetTransformOperation(ImGuizmo::ROTATE);
-        });
-
-        m_scale = AddButton(controlsLayout, ICON_FA_MAXIMIZE, "Scale");
-        connect(m_scale, &QToolButton::clicked, this, [] {
-            SetTransformOperation(ImGuizmo::SCALE);
-        });
-
-        m_spriteBox = AddButton(controlsLayout, ICON_FA_CROP_SIMPLE,
-                                "Box edit sprite\nDrag handles to scale, drag inside to move");
-        connect(m_spriteBox, &QToolButton::clicked, this, [] {
-            auto* gizmos = GizmosManager::Get();
-            const bool active = gizmos->GetEditMode() == GizmosManager::EditMode::SpriteBox;
-            gizmos->SetEditMode(active ? GizmosManager::EditMode::Transform
-                                       : GizmosManager::EditMode::SpriteBox);
-        });
-
-        m_collider = AddButton(controlsLayout, ICON_FA_DRAW_POLYGON, "Edit collider");
-        connect(m_collider, &QToolButton::clicked, this, [] {
-            auto* gizmos = GizmosManager::Get();
-            const bool active = gizmos->GetEditMode() == GizmosManager::EditMode::Collider;
-            gizmos->SetEditMode(active ? GizmosManager::EditMode::Transform
-                                       : GizmosManager::EditMode::Collider);
-        });
-
-        AddSeparator(controlsLayout);
-
-        m_snap = AddButton(controlsLayout, ICON_FA_MAGNET,
-                           "Snap\nAlways snap using the increments below; Ctrl snaps one drag.");
-        connect(m_snap, &QToolButton::clicked, this, [](bool checked) {
-            GridSettings::Get().SetSnapEnabled(checked);
-        });
-
-        m_grid = AddButton(controlsLayout, ICON_FA_BORDER_ALL,
-                           "Grid visibility\nHiding the grid does not disable snapping.");
-        connect(m_grid, &QToolButton::clicked, this, [](bool checked) {
-            GridSettings::Get().SetVisible(checked);
-        });
-
-        AddSeparator(controlsLayout);
-
-        BindFloatProperty(
-            controlsLayout,
-            [] { return GridSettings::Get().GetCellSize(); },
-            [](float value) { GridSettings::Get().SetCellSize(value); },
-            Properties::PropDesc().Tag(Properties::Tags::INT).Range(1.0f, 4096.0f).Step(1.0f),
-            "Cell size\nGrid spacing in world units.");
-
-        BindFloatProperty(
-            controlsLayout,
-            [] { return GridSettings::Get().GetMoveSnap(); },
-            [](float value) { GridSettings::Get().SetMoveSnap(value); },
-            Properties::PropDesc().Tag(Properties::Tags::FLOAT).Range(0.01f, 4096.0f).Step(0.01f),
-            "Move snap\nIncrement in world units.");
-
-        BindFloatProperty(
-            controlsLayout,
-            [] { return GridSettings::Get().GetRotateSnap(); },
-            [](float value) { GridSettings::Get().SetRotateSnap(value); },
-            Properties::PropDesc().Tag(Properties::Tags::INT).Range(1.0f, 180.0f).Step(1.0f),
-            "Rotate snap\nIncrement in degrees.");
-
-        BindFloatProperty(
-            controlsLayout,
-            [] { return GridSettings::Get().GetScaleSnap(); },
-            [](float value) { GridSettings::Get().SetScaleSnap(value); },
-            Properties::PropDesc().Tag(Properties::Tags::FLOAT).Range(0.01f, 10.0f).Step(0.01f),
-            "Scale snap\nIncrement as a multiplier.");
-
-        m_match = AddButton(controlsLayout, ICON_FA_LINK,
-                            "Match move snap to cell size\nObjects will land on grid lines.");
-        m_match->setCheckable(false);
-        connect(m_match, &QToolButton::clicked, this, [] {
-            GridSettings::Get().MatchMoveSnapToCell();
-        });
-
-        SyncState();
-    }
-
-    void SetCollapsed(bool collapsed)
-    {
-        if (m_collapsed == collapsed) return;
-        m_collapsed = collapsed;
-        m_contents->setVisible(!collapsed);
-        m_collapse->setArrowType(collapsed ? Qt::DownArrow : Qt::UpArrow);
-        m_collapse->setToolTip(collapsed
-            ? QStringLiteral("Expand toolbar")
-            : QStringLiteral("Collapse toolbar"));
-        layout()->activate();
-        adjustSize();
-        ClampToParent();
-    }
-
-    void SyncState()
-    {
-        auto* gizmos = GizmosManager::Get();
-        const bool transformMode = gizmos->GetEditMode() == GizmosManager::EditMode::Transform;
-        const ImGuizmo::OPERATION operation = gizmos->GetOperation();
-
-        m_hand->setChecked(transformMode && operation == ImGuizmo::OPERATION(-1));
-        m_universal->setChecked(transformMode && operation == ImGuizmo::UNIVERSAL);
-        m_translate->setChecked(transformMode && operation == ImGuizmo::TRANSLATE);
-        m_rotate->setChecked(transformMode && operation == ImGuizmo::ROTATE);
-        m_scale->setChecked(transformMode && operation == ImGuizmo::SCALE);
-
-        auto* selection = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
-        auto* object = selection ? dynamic_cast<GameObject*>(selection->GetSerializable()) : nullptr;
-        const bool hasSprite = object && object->GetComponent<SpriteRenderer>();
-        const bool hasCollider = object && (object->GetComponent<BoxCollider>() ||
-                                            object->GetComponent<CircleCollider>() ||
-                                            object->GetComponent<CapsuleCollider>());
-
-        const bool sizeChanged = (!m_spriteBox->isHidden()) != hasSprite ||
-                                 (!m_collider->isHidden()) != hasCollider;
-        m_spriteBox->setVisible(hasSprite);
-        m_collider->setVisible(hasCollider);
-        m_spriteBox->setChecked(gizmos->GetEditMode() == GizmosManager::EditMode::SpriteBox);
-        m_collider->setChecked(gizmos->GetEditMode() == GizmosManager::EditMode::Collider);
-
-        auto& grid = GridSettings::Get();
-        m_snap->setChecked(grid.IsSnapEnabled());
-        m_grid->setChecked(grid.IsVisible());
-        for (auto& binding : m_floatBindings) {
-            const float value = binding.getter();
-            if (!binding.widget->hasFocus() && binding.property->GetValue() != value)
-                binding.property->SetValue(value);
-        }
-        m_match->setVisible(grid.GetMoveSnap() != grid.GetCellSize());
-
-        if (sizeChanged) adjustSize();
-        ClampToParent();
-    }
-
-    void ClampToParent()
-    {
-        QWidget* boundsWidget = parentWidget();
-        if (!boundsWidget) return;
-
-        QPoint target = pos();
-        target.setX(std::clamp(target.x(), 0, std::max(0, boundsWidget->width() - width())));
-        target.setY(std::clamp(target.y(), 0, std::max(0, boundsWidget->height() - height())));
-        move(target);
-    }
-
-protected:
-    void mousePressEvent(QMouseEvent* event) override
-    {
-        if (event->button() != Qt::LeftButton) {
-            QWidget::mousePressEvent(event);
-            return;
-        }
-
-        m_dragging = true;
-        m_dragOffset = event->position().toPoint();
-        setCursor(Qt::ClosedHandCursor);
-        raise();
-        event->accept();
-    }
-
-    void mouseMoveEvent(QMouseEvent* event) override
-    {
-        if (!m_dragging || !(event->buttons() & Qt::LeftButton)) {
-            QWidget::mouseMoveEvent(event);
-            return;
-        }
-
-        QWidget* boundsWidget = parentWidget();
-        if (!boundsWidget) return;
-
-        const QPoint cursorInParent = boundsWidget->mapFromGlobal(event->globalPosition().toPoint());
-        move(cursorInParent - m_dragOffset);
-        ClampToParent();
-        event->accept();
-    }
-
-    void mouseReleaseEvent(QMouseEvent* event) override
-    {
-        if (event->button() == Qt::LeftButton) {
-            m_dragging = false;
-            setCursor(Qt::OpenHandCursor);
-            event->accept();
-            return;
-        }
-        QWidget::mouseReleaseEvent(event);
-    }
-
-private:
-    struct FloatBinding {
-        std::unique_ptr<PropertyWidget<float>> property;
-        std::function<float()> getter;
-        QWidget* widget = nullptr;
-    };
-
-    static constexpr int kControlHeight = 24;
-    static constexpr int kControlWidth = 28;
-
-    static void SetTransformOperation(ImGuizmo::OPERATION operation)
-    {
-        auto* gizmos = GizmosManager::Get();
-        gizmos->SetOperation(operation);
-        gizmos->SetEditMode(GizmosManager::EditMode::Transform);
-    }
-
-    QToolButton* AddButton(QVBoxLayout* layout, const char* icon, const char* tooltip)
-    {
-        auto* button = new QToolButton(this);
-        button->setCheckable(true);
-        button->setFixedSize(kControlWidth, kControlHeight);
-        button->setFocusPolicy(Qt::NoFocus);
-        button->setCursor(Qt::PointingHandCursor);
-        button->setFont(m_iconFont);
-        button->setText(QString::fromUtf8(icon));
-        button->setToolTip(QString::fromUtf8(tooltip));
-        layout->addWidget(button, 0, Qt::AlignHCenter);
-        return button;
-    }
-
-    void BindFloatProperty(QVBoxLayout* layout,
-                           std::function<float()> getter,
-                           std::function<void(float)> setter,
-                           const Properties::PropDesc& desc,
-                           const char* tooltip)
-    {
-        auto property = std::unique_ptr<PropertyWidget<float>>(PropertyFactory::Create<float>(desc));
-        QWidget* editor = property->GetWidget();
-        editor->setFixedWidth(kControlWidth);
-        editor->setToolTip(QString::fromUtf8(tooltip));
-
-        property->onChanged = [getter, setter](float value) {
-            if (getter() != value) setter(value);
-        };
-        property->SetValue(getter());
-
-        layout->addWidget(editor, 0, Qt::AlignHCenter);
-        m_floatBindings.push_back({std::move(property), std::move(getter), editor});
-    }
-
-    void AddSeparator(QVBoxLayout* layout)
-    {
-        auto* line = new QFrame(this);
-        line->setFrameShape(QFrame::HLine);
-        line->setFrameShadow(QFrame::Plain);
-        line->setStyleSheet("color: rgb(78, 78, 78);");
-        layout->addWidget(line);
-    }
-
-    QFont m_iconFont;
-    QWidget* m_contents = nullptr;
-    QToolButton* m_collapse = nullptr;
-    QToolButton* m_hand = nullptr;
-    QToolButton* m_universal = nullptr;
-    QToolButton* m_translate = nullptr;
-    QToolButton* m_rotate = nullptr;
-    QToolButton* m_scale = nullptr;
-    QToolButton* m_spriteBox = nullptr;
-    QToolButton* m_collider = nullptr;
-    QToolButton* m_snap = nullptr;
-    QToolButton* m_grid = nullptr;
-    QToolButton* m_match = nullptr;
-    std::vector<FloatBinding> m_floatBindings;
-
-    QPoint m_dragOffset;
-    bool m_dragging = false;
-    bool m_collapsed = false;
-};
 
 SceneViewGui::SceneViewGui(QWidget* parent)
     : ViewportWidget(parent)
@@ -529,26 +148,47 @@ void SceneViewGui::OnViewInitialized()
     imGuiInstance->AddDrawCall([this](){DrawGizmos();});
     imGuiInstance->AddDrawCall([this](){DrawFPS();});
 
-    if (!m_nativeToolbar) {
-        m_nativeToolbar = new DraggableSceneToolbar(this);
-        m_nativeToolbar->move(100, 80);
-        m_nativeToolbar->show();
+    // Two floating overlays: the tool palette (vertical) and the view options
+    // (horizontal), stacked with the options strip just above the palette.
+    if (!m_optionsToolbar) {
+        m_optionsToolbar = new SceneViewOptionsToolbar(this);
+        m_optionsToolbar->move(100, 40);
+        m_optionsToolbar->show();
     }
-    m_nativeToolbar->raise();
+    if (!m_toolsToolbar) {
+        m_toolsToolbar = new SceneToolsToolbar(this);
+        m_toolsToolbar->move(100, 80);
+        m_toolsToolbar->show();
+    }
+    m_optionsToolbar->raise();
+    m_toolsToolbar->raise();
 
     std::cout << "SceneViewGui OpenGl Initialized. " << std::endl;
+}
+
+void SceneViewGui::SetSceneLightingEnabled(bool enabled)
+{
+    if (editorView) editorView->SetLightingEnabled(enabled);
+}
+
+bool SceneViewGui::IsSceneLightingEnabled() const
+{
+    return editorView ? editorView->IsLightingEnabled() : true;
 }
 
 void SceneViewGui::OnResized(int w, int h)
 {
     if (imGuiInstance) imGuiInstance->Resize(w, h, devicePixelRatioF());
-    if (m_nativeToolbar) m_nativeToolbar->ClampToParent();
+    if (m_toolsToolbar)   m_toolsToolbar->ClampToParent();
+    if (m_optionsToolbar) m_optionsToolbar->ClampToParent();
 }
 
 void SceneViewGui::OnAfterPresent()
 {
+    // Nothing toolbar-related runs here any more: both bars follow engine
+    // events (GridSettings/GizmoSettings/GizmosManager all notify now), rather
+    // than being re-read every presented frame at the display's refresh rate.
     if (imGuiInstance) imGuiInstance->Render();
-    if (m_nativeToolbar) m_nativeToolbar->SyncState();
 }
 
 

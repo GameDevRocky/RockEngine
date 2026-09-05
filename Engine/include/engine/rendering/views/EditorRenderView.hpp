@@ -7,6 +7,7 @@
 #include "engine/rendering/cameras/EditorCamera.hpp"
 
 class PickingPass;
+class LightingPass;
 
 // The Scene view's render view: Clear+Grid (setup), Scene+Debug (per scene),
 // Picking (finalize). Its camera is always an EditorCamera with a free
@@ -31,6 +32,14 @@ public:
 
     EditorCamera* GetEditorCamera() const { return static_cast<EditorCamera*>(camera); }
 
+    // Scene-view "unshaded" toggle. Editor DISPLAY state, owned by the view
+    // rather than by a settings singleton -- the same call this view's
+    // DisplayMode setters make, and for the same reason: it must not touch the
+    // authored world, and a global would reach the Game view's LightingPass too.
+    void SetLightingEnabled(bool v);
+    bool IsLightingEnabled() const;
+
 private:
-    PickingPass* pickingPass = nullptr;   // borrowed; the pipeline owns and deletes it
+    PickingPass*  pickingPass  = nullptr;   // borrowed; the pipeline owns and deletes it
+    LightingPass* lightingPass = nullptr;   // borrowed; same ownership as pickingPass
 };

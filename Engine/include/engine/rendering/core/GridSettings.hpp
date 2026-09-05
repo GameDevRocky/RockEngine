@@ -1,4 +1,5 @@
 #pragma once
+#include "engine/core/Observable.hpp"
 
 // Editor grid + snapping settings, in one place.
 //
@@ -12,13 +13,25 @@
 // the render pipeline, this has no per-world identity, and it must survive the
 // play-mode container swap. Read at draw time rather than pushed, the same
 // pull-don't-push rule the cameras follow.
-class GridSettings {
+//
+// It is an Observable so UI can subscribe rather than re-read it every frame.
+// The render side still PULLS at draw time (GridPass/GizmosManager) -- a pass
+// runs once per view per frame, so a pull is always current and needs no
+// notification. The event exists for the editor's widgets, which are otherwise
+// only correct if they poll at the display refresh rate to catch a toggle a
+// user flips a few times a minute.
+class GridSettings : public Observable {
 public:
+    // Payload-free: subscribers re-read whichever values they care about. One
+    // event for the whole struct rather than one per field -- these fire at
+    // human speed, and a single coarse event cannot leave a listener half-synced.
+    static inline const Event CHANGED_EVENT = Observable::CreateEvent();
+
     static GridSettings& Get();
 
     // ── Grid ────────────────────────────────────────────────────────────────
     bool  IsVisible() const   { return m_visible; }
-    void  SetVisible(bool v)  { m_visible = v; }
+    void  SetVisible(bool v);
 
     // World units per grid cell. Also the default translate snap, because a snap
     // that doesn't land on a visible line is worse than no snap at all.
@@ -30,7 +43,7 @@ public:
     // the editor ORs the two, so the toggle means "always" and Ctrl means "just
     // now", and neither can lock the other out mid-drag.
     bool  IsSnapEnabled() const  { return m_snapEnabled; }
-    void  SetSnapEnabled(bool v) { m_snapEnabled = v; }
+    void  SetSnapEnabled(bool v);
 
     float GetMoveSnap() const   { return m_moveSnap; }
     void  SetMoveSnap(float v);
@@ -44,7 +57,7 @@ public:
     // Re-link the translate snap to the cell size after either has been edited
     // apart. Exposed so the toolbar can offer it as an explicit action rather
     // than silently overwriting a value the user set on purpose.
-    void  MatchMoveSnapToCell() { m_moveSnap = m_cellSize; }
+    void  MatchMoveSnapToCell();
 
 private:
     GridSettings() = default;

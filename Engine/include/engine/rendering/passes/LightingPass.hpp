@@ -27,7 +27,20 @@ public:
     void Execute(RenderCamera* camera, Scene* scene) override;
     void Shutdown() override;
 
+    // Editor "unshaded" mode. Off makes Execute upload white ambient + zero
+    // lights, which is exactly the state a scene with no Light component
+    // produces -- sprites render at raw albedo.
+    //
+    // Per-INSTANCE rather than a global setting, and that is the whole point:
+    // EditorRenderView and GameRenderView each own their own LightingPass, so
+    // this scopes to the Scene view and can never reach the Game view or a
+    // shipped game.
+    void SetLightingEnabled(bool v) { lightingEnabled = v; }
+    bool IsLightingEnabled() const  { return lightingEnabled; }
+
 private:
+    bool lightingEnabled = true;
+
     // World-space AABB the camera can see, padded so a light just off-screen
     // still lights what reaches into frame.
     struct ViewBounds { glm::vec2 min{ 0.0f }; glm::vec2 max{ 0.0f }; };

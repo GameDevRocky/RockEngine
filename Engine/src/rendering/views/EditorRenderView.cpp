@@ -22,19 +22,33 @@ void EditorRenderView::Init()
     DebugPass* debugPass = new DebugPass();
     pickingPass = new PickingPass();
 
+    lightingPass = new LightingPass();
+
     pipeline->AddSetupPass(clearPass);
     // Simulation must precede ScenePass, which draws the particles it advanced
     // (interleaved with sprites by sorting layer).
     pipeline->AddScenePass(new ParticleSimulationPass());
     // Prepares the light UBO + shadow atlas ScenePass's sprites read from, so it
-    // must precede it. Draws nothing itself.
-    pipeline->AddScenePass(new LightingPass());
+    // must precede it. Draws nothing itself. Held as a member (like pickingPass)
+    // so the Scene view's unshaded toggle can reach it -- this instance is the
+    // editor's alone, which is what keeps the toggle out of the Game view.
+    pipeline->AddScenePass(lightingPass);
     pipeline->AddScenePass(scenePass);
     pipeline->AddScenePass(debugPass);
     pipeline->AddFinalizePass(pickingPass);
     pipeline->AddFinalizePass(gridPass);
 
     pipeline->Init();
+}
+
+void EditorRenderView::SetLightingEnabled(bool v)
+{
+    if (lightingPass) lightingPass->SetLightingEnabled(v);
+}
+
+bool EditorRenderView::IsLightingEnabled() const
+{
+    return lightingPass ? lightingPass->IsLightingEnabled() : true;
 }
 
 std::string EditorRenderView::Pick(int fbPixelX, int fbPixelY)

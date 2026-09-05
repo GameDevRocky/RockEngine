@@ -74,6 +74,23 @@ void LightingPass::Execute(RenderCamera* camera, Scene* scene)
     ROCK_PROFILE_SCOPE("LightingPass");
     if (!scene) return;
 
+    // Editor unshaded mode. This UPLOADS rather than returning early, and the
+    // difference is load-bearing: the light UBO is process-wide (see
+    // LightBuffer.hpp) and re-uploaded per scene per view, so simply skipping
+    // the pass would leave this view rendering with whatever the Game view --
+    // or the previous scene -- happened to write last.
+    //
+    // White ambient + zero lights is precisely the state the no-lights-in-scene
+    // fallback at the bottom of this function produces, so the shader's light
+    // term is exactly vec3(1.0). It also beats any per-material uLitAmount:
+    // mix(vec3(1.0), vec3(1.0), x) is vec3(1.0) for every x, so an authored lit
+    // slider cannot leak a lit pixel through.
+    if (!lightingEnabled)
+    {
+        LightBuffer::Get().Upload({}, glm::vec4(1.0f));
+        return;
+    }
+
     gpuLights.clear();
     visibleLights.clear();
 

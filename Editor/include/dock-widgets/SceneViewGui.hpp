@@ -9,7 +9,8 @@
 #include "engine/rendering/views/EditorRenderView.hpp"
 #include "utils/ImGuiInstance.hpp"
 
-class DraggableSceneToolbar;
+class SceneToolsToolbar;
+class SceneViewOptionsToolbar;
 
 class SceneViewGui : public ViewportWidget {
     Q_OBJECT
@@ -24,6 +25,15 @@ public:
     }
 
     void Init();
+
+    // Scene-view "unshaded" toggle, forwarded to this view's own LightingPass.
+    // Public so the options toolbar can reach it through Get(); editorView is
+    // private and the toolbar is not a friend.
+    //
+    // Scoped to THIS view by construction: EditorRenderView and GameRenderView
+    // each own a separate LightingPass, so the Game view and play mode stay lit.
+    void SetSceneLightingEnabled(bool enabled);
+    bool IsSceneLightingEnabled() const;
 
     // Centre the editor camera on the current selection and adjust zoom so it fills
     // the view. Public so other panels (e.g. the Hierarchy) can trigger "frame
@@ -79,7 +89,12 @@ private:
 
     EditorRenderView* editorView = nullptr;   // borrowed; same object as ViewportWidget::view
     ImGuiInstance* imGuiInstance = nullptr;
-    DraggableSceneToolbar* m_nativeToolbar = nullptr;
+
+    // Floating overlays parented to this widget (see SceneToolbars.hpp). They
+    // are not in any layout, so they need constructing here and re-clamping on
+    // resize -- but nothing per frame: both follow engine events.
+    SceneToolsToolbar* m_toolsToolbar = nullptr;
+    SceneViewOptionsToolbar* m_optionsToolbar = nullptr;
 
     QPoint lastMousePos;
     bool isPanning = false;

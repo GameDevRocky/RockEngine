@@ -30,6 +30,7 @@
 #include <cmath>
 
 #include "engine/rendering/core/GridSettings.hpp"
+#include "engine/rendering/core/GizmoSettings.hpp"
 
 GizmosManager* GizmosManager::instance = nullptr;
 
@@ -79,6 +80,18 @@ void GizmosManager::Shutdown(){
 GizmosManager* GizmosManager::Copy() { return nullptr; }
 GizmosManager* GizmosManager::Copy(Container* /*container*/) { return nullptr; }
 
+void GizmosManager::SetOperation(ImGuizmo::OPERATION op) {
+    if (m_currentOperation == op) return;
+    m_currentOperation = op;
+    Notify(TOOL_CHANGED_EVENT);
+}
+
+void GizmosManager::SetEditMode(EditMode mode) {
+    if (m_editMode == mode) return;
+    m_editMode = mode;
+    Notify(TOOL_CHANGED_EVENT);
+}
+
 void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight) {
     m_hoveredHandle = -1;        // reset each frame; DrawBoxColliderGizmo sets it if applicable
     m_hoveredCameraCorner = -1;  // reset each frame; DrawCameraGizmo sets it if applicable
@@ -86,13 +99,58 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
     m_hoveredAudioHandle = -1;   // reset each frame; DrawAudioSourceGizmos sets it if applicable
     m_hoveredScaleHandle = -1;   // reset each frame; DrawSpriteBoxGizmo sets it if applicable
 
+    // Overlay visibility is per-category, driven by the Scene view's gizmo
+    // dropdown. Read AFTER the hover resets above, never before: WantsCaptureMouse
+    // ORs every m_hovered* field and SceneViewGui consults it before picking, so a
+    // stale hover id left on a hidden gizmo would silently eat click-to-select.
+    //
+    // Hiding a category mid-drag also has to END that drag, and ending it means
+    // COMMITTING it, not dropping it. The commit handlers live inside the draw
+    // functions, so a skipped draw would otherwise strand m_drag*Handle latched
+    // forever AND lose the edit: a drag writes its target every frame for live
+    // feedback, so by the time the category is hidden the light's range (or the
+    // camera's orthoSize, or the source's distances) has already been changed in
+    // the world. Discarding the record would leave that change in place with
+    // nothing on the undo stack to take it back -- strictly worse than either
+    // committing or never having started.
+    //
+    // Emit before clearing the state the diff is taken against -- the same order
+    // DrawColliderGizmo's release path uses. Each Commit*Drag re-resolves its
+    // target through the Registry and no-ops when nothing actually moved, so a
+    // grab-without-drag still records nothing.
+    using Category = GizmoSettings::Category;
+    const GizmoSettings& gizmoSettings = GizmoSettings::Get();
+
     // Camera view-region rects, light shapes and component icons are drawn for
     // every object regardless of selection, so they come first -- before the
     // no-selection early-return below.
-    DrawCameraGizmos(view, proj, viewWidth, viewHeight);
-    DrawLightGizmos(view, proj, viewWidth, viewHeight);
-    DrawAudioSourceGizmos(view, proj, viewWidth, viewHeight);
-    DrawComponentIcons(view, proj, viewWidth, viewHeight);
+    if (gizmoSettings.ShouldDraw(Category::Cameras)) {
+        DrawCameraGizmos(view, proj, viewWidth, viewHeight);
+    } else {
+        if (m_dragCameraCorner >= 0 && !m_dragCameraId.empty()) CommitCameraDrag();
+        m_dragCameraCorner = -1;
+        m_dragCameraId.clear();
+    }
+
+    if (gizmoSettings.ShouldDraw(Category::Lights)) {
+        DrawLightGizmos(view, proj, viewWidth, viewHeight);
+    } else {
+        if (m_dragLightHandle >= 0 && !m_dragLightId.empty()) CommitLightDrag();
+        m_dragLightHandle = -1;
+        m_dragLightId.clear();
+    }
+
+    if (gizmoSettings.ShouldDraw(Category::AudioSources)) {
+        DrawAudioSourceGizmos(view, proj, viewWidth, viewHeight);
+    } else {
+        if (m_dragAudioHandle >= 0 && !m_dragAudioId.empty()) CommitAudioSourceDrag();
+        m_dragAudioHandle = -1;
+        m_dragAudioId.clear();
+    }
+
+    // Read-only from here down -- no drag state to release.
+    if (gizmoSettings.ShouldDraw(Category::ComponentIcons))
+        DrawComponentIcons(view, proj, viewWidth, viewHeight);
 
     Container* container = Engine::Get()->GetActiveContainer();
     SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
@@ -112,10 +170,16 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
     // Selection-only, and independent of edit mode -- a joint's anchors are worth
     // seeing whichever tool is active, and without them anchor offsets are blind
     // numeric entry.
-    DrawJointGizmos(view, proj, viewWidth, viewHeight);
+    if (gizmoSettings.ShouldDraw(Category::Joints))
+        DrawJointGizmos(view, proj, viewWidth, viewHeight);
 
     // Likewise independent of edit mode: a "this is selected" outline, not a tool.
-    DrawSelectionOutlines(view, proj, viewWidth, viewHeight);
+    if (gizmoSettings.ShouldDraw(Category::SelectionOutlines))
+        DrawSelectionOutlines(view, proj, viewWidth, viewHeight);
+
+    // The manipulators below are deliberately NOT gated: they are tools, not
+    // overlays, and hiding the handle you are dragging is never what "hide
+    // gizmos" is meant to mean.
 
     if (m_editMode == EditMode::Collider) {
         DrawColliderGizmo(view, proj, viewWidth, viewHeight);

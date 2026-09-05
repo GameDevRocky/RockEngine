@@ -30,7 +30,7 @@ class PlayerController(ScriptableComponent):
     jump_sound : AudioSource = None
     song : AudioSource = None
     test_ : list[bool]
-    Sapri : int
+    event : Event
 
 
 
@@ -127,6 +127,12 @@ class PlayerController(ScriptableComponent):
         self._handle_jump(dt)
         self._clamp_fall()
         self.sr.set_uniform("uTime", Time.elapsed_time)
+
+    @action
+    def random_color(self):
+        sr = self.get_component(SpriteRenderer)
+        sr.color = (random.random(),random.random(),random.random(),1)
+
 
     def _check_walls(self, dt):
         self.is_wall_sliding = False
