@@ -146,18 +146,24 @@ void SceneViewGui::OnViewInitialized()
     imGuiInstance = new ImGuiInstance();
     imGuiInstance->Init();
     imGuiInstance->AddDrawCall([this](){DrawGizmos();});
-    imGuiInstance->AddDrawCall([this](){DrawFPS();});
+    //imGuiInstance->AddDrawCall([this](){DrawFPS();});
 
     // Two floating overlays: the tool palette (vertical) and the view options
     // (horizontal), stacked with the options strip just above the palette.
+    // move() is the FIRST-RUN default only; RestorePlacement overwrites it with wherever
+    // the user last dragged the bar. These overlays are child widgets rather than docks
+    // or QToolBars, so QMainWindow::saveState() does not cover them and they persist
+    // themselves -- see SceneOverlayToolbar::SavePlacement.
     if (!m_optionsToolbar) {
         m_optionsToolbar = new SceneViewOptionsToolbar(this);
         m_optionsToolbar->move(100, 40);
+        m_optionsToolbar->RestorePlacement();
         m_optionsToolbar->show();
     }
     if (!m_toolsToolbar) {
         m_toolsToolbar = new SceneToolsToolbar(this);
         m_toolsToolbar->move(100, 80);
+        m_toolsToolbar->RestorePlacement();
         m_toolsToolbar->show();
     }
     m_optionsToolbar->raise();

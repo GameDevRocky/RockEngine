@@ -1,4 +1,6 @@
 #include "dock-widgets/GameViewGui.hpp"
+#include "dock-widgets/SceneToolbars.hpp"
+#include <QStringList>
 #include <QDebug>
 #include "engine/debug/Console.hpp"
 #include "engine/core/InputManager.hpp"
@@ -67,7 +69,8 @@ void GameViewGui::OnViewInitialized()
     imGuiInstance = new ImGuiInstance();
     imGuiInstance->Init();
     imGuiInstance->AddDrawCall([this](){ DrawNoCameraOverlay(); });
-    imGuiInstance->AddDrawCall([this](){ DrawToolBar(); });
+
+    BuildToolBar();
 
     // Default to Free Aspect: fill the panel instead of letterboxing to the
     // camera's authored aspect. Matches Unity's default and fixes the image not
@@ -80,6 +83,8 @@ void GameViewGui::OnViewInitialized()
 void GameViewGui::OnResized(int w, int h)
 {
     if (imGuiInstance) imGuiInstance->Resize(w, h, devicePixelRatioF());
+    // Pinned to the corner, but the panel can still shrink under it.
+    if (m_toolbar) m_toolbar->ClampToParent();
 }
 
 void GameViewGui::OnAfterPresent()
@@ -112,45 +117,25 @@ void GameViewGui::ApplyAspectPreset(int index)
     }
 }
 
-void GameViewGui::DrawToolBar()
+void GameViewGui::BuildToolBar()
 {
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.0f, 3.0f));
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.12f, 0.12f, 0.12f, 0.85f));
+    if (m_toolbar) return;
 
-    // Pin to the top-left of the panel.
-    ImGuiViewport* viewport = ImGui::GetMainViewport();
-    ImGui::SetNextWindowPos(ImVec2(viewport->WorkPos.x + 8.0f, viewport->WorkPos.y + 8.0f),
-                            ImGuiCond_Always);
+    m_toolbar = new GameViewToolbar(this);
 
-    ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration |
-                             ImGuiWindowFlags_AlwaysAutoResize |
-                             ImGuiWindowFlags_NoSavedSettings |
-                             ImGuiWindowFlags_NoFocusOnAppearing |
-                             ImGuiWindowFlags_NoNav |
-                             ImGuiWindowFlags_NoMove;
+    QStringList labels;
+    labels.reserve(kPresetCount);
+    for (int i = 0; i < kPresetCount; ++i)
+        labels << QString::fromUtf8(kPresets[i].label);
+    m_toolbar->SetItems(labels, kFirstResolutionIndex);
 
-    if (ImGui::Begin("###GameViewToolbar", nullptr, flags))
-    {
-        ImGui::SetNextItemWidth(190.0f);
-        if (ImGui::BeginCombo("###AspectCombo", kPresets[aspectPresetIndex].label))
-        {
-            for (int i = 0; i < kPresetCount; ++i)
-            {
-                if (i == kFirstResolutionIndex) ImGui::Separator();
+    m_toolbar->onIndexChanged = [this](int index) { ApplyAspectPreset(index); };
+    m_toolbar->SetCurrentIndex(aspectPresetIndex);
 
-                const bool selected = (i == aspectPresetIndex);
-                if (ImGui::Selectable(kPresets[i].label, selected))
-                    ApplyAspectPreset(i);
-                if (selected)
-                    ImGui::SetItemDefaultFocus();
-            }
-            ImGui::EndCombo();
-        }
-    }
-    ImGui::End();
-
-    ImGui::PopStyleColor();
-    ImGui::PopStyleVar();
+    // Same corner the ImGui bar occupied.
+    m_toolbar->move(8, 8);
+    m_toolbar->show();
+    m_toolbar->raise();
 }
 
 void GameViewGui::DrawNoCameraOverlay()

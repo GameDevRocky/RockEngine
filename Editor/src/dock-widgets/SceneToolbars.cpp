@@ -1,4 +1,11 @@
 #include "dock-widgets/SceneToolbars.hpp"
+
+#include <QCursor>
+#include <QEnterEvent>
+#include <QGraphicsOpacityEffect>
+#include <QSettings>
+#include <QComboBox>
+#include <QListView>
 #include "dock-widgets/SceneViewGui.hpp"
 
 #include "engine/commands/EditorSettingCommand.hpp"
@@ -56,6 +63,20 @@ const char* kToolbarStyle =
     "  border: 1px solid rgb(72, 72, 72);"
     "  border-radius: 3px;"
     "  selection-background-color: rgb(66, 148, 66);"
+    "}"
+    "#SceneNativeToolbar QComboBox {"
+    "  color: white;"
+    "  background-color: rgb(51, 51, 51);"
+    "  border: 1px solid rgb(72, 72, 72);"
+    "  border-radius: 3px;"
+    "  padding: 2px 6px;"
+    "}"
+    "#SceneNativeToolbar QComboBox:hover {"
+    "  border: 1px solid rgb(102, 102, 102);"
+    "}"
+    "#SceneNativeToolbar QComboBox::drop-down {"
+    "  border: none;"
+    "  width: 16px;"
     "}"
     "#SceneToolbarContents {"
     "  background: transparent;"
@@ -142,12 +163,25 @@ void EditSetting(std::string settingKey, std::string text,
 // SceneOverlayToolbar
 // ═════════════════════════════════════════════════════════════════════════════
 
-SceneOverlayToolbar::SceneOverlayToolbar(QWidget* parent, Qt::Orientation orientation)
+SceneOverlayToolbar::SceneOverlayToolbar(QWidget* parent, Qt::Orientation orientation,
+                                         QString settingsKey, bool movable)
     : QWidget(parent)
     , m_orientation(orientation)
+    , m_settingsKey(std::move(settingsKey))
+    , m_movable(movable)
 {
     setObjectName(QStringLiteral("SceneNativeToolbar"));
-    setCursor(Qt::OpenHandCursor);
+
+    // Fades the whole subtree -- icons, fields and background together. Applying alpha
+    // through the stylesheet instead would have to be repeated for every rule and would
+    // miss the QToolButton arrows entirely.
+    //
+    // Starts faded: the bar has not been pointed at yet, and having it snap from opaque
+    // to ghost on the first stray mouse movement looks like a glitch.
+    m_opacity = new QGraphicsOpacityEffect(this);
+    m_opacity->setOpacity(kUnfocusedOpacity);
+    setGraphicsEffect(m_opacity);
+    if (m_movable) setCursor(Qt::OpenHandCursor);
     setAttribute(Qt::WA_StyledBackground, true);
     setStyleSheet(QString::fromUtf8(kToolbarStyle));
 
@@ -164,14 +198,17 @@ SceneOverlayToolbar::SceneOverlayToolbar(QWidget* parent, Qt::Orientation orient
 
     // The grab area. Transparent for mouse events so the press falls through to
     // this widget's own handler rather than being eaten by the label.
-    auto* handle = new QLabel(QString::fromUtf8(horizontal ? "⋮" : "•••"), this);
-    handle->setAlignment(Qt::AlignCenter);
-    if (horizontal) handle->setFixedWidth(10);
-    else            handle->setFixedHeight(14);
-    handle->setToolTip(QStringLiteral("Drag toolbar"));
-    handle->setAttribute(Qt::WA_TransparentForMouseEvents, true);
-    handle->setStyleSheet("color: rgb(135, 135, 135); background: transparent;");
-    layout->addWidget(handle);
+    // Omitted on a pinned bar, where it would advertise a drag that does nothing.
+    if (m_movable) {
+        auto* handle = new QLabel(QString::fromUtf8(horizontal ? "⋮" : "•••"), this);
+        handle->setAlignment(Qt::AlignCenter);
+        if (horizontal) handle->setFixedWidth(10);
+        else            handle->setFixedHeight(14);
+        handle->setToolTip(QStringLiteral("Drag toolbar"));
+        handle->setAttribute(Qt::WA_TransparentForMouseEvents, true);
+        handle->setStyleSheet("color: rgb(135, 135, 135); background: transparent;");
+        layout->addWidget(handle);
+    }
 
     m_collapse = new QToolButton(this);
     m_collapse->setObjectName(QStringLiteral("SceneToolbarCollapse"));
@@ -239,6 +276,31 @@ QToolButton* SceneOverlayToolbar::AddButton(const char* icon, const char* toolti
     return button;
 }
 
+
+QComboBox* SceneOverlayToolbar::AddComboBox(const char* tooltip, int width)
+{
+    auto* combo = new QComboBox(m_contents);
+    combo->setFocusPolicy(Qt::NoFocus);   // same as every other control here: the
+                                          // viewport keeps keyboard focus
+    combo->setCursor(Qt::PointingHandCursor);
+    combo->setFixedHeight(kControlHeight);
+    if (width > 0) combo->setFixedWidth(width);
+    if (tooltip)   combo->setToolTip(QString::fromUtf8(tooltip));
+
+    // The popup is a top-level window, NOT a child of #SceneNativeToolbar, so the
+    // stylesheet's descendant rules never reach it and it would render in the default
+    // palette -- a bright list hanging off a dark bar. Styling the view directly is what
+    // fixes that, and kMenuStyle is reused so the popup matches the toolbar's own menus.
+    auto* view = new QListView(combo);
+    view->setStyleSheet(QString::fromUtf8(kMenuStyle).replace("QMenu", "QListView")
+                        + "QListView::item { padding: 4px 8px; }"
+                          "QListView::item:selected { background-color: rgb(66, 148, 66); }");
+    combo->setView(view);
+
+    m_controlsLayout->addWidget(combo, 0, IsHorizontal() ? Qt::AlignVCenter : Qt::AlignHCenter);
+    return combo;
+}
+
 void SceneOverlayToolbar::AddSeparator()
 {
     auto* line = new QFrame(this);
@@ -296,6 +358,7 @@ void SceneOverlayToolbar::SetCollapsed(bool collapsed)
     layout()->activate();
     adjustSize();
     ClampToParent();
+    SavePlacement();
 }
 
 void SceneOverlayToolbar::ClampToParent()
@@ -311,7 +374,7 @@ void SceneOverlayToolbar::ClampToParent()
 
 void SceneOverlayToolbar::mousePressEvent(QMouseEvent* event)
 {
-    if (event->button() != Qt::LeftButton) {
+    if (!m_movable || event->button() != Qt::LeftButton) {
         QWidget::mousePressEvent(event);
         return;
     }
@@ -344,10 +407,72 @@ void SceneOverlayToolbar::mouseReleaseEvent(QMouseEvent* event)
     if (event->button() == Qt::LeftButton) {
         m_dragging = false;
         setCursor(Qt::OpenHandCursor);
+        SavePlacement();
+        // A drag can finish with the pointer outside the bar, and the leaveEvent that
+        // would normally fade it is suppressed while dragging. Settle the state here.
+        if (m_opacity)
+            m_opacity->setOpacity(underMouse() ? kFocusedOpacity : kUnfocusedOpacity);
         event->accept();
         return;
     }
     QWidget::mouseReleaseEvent(event);
+}
+
+void SceneOverlayToolbar::enterEvent(QEnterEvent* event)
+{
+    if (m_opacity) m_opacity->setOpacity(kFocusedOpacity);
+    QWidget::enterEvent(event);
+}
+
+void SceneOverlayToolbar::leaveEvent(QEvent* event)
+{
+    // Two cases where a leave must NOT fade the bar:
+    //
+    //  - Mid-drag. The pointer routinely travels outside a widget it is dragging, and
+    //    the bar going ghost under the cursor while you move it is disorienting.
+    //  - The pointer moved onto one of our own children. Qt delivers leaveEvent to this
+    //    widget when the cursor crosses into a child button, so without the geometry
+    //    check the bar would flicker every time you reached for a control on it.
+    if (m_dragging)
+        return;
+    if (QWidget* host = parentWidget()) {
+        if (geometry().contains(host->mapFromGlobal(QCursor::pos())))
+            return;
+    }
+
+    if (m_opacity) m_opacity->setOpacity(kUnfocusedOpacity);
+    QWidget::leaveEvent(event);
+}
+
+void SceneOverlayToolbar::SavePlacement() const
+{
+    if (m_settingsKey.isEmpty()) return;
+
+    // Same organisation/application as MainWindow's layout, so a user clearing editor
+    // layout state clears all of it from one place.
+    QSettings settings(QStringLiteral("Rocklyn"), QStringLiteral("RockEngineEditor"));
+    settings.setValue(QStringLiteral("sceneToolbars/%1/pos").arg(m_settingsKey), pos());
+    settings.setValue(QStringLiteral("sceneToolbars/%1/collapsed").arg(m_settingsKey), m_collapsed);
+}
+
+void SceneOverlayToolbar::RestorePlacement()
+{
+    if (m_settingsKey.isEmpty()) return;
+
+    QSettings settings(QStringLiteral("Rocklyn"), QStringLiteral("RockEngineEditor"));
+
+    const QVariant collapsed = settings.value(QStringLiteral("sceneToolbars/%1/collapsed").arg(m_settingsKey));
+    if (collapsed.isValid())
+        SetCollapsed(collapsed.toBool());   // resizes the bar, so it must precede the move
+
+    const QVariant stored = settings.value(QStringLiteral("sceneToolbars/%1/pos").arg(m_settingsKey));
+    if (stored.isValid()) {
+        move(stored.toPoint());
+        // The viewport may currently be smaller than it was when this was saved (or not
+        // laid out yet), which would strand the bar off-screen. The host also re-clamps
+        // on every resize, so a zero-size parent here is corrected shortly after.
+        ClampToParent();
+    }
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -355,7 +480,7 @@ void SceneOverlayToolbar::mouseReleaseEvent(QMouseEvent* event)
 // ═════════════════════════════════════════════════════════════════════════════
 
 SceneToolsToolbar::SceneToolsToolbar(QWidget* parent)
-    : SceneOverlayToolbar(parent, Qt::Vertical)
+    : SceneOverlayToolbar(parent, Qt::Vertical, QStringLiteral("tools"))
 {
     m_hand = AddButton(ICON_FA_HAND, "Hand tool");
     connect(m_hand, &QToolButton::clicked, this, [] {
@@ -544,7 +669,7 @@ void SceneToolsToolbar::Refresh()
 // ═════════════════════════════════════════════════════════════════════════════
 
 SceneViewOptionsToolbar::SceneViewOptionsToolbar(QWidget* parent)
-    : SceneOverlayToolbar(parent, Qt::Horizontal)
+    : SceneOverlayToolbar(parent, Qt::Horizontal, QStringLiteral("viewOptions"))
 {
     m_lighting = AddButton(ICON_FA_LIGHTBULB,
                            "Lighting\nOff renders the Scene view unshaded. The Game view "
@@ -737,4 +862,44 @@ void SceneViewOptionsToolbar::Refresh()
         adjustSize();
         ClampToParent();
     }
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// GameViewToolbar
+// ═════════════════════════════════════════════════════════════════════════════
+
+GameViewToolbar::GameViewToolbar(QWidget* parent)
+    // Empty settings key: a pinned bar has no placement worth remembering.
+    : SceneOverlayToolbar(parent, Qt::Horizontal, QString(), /*movable=*/false)
+{
+    m_combo = AddComboBox("Aspect ratio / resolution", 190);
+
+    connect(m_combo, &QComboBox::currentIndexChanged, this, [this](int row) {
+        if (!onIndexChanged || row < 0) return;
+        const QVariant payload = m_combo->itemData(row);
+        if (!payload.isValid()) return;      // a separator row
+        onIndexChanged(payload.toInt());
+    });
+}
+
+void GameViewToolbar::SetItems(const QStringList& labels, int separatorBefore)
+{
+    QSignalBlocker blocker(m_combo);   // populating must not fire onIndexChanged
+    m_combo->clear();
+
+    for (int i = 0; i < labels.size(); ++i) {
+        if (i == separatorBefore)
+            m_combo->insertSeparator(m_combo->count());
+        // The caller's index travels as item data. A separator occupies a row of its
+        // own, so past that point row != index and reading currentIndex() would select
+        // the wrong preset -- this is what keeps the two from drifting.
+        m_combo->addItem(labels.at(i), i);
+    }
+}
+
+void GameViewToolbar::SetCurrentIndex(int index)
+{
+    QSignalBlocker blocker(m_combo);
+    const int row = m_combo->findData(index);
+    if (row >= 0) m_combo->setCurrentIndex(row);
 }

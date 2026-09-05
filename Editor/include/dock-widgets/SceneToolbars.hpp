@@ -15,7 +15,10 @@
 
 class QBoxLayout;
 class QToolButton;
+class QComboBox;
 class QMouseEvent;
+class QEnterEvent;
+class QGraphicsOpacityEffect;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Floating toolbars overlaid on the Scene view.
@@ -39,6 +42,19 @@ public:
     void SetCollapsed(bool collapsed);
     void ClampToParent();
 
+    // Position and collapsed state persist across runs.
+    //
+    // QMainWindow::saveState() does NOT cover these. It serializes the dock widgets and
+    // QToolBars a QMainWindow owns; these are absolutely-positioned child QWidgets of the
+    // scene viewport (see the note at the top of this file), so the main window has no
+    // idea they exist and never has. That is why they always reappeared at the hardcoded
+    // spot their host move()d them to.
+    //
+    // Saved on drag release and on collapse rather than at shutdown, so there is no
+    // ordering dependency on when the viewport is torn down.
+    void RestorePlacement();
+    void SavePlacement() const;
+
     // Push current engine state into the widgets.
     //
     // This is NOT a per-frame poll -- it runs from the constructor and from the
@@ -48,14 +64,29 @@ public:
     virtual void Refresh();
 
 protected:
-    SceneOverlayToolbar(QWidget* parent, Qt::Orientation orientation);
+    // `settingsKey` must be unique per toolbar and is what RestorePlacement/SavePlacement
+    // store under. Deliberately NOT objectName(): both bars share the objectName
+    // "SceneNativeToolbar" because the stylesheet selects on it, so it cannot tell them
+    // apart.
+    // `movable` false pins the bar where its host put it: no drag handle, no dragging,
+    // and no placement persistence (there is nothing the user can change to remember).
+    // Everything else -- chrome, stylesheet, collapse, hover fade -- is identical, which
+    // is the point of taking a flag here rather than growing a second widget class.
+    SceneOverlayToolbar(QWidget* parent, Qt::Orientation orientation, QString settingsKey,
+                        bool movable = true);
 
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
 
+    // Fade out when the pointer is not on the bar, so an idle toolbar stops competing
+    // with the scene it floats over.
+    void enterEvent(QEnterEvent* event) override;
+    void leaveEvent(QEvent* event) override;
+
     // ── Control construction (call from a subclass constructor) ──────────────
     QToolButton* AddButton(const char* icon, const char* tooltip);
+    QComboBox* AddComboBox(const char* tooltip, int width);
     void AddSeparator();
     void BindFloatProperty(std::function<float()> getter,
                            std::function<void(float)> setter,
@@ -83,6 +114,11 @@ protected:
     // a 4-digit cell size, and the horizontal bar has the space to spare.
     static constexpr int kFieldWidthHorizontal = 52;
 
+    // Opacity while the pointer is elsewhere. 0.10 is "10% opaque" -- the bar is a faint
+    // ghost. If what you wanted was "10% transparent", i.e. barely faded, this is 0.90.
+    static constexpr qreal kUnfocusedOpacity = 0.35;
+    static constexpr qreal kFocusedOpacity   = 1.00;
+
 private:
     struct FloatBinding {
         std::unique_ptr<PropertyWidget<float>> property;
@@ -102,6 +138,11 @@ private:
     QPoint m_dragOffset;
     bool   m_dragging  = false;
     bool   m_collapsed = false;
+    bool   m_movable   = true;
+
+    QString m_settingsKey;
+    // Owned by Qt once installed via setGraphicsEffect.
+    QGraphicsOpacityEffect* m_opacity = nullptr;
 };
 
 // ── Vertical: the transform tool palette ─────────────────────────────────────
@@ -159,4 +200,29 @@ private:
     QToolButton* m_snap      = nullptr;
     QToolButton* m_grid      = nullptr;
     QToolButton* m_match     = nullptr;
+};
+
+// ── Game view: the aspect / resolution selector ──────────────────────────────
+// Replaces an ImGui combo drawn inside the GL frame. As a real widget it gets the
+// platform's own popup, keyboard navigation and hit-testing for free, and it stops
+// competing with the viewport for mouse events.
+//
+// Pinned rather than draggable: it holds one control and has an obvious home in the
+// corner, so there is nothing to arrange.
+class GameViewToolbar final : public SceneOverlayToolbar {
+public:
+    explicit GameViewToolbar(QWidget* parent);
+
+    // `separatorBefore` inserts a divider ahead of that entry (-1 for none). Entries
+    // carry their own index as item data, so a separator cannot desynchronise the
+    // combo's row numbering from the caller's list.
+    void SetItems(const QStringList& labels, int separatorBefore = -1);
+    void SetCurrentIndex(int index);
+
+    // Called with the caller's index (not the combo row) on a user change. A plain
+    // std::function because this header declares no Q_OBJECT -- see the note at the top.
+    std::function<void(int)> onIndexChanged;
+
+private:
+    QComboBox* m_combo = nullptr;
 };

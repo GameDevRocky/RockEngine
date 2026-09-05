@@ -8,6 +8,8 @@
 #include "Engine.hpp"
 using namespace EngineUtils;
 
+class GameViewToolbar;
+
 class GameViewGui : public ViewportWidget {
     Q_OBJECT
 
@@ -37,14 +39,18 @@ protected:
     bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
-    // Unity-style aspect/resolution selector, drawn as an ImGui toolbar.
-    void DrawToolBar();
+    // Fills the aspect/resolution selector and wires it to ApplyAspectPreset.
+    void BuildToolBar();
     // Centered notice shown when no Camera is resolving for the Game view.
     void DrawNoCameraOverlay();
     void ApplyAspectPreset(int index);
 
     GameRenderView* gameView = nullptr;   // borrowed; same object as ViewportWidget::view
     ImGuiInstance* imGuiInstance = nullptr;
+    // Unity-style aspect/resolution selector. A real widget rather than an ImGui combo
+    // drawn into the GL frame, so it gets the platform popup, keyboard handling and
+    // hit-testing for free instead of competing with the viewport for mouse input.
+    GameViewToolbar* m_toolbar = nullptr;
     int aspectPresetIndex = 0;            // index into kPresets (0 == Free Aspect)
 
     static inline Proxy<InputManager> inputManager;
