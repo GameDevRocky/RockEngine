@@ -3,6 +3,7 @@ import random
 from Domain import *
 
 from Raycaster import Raycaster
+from ObjectPool import ObjectPool
 
 class TopDownController(ScriptableComponent):
 
@@ -19,20 +20,19 @@ class TopDownController(ScriptableComponent):
     rb : Reflect[Rigidbody, ReadOnly()]
     bc : Reflect[BoxCollider, ReadOnly()]
     muzzle : ParticleComponent
-    bullet_trail : ParticleComponent = None
     bullet_impact : ParticleComponent = None
 
     # ── Weapon ──────────────────────────────────────────────────────────────
-    fire_range : Reflect[float, Slider, Step(50), Range(100, 5000)] = 2000.0
+    # Point this at a GameObject with an ObjectPool script that manages bullet pooling.
+    # The pool will be created in awake() and bullets will be reused instead of cloned.
+    bullet_pool : GameObject = None
+
     fire_rate : Reflect[float, Slider, Step(0.02), Range(0.02, 1.0),
                         Tooltip("Seconds between shots while the button is held.")] = 0.12
-    tracer_steps : Reflect[int, Slider, Step(1), Range(1, 30),
-                           Tooltip("Frames the tracer takes to travel. 1 = instant hitscan streak.")] = 6
-    tracer_density : Reflect[int, Slider, Step(1), Range(1, 20)] = 3
-    impact_count : Reflect[int, Slider, Step(1), Range(1, 64)] = 14
-    impact_spread : Reflect[float, Slider, Step(5), Range(0, 180),
-                            Tooltip("Cone width of the impact spray around the bounce direction.")] = 40.0
-    muzzle_count : Reflect[int, Slider, Step(1), Range(1, 32)] = 4
+    muzzle_offset : Reflect[float, Slider, Step(5), Range(0, 300),
+                            Tooltip("How far in front of the player a bullet appears. Too small "
+                                    "and it spawns inside your own collider.")] = 60.0
+    muzzle_count : Reflect[int, Slider, Step(1), Range(0, 32)] = 4
 
 
     def awake(self):
@@ -43,13 +43,19 @@ class TopDownController(ScriptableComponent):
 
         self._next_shot = 0.0
 
-        # Both effect emitters get repositioned in world space and left there, so they
-        # MUST simulate in world space. In LOCAL space every particle already alive is
-        # parented to the emitter, so moving it to the next tracer step would drag the
-        # whole trail along behind the bullet instead of leaving it in the air.
-        for emitter in (self.bullet_trail, self.bullet_impact):
-            if emitter:
-                emitter.space = ParticleComponent.Space.WORLD
+        # The impact emitter is teleported to each hit point and left there, so it must
+        # simulate in world space. In LOCAL space every particle already alive is parented
+        # to the emitter, so moving it would drag the last burst along to the new hit.
+        if self.bullet_impact:
+            self.bullet_impact.space = ParticleComponent.Space.WORLD
+
+        # Get reference to the bullet pool script
+        if self.bullet_pool:
+            self._pool_script = ScriptRef(self.bullet_pool.id, "ObjectPool")
+            if not self._pool_script:
+                Console.warn("TopDownController: bullet_pool GameObject has no ObjectPool script.")
+        else:
+            self._pool_script = None
 
     def update(self):
         if self.light:
@@ -84,12 +90,15 @@ class TopDownController(ScriptableComponent):
 
 
     def shoot(self):
-        """Hitscan shot: raycast to the first collider, run a particle tracer out to the
-        hit point, and spray an impact burst back along the bounce direction."""
+        """Get a bullet from the pool, place it at the muzzle, and launch it."""
         now = Time.elapsed_time
         if now < self._next_shot:
             return
         self._next_shot = now + self.fire_rate
+
+        if not self._pool_script:
+            Console.warn("TopDownController: no bullet_pool assigned.")
+            return
 
         origin = self.transform.world_position
         aim = Input.get_mouse_pos() - origin
@@ -98,87 +107,39 @@ class TopDownController(ScriptableComponent):
         direction = aim.normalize()
         heading = math.degrees(math.atan2(direction.y, direction.x))
 
-        if self.muzzle:
+        if self.muzzle and self.muzzle_count > 0:
             self.muzzle.direction = heading
             self.muzzle.emit_burst(self.muzzle_count)
 
-        # cast_ray's second argument is a TRANSLATION -- the full ray segment, handed
-        # straight to b2World_CastRayClosest(origin, translation) -- not a heading. Passing
-        # a normalised direction casts a ray one world unit long, which is why this used to
-        # hit nothing but whatever was already overlapping the player.
-        hit = Physics.cast_ray(origin, direction * self.fire_range)
-
-        if hit:
-            impact = hit.point
-            self._spawn_impact(impact, self._reflect(direction, hit.normal))
-            # Deliberately NO coordinates in this string. Console keys its message map on
-            # the message text, so a unique string per call defeats the dedup counter and
-            # leaks a Message plus a permanent Qt MessageGui widget on EVERY shot -- and
-            # ConsoleGui rescans the whole map and relayouts synchronously inside
-            # Engine::Update(), so the frame cost grows with every line logged. Naming only
-            # the object keeps the key set bounded by how many things you can shoot, and
-            # repeat hits just bump that message's count.
-            Console.comment(f"Hit {hit.gameobject.name}")
-        else:
-            impact = origin + direction * self.fire_range
-
-        # Scene-view only: DebugPass is installed by EditorRenderView and not by
-        # GameRenderView, so this line is an authoring aid and is invisible in the Game
-        # tab and in a shipped build. The particles below are the effect players see.
-        Debug.draw_line(origin, impact, (1, 0.85, 0.2, 1))
-
-        self.start_coroutine(self._tracer(origin, impact))
-
-    @staticmethod
-    def _reflect(incident, normal):
-        """Mirror `incident` about the surface `normal` -- the classic R = D - 2(D.N)N.
-
-        It is the DOT product, not the cross. D.N is how much of the incoming direction
-        runs straight into the surface; subtracting twice that component flips exactly
-        the part that hit the wall and leaves the sliding part alone, which is what makes
-        a glancing shot spray sideways and a square-on shot spray back at you. (In 2D the
-        cross product returns a scalar, not a vector -- it is the signed area used for
-        winding and signed angles, so there is no reflection to be had from it.)
-
-        Box2D hands back a unit normal pointing out of the surface toward the ray origin,
-        so the result already points away from the wall.
-        """
-        n = normal.normalize()
-        return incident - n * (2.0 * incident.dot(n))
-
-    def _spawn_impact(self, point, bounce):
-        """Burst at the hit point, aimed along the bounce."""
-        if not self.bullet_impact:
-            return
-        self.bullet_impact.transform.world_position = point
-        self.bullet_impact.direction = math.degrees(math.atan2(bounce.y, bounce.x))
-        self.bullet_impact.spread = self.impact_spread
-        self.bullet_impact.emit_burst(self.impact_count)
-
-    def _tracer(self, start, end):
-        """Walk the trail emitter from muzzle to impact, one step per frame.
-
-        One burst per frame, and the emitter is deliberately LEFT at each step rather than
-        moved back: EmitBurst only does `pendingBurst += count`, and those particles are
-        not actually spawned until the particle system next updates, wherever the emitter
-        happens to be by then. Emitting several bursts at different positions within a
-        single frame -- or restoring the old position afterwards -- therefore spawns every
-        one of them at the final position, which is the reason the old trail always came
-        out in a clump at the player's feet.
-        """
-        if not self.bullet_trail:
+        # Get a bullet from the pool instead of cloning
+        bullet = self._pool_script.get()
+        if not bullet:
+            Console.warn("TopDownController: could not get bullet from pool.")
             return
 
-        segment = end - start
-        steps = max(1, int(self.tracer_steps))
+        # Order matters, and getting it wrong produces a bullet that never moves.
+        # RigidBody::OnTransformChanged treats an outside write to the Transform as a
+        # teleport and discards momentum on the axis that moved -- so pose first, then
+        # activate, and only then hand over to launch() to set the velocity.
+        bullet.transform.world_position = origin + direction * self.muzzle_offset
+        bullet.transform.world_rotation = heading
+        bullet.active = True
 
-        for i in range(1, steps + 1):
-            self.bullet_trail.transform.world_position = start + segment * (i / steps)
-            self.bullet_trail.emit_burst(self.tracer_density)
-            # Coroutines are ticked from every lifecycle method this class defines, and
-            # this one defines both update and fixed_update -- so a frame advances this
-            # loop twice. Steps, not seconds, so the tracer stays predictable either way.
-            yield WaitForFrames(1)
+        # The Bullet instance, resolved by script class name. A ScriptRef
+        # forwards attribute access straight through to the live instance and re-resolves
+        # every time, so it survives the hot-reload that would invalidate a captured one.
+        script = ScriptRef(bullet.id, "Bullet")
+        if not script:
+            Console.warn("TopDownController: bullet has no Bullet script.")
+            bullet.active = False
+            self._pool_script.return_to_pool(bullet)
+            return
+
+        # The impact emitter stays OURS and is only borrowed: one living on the bullet
+        # would be destroyed along with it before a single particle was drawn.
+        # Pass the pool reference so the bullet can return itself when done.
+        script.launch(direction, owner_id=self.gameobject.id,
+                      impact_emitter=self.bullet_impact, pool=self._pool_script)
 
     @action
     def Test_Function(self, val : str):
