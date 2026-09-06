@@ -1,12 +1,14 @@
 type: Material
 name: New Material 2
 id: d79f037ae851df2cbb2db311569480f0
-shader_id: s1
+shader_id: s8
 uniforms:
   textures:
     uTexture: ""
   floats:
-    uLitAmount: 1
+    uTime: -1.8
+    uGlitchSpeed: 10
+    uGlitchIntensity: 0.3
   vec2:
     uUVScale: [1, 1]
     uUVOffset: [0, 0]
