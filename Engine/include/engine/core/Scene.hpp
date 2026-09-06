@@ -3,6 +3,7 @@
 #include <iostream>
 #include <string>
 #include <cstdint>
+#include <functional>
 #include <unordered_set>
 #include "yaml-cpp/yaml.h"
 #include "engine/serialization/Serializable.hpp"
@@ -119,6 +120,17 @@ private:
     // remaps to fresh ids first) and RestoreSubtree (which does not). Returns the
     // root, which is assumed to be gameobjects[0].
     GameObject* InstantiateSubtree(const YAML::Node& gameobjects, const YAML::Node& components);
+
+    // The registry this scene resolves ids against: the cached one once Init() has
+    // run, otherwise the container's (the scene resolves ids before Init in a few
+    // paths). Null only before Attach().
+    Registry* ResolveRegistry();
+    GameObject* FindObject(const std::string& id);
+
+    // Run `fn` over a snapshot of every root subtree, top-down, re-resolving root
+    // ids as it goes so a callback that spawns or destroys objects cannot leave the
+    // walk holding invalidated cache iterators. All game-code lifecycle walks use it.
+    void ForEachRootSubtree(const std::function<void(GameObject*)>& fn);
 
     std::string name;
     std::string path;

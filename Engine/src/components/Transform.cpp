@@ -9,6 +9,10 @@ void Transform::Init(){
     registry = container->FindSystem<Registry>();
     if (parent_id.empty()){
         SetParent(nullptr);
+        // Root transforms complete initialization here too. Leaving the state at
+        // Loaded makes a later lifecycle pass repeat SetParent(nullptr), including
+        // its hierarchy notifications and registry-generation bump.
+        state = State::Initialized;
         return;
     }
     Transform* parentTransform = registry->Find<Transform>(parent_id);

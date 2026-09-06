@@ -605,7 +605,7 @@ bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
         case QEvent::Wheel: {
             auto* we = static_cast<QWheelEvent*>(event);
             io.MouseWheel += we->angleDelta().y() / 120.0f;
-            return io.WantCaptureMouse;
+            return false;
         }
         default:
             break;
@@ -661,19 +661,66 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
         int fbX = static_cast<int>(event->pos().x() * dpi);
         int fbY = static_cast<int>((height() - event->pos().y()) * dpi);  // Flip Y for OpenGL
 
-        std::string objectId = editorView->Pick(fbX, fbY);
+        const std::string objectId = editorView->Pick(fbX, fbY);
 
-        auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+        Container* container = Engine::Get()->GetActiveContainer();
+        Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+        SelectionManager* selMgr = container ? container->FindSystem<SelectionManager>() : nullptr;
+        if (!registry || !selMgr) return;
+
         const bool additive =
             event->modifiers() & (Qt::ControlModifier | Qt::ShiftModifier);
 
+        if (additive) {
+            // Ctrl/Shift retains exact-object multi-selection. Root-first
+            // drilling is a single-selection viewport interaction only.
+            m_lastPlainClickHitId.clear();
+            m_lastPlainClickTargetId.clear();
+            if (!objectId.empty())
+                selMgr->ToggleSelection(objectId);
+            return;
+        }
+
         if (!objectId.empty()) {
-            if (additive) selMgr->ToggleSelection(objectId);
-            else          selMgr->Select(objectId);
-        } else if (!additive) {
+            std::string targetId = objectId;
+            GameObject* hit = registry->Find<GameObject>(objectId);
+            Transform* transform = hit ? hit->GetTransform() : nullptr;
+            GameObject* rootAncestor = nullptr;
+            for (Transform* ancestor = transform ? transform->GetParent() : nullptr;
+                 ancestor;
+                 ancestor = ancestor->GetParent()) {
+                if (GameObject* ancestorObject = ancestor->GetGameObject())
+                    rootAncestor = ancestorObject;
+            }
+
+            if (rootAncestor) {
+                const std::string& rootId = rootAncestor->GetID();
+
+                // Requiring the same raw hit prevents this sequence:
+                // click child A -> root, click sibling B -> B. Sibling B must
+                // begin its own root-first sequence even though the same root
+                // is already selected.
+                const bool continuingClick =
+                    m_lastPlainClickHitId == objectId &&
+                    selMgr->GetSelectionCount() == 1 &&
+                    selMgr->GetPrimaryId() == m_lastPlainClickTargetId;
+
+                if (!continuingClick)
+                    targetId = rootId;         // first click selects the root
+                else if (m_lastPlainClickTargetId == rootId)
+                    targetId = objectId;       // second click drills into the child
+                // Once drilled in, further clicks keep the child selected.
+            }
+
+            selMgr->Select(targetId);
+            m_lastPlainClickHitId = objectId;
+            m_lastPlainClickTargetId = targetId;
+        } else {
             // Only a plain click on empty space clears. An additive click that
             // happens to miss must leave the selection alone, or building one up
             // becomes an exercise in never missing.
+            m_lastPlainClickHitId.clear();
+            m_lastPlainClickTargetId.clear();
             selMgr->ClearSelection();
         }
     }
@@ -748,6 +795,11 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
 void SceneViewGui::PerformBoxSelect(const QRect& widgetRect)
 {
     if (widgetRect.isEmpty()) return;
+
+    // A marquee is a new selection gesture, so the next plain click starts a new
+    // root-first sequence even if it happens to hit the same object as before.
+    m_lastPlainClickHitId.clear();
+    m_lastPlainClickTargetId.clear();
 
     makeCurrent();   // Pick reads the picking-pass buffer via GL
     const float dpi = devicePixelRatioF();

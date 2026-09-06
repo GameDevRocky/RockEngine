@@ -114,20 +114,28 @@ class GameObject : public RuntimeObject {
     void SetScene(Scene* scene);
     Scene* GetScene();
     
+    // Snapshot the resolved children before invoking game code. `callback` can spawn,
+    // destroy, or reparent objects, which bumps the registry generation and may cause
+    // ChildObjects() to clear and reallocate its cache. Holding iterators into that
+    // cache would be a use-after-reallocation; indexing the live cache would instead
+    // skip siblings when an earlier child is removed.
+    //
+    // ChildObjects() (defined in the .cpp, where Transform is complete) keeps this
+    // header free of Transform's members — otherwise the non-dependent Transform
+    // access would need the full type at parse time.
     template<typename T>
     void recurseTopDown(const T& callback) {
         callback(this);
-        // ChildObjects() (defined in the .cpp, where Transform is complete)
-        // keeps this header free of Transform's members — otherwise the
-        // non-dependent Transform access would need the full type at parse time.
-        for (GameObject* child : ChildObjects())
-            child->recurseTopDown(callback);
+        const std::vector<GameObject*> children = ChildObjects();
+        for (GameObject* child : children)
+            if (child) child->recurseTopDown(callback);
     }
 
     template<typename T>
     void recurseBottomUp(const T& callback) {
-        for (GameObject* child : ChildObjects())
-            child->recurseBottomUp(callback);
+        const std::vector<GameObject*> children = ChildObjects();
+        for (GameObject* child : children)
+            if (child) child->recurseBottomUp(callback);
         callback(this);
     }
 

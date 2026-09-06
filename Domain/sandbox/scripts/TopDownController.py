@@ -48,7 +48,7 @@ class TopDownController(ScriptableComponent):
         # to the emitter, so moving it would drag the last burst along to the new hit.
         if self.bullet_impact:
             self.bullet_impact.space = ParticleComponent.Space.WORLD
-
+    def start(self):
         # Get reference to the bullet pool script
         if self.bullet_pool:
             self._pool_script = ScriptRef(self.bullet_pool.id, "ObjectPool")
@@ -86,7 +86,6 @@ class TopDownController(ScriptableComponent):
         self.rb.velocity *= self.friction
         self.transform.rotation = math.degrees(math.atan2(direction.y, direction.x))
         self.velocity = self.rb.velocity
-        Debug.draw_circle(mouse_pos, 40)
 
 
     def shoot(self):

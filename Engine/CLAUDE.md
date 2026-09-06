@@ -28,6 +28,13 @@ The whole engine is built from `RuntimeObject`s living inside a `Container`.
 `Engine::Update()` (called every frame by the editor's vsync-driven frame loop, or by
 `PlayerApp`'s loop in a shipped game) ticks `activeContainer`.
 
+Lifecycle traversal is snapshot-based because component callbacks are allowed to mutate the
+world. `Scene` snapshots root ids and re-resolves each root; `GameObject::recurseTopDown` and
+`recurseBottomUp` snapshot their resolved child pointers before invoking more game code. Never
+range-for directly over the references returned by `Scene::GetRootObjects()` or
+`GameObject::ChildObjects()` across a callback: a spawn, destroy, reparent, or a later cache
+query can bump the registry generation, clear that same cache, and invalidate the iterator.
+
 ## AppMode — editor process vs. shipped game
 
 `Engine::SetAppMode(AppMode::Editor | AppMode::Player)`, **called before `Init()`** (it decides

@@ -75,6 +75,13 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   `QOpenGLWidget` base that hosts an engine-owned `RenderView` (`EditorRenderView`/
   `GameRenderView`) and hands it an FBO id each frame — the pipeline, passes, and camera all
   live in Engine, not here. See Engine's CLAUDE.md "Rendering" section for the ownership chain.
+- Plain Scene-view picking is root-first: clicking a rendered child selects its highest
+  ancestor, then a consecutive click on that same rendered child drills into the child and keeps
+  it selected. The raw hit and prior resolved target live on `SceneViewGui`, not
+  `SelectionManager`, so Hierarchy selection, marquee selection, and Ctrl/Shift exact-object
+  multi-selection retain their existing semantics.
+- Scene-view wheel events update ImGui IO but are never consumed by its event filter; they must
+  continue to `SceneViewGui::wheelEvent()` so screen-space gizmo hover cannot interrupt camera zoom.
 - **Never `exec()` a dialog.** There are no `QDialog` subclasses here by design — the reason is
   documented on `LoadingOverlay.hpp`: `exec()` spins a nested `QEventLoop`, inside which
   `frameSwapped` still fires → `Editor::FrameTick` → `Engine::Update` → `JobSystem::Pump`,

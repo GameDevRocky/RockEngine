@@ -6,6 +6,7 @@
 #include <QMouseEvent>
 #include <QRubberBand>
 #include <glm/glm.hpp>
+#include <string>
 #include "engine/rendering/views/EditorRenderView.hpp"
 #include "utils/ImGuiInstance.hpp"
 
@@ -98,6 +99,12 @@ private:
 
     QPoint lastMousePos;
     bool isPanning = false;
+
+    // Plain Scene-view clicks select the highest ancestor before drilling into the
+    // rendered child. Keep both the raw pick and the target produced by the previous
+    // click so a sibling under the same root still starts at the root.
+    std::string m_lastPlainClickHitId;
+    std::string m_lastPlainClickTargetId;
 
     // ── Box (marquee) select ─────────────────────────────────────────────────
     // Right-drag box-selects, replacing the selection. Armed on press -- nothing

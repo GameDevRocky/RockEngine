@@ -21,10 +21,19 @@ void Scene::Init()
     registry = container->FindSystem<Registry>();
 
     std::cout << "Initializing Scene: " << name << std::endl;
-    const std::string& scene_id = GetID();
 
-    for (auto* obj : GetAllGameObjects())
-    {   
+    // Over a snapshot of the ids, re-resolved one at a time -- NOT a range-for over
+    // GetAllGameObjects(). obj->Init() reparents (Transform::Init) and may add
+    // components, both of which bump the registry generation, and the next
+    // GetAllGameObjects() call anywhere below (Camera::GetMain and
+    // AudioListener::GetMain both walk it) then clears and refills the very vector
+    // a range-for would still be walking. See the header note on GetRootObjects().
+    const std::vector<std::string> ids = gameobject_ids;
+    for (const std::string& id : ids)
+    {
+        GameObject* obj = FindObject(id);
+        if (!obj)
+            continue;   // destroyed by an earlier object's Init()
         Sync(obj);
         obj->Init();
     }
@@ -39,9 +48,11 @@ void Scene::PostInit()
 
     std::cout << "Post Initializing Scene: " << name << std::endl;
 
-    for (auto* obj : GetAllGameObjects())
+    const std::vector<std::string> ids = gameobject_ids;   // same reason as Init()
+    for (const std::string& id : ids)
     {
-        obj->PostInit();
+        if (GameObject* obj = FindObject(id))
+            obj->PostInit();
     }
 
     state = State::PostInitialized;
@@ -53,11 +64,8 @@ void Scene::Awake()
         return;
 
     std::cout << "Awaking Scene: " << name << std::endl;
-    for (auto &root : GetRootObjects())
-    {
-        root->recurseTopDown([&](GameObject *obj)
-                             { obj->Awake(); });
-    }
+    ForEachRootSubtree([](GameObject *obj)
+                       { obj->Awake(); });
 
     state = State::Awakened;
 }
@@ -68,11 +76,8 @@ void Scene::Start()
         return;
 
     std::cout << "Starting Scene: " << name << std::endl;
-    for (auto &root : GetRootObjects())
-    {
-        root->recurseTopDown([&](GameObject *obj)
-                             { obj->Start(); });
-    }
+    ForEachRootSubtree([](GameObject *obj)
+                       { obj->Start(); });
 
     state = State::Started;
 }
@@ -80,27 +85,18 @@ void Scene::Start()
 
 void Scene::Update()
 {
-    for (auto &root : GetRootObjects())
-    {
-        root->recurseTopDown([&](GameObject *obj)
-                             { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->Update(); });
-    }
+    ForEachRootSubtree([](GameObject *obj)
+                       { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->Update(); });
 }
 void Scene::FixedUpdate()
 {
-    for (auto &root : GetRootObjects())
-    {
-        root->recurseTopDown([&](GameObject *obj)
-                             { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->FixedUpdate(); });
-    }
+    ForEachRootSubtree([](GameObject *obj)
+                       { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->FixedUpdate(); });
 }
 void Scene::LateUpdate()
 {
-    for (auto &root : GetRootObjects())
-    {
-        root->recurseTopDown([&](GameObject *obj)
-                             { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->LateUpdate(); });
-    }
+    ForEachRootSubtree([](GameObject *obj)
+                       { if (!obj->IsMarkedForDestroy() && obj->GetActive()) obj->LateUpdate(); });
 }
 
 void Scene::EmitSubtree(GameObject* root, YAML::Node& gameobjects, YAML::Node& components,
@@ -281,7 +277,11 @@ void Scene::AddGameObject(GameObject *obj)
     }
 
     Transform* transform = obj->GetTransform();
-    if (transform && !transform->GetParent()) {
+    if (transform && !transform->GetParent() &&
+        std::find(rootobject_ids.begin(), rootobject_ids.end(), obj->GetID()) == rootobject_ids.end()) {
+        // SyncRootObjects can already have registered the id when initialization
+        // announces a parentless Transform. Keep the scene-root list unique no
+        // matter which construction path reached this point.
         rootobject_ids.push_back(obj->GetID());
     }
     Registry::BumpGeneration(); // id lists finalized — refresh object caches
@@ -488,14 +488,41 @@ void Scene::Sync(GameObject* obj){
 
 }
 
+Registry* Scene::ResolveRegistry()
+{
+    if (registry) return registry;
+    return container ? container->FindSystem<Registry>() : nullptr;
+}
+
+GameObject* Scene::FindObject(const std::string& id)
+{
+    Registry* reg = ResolveRegistry();
+    return reg ? reg->Find<GameObject>(id) : nullptr;
+}
+
+void Scene::ForEachRootSubtree(const std::function<void(GameObject*)>& fn)
+{
+    // Snapshot ids and re-resolve each root immediately before visiting it. Game
+    // callbacks can change the hierarchy and then call GetRootObjects(), which clears
+    // and may reallocate the resolved-pointer cache. Iterating that cache directly was
+    // the play-mode crash: the next iterator produced a garbage GameObject pointer.
+    // Newly created runtime objects run Awake()/Start() in AddGameObject and therefore
+    // intentionally do not join an already-running traversal.
+    const std::vector<std::string> ids = rootobject_ids;
+    for (const std::string& id : ids) {
+        if (GameObject* root = FindObject(id))
+            root->recurseTopDown(fn);
+    }
+}
+
 const std::vector<GameObject*>& Scene::GetRootObjects()
 {
     const std::uint64_t gen = Registry::Generation();
     if (cachedRootsGen == gen) return cachedRoots;
 
-    cachedRoots.clear();
-    Registry* reg = registry ? registry : (container ? container->FindSystem<Registry>() : nullptr);
+    Registry* reg = ResolveRegistry();
     if (!reg) return cachedRoots; // pre-Init: leave unstamped so it re-resolves
+    cachedRoots.clear();
     cachedRoots.reserve(rootobject_ids.size());
     for (const auto& id : rootobject_ids) {
         if (GameObject* obj = reg->Find<GameObject>(id))
@@ -510,9 +537,9 @@ const std::vector<GameObject*>& Scene::GetAllGameObjects()
     const std::uint64_t gen = Registry::Generation();
     if (cachedAllGen == gen) return cachedAll;
 
-    cachedAll.clear();
-    Registry* reg = registry ? registry : (container ? container->FindSystem<Registry>() : nullptr);
+    Registry* reg = ResolveRegistry();
     if (!reg) return cachedAll;
+    cachedAll.clear();
     cachedAll.reserve(gameobject_ids.size());
     for (const auto& id : gameobject_ids) {
         if (GameObject* obj = reg->Find<GameObject>(id))
@@ -528,10 +555,12 @@ void Scene::SetName(const std::string& name){
 }
 
 void Scene::Shutdown(){
-    for (GameObject* obj : GetRootObjects()){
-        obj->recurseBottomUp([&](GameObject* obj){
+    // GameObject::Shutdown already tears down its descendants bottom-up. Snapshot the
+    // root ids because each call removes that root from this scene via SHUTDOWN_EVENT.
+    const std::vector<std::string> ids = rootobject_ids;
+    for (const std::string& id : ids){
+        if (GameObject* obj = FindObject(id))
             obj->Shutdown();
-        });
     }
     RuntimeObject::Shutdown();
 }
