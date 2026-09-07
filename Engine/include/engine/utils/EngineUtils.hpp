@@ -94,13 +94,18 @@ namespace EngineUtils {
     //             shifted by uPivot, UVs remapped through uUVScale/uUVOffset.
     //   Text   -- a glyph mesh: aPos already positioned in text-local world
     //             units, aUV already the glyph's rect in an MSDF atlas.
+    //   Trail  -- a ribbon: aPos already a WORLD position, aUV spanning [0,1]
+    //             head-to-tail, plus a third attribute (vec4 aColor) carrying
+    //             the per-vertex gradient. The only domain with an attribute
+    //             the sprite quad does not supply, so a sprite-domain material
+    //             on a trail really does draw wrong rather than merely oddly.
     //
     // Purely advisory. TextRenderer neutralizes the sprite quad's transform
     // uniforms so a Sprite-domain material still positions text correctly; the
     // domain exists so the editor can filter the material picker and warn on a
     // mismatch rather than leaving the user to wonder why their text is rainbow
     // noise (a sprite shader samples the atlas as colour instead of decoding it).
-    enum class ShaderDomain { Sprite, Text };
+    enum class ShaderDomain { Sprite, Text, Trail };
 
     struct ShaderSource {
         std::string vertex;

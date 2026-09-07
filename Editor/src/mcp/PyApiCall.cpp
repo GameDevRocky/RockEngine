@@ -103,6 +103,7 @@ constexpr HandlerClass kAllHandlers[] = {
     {"Domain.lib.api.components.camera_handler", "Camera", "Camera"},
     {"Domain.lib.api.components.animator_handler", "Animator", "Animator"},
     {"Domain.lib.api.components.particle_component_handler", "ParticleComponent", "ParticleComponent"},
+    {"Domain.lib.api.components.trail_renderer_handler", "TrailRenderer", "TrailRenderer"},
     {"Domain.lib.api.components.audio_source_handler", "AudioSource", "AudioSource"},
     {"Domain.lib.api.components.audio_listener_handler", "AudioListener", "AudioListener"},
     {"Domain.lib.api.components.box_collider_handler", "BoxCollider", "BoxCollider"},

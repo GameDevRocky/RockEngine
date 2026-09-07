@@ -141,6 +141,7 @@ namespace EngineUtils {
             if (current == Section::None &&
                 line.find("#pragma domain") != std::string::npos) {
                 if (line.find("text") != std::string::npos) domain = ShaderDomain::Text;
+                else if (line.find("trail") != std::string::npos) domain = ShaderDomain::Trail;
                 continue;
             }
             if      (current == Section::Vertex)   vertSS << line << '\n';

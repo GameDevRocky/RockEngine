@@ -79,9 +79,19 @@ public:
     // "New > Material".
     Material* CreateMaterial(const std::string& filePath, const std::string& name);
 
-    // Import an external image into destDir: copy the file in (unless it already
-    // lives there), generate its .texture meta, register the texture, and return
-    // it (nullptr on failure). Powers dropping images onto the Folder view.
+    // Import any external asset file into destDir: copy it in (unless it already
+    // lives there), generate its meta, and register the result. Handles every
+    // source type AssetMetaService::MetaExtensionFor knows -- images, audio,
+    // fonts and shaders -- so a new asset type becomes droppable by teaching
+    // that one table about it, with no edit here or in the Folder view.
+    //
+    // Returns the meta file's path on success, "" on failure. The path rather
+    // than the asset itself because the types have no common base worth
+    // returning; callers that need the object look it up by id from the meta.
+    std::string ImportAsset(const std::string& sourceFile, const std::string& destDir);
+
+    // Image-specific wrapper over ImportAsset, kept because callers want the
+    // Texture2D back. nullptr on failure, or if the file was not an image.
     Texture2D* ImportTexture(const std::string& sourceFile, const std::string& destDir);
 
     void LoadAsset(const YAML::Node& node, const std::string& type);

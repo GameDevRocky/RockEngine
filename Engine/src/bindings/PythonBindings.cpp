@@ -26,6 +26,7 @@ void BindApplication(py::module_& m);
 
 // CORE
 void BindGameObject(py::module_& m);
+void BindAnimationCurve(py::module_& m);
 
 
 // COMPONENTS
@@ -41,6 +42,7 @@ void BindCollider(py::module_& m);
 void BindCamera(py::module_& m);
 void BindAnimator(py::module_& m);
 void BindParticleComponent(py::module_& m);
+void BindTrailRenderer(py::module_& m);
 void BindJoint(py::module_& m);
 void BindAudioSource(py::module_& m);
 
@@ -62,6 +64,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     // CORE
     py::module_ core = m.def_submodule("core", " Core RockEngine APIs");
     BindGameObject(core);
+    BindAnimationCurve(core);
     
     // SYSTEMS
     py::module_ systems = m.def_submodule("systems", " RockEngine systems APIs");
@@ -88,6 +91,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindCamera(components);
     BindAnimator(components);
     BindParticleComponent(components);
+    BindTrailRenderer(components);
     BindJoint(components);
     BindAudioSource(components);
 

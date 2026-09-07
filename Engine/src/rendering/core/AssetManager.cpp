@@ -313,12 +313,20 @@ Material* AssetManager::CreateMaterial(const std::string& filePath, const std::s
     return mat;
 }
 
-Texture2D* AssetManager::ImportTexture(const std::string& sourceFile, const std::string& destDir) {
+std::string AssetManager::ImportAsset(const std::string& sourceFile, const std::string& destDir) {
     std::error_code ec;
     fs::path src(sourceFile);
     if (!fs::is_regular_file(src, ec)) {
-        Console::Alert("ImportTexture: source not found: " + sourceFile);
-        return nullptr;
+        Console::Alert("Import: source not found: " + sourceFile);
+        return "";
+    }
+
+    // Decided by the same table ScanAndGenerate uses, so what can be dropped and
+    // what gets a meta on startup can never disagree.
+    const std::string metaExt = AssetMetaService::MetaExtensionFor(src.extension().string());
+    if (metaExt.empty()) {
+        Console::Alert("Import: unsupported file type: " + src.filename().string());
+        return "";
     }
 
     fs::path dest = fs::path(destDir) / src.filename();
@@ -328,28 +336,38 @@ Texture2D* AssetManager::ImportTexture(const std::string& sourceFile, const std:
     const bool sameFile = fs::weakly_canonical(src, ec) == fs::weakly_canonical(dest, ec);
     if (!sameFile) {
         if (fs::exists(dest, ec)) {
-            Console::Alert("ImportTexture: '" + dest.filename().string() + "' already exists here.");
-            return nullptr;
+            Console::Alert("Import: '" + dest.filename().string() + "' already exists here.");
+            return "";
         }
         fs::copy_file(src, dest, ec);
         if (ec) {
-            Console::Alert("ImportTexture: copy failed: " + ec.message());
-            return nullptr;
+            Console::Alert("Import: copy failed: " + ec.message());
+            return "";
         }
     }
 
-    // Generate the .texture meta for just this file, then register the texture
+    // Generate the meta for just this file, then register the asset
     // (LoadAssetFromFile dedupes by id, so a re-import is a no-op).
     AssetMetaService::GenerateFor(dest.string());
-    const fs::path metaPath(dest.string() + ".texture");
+    const fs::path metaPath(dest.string() + metaExt);
     if (!fs::exists(metaPath, ec)) {
-        Console::Alert("ImportTexture: failed to generate meta for: " + dest.string());
-        return nullptr;
+        Console::Alert("Import: failed to generate meta for: " + dest.string());
+        return "";
     }
     LoadAssetFromFile(metaPath.string());
+    return metaPath.string();
+}
+
+Texture2D* AssetManager::ImportTexture(const std::string& sourceFile, const std::string& destDir) {
+    const std::string metaPath = ImportAsset(sourceFile, destDir);
+    if (metaPath.empty()) return nullptr;
+    // Guard rather than assume: ImportAsset accepts every type in the meta table,
+    // so a caller that reaches here with a .wav would otherwise read an id out of
+    // an .audio meta and hand it to GetTexture.
+    if (fs::path(metaPath).extension() != ".texture") return nullptr;
 
     try {
-        YAML::Node meta = YAML::LoadFile(metaPath.string());
+        YAML::Node meta = YAML::LoadFile(metaPath);
         if (meta["id"]) return GetTexture(meta["id"].as<std::string>());
     } catch (...) {}
     return nullptr;

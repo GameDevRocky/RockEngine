@@ -23,6 +23,7 @@ struct GizmoEdit {
                             // | "size" | "center" | "radius" | "height" | "orthoSize"
                             // | "range" | "innerRadius" | "innerAngle" | "outerAngle"
                             // | "casterSize" | "casterRadius" | "minDistance" | "maxDistance"
+                            // | "shapeSize" | "coneAngle"
                             // ShadowCaster's size/radius get their own names because
                             // a collider already claimed the plain ones and the
                             // bridge resolves purely by property string.
@@ -83,12 +84,12 @@ public:
     bool IsHandleHovered() const {
         return m_hoveredHandle >= 0 || m_hoveredCameraCorner >= 0 ||
                m_hoveredLightHandle >= 0 || m_hoveredAudioHandle >= 0 ||
-               m_hoveredScaleHandle >= 0;
+               m_hoveredScaleHandle >= 0 || m_hoveredParticleHandle >= 0;
     }
     bool IsDraggingHandle() const {
         return m_dragHandle >= 0 || m_dragCameraCorner >= 0 ||
                m_dragLightHandle >= 0 || m_dragAudioHandle >= 0 ||
-               m_dragScaleHandle >= 0;
+               m_dragScaleHandle >= 0 || m_dragParticleHandle >= 0;
     }
     // Every hover/drag state MUST be represented here. SceneViewGui checks this
     // before running object picking on a click -- a handle missing from this list
@@ -98,7 +99,8 @@ public:
                m_hoveredCameraCorner >= 0 || m_dragCameraCorner >= 0 ||
                m_hoveredLightHandle >= 0 || m_dragLightHandle >= 0 ||
                m_hoveredAudioHandle >= 0 || m_dragAudioHandle >= 0 ||
-               m_hoveredScaleHandle >= 0 || m_dragScaleHandle >= 0;
+               m_hoveredScaleHandle >= 0 || m_dragScaleHandle >= 0 ||
+               m_hoveredParticleHandle >= 0 || m_dragParticleHandle >= 0;
     }
 
     GizmosManager* Copy() override;
@@ -142,6 +144,20 @@ private:
                                float viewWidth, float viewHeight);
     void DrawAudioSourceGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
                               class Transform* transform, class AudioSource* source);
+
+    // ─── Particle emitter shape gizmos ───────────────────────────────────────
+    // The spawn region a ParticleComponent scatters new particles across, drawn
+    // only for SELECTED objects (unlike lights and cameras, which are drawn for
+    // every object -- an emitter's shape is authoring detail, not scene context).
+    //
+    // Which handles exist depends on the shape, and mirrors what the emit
+    // compute shader actually reads: Circle and Box use shapeSize, Cone uses
+    // coneAngle, and Point uses neither, so it draws a marker and nothing to
+    // grab. See ParticleManager's emit shader.
+    void DrawParticleGizmos(const glm::mat4& view, const glm::mat4& proj,
+                            float viewWidth, float viewHeight);
+    void DrawParticleGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                           class Transform* transform, class ParticleComponent* emitter);
 
     // ─── Joint gizmos ────────────────────────────────────────────────────────
     // Both anchors plus the line linking them, drawn only for SELECTED objects.
@@ -230,6 +246,15 @@ private:
     float       m_dragStartMinDistance = 0.0f;
     float       m_dragStartMaxDistance = 0.0f;
 
+    // Particle emitter shape drag state, scoped by component id so two selected
+    // emitters cannot claim the same gesture -- same shape as the audio and
+    // light handle state above.
+    int         m_hoveredParticleHandle = -1;  // reset each frame
+    int         m_dragParticleHandle    = -1;  // -1 = none
+    std::string m_dragParticleId;              // owning ParticleComponent id ("" = none)
+    glm::vec2   m_dragStartShapeSize{ 0.0f };
+    float       m_dragStartConeAngle = 0.0f;
+
     // ─── SpriteBox drag state ────────────────────────────────────────────────
     // Handles 0-3 are corners, 4-7 edge midpoints, 8 is the body (move).
     //
@@ -255,6 +280,7 @@ private:
     void CommitLightDrag();
     void CommitAudioSourceDrag();
     void CommitSpriteBoxDrag();
+    void CommitParticleDrag();
 
     // Decompose `world` and write it onto `transform` via the SetWorld* trio.
     void ApplyWorld(class Transform* transform, const glm::mat4& world);

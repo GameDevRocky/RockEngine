@@ -16,12 +16,13 @@
 
 using namespace EngineUtils;
 
-// Draws every 2D renderable in the scene -- SpriteRenderers, ParticleComponents
-// *and* TextRenderers -- in ONE list sorted by (sorting layer priority, order in
-// layer). Particles and text share the sprite sorting model rather than
-// compositing on top as separate passes, which is the only way an emitter or a
-// label can sit behind or between sprite layers. Particle simulation is not done
-// here; see ParticleSimulationPass, which must run before this pass.
+// Draws every 2D renderable in the scene -- SpriteRenderers, ParticleComponents,
+// TextRenderers *and* TrailRenderers -- in ONE list sorted by (sorting layer
+// priority, order in layer). Every kind shares the sprite sorting model rather
+// than compositing on top as separate passes, which is the only way an emitter,
+// a label or a trail can sit behind or between sprite layers. Particle
+// simulation is not done here; see ParticleSimulationPass, which must run before
+// this pass.
 class ScenePass : public RenderPass
 {
 public:
@@ -52,13 +53,21 @@ private:
     // attribute layout per object.
     unsigned int textVao = 0;
 
+    // Fourth VAO, for trail ribbons. Same separate-attribute-format trick as
+    // textVao and for the same reason (one VBO per TrailRenderer, owned by
+    // TrailManager), but a DIFFERENT layout: trails add a third attribute,
+    // vec4 aColor, carrying the baked head-to-tail gradient. That extra
+    // attribute is why trails cannot reuse textVao or the sprite quad.
+    unsigned int trailVao = 0;
+
     // Resolved once on first use; the material map only grows via asset loads,
     // so the pointer stays valid for the pass's lifetime (borrowed, not owned).
     Material* defaultMaterial = nullptr;
     Material* defaultTextMaterial = nullptr;
+    Material* defaultTrailMaterial = nullptr;
 
-    // FontManager's mesh cache is GC'd once per frame, not once per scene --
-    // this pass runs once per scene per view.
+    // The FontManager and TrailManager mesh caches are GC'd once per frame, not
+    // once per scene -- this pass runs once per scene per view.
     std::uint64_t lastGcFrame = ~0ull;
     // Objects already warned about (missing transform/material) — warn once per
     // object instead of flooding the console every frame.

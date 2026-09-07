@@ -4,6 +4,7 @@
 #include "engine/components/AudioSource.hpp"
 #include "engine/components/Animator.hpp"
 #include "engine/components/ParticleComponent.hpp"
+#include "engine/components/TrailRenderer.hpp"
 #include "engine/components/ScriptComponent.hpp"
 
 #include <charconv>
@@ -89,6 +90,9 @@ std::vector<ComponentActionInfo> For(Component* component) {
         actions.push_back(MakeAction("reset_trigger", "Reset Trigger", "", "name", "str"));
     } else if (dynamic_cast<ParticleComponent*>(component)) {
         actions.push_back(MakeAction("emit_burst", "Emit Burst", "", "count", "int"));
+    } else if (dynamic_cast<TrailRenderer*>(component)) {
+        actions.push_back(MakeAction("clear", "Clear Trail",
+                                     "Drop every recorded point immediately."));
     } else if (auto* script = dynamic_cast<ScriptComponent*>(component)) {
         // A script's actions come from its Python class (@action), so they change
         // with every hot-reload rather than being fixed per type.
@@ -142,6 +146,8 @@ bool Invoke(Component* component, const std::string& action,
             particles->EmitBurst(count);
             return true;
         }
+    } else if (auto* trail = dynamic_cast<TrailRenderer*>(component)) {
+        if (action == "clear") { trail->Clear(); return true; }
     }
 
     return Fail(error, "unsupported action \"" + action + "\" for " +

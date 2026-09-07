@@ -11,6 +11,7 @@
 #include "engine/components/Camera.hpp"
 #include "engine/components/Animator.hpp"
 #include "engine/components/ParticleComponent.hpp"
+#include "engine/components/TrailRenderer.hpp"
 #include "engine/components/Light.hpp"
 #include "engine/components/ShadowCaster.hpp"
 #include "engine/components/DistanceJoint.hpp"
@@ -36,6 +37,7 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("Animator", []() { return new Animator(); });
     SerializableFactory::RegisterType("Camera", []() { return new Camera(); });
     SerializableFactory::RegisterType("ParticleComponent", []() { return new ParticleComponent(); });
+    SerializableFactory::RegisterType("TrailRenderer", []() { return new TrailRenderer(); });
     SerializableFactory::RegisterType("Light", []() { return new Light(); });
     SerializableFactory::RegisterType("ShadowCaster", []() { return new ShadowCaster(); });
     // Joints are intentionally NOT in Component::IsSingleton -- one body may be

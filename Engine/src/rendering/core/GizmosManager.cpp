@@ -98,6 +98,7 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
     m_hoveredLightHandle = -1;   // reset each frame; DrawLightGizmos sets it if applicable
     m_hoveredAudioHandle = -1;   // reset each frame; DrawAudioSourceGizmos sets it if applicable
     m_hoveredScaleHandle = -1;   // reset each frame; DrawSpriteBoxGizmo sets it if applicable
+    m_hoveredParticleHandle = -1; // reset each frame; DrawParticleGizmos sets it if applicable
 
     // Overlay visibility is per-category, driven by the Scene view's gizmo
     // dropdown. Read AFTER the hover resets above, never before: WantsCaptureMouse
@@ -146,6 +147,14 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
         if (m_dragAudioHandle >= 0 && !m_dragAudioId.empty()) CommitAudioSourceDrag();
         m_dragAudioHandle = -1;
         m_dragAudioId.clear();
+    }
+
+    if (gizmoSettings.ShouldDraw(Category::Particles)) {
+        DrawParticleGizmos(view, proj, viewWidth, viewHeight);
+    } else {
+        if (m_dragParticleHandle >= 0 && !m_dragParticleId.empty()) CommitParticleDrag();
+        m_dragParticleHandle = -1;
+        m_dragParticleId.clear();
     }
 
     // Read-only from here down -- no drag state to release.
@@ -1708,6 +1717,288 @@ void GizmosManager::CommitAudioSourceDrag() {
     if (source->GetMaxDistance() != m_dragStartMaxDistance) {
         edits.push_back({ source->GetID(), "maxDistance", m_dragStartMaxDistance,
                           source->GetMaxDistance() });
+    }
+    if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
+}
+
+
+// ─── Particle emitter shape gizmos ───────────────────────────────────────────
+namespace {
+    // Handle ids for the emitter shape gizmo. A flat space like LightHandle: the
+    // shapes are mutually exclusive, so ids can be reused across them only if
+    // nothing else keys off the number -- they are not, so keep them distinct.
+    enum ParticleHandle {
+        kParticleSizeX = 0,   // Box/Circle: half-extent (or radius) on local X
+        kParticleSizeY = 1,   // Box/Circle: half-extent (or radius) on local Y
+        kParticleSizeXY = 2,  // Box corner: both axes at once
+        kParticleConeCW = 3,  // Cone: half-angle, clockwise edge
+        kParticleConeCCW = 4, // Cone: half-angle, counter-clockwise edge
+    };
+
+    // The emitter's spawn region is authored in the emitter's own frame, and the
+    // emit shader maps it to the world differently per simulation space:
+    //
+    //   World -- pos = uEmitterPos + rot(off, uEmitterRot). Rotation only; the
+    //            Transform's SCALE is not applied.
+    //   Local -- particles are drawn through the emitter's world matrix, which
+    //            does include scale.
+    //
+    // So the gizmo has to scale in Local and not in World, or it would draw a
+    // region the particles do not actually spawn in. Getting this wrong is
+    // invisible until someone scales an emitter.
+    struct EmitterFrame {
+        glm::vec2 origin{ 0.0f };
+        float     rotationRad = 0.0f;
+        glm::vec2 scale{ 1.0f };
+    };
+
+    EmitterFrame BuildEmitterFrame(Transform* transform, ParticleComponent* emitter) {
+        EmitterFrame f;
+        f.origin = transform->GetWorldPosition();
+        f.rotationRad = transform->GetWorldRotation() * EngineUtils::MathUtils::DEG_2_RAD;
+        if (emitter->GetSpace() == ParticleComponent::SimulationSpace::Local) {
+            const glm::vec2 s = transform->GetWorldScale();
+            // A zero axis would make the inverse below divide by zero and send a
+            // drag to infinity. Emitters authored at scale 0 are not worth
+            // supporting, but they must not blow up the editor either.
+            f.scale = { std::abs(s.x) < 1e-4f ? 1.0f : s.x,
+                        std::abs(s.y) < 1e-4f ? 1.0f : s.y };
+        }
+        return f;
+    }
+
+    glm::vec2 EmitterLocalToWorld(const EmitterFrame& f, const glm::vec2& local) {
+        return f.origin + RotateVec(local * f.scale, f.rotationRad);
+    }
+
+    glm::vec2 EmitterWorldToLocal(const EmitterFrame& f, const glm::vec2& world) {
+        return RotateVec(world - f.origin, -f.rotationRad) / f.scale;
+    }
+}
+
+void GizmosManager::DrawParticleGizmos(const glm::mat4& view, const glm::mat4& proj,
+                                       float viewWidth, float viewHeight) {
+    Container* container = Engine::Get()->GetActiveContainer();
+    if (!container) return;
+
+    // Commit once on release, after all live drag updates have finished.
+    if (!ImGui::GetIO().MouseDown[0]) {
+        if (m_dragParticleHandle >= 0 && !m_dragParticleId.empty()) CommitParticleDrag();
+        m_dragParticleHandle = -1;
+        m_dragParticleId.clear();
+    }
+
+    SceneManager* sceneManager = container->FindSystem<SceneManager>();
+    SelectionManager* selectionManager = container->FindSystem<SelectionManager>();
+    if (!sceneManager || !selectionManager || !selectionManager->HasSelection()) return;
+
+    const glm::mat4 vp = proj * view;
+    for (Scene* scene : sceneManager->GetScenes()) {
+        if (!scene) continue;
+        for (GameObject* obj : scene->GetAllGameObjects()) {
+            if (!obj || !obj->GetActive() || !selectionManager->IsSelected(obj->GetID())) continue;
+
+            Transform* transform = obj->GetComponent<Transform>();
+            if (!transform) continue;
+
+            if (ParticleComponent* emitter = obj->GetComponent<ParticleComponent>()) {
+                if (emitter->GetEnabled())
+                    DrawParticleGizmo(vp, viewWidth, viewHeight, transform, emitter);
+            }
+        }
+    }
+}
+
+void GizmosManager::DrawParticleGizmo(const glm::mat4& vp, float viewWidth, float viewHeight,
+                                      Transform* transform, ParticleComponent* emitter) {
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+    const EmitterFrame frame = BuildEmitterFrame(transform, emitter);
+    const ImVec2 screenCenter = WorldToScreen(frame.origin, vp, viewWidth, viewHeight);
+
+    // Tinted toward the emitter's start colour so several selected emitters stay
+    // tellable apart, but floored well above black: a dark start colour would
+    // otherwise draw an invisible gizmo.
+    const glm::vec4 sc = emitter->GetStartColor();
+    const ImU32 shapeColor = IM_COL32(std::max(110, int(sc.r * 255)),
+                                      std::max(110, int(sc.g * 255)),
+                                      std::max(110, int(sc.b * 255)), 210);
+    const ImU32 handleColor = IM_COL32(255, 225, 140, 255);
+    const ImU32 hotColor    = IM_COL32(255, 255, 255, 255);
+
+    auto toScreen = [&](const glm::vec2& local) {
+        return WorldToScreen(EmitterLocalToWorld(frame, local), vp, viewWidth, viewHeight);
+    };
+
+    const ParticleComponent::Shape shape = emitter->GetShape();
+    const glm::vec2 size = emitter->GetShapeSize();
+
+    // Collected per shape, then hit-tested and drawn by the shared tail below.
+    ImVec2 handlePos[3];
+    int    handleId[3];
+    int    handleCount = 0;
+
+    if (shape == ParticleComponent::Shape::Point) {
+        // Nothing to size. A small cross still marks where particles come from,
+        // which is worth drawing -- the emitter icon sits at the transform, but
+        // that is true of every component on the object.
+        constexpr float kCrossPx = 6.0f;
+        drawList->AddLine(ImVec2(screenCenter.x - kCrossPx, screenCenter.y),
+                          ImVec2(screenCenter.x + kCrossPx, screenCenter.y), shapeColor, 1.5f);
+        drawList->AddLine(ImVec2(screenCenter.x, screenCenter.y - kCrossPx),
+                          ImVec2(screenCenter.x, screenCenter.y + kCrossPx), shapeColor, 1.5f);
+    }
+    else if (shape == ParticleComponent::Shape::Box) {
+        // shapeSize is a HALF-extent: the shader spawns at (rand*2-1)*uShapeSize,
+        // so the region spans -size..+size on each axis.
+        const ImVec2 corners[4] = {
+            toScreen({ -size.x, -size.y }), toScreen({  size.x, -size.y }),
+            toScreen({  size.x,  size.y }), toScreen({ -size.x,  size.y }),
+        };
+        for (int i = 0; i < 4; ++i)
+            drawList->AddLine(corners[i], corners[(i + 1) % 4], shapeColor, 1.5f);
+
+        handlePos[handleCount] = toScreen({ size.x, 0.0f });     handleId[handleCount++] = kParticleSizeX;
+        handlePos[handleCount] = toScreen({ 0.0f, size.y });     handleId[handleCount++] = kParticleSizeY;
+        handlePos[handleCount] = corners[2];                     handleId[handleCount++] = kParticleSizeXY;
+    }
+    else if (shape == ParticleComponent::Shape::Circle) {
+        // Drawn as an ELLIPSE, not a circle, because the shader multiplies the
+        // unit disk by uShapeSize componentwise -- x and y are independent
+        // semi-axes and a circle outline would lie about a non-uniform value.
+        constexpr int kSegments = 48;
+        ImVec2 prev = toScreen({ size.x, 0.0f });
+        for (int i = 1; i <= kSegments; ++i) {
+            const float a = (2.0f * EngineUtils::MathUtils::PI) * (float(i) / kSegments);
+            const ImVec2 p = toScreen({ std::cos(a) * size.x, std::sin(a) * size.y });
+            drawList->AddLine(prev, p, shapeColor, 1.5f);
+            prev = p;
+        }
+
+        handlePos[handleCount] = toScreen({ size.x, 0.0f });     handleId[handleCount++] = kParticleSizeX;
+        handlePos[handleCount] = toScreen({ 0.0f, size.y });     handleId[handleCount++] = kParticleSizeY;
+    }
+    else if (shape == ParticleComponent::Shape::Cone) {
+        // A cone spawns at a point and biases DIRECTION, so its gizmo is an
+        // angular wedge rather than an area. Its axis is the emitter's authored
+        // direction composed with the Transform's world rotation, matching the
+        // shader (which rotates velocity by uEmitterRot in world space, and where
+        // the model matrix supplies the same rotation in local space).
+        const float axisRad = frame.rotationRad
+                            + emitter->GetDirection() * EngineUtils::MathUtils::DEG_2_RAD;
+        const glm::vec2 axis(std::cos(axisRad), std::sin(axisRad));
+        const float halfRad = emitter->GetConeAngle() * 0.5f
+                            * EngineUtils::MathUtils::DEG_2_RAD;
+
+        // Fixed screen length: the cone has no authored radius, so tying the
+        // drawing to one would invent a number the emitter does not have.
+        constexpr float kConeScreenLenPx = 90.0f;
+        const float pxPerWorld = ScreenDistance(
+            WorldToScreen(frame.origin + glm::vec2(1.0f, 0.0f), vp, viewWidth, viewHeight),
+            screenCenter);
+        const float worldLen = pxPerWorld > 1e-4f ? kConeScreenLenPx / pxPerWorld : kConeScreenLenPx;
+
+        const glm::vec2 edgeCW  = frame.origin + RotateVec(axis, -halfRad) * worldLen;
+        const glm::vec2 edgeCCW = frame.origin + RotateVec(axis,  halfRad) * worldLen;
+        const ImVec2 screenCW  = WorldToScreen(edgeCW,  vp, viewWidth, viewHeight);
+        const ImVec2 screenCCW = WorldToScreen(edgeCCW, vp, viewWidth, viewHeight);
+
+        drawList->AddLine(screenCenter, screenCW,  shapeColor, 1.5f);
+        drawList->AddLine(screenCenter, screenCCW, shapeColor, 1.5f);
+
+        constexpr int kArcSegments = 32;
+        ImVec2 prev = screenCW;
+        for (int i = 1; i <= kArcSegments; ++i) {
+            const float t = float(i) / kArcSegments;
+            const float a = -halfRad + (2.0f * halfRad) * t;
+            const ImVec2 p = WorldToScreen(frame.origin + RotateVec(axis, a) * worldLen,
+                                           vp, viewWidth, viewHeight);
+            drawList->AddLine(prev, p, shapeColor, 1.5f);
+            prev = p;
+        }
+
+        // Axis tick, so the direction the cone points is readable at a glance
+        // even when the angle is near zero and the two edges overlap.
+        drawList->AddLine(screenCenter,
+                          WorldToScreen(frame.origin + axis * (worldLen * 0.45f),
+                                        vp, viewWidth, viewHeight),
+                          IM_COL32(255, 255, 255, 90), 1.0f);
+
+        handlePos[handleCount] = screenCW;   handleId[handleCount++] = kParticleConeCW;
+        handlePos[handleCount] = screenCCW;  handleId[handleCount++] = kParticleConeCCW;
+    }
+
+    if (handleCount == 0) return;
+
+    int hovered = -1;
+    if (m_dragParticleHandle < 0) {
+        for (int i = 0; i < handleCount; ++i)
+            if (HitTest(io.MousePos, handlePos[i])) { hovered = handleId[i]; break; }
+    }
+    if (hovered >= 0) m_hoveredParticleHandle = hovered;
+
+    if (io.MouseClicked[0] && hovered >= 0 && !ImGuizmo::IsUsing() &&
+        m_dragHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0 &&
+        m_dragAudioHandle < 0 && m_dragScaleHandle < 0 && m_dragParticleHandle < 0) {
+        m_dragParticleHandle    = hovered;
+        m_dragParticleId        = emitter->GetID();
+        m_dragStartShapeSize    = emitter->GetShapeSize();
+        m_dragStartConeAngle    = emitter->GetConeAngle();
+    }
+
+    if (m_dragParticleHandle >= 0 && m_dragParticleId == emitter->GetID() && io.MouseDown[0]) {
+        const glm::vec2 mouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+
+        if (m_dragParticleHandle == kParticleConeCW || m_dragParticleHandle == kParticleConeCCW) {
+            const float axisRad = frame.rotationRad
+                                + emitter->GetDirection() * EngineUtils::MathUtils::DEG_2_RAD;
+            const glm::vec2 axis(std::cos(axisRad), std::sin(axisRad));
+            // Full angle is twice the half-angle the cursor makes with the axis.
+            // AngleBetweenDeg is an acos, so it spans 0..180 and the doubled
+            // value spans 0..360 -- which is exactly the shader's meaningful
+            // range (uConeAngle 360 launches into a full circle). No clamp:
+            // narrowing this to 180 would make the gizmo unable to author a
+            // full-circle emitter the inspector has always allowed.
+            const float full = 2.0f * AngleBetweenDeg(axis, mouseWorld - frame.origin);
+            emitter->SetConeAngle(full);
+        } else {
+            // Solved in the emitter's own frame so a rotated or scaled emitter
+            // still resizes along ITS axes rather than the world's.
+            const glm::vec2 local = EmitterWorldToLocal(frame, mouseWorld);
+            glm::vec2 next = emitter->GetShapeSize();
+            if (m_dragParticleHandle == kParticleSizeX || m_dragParticleHandle == kParticleSizeXY)
+                next.x = std::abs(local.x);
+            if (m_dragParticleHandle == kParticleSizeY || m_dragParticleHandle == kParticleSizeXY)
+                next.y = std::abs(local.y);
+            // The region is symmetric about the centre, so only the magnitude is
+            // meaningful; a negative half-extent would mirror nothing and just
+            // invert the drawn outline.
+            emitter->SetShapeSize(glm::max(next, glm::vec2(0.0f)));
+        }
+    }
+
+    const bool draggingThis = m_dragParticleHandle >= 0 && m_dragParticleId == emitter->GetID();
+    for (int i = 0; i < handleCount; ++i) {
+        const bool isHot = handleId[i] == hovered || (draggingThis && handleId[i] == m_dragParticleHandle);
+        drawList->AddCircleFilled(handlePos[i], kHandleRadiusPx, isHot ? hotColor : handleColor);
+    }
+}
+
+void GizmosManager::CommitParticleDrag() {
+    Container* container = Engine::Get()->GetActiveContainer();
+    Registry* registry = container ? container->FindSystem<Registry>() : nullptr;
+    ParticleComponent* emitter = registry ? registry->Find<ParticleComponent>(m_dragParticleId) : nullptr;
+    if (!emitter) return;
+
+    std::vector<GizmoEdit> edits;
+    if (emitter->GetShapeSize() != m_dragStartShapeSize) {
+        edits.push_back({ emitter->GetID(), "shapeSize", m_dragStartShapeSize,
+                          emitter->GetShapeSize() });
+    }
+    if (emitter->GetConeAngle() != m_dragStartConeAngle) {
+        edits.push_back({ emitter->GetID(), "coneAngle", m_dragStartConeAngle,
+                          emitter->GetConeAngle() });
     }
     if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
 }

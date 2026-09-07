@@ -12,6 +12,7 @@
 #include "engine/components/Camera.hpp"
 #include "engine/components/Animator.hpp"
 #include "engine/components/ParticleComponent.hpp"
+#include "engine/components/TrailRenderer.hpp"
 #include "engine/components/Light.hpp"
 #include "engine/components/ShadowCaster.hpp"
 #include "engine/components/Joint.hpp"
@@ -1057,6 +1058,25 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                 PropDesc().Tag(Tags::VECTOR4).Range(field.min, field.max)
                           .Step(field.step).ReadOnly(ro), initial);
         }
+        else if (field.typeName == "curve") {
+            // `taper : AnimationCurve` on a script. Same CurvePropertyWidget the
+            // native components use; FullRow because a graph is unusable squeezed
+            // into the narrow value column. Range/Step/Slider carry no meaning
+            // here -- the curve editor fits its own axes -- so they are not passed
+            // on, and introspection already rejects a Slider() on a curve field.
+            AnimationCurve initial = (it != allValues.end() && std::holds_alternative<AnimationCurve>(it->second))
+                ? std::get<AnimationCurve>(it->second) : AnimationCurve();
+            auto getter = [sc, name = field.name]() -> AnimationCurve {
+                auto val = sc->GetFieldValue(name);
+                return std::holds_alternative<AnimationCurve>(val)
+                    ? std::get<AnimationCurve>(val) : AnimationCurve();
+            };
+            auto setter = [name = field.name](ScriptComponent* sc, const AnimationCurve& v) {
+                sc->SetFieldValue(name, v);
+            };
+            BindProperty<AnimationCurve>(sc, label, getter, setter, field.changeEvent,
+                PropDesc().Tag(Tags::CURVE).FullRow().ReadOnly(ro), initial);
+        }
         else if (field.typeName == "list") {
             // A list's Reflect metadata describes its ELEMENTS -- that is where it
             // is written (list[Reflect[float, Range(0, 1), Slider()]]) and a row is
@@ -1300,15 +1320,48 @@ void InspectorVisitor::Visit(ParticleComponent* p) {
             {"Cone",   static_cast<int>(PC::Shape::Cone)}
         }));
 
-    BindProperty<glm::vec2>(p, "Shape Size (px): ",
-        [=]() { return p->GetShapeSize(); },
-        [](PC* e, const glm::vec2& v) { e->SetShapeSize(v); },
-        p->SHAPE_SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1));
+    // Which of the rows below mean anything depends on Shape, so a shape change
+    // has to rebuild the section rather than just refresh a value -- the same
+    // structural response Light's Type row uses. Subscribed here rather than
+    // inside BindProperty because it changes which widgets EXIST, not their
+    // values.
+    {
+        int subId = p->Subscribe([]() {
+            InspectorGui::Get()->RequestRebuild();
+            return true;
+        }, p->SHAPE_CHANGED_EVENT);
+        m_subscriptions.emplace_back(p, subId);
+    }
 
-    BindProperty<float>(p, "Cone Angle: ",
-        [=]() { return p->GetConeAngle(); },
-        [](PC* e, const float& v) { e->SetConeAngle(v); },
-        p->CONE_ANGLE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 360).Step(1));
+    // The set below mirrors exactly what ParticleManager's emit shader reads per
+    // shape. Point uses neither; Cone biases direction and has no area, so it has
+    // no size; Circle and Box both use shapeSize but mean different things by it,
+    // which is why the label changes with the shape rather than staying a generic
+    // "Shape Size".
+    const PC::Shape shape = p->GetShape();
+
+    if (shape == PC::Shape::Circle || shape == PC::Shape::Box) {
+        const bool isCircle = shape == PC::Shape::Circle;
+        BindProperty<glm::vec2>(p, isCircle ? "Radius (px): " : "Size (px): ",
+            [=]() { return p->GetShapeSize(); },
+            [](PC* e, const glm::vec2& v) { e->SetShapeSize(v); },
+            p->SHAPE_SIZE_CHANGED_EVENT,
+            PropDesc().Tag(Tags::VECTOR2).Range(0, 100000).Step(1)
+                .Desc(isCircle
+                    ? "Semi-axes of the spawn disk. X and Y are independent, so "
+                      "unequal values give an ellipse."
+                    : "Half-extents of the spawn box, measured from its centre."));
+    }
+
+    if (shape == PC::Shape::Cone) {
+        BindProperty<float>(p, "Cone Angle: ",
+            [=]() { return p->GetConeAngle(); },
+            [](PC* e, const float& v) { e->SetConeAngle(v); },
+            p->CONE_ANGLE_CHANGED_EVENT,
+            PropDesc().Tag(Tags::FLOAT).Range(0, 360).Step(1)
+                .Desc("Full width of the wedge new particles are launched into, "
+                      "centred on Direction. 360 covers every direction."));
+    }
 
     // ── Appearance ──
     BindProperty<std::string>(p, "Sprite: ",
@@ -2007,4 +2060,118 @@ void InspectorVisitor::Visit(Scene* scene) {
     BindProperty<std::string>(scene, "Name:", [=](){return scene->GetName();}, [](Scene*s, const std::string& name){s->SetName(name);}, Scene::NAME_CHANGED_EVENT, PropDesc().RefType(Tags::STRING));
     
 
+}
+
+void InspectorVisitor::Visit(TrailRenderer* t) {
+    using TRail = TrailRenderer;
+
+    // ── Shape ──
+    BindProperty<float>(t, "Time: ",
+        [=]() { return t->GetTime(); },
+        [](TRail* r, const float& v) { r->SetTime(v); },
+        t->TIME_CHANGED_EVENT,
+        PropDesc().Tag(Tags::FLOAT).Range(0, 100000).Step(0.1f)
+                  .Desc("Seconds a point survives before it fades out of the tail."));
+
+    BindProperty<float>(t, "Min Vertex Distance: ",
+        [=]() { return t->GetMinVertexDistance(); },
+        [](TRail* r, const float& v) { r->SetMinVertexDistance(v); },
+        t->MIN_VERTEX_DISTANCE_CHANGED_EVENT,
+        PropDesc().Tag(Tags::FLOAT).Range(0, 10000).Step(0.5f)
+                  .Desc("How far the object must move before another point is recorded. "
+                        "Larger values give a coarser, cheaper ribbon."));
+
+    // Sampled 0 at the head to 1 at the tail. FullRow because a graph is
+    // unusable squeezed into the narrow value column.
+    BindProperty<AnimationCurve>(t, "Width Curve: ",
+        [=]() { return t->GetWidthCurve(); },
+        [](TRail* r, const AnimationCurve& v) { r->SetWidthCurve(v); },
+        t->WIDTH_CURVE_CHANGED_EVENT,
+        PropDesc().Tag(Tags::CURVE).FullRow()
+                  .Desc("Width along the trail: 0 is the head, 1 the tail. "
+                        "Drag a handle to move it, double-click to add one, "
+                        "right-click to remove one."));
+
+    BindProperty<float>(t, "Width Multiplier (px): ",
+        [=]() { return t->GetWidthMultiplier(); },
+        [](TRail* r, const float& v) { r->SetWidthMultiplier(v); },
+        t->WIDTH_MULTIPLIER_CHANGED_EVENT,
+        PropDesc().Tag(Tags::FLOAT).Range(0, 10000).Step(1)
+                  .Desc("Pixels the curve is scaled by, so the curve itself can stay 0..1."));
+
+    // ── Appearance ──
+    BindProperty<glm::vec4>(t, "Start Color: ",
+        [=]() { return t->GetStartColor(); },
+        [](TRail* r, const glm::vec4& v) { r->SetStartColor(v); },
+        t->START_COLOR_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
+
+    BindProperty<glm::vec4>(t, "End Color: ",
+        [=]() { return t->GetEndColor(); },
+        [](TRail* r, const glm::vec4& v) { r->SetEndColor(v); },
+        t->END_COLOR_CHANGED_EVENT,
+        PropDesc().Tag(Tags::COLOR).Desc("Usually transparent, so the tail fades out."));
+
+    BindProperty<std::string>(t, "Material: ",
+        [=]() { return t->GetMaterialID(); },
+        [](TRail* r, const std::string& v) { r->SetMaterial(v); },
+        t->MATERIAL_CHANGED_EVENT,
+        PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF));
+
+    BindProperty<std::string>(t, "Sprite: ",
+        [=]() { return t->GetSpriteID(); },
+        [](TRail* r, const std::string& v) { r->SetSprite(v); },
+        t->SPRITE_CHANGED_EVENT,
+        PropDesc().Tag(Tags::SPRITE).RefType(Tags::OBJECT_REF)
+                  .Desc("Optional. Stretched once over the whole ribbon; "
+                        "leave empty for a plain coloured trail."));
+
+    // ── Emission ──
+    BindProperty<bool>(t, "Emitting: ",
+        [=]() { return t->GetEmitting(); },
+        [](TRail* r, const bool& v) { r->SetEmitting(v); },
+        t->EMITTING_CHANGED_EVENT,
+        PropDesc().Tag(Tags::TOGGLE)
+                  .Desc("Off stops new points; the existing tail still ages out."));
+
+    BindProperty<bool>(t, "Autodestruct: ",
+        [=]() { return t->GetAutodestruct(); },
+        [](TRail* r, const bool& v) { r->SetAutodestruct(v); },
+        t->AUTODESTRUCT_CHANGED_EVENT,
+        PropDesc().Tag(Tags::TOGGLE)
+                  .Desc("In play mode, destroy the GameObject once emitting has "
+                        "stopped and the last point has expired."));
+
+    // ── Sorting (identical model to SpriteRenderer) ──
+    LayerManager* layerManager = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>();
+    if (layerManager)
+    {
+        std::vector<std::pair<std::string, std::any>> layerOptions;
+        for (const auto& layer : layerManager->GetLayers())
+            layerOptions.push_back({ layer.name, layer.priority });
+
+        auto layer_get = [=]() -> int {
+            return layerManager->GetPriority(t->GetSortingLayer());
+        };
+        // Captures the priority->name pairs by value so the setter is pointer-free.
+        auto layer_set = [layers = layerOptions](TrailRenderer* r, const int& priority) {
+            for (const auto& [name, prio] : layers)
+            {
+                if (std::any_cast<int>(prio) == priority)
+                {
+                    r->SetSortingLayer(name);
+                    return;
+                }
+            }
+        };
+
+        BindProperty<int>(t, "Sorting Layer: ", layer_get, layer_set,
+            t->SORTING_LAYER_CHANGED_EVENT,
+            PropDesc().Tag(Tags::DROPDOWN).DropVals(layerOptions));
+    }
+
+    BindProperty<float>(t, "Order in Layer: ",
+        [=]() { return static_cast<float>(t->GetSortingOrder()); },
+        [](TRail* r, const float& v) { r->SetSortingOrder(static_cast<int>(v)); },
+        t->SORTING_ORDER_CHANGED_EVENT,
+        PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
 }

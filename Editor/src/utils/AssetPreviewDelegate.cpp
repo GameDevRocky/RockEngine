@@ -131,11 +131,12 @@ void AssetPreviewDelegate::paint(QPainter* painter,
         px = qvariant_cast<QIcon>(index.data(Qt::DecorationRole))
                  .pixmap(kThumbSize, kThumbSize);
 
-        if (ext == "shader" || ext == "font") {
+        if (ext == "shader" || ext == "font" || ext == "audio") {
             // These metas are named after a source file, so they carry a double
             // extension that would otherwise be shown in full:
             //   "sprite.glsl.shader" → "sprite.glsl" → "sprite"
             //   "Nunito.ttf.font"    → "Nunito.ttf"  → "Nunito"
+            //   "jump.wav.audio"     → "jump.wav"    → "jump"
             label = QFileInfo(QFileInfo(filePath).completeBaseName()).completeBaseName();
         } else {
             // The model's display text, not QFileInfo::fileName -- it is what

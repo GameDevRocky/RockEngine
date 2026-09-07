@@ -30,12 +30,19 @@
 #include <QToolTip>
 #include <QVariantAnimation>
 #include <yaml-cpp/yaml.h>
+#include "engine/rendering/core/AssetMetaService.hpp"
 
 namespace {
-// Image extensions that can be imported (copied in + auto-serialized) by drop.
-bool IsImportableImage(const QString& path) {
-    const QString ext = QFileInfo(path).suffix().toLower();
-    return ext == "png" || ext == "jpg" || ext == "jpeg" || ext == "bmp";
+// Can this file be imported (copied in + auto-serialized) by dropping it here?
+//
+// Asked of AssetMetaService rather than answered with a list of its own: that
+// table already decides what gets a meta on startup, and a second copy here is
+// how images ended up droppable while audio, fonts and shaders -- all of which
+// the meta service and AssetManager have always handled -- silently were not.
+// Teaching MetaExtensionFor about a new type now makes it droppable too.
+bool IsImportableAsset(const QString& path) {
+    const std::string ext = "." + QFileInfo(path).suffix().toLower().toStdString();
+    return !AssetMetaService::MetaExtensionFor(ext).empty();
 }
 }
 
@@ -110,7 +117,11 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
         const QString filePath = model->filePath(sourceIndex);
         const QString ext = QFileInfo(filePath).suffix().toLower();
 
-        static const QSet<QString> assetExts = { "mat", "material", "texture", "shader", "scene" };
+        // Every meta type AssetManager can load, so clicking one selects the
+        // asset it describes. "font" and "audio" were missing, which made those
+        // two the only assets in the grid that could not be inspected.
+        static const QSet<QString> assetExts = {
+            "mat", "material", "texture", "shader", "font", "audio", "scene" };
         if (assetExts.contains(ext)) {
             try {
                 YAML::Node node = YAML::LoadFile(filePath.toStdString());
@@ -509,13 +520,13 @@ bool FolderViewGui::eventFilter(QObject* obj, QEvent* event) {
     return QWidget::eventFilter(obj, event);
 }
 
-// Accept a drag if it carries at least one file we know how to handle: an image
-// to import (copy in + serialize) or a .material to (re)load.
+// Accept a drag if it carries at least one file we know how to handle: any
+// source asset to import (copy in + serialize) or a .material to (re)load.
 void FolderViewGui::dragEnterEvent(QDragEnterEvent* event) {
     if (!event->mimeData()->hasUrls()) { event->ignore(); return; }
     for (const QUrl& url : event->mimeData()->urls()) {
         const QString path = url.toLocalFile();
-        if (IsImportableImage(path) || path.endsWith(".material", Qt::CaseInsensitive)) {
+        if (IsImportableAsset(path) || path.endsWith(".material", Qt::CaseInsensitive)) {
             event->acceptProposedAction();
             return;
         }
@@ -531,10 +542,11 @@ void FolderViewGui::dropEvent(QDropEvent* event) {
     bool handled = false;
     for (const QUrl& url : event->mimeData()->urls()) {
         const QString path = url.toLocalFile();
-        if (IsImportableImage(path)) {
-            // Copy into the current folder, generate its .texture meta, and
-            // register the texture — all via the existing asset systems.
-            AssetManager::Get().ImportTexture(path.toStdString(), currentPath.toStdString());
+        if (IsImportableAsset(path)) {
+            // Copy into the current folder, generate its meta, and register the
+            // asset — all via the existing asset systems. Images, audio clips,
+            // fonts and shaders all take this one path.
+            AssetManager::Get().ImportAsset(path.toStdString(), currentPath.toStdString());
             handled = true;
         } else if (path.endsWith(".material", Qt::CaseInsensitive)) {
             AssetManager::Get().LoadAssetFromFile(path.toStdString());

@@ -46,6 +46,7 @@ class InspectorVisitor : public IVisitor{
         void Visit(Camera* camera) override;
         void Visit(Animator* animator) override;
         void Visit(ParticleComponent* particles) override;
+        void Visit(TrailRenderer* trail) override;
         void Visit(Light* light) override;
         void Visit(ShadowCaster* caster) override;
         void Visit(Joint* joint) override;

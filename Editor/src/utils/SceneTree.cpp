@@ -328,8 +328,24 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
         menu.exec(viewport()->mapToGlobal(pos));
     });
 
-    connect(this, &QTreeView::expanded, this, [this](const QModelIndex&) { UpdateHeight(); });
-    connect(this, &QTreeView::collapsed, this, [this](const QModelIndex&) { UpdateHeight(); });
+    // These also maintain m_collapsedIds, which is what survives a rebuild. Doing
+    // it here rather than by snapshotting the model just before model->clear()
+    // means it stays right even for expansion the tree does on its own -- e.g.
+    // OnSelectionChanged expanding a selected object's ancestors.
+    connect(this, &QTreeView::expanded, this, [this](const QModelIndex& index) {
+        if (!m_suppressExpansionTracking) {
+            const QString id = index.data(GAMEOBJECT_ID_ROLE).toString();
+            if (!id.isEmpty()) m_collapsedIds.erase(id.toStdString());
+        }
+        UpdateHeight();
+    });
+    connect(this, &QTreeView::collapsed, this, [this](const QModelIndex& index) {
+        if (!m_suppressExpansionTracking) {
+            const QString id = index.data(GAMEOBJECT_ID_ROLE).toString();
+            if (!id.isEmpty()) m_collapsedIds.insert(id.toStdString());
+        }
+        UpdateHeight();
+    });
 }
 
 std::unique_ptr<Command> SceneTree::DuplicateOne(const std::string& id,
@@ -523,7 +539,12 @@ void SceneTree::RebuildFromScene(Scene* scene) {
     selectionSubscriptionId = -1;
     sceneOrderSubscriptionId = -1;
 
+    // Guarded: whatever Qt does to per-row expansion while the model is torn
+    // down is not a user collapsing something.
+    m_suppressExpansionTracking = true;
     model->clear();
+    m_suppressExpansionTracking = false;
+
     m_activeBtn->hide();
     m_hoveredGoId.clear();
 
@@ -584,8 +605,45 @@ void SceneTree::RebuildFromScene(Scene* scene) {
         return true;
     }, Scene::ORDER_CHANGED_EVENT);
 
-    expandAll();
+    RestoreExpansion();
     UpdateHeight();
+}
+
+// Re-apply the remembered expansion state after a rebuild.
+//
+// RebuildFromScene used to end with expandAll(), which meant every rebuild threw
+// the user's expansion away. That is barely noticeable when a scene is loaded,
+// and very noticeable entering and leaving play mode: HierarchyGui rebuilds every
+// tree on both transitions, so a carefully collapsed hierarchy sprang fully open
+// twice per Play.
+//
+// Only rows the user actually collapsed are remembered, so anything new -- a
+// freshly loaded scene, an object spawned at runtime -- still comes up expanded
+// exactly as expandAll() left it.
+void SceneTree::RestoreExpansion() {
+    // setExpanded() emits expanded/collapsed, whose handlers write to
+    // m_collapsedIds. Without this guard that would mutate the set while the walk
+    // below is reading it.
+    m_suppressExpansionTracking = true;
+    RestoreExpansionUnder(QModelIndex());
+    m_suppressExpansionTracking = false;
+}
+
+// Top-down: a parent has to be expanded before its children's rows exist as far
+// as the view is concerned, so the recursion applies the parent's state first and
+// only then descends.
+void SceneTree::RestoreExpansionUnder(const QModelIndex& parent) {
+    const int rows = model->rowCount(parent);
+    for (int row = 0; row < rows; ++row) {
+        const QModelIndex index = model->index(row, 0, parent);
+        if (!index.isValid()) continue;
+
+        if (model->rowCount(index) > 0) {
+            const std::string id = index.data(GAMEOBJECT_ID_ROLE).toString().toStdString();
+            setExpanded(index, id.empty() || m_collapsedIds.find(id) == m_collapsedIds.end());
+            RestoreExpansionUnder(index);
+        }
+    }
 }
 
 void SceneTree::dropEvent(QDropEvent* event) {

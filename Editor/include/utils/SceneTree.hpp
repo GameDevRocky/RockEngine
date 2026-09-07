@@ -14,6 +14,8 @@
 #include <QMenu>
 #include <QToolButton>
 #include <memory>
+#include <string>
+#include <unordered_set>
 #include "engine/core/Scene.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/Command.hpp"
@@ -87,6 +89,11 @@ class SceneTree : public QTreeView{
         // the same way but have no such drag, so without this the object stays selected
         // in the engine while the tree shows nothing highlighted.
         void ReselectIfSelected(const std::string& id);
+        // Re-apply remembered expansion after a rebuild, in place of the
+        // expandAll() this used to end with. See m_collapsedIds.
+        void RestoreExpansion();
+        // Depth-first helper for RestoreExpansion.
+        void RestoreExpansionUnder(const QModelIndex& parent);
 
         std::string scene_id;
         QStandardItemModel* model = nullptr;
@@ -101,6 +108,23 @@ class SceneTree : public QTreeView{
         // engine -> tree (so Qt's selectionChanged doesn't bounce back into the engine).
         bool m_syncingSelection = false;
         bool collapsed = false;
+        // Rows the user has collapsed, by GameObject id. Tracked rather than the
+        // expanded set so that an id never seen before defaults to EXPANDED,
+        // which is the behaviour RebuildFromScene's old unconditional
+        // expandAll() gave every row -- a freshly loaded scene, or an object
+        // spawned at runtime, still comes up open.
+        //
+        // Survives play mode because ids do: the runtime world is a deep copy
+        // that preserves them (GameObject::Copy), and HierarchyGui reuses the
+        // same SceneTree for a scene id that is still loaded.
+        std::unordered_set<std::string> m_collapsedIds;
+        // Set while the tree itself is driving expansion -- tearing the model
+        // down, and re-applying state afterwards -- so the expanded/collapsed
+        // handlers do not mistake either for a user gesture. Without it,
+        // RestoreExpansion would mutate m_collapsedIds while iterating it, and
+        // any collapsed() Qt chooses to emit during model->clear() would record
+        // the whole tree as user-collapsed.
+        bool m_suppressExpansionTracking = false;
         int selectionSubscriptionId = -1;
         int sceneNameSubscriptionId = -1;
         int sceneAddedSubscriptionId = -1;

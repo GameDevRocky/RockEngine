@@ -98,7 +98,7 @@ def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls,
               ComponentCls=None, ScriptableComponentCls=None):
     """Map a single Python type to (type_name, ref_type_name).
 
-    Handles scalars (float/int/bool/str), Vector2/3/4, and class refs:
+    Handles scalars (float/int/bool/str), Vector2/3/4, AnimationCurve, and class refs:
     Material -> "material", Sprite -> "sprite", the base GameObject -> an
     unfiltered "gameobject:" reference, a native component handler (Camera,
     Rigidbody, a collider, ...) -> a "component:<EngineTypeName>" reference,
@@ -117,7 +117,13 @@ def _map_type(base_type, MaterialCls, SpriteCls, GameObjectCls,
     if type_name is None:
         qual = getattr(base_type, '__qualname__', '') or ''
         mod  = getattr(base_type, '__module__',  '') or ''
-        if 'Vector4' in qual or 'Vector4' in mod:
+        # Matched by name rather than by identity for the same reason the vectors
+        # below are: importing the bound class here would drag rock_engine into
+        # module load and reintroduce the circular import _get_ref_classes exists
+        # to avoid.
+        if 'AnimationCurve' in qual:
+            type_name = "curve"
+        elif 'Vector4' in qual or 'Vector4' in mod:
             type_name = "vec4"
         elif 'Vector3' in qual or 'Vector3' in mod:
             type_name = "vec3"
@@ -241,7 +247,7 @@ def get_exposed_actions(cls):
                     annotation, MaterialCls, SpriteCls, GameObjectCls,
                     ComponentCls, ScriptableComponentCls)
 
-            if arg_type_name is None or arg_type_name == "list":
+            if arg_type_name is None or arg_type_name in ("list", "curve"):
                 print(f"[introspection] Ignoring @action '{name}': {param.annotation!r} "
                       f"is not an argument type the editor can edit.", file=sys.stderr)
                 continue
@@ -273,6 +279,7 @@ def get_exposed_fields(cls):
         active: bool = True
         label: str = "hello"
         offset: Vector2
+        taper: AnimationCurve   # curve editor in inspector
         skin: Material          # material asset picker in inspector
         icon: Sprite            # sprite asset picker in inspector
         target: Enemy           # GameObject picker filtered to Enemy script
@@ -336,6 +343,13 @@ def get_exposed_fields(cls):
                 print(f"[introspection] Ignoring '{name}': a list of lists has no "
                       f"inspector widget.", file=sys.stderr)
                 continue
+            if 'AnimationCurve' in (getattr(element_type, '__qualname__', '') or ''):
+                # Said out loud rather than silently dropped: the engine marshals
+                # list[T] one element type at a time and has no curve element,
+                # so this would otherwise serialize as an empty list forever.
+                print(f"[introspection] Ignoring '{name}': list[AnimationCurve] is not "
+                      f"supported -- use separate curve fields.", file=sys.stderr)
+                continue
 
         # ---- Resolve default value ----
         default = None
@@ -364,6 +378,14 @@ def get_exposed_fields(cls):
                     default = Vector3()
                 elif 'Vector2' in qual:
                     default = Vector2()
+
+            # A curve declared without a default gets an identity ramp rather
+            # than an empty curve, which would evaluate to 0 everywhere and look
+            # like the field was broken. Checked BEFORE the class-ref fallback
+            # below, which would otherwise turn it into an empty id string.
+            if default is None and 'AnimationCurve' in (getattr(base_type, '__qualname__', '') or ''):
+                from .animation_curve import AnimationCurve
+                default = AnimationCurve.linear(0.0, 0.0, 1.0, 1.0)
 
             # Material, Sprite, and any other class type (custom scripts) default to empty ID
             if default is None and isinstance(base_type, type):

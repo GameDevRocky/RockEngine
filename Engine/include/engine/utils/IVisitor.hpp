@@ -24,6 +24,7 @@ class Shader;
 class Camera;
 class Animator;
 class ParticleComponent;
+class TrailRenderer;
 class Light;
 class ShadowCaster;
 class Joint;
@@ -60,6 +61,7 @@ public:
     virtual void Visit(Camera* c) {}
     virtual void Visit(Animator* a) {}
     virtual void Visit(ParticleComponent* p) {}
+    virtual void Visit(TrailRenderer* t) {}
     virtual void Visit(Light* l) {}
     virtual void Visit(ShadowCaster* sc) {}
     virtual void Visit(Joint* j) {}

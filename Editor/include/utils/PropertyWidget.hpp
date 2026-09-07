@@ -23,6 +23,7 @@
 #include <QFrame>
 #include <QApplication>
 #include <QMouseEvent>
+#include <QPainterPath>
 #include <QPropertyAnimation>
 #include <QCursor>
 #include <QEvent>
@@ -30,6 +31,7 @@
 #include <QSize>
 #include <glm/glm.hpp>
 #include "engine/utils/Properties.hpp"
+#include "engine/utils/AnimationCurve.hpp"
 #include "utils/AssetPickerWidget.hpp"
 #include "utils/AssetThumbnails.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
@@ -402,6 +404,277 @@ private:
     int m_active = -1;   // handle being dragged, -1 = none
     int m_hover  = -1;
 };
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AnimationCurve editor
+// ─────────────────────────────────────────────────────────────────────────────
+// Plots the curve and lets keyframes be dragged on it. Like RangeSliderBar this
+// paints itself -- there is no QStyle primitive for a graph -- and reports
+// through a std::function, so no Q_OBJECT and no moc pass.
+//
+// Colours are lifted from the same palette RangeSliderBar borrows from, so the
+// two read as one theme.
+//
+// Interaction, deliberately close to Unity's:
+//   drag a handle    move that key
+//   double-click     add a key where you clicked
+//   right-click      remove the key under the cursor
+//
+// onChanged fires on every drag step rather than only on release. That is what
+// makes the trail in the viewport follow the drag live, and it does NOT produce
+// an undo entry per pixel: PropertyCommand::MergeWith folds a stream of edits to
+// the same target+property inside the merge window into one entry, which is the
+// same path a dragged spin box already takes.
+class CurveEditorBar : public QWidget {
+public:
+    std::function<void()> onChanged;
+
+    explicit CurveEditorBar(QWidget* parent = nullptr) : QWidget(parent) {
+        setFixedHeight(kHeight);
+        setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        setMouseTracking(true);
+        setCursor(Qt::PointingHandCursor);
+        setContextMenuPolicy(Qt::PreventContextMenu);   // right-click deletes instead
+    }
+
+    void SetCurve(const AnimationCurve& c) { m_curve = c; update(); }
+    const AnimationCurve& Curve() const { return m_curve; }
+
+    // True between press and release on a handle. The inspector's periodic
+    // refresh consults this so it cannot overwrite a curve mid-drag.
+    bool IsDragging() const { return m_dragging; }
+
+protected:
+    void paintEvent(QPaintEvent*) override {
+        QPainter p(this);
+        p.setRenderHint(QPainter::Antialiasing);
+
+        const QRect r = Plot();
+        const bool on = isEnabled();
+
+        // Panel + border.
+        p.setPen(Qt::NoPen);
+        p.setBrush(QColor(32, 32, 32));
+        p.drawRoundedRect(rect().adjusted(0, 0, -1, -1), 3, 3);
+        p.setPen(QPen(QColor(60, 60, 60), 1));
+        p.setBrush(Qt::NoBrush);
+        p.drawRoundedRect(rect().adjusted(0, 0, -1, -1), 3, 3);
+
+        // Gridlines at the quarters, plus a brighter baseline wherever y = 0
+        // falls -- a curve that dips negative is otherwise hard to read.
+        p.setPen(QPen(QColor(48, 48, 48), 1));
+        for (int i = 1; i < 4; ++i) {
+            const int x = r.left() + r.width() * i / 4;
+            const int y = r.top() + r.height() * i / 4;
+            p.drawLine(x, r.top(), x, r.bottom());
+            p.drawLine(r.left(), y, r.right(), y);
+        }
+
+        Fit();
+        if (m_yMin < 0.0f && m_yMax > 0.0f) {
+            const int zeroY = ToPix(0.0f, m_yMin, m_yMax, r.bottom(), r.top());
+            p.setPen(QPen(QColor(72, 72, 72), 1));
+            p.drawLine(r.left(), zeroY, r.right(), zeroY);
+        }
+
+        // The curve itself, sampled per pixel column so the Hermite shape between
+        // keys is what is drawn rather than straight chords between them.
+        if (m_curve.KeyCount() > 0) {
+            QPainterPath path;
+            for (int px = 0; px <= r.width(); ++px) {
+                const float t = m_xMin + (m_xMax - m_xMin) * (r.width() > 0 ? float(px) / r.width() : 0.0f);
+                const float v = m_curve.Evaluate(t);
+                const QPointF pt(r.left() + px, ToPix(v, m_yMin, m_yMax, r.bottom(), r.top()));
+                if (px == 0) path.moveTo(pt); else path.lineTo(pt);
+            }
+            p.setBrush(Qt::NoBrush);
+            p.setPen(QPen(on ? QColor(131, 176, 145) : QColor(90, 100, 94), 2));
+            p.drawPath(path);
+        }
+
+        // Handles last, so they sit above the line.
+        const auto& keys = m_curve.Keys();
+        for (int i = 0; i < int(keys.size()); ++i) {
+            const QPoint c = KeyPos(i);
+            const bool active = on && (m_hover == i || m_active == i);
+            p.setBrush(active ? QColor(180, 220, 195) : QColor(on ? 170 : 100, on ? 170 : 100, on ? 170 : 100));
+            p.setPen(QPen(QColor(25, 25, 25), 1));
+            p.drawEllipse(c, kHandleR, kHandleR);
+        }
+
+        // Readout for whichever key is being touched, so a drag is not blind.
+        const int shown = m_active >= 0 ? m_active : m_hover;
+        if (on && shown >= 0 && shown < int(keys.size())) {
+            p.setPen(QColor(200, 200, 200));
+            const QString text = QString::number(double(keys[shown].time), 'f', 2) + ", "
+                               + QString::number(double(keys[shown].value), 'f', 2);
+            p.drawText(QRect(4, 2, width() - 8, kTextH), Qt::AlignVCenter | Qt::AlignRight, text);
+        }
+    }
+
+    void mousePressEvent(QMouseEvent* e) override {
+        if (!isEnabled()) return;
+        const int hit = HitTest(e->position().toPoint());
+
+        if (e->button() == Qt::RightButton) {
+            // Never delete the last key: an empty curve evaluates to 0 and the
+            // graph would go blank with no handle left to click to recover.
+            if (hit >= 0 && m_curve.KeyCount() > 1) {
+                m_curve.RemoveKey(hit);
+                m_active = -1;
+                m_hover = -1;
+                update();
+                if (onChanged) onChanged();
+            }
+            return;
+        }
+
+        if (e->button() != Qt::LeftButton) return;
+        if (hit >= 0) {
+            m_active = hit;
+            m_dragging = true;
+            update();
+        }
+    }
+
+    void mouseDoubleClickEvent(QMouseEvent* e) override {
+        if (!isEnabled() || e->button() != Qt::LeftButton) return;
+        if (HitTest(e->position().toPoint()) >= 0) return;   // that is a drag, not an add
+        const QPointF v = ToValue(e->position().toPoint());
+        m_active = m_curve.AddKey(float(v.x()), float(v.y()));
+        update();
+        if (onChanged) onChanged();
+    }
+
+    void mouseMoveEvent(QMouseEvent* e) override {
+        if (!isEnabled()) return;
+        if (m_active >= 0 && m_dragging) {
+            const QPointF v = ToValue(e->position().toPoint());
+            Keyframe k = m_curve.Keys()[m_active];
+            k.time  = float(v.x());
+            k.value = float(v.y());
+            m_active = m_curve.MoveKey(m_active, k);
+            update();
+            if (onChanged) onChanged();
+            return;
+        }
+        const int h = HitTest(e->position().toPoint());
+        if (h != m_hover) { m_hover = h; update(); }
+    }
+
+    void mouseReleaseEvent(QMouseEvent*) override {
+        m_dragging = false;
+        m_active = -1;
+        update();
+    }
+    void leaveEvent(QEvent*) override { m_hover = -1; update(); }
+
+private:
+    static constexpr int kHeight  = 96;
+    static constexpr int kTextH   = 14;
+    static constexpr int kHandleR = 4;
+    static constexpr int kPad     = 8;
+
+    QRect Plot() const {
+        return QRect(kPad, kTextH, std::max(1, width() - 2 * kPad),
+                     std::max(1, height() - kTextH - kPad));
+    }
+
+    // Domain shown. Always covers [0,1] on both axes -- the normalized range a
+    // trail width curve lives in -- and widens only for keys that fall outside
+    // it, so the common case does not rescale as it is edited.
+    void Fit() const {
+        m_xMin = 0.0f; m_xMax = 1.0f;
+        m_yMin = 0.0f; m_yMax = 1.0f;
+        for (const Keyframe& k : m_curve.Keys()) {
+            m_xMin = std::min(m_xMin, k.time);
+            m_xMax = std::max(m_xMax, k.time);
+            m_yMin = std::min(m_yMin, k.value);
+            m_yMax = std::max(m_yMax, k.value);
+        }
+        if (m_xMax - m_xMin < 1e-4f) m_xMax = m_xMin + 1.0f;
+        if (m_yMax - m_yMin < 1e-4f) m_yMax = m_yMin + 1.0f;
+    }
+
+    static int ToPix(float v, float lo, float hi, int pixLo, int pixHi) {
+        const float t = (v - lo) / (hi - lo);
+        return pixLo + int(std::lround(t * (pixHi - pixLo)));
+    }
+
+    QPoint KeyPos(int index) const {
+        Fit();
+        const QRect r = Plot();
+        const Keyframe& k = m_curve.Keys()[index];
+        return QPoint(ToPix(k.time, m_xMin, m_xMax, r.left(), r.right()),
+                      ToPix(k.value, m_yMin, m_yMax, r.bottom(), r.top()));
+    }
+
+    QPointF ToValue(const QPoint& p) const {
+        Fit();
+        const QRect r = Plot();
+        const float tx = r.width()  > 0 ? float(p.x() - r.left()) / r.width()  : 0.0f;
+        const float ty = r.height() > 0 ? float(r.bottom() - p.y()) / r.height() : 0.0f;
+        return QPointF(double(m_xMin + std::clamp(tx, 0.0f, 1.0f) * (m_xMax - m_xMin)),
+                       double(m_yMin + std::clamp(ty, 0.0f, 1.0f) * (m_yMax - m_yMin)));
+    }
+
+    // Index of the key under the cursor, -1 for none. A generous radius: the
+    // handles are 8px across and a graph is not a place to demand precision.
+    int HitTest(const QPoint& p) const {
+        const int n = m_curve.KeyCount();
+        for (int i = 0; i < n; ++i) {
+            const QPoint c = KeyPos(i);
+            const int dx = c.x() - p.x(), dy = c.y() - p.y();
+            if (dx * dx + dy * dy <= (kHandleR + 4) * (kHandleR + 4)) return i;
+        }
+        return -1;
+    }
+
+    AnimationCurve m_curve;
+    int  m_active = -1;      // key being dragged, -1 = none
+    int  m_hover  = -1;
+    bool m_dragging = false;
+
+    // Recomputed by Fit() during painting and hit testing, hence mutable -- they
+    // are a cache of the current domain, not state.
+    mutable float m_xMin = 0.0f, m_xMax = 1.0f, m_yMin = 0.0f, m_yMax = 1.0f;
+};
+
+
+class CurvePropertyWidget : public PropertyWidget<AnimationCurve> {
+public:
+    explicit CurvePropertyWidget(const Properties::PropDesc& desc) {
+        m_bar = new CurveEditorBar();
+        if (IsReadOnly(desc)) m_bar->setEnabled(false);
+        m_bar->onChanged = [this]() {
+            if (onChanged) onChanged(GetValue());
+        };
+    }
+
+    QWidget* GetWidget() override { return m_bar; }
+    bool IsValid() override { return !m_bar.isNull(); }
+
+    void SetValue(const AnimationCurve& val) override {
+        if (m_bar.isNull()) return;
+        // The inspector refreshes dirty properties on a ~20Hz timer. Without this
+        // guard that timer would write the last-committed curve back over the
+        // handle the user is currently dragging, which reads as the handle
+        // snapping backwards under the cursor. The other widgets here only wrap
+        // SetValue in blockSignals, which stops feedback loops but not this.
+        if (m_bar->IsDragging()) return;
+        m_bar->SetCurve(val);
+    }
+
+    AnimationCurve GetValue() override {
+        if (m_bar.isNull()) return AnimationCurve();
+        return m_bar->Curve();
+    }
+
+private:
+    QPointer<CurveEditorBar> m_bar;
+};
+
 
 
 // A (low, high) pair carried in a glm::vec2: x is the low end, y the high end.

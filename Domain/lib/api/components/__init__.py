@@ -7,6 +7,7 @@ from .light_handler import Light, LightType
 from .script_ref import ScriptRef
 from .animator_handler import Animator
 from .particle_component_handler import ParticleComponent
+from .trail_renderer_handler import TrailRenderer
 from ..rendering.sprite_handler import Sprite
 from .transform_handler import Transform
 from .rigidbody_handler import Rigidbody

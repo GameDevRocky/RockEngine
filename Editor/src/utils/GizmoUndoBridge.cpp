@@ -14,6 +14,7 @@
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/Light.hpp"
+#include "engine/components/ParticleComponent.hpp"
 #include "engine/components/ShadowCaster.hpp"
 #include "engine/components/AudioSource.hpp"
 #include "engine/rendering/core/GizmosManager.hpp"
@@ -136,6 +137,23 @@ std::unique_ptr<Command> MakeGizmoCommand(const GizmoEdit& edit) {
             [](AudioSource* s, const float& v){ s->SetMaxDistance(v); },
             "Change Audio Max Distance");
     }
+    // Particle emitter shape. "shapeSize" rather than the plain "size" for the
+    // same reason ShadowCaster below needs its own names: dispatch here is by
+    // property string alone, and a collider already owns "size".
+    if (p == "shapeSize") {
+        return std::make_unique<PropertyCommand<ParticleComponent, glm::vec2>>(
+            edit.targetId, p, std::any_cast<glm::vec2>(edit.before),
+            std::any_cast<glm::vec2>(edit.after),
+            [](ParticleComponent* e, const glm::vec2& v){ e->SetShapeSize(v); },
+            "Resize Emitter Shape");
+    }
+    if (p == "coneAngle") {
+        return std::make_unique<PropertyCommand<ParticleComponent, float>>(
+            edit.targetId, p, std::any_cast<float>(edit.before),
+            std::any_cast<float>(edit.after),
+            [](ParticleComponent* e, const float& v){ e->SetConeAngle(v); },
+            "Change Emitter Cone Angle");
+    }
     // ShadowCaster's size/radius carry distinct property names: a collider
     // already owns the plain "size"/"radius" branches above and dispatch here is
     // by property string alone.
@@ -178,6 +196,8 @@ std::string DescribeGesture(const std::vector<GizmoEdit>& edits) {
         else if (p == "innerRadius")   verb = "Change Light Falloff";
         else if (p == "innerAngle" ||
                  p == "outerAngle")    verb = "Change Spot Angle";
+        else if (p == "shapeSize")     verb = "Resize Emitter Shape";
+        else if (p == "coneAngle")     verb = "Change Emitter Cone Angle";
         else if (p == "minDistance")   verb = "Change Audio Min Distance";
         else if (p == "maxDistance")   verb = "Change Audio Max Distance";
         else if (p == "casterSize" ||

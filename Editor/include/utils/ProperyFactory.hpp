@@ -59,6 +59,14 @@ inline PropertyWidget<bool>* PropertyFactory::Create<bool>(const Properties::Pro
     return new BoolPropertyWidget(desc);
 }
 
+// AnimationCurve has exactly one editor, so there is no tag to branch on -- the
+// Tags::CURVE entry exists for the row layout (it wants FullRow) rather than to
+// pick between widgets.
+template<>
+inline PropertyWidget<AnimationCurve>* PropertyFactory::Create<AnimationCurve>(const Properties::PropDesc& desc) {
+    return new CurvePropertyWidget(desc);
+}
+
 template<>
 inline PropertyWidget<glm::vec4>* PropertyFactory::Create<glm::vec4>(const Properties::PropDesc& desc) {
     if (desc.tag == Properties::Tags::VECTOR4)

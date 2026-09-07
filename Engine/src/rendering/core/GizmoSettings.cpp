@@ -30,6 +30,7 @@ const char* GizmoSettings::CategoryLabel(Category c) {
         case Category::Cameras:           return "Cameras";
         case Category::Lights:            return "Lights";
         case Category::AudioSources:      return "Audio Sources";
+        case Category::Particles:         return "Particle Shapes";
         case Category::Joints:            return "Joints";
         case Category::ComponentIcons:    return "Component Icons";
         case Category::SelectionOutlines: return "Selection Outlines";

@@ -6,6 +6,9 @@
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/components/ParticleComponent.hpp"
 #include "engine/components/TextRenderer.hpp"
+#include "engine/components/TrailRenderer.hpp"
+#include "engine/rendering/core/TrailManager.hpp"
+#include "engine/rendering/TrailMesh.hpp"
 #include "engine/core/TimeManager.hpp"
 #include "engine/debug/FrameProfiler.hpp"
 #include <algorithm>
@@ -70,6 +73,22 @@ void ScenePass::Init(){
     glad_glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float));
     glad_glVertexAttribBinding(1, 0);
     glad_glBindVertexArray(0);
+
+    // Trail ribbons: same one-VBO-per-component arrangement as text, so the same
+    // buffer-less attribute format, but with a third attribute. The stride is
+    // TrailVertex: { vec2 pos, vec2 uv, vec4 color }.
+    glad_glGenVertexArrays(1, &trailVao);
+    glad_glBindVertexArray(trailVao);
+    glad_glEnableVertexAttribArray(0);   // pos
+    glad_glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, 0);
+    glad_glVertexAttribBinding(0, 0);
+    glad_glEnableVertexAttribArray(1);   // uv
+    glad_glVertexAttribFormat(1, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float));
+    glad_glVertexAttribBinding(1, 0);
+    glad_glEnableVertexAttribArray(2);   // color
+    glad_glVertexAttribFormat(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float));
+    glad_glVertexAttribBinding(2, 0);
+    glad_glBindVertexArray(0);
 }
 
 void ScenePass::Execute(RenderCamera* camera, Scene* scene)
@@ -78,9 +97,10 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
     if (!scene) return;
     const auto& objects = scene->GetAllGameObjects();
 
-    // One entry per renderable. Exactly one of `renderer` / `emitter` / `text` is
-    // set -- sprites, particle emitters and text sort against each other in a
-    // single list, so any of them can sit among the sprites rather than on top.
+    // One entry per renderable. Exactly one of `renderer` / `emitter` / `text` /
+    // `trail` is set -- sprites, particle emitters, text and trails sort against
+    // each other in a single list, so any of them can sit among the sprites
+    // rather than on top.
     struct DrawCall
     {
         Transform*         transform      = nullptr;
@@ -90,6 +110,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
         ParticleComponent* emitter        = nullptr;   // particle path
         TextRenderer*      text           = nullptr;   // text path
         Font*              font           = nullptr;
+        TrailRenderer*     trail          = nullptr;   // trail path
         int                layerPriority  = 0;
         int                sortingOrder   = 0;
     };
@@ -175,6 +196,35 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
             }
         }
 
+        if (TrailRenderer* trail = obj->GetComponent<TrailRenderer>())
+        {
+            if (trail->GetEnabled()
+                && (!camera || camera->PassesCullingMask(trail->GetSortingLayer())))
+            {
+                Material* mat = trail->GetMaterial();
+                if (!mat)
+                {
+                    if (!defaultTrailMaterial)
+                        defaultTrailMaterial = AssetManager::Get().GetMaterialByName(TrailRenderer::kDefaultMaterialName);
+                    mat = defaultTrailMaterial;
+                    if (mat && warnedObjects.insert(trail).second)
+                        Console::Alert("Assigning Default Trail Material to " + obj->GetName());
+                }
+
+                if (mat && mat->GetShader())
+                {
+                    DrawCall dc;
+                    dc.transform = transform;
+                    dc.trail     = trail;
+                    dc.mat       = mat;
+                    dc.shader    = mat->GetShader();
+                    dc.layerPriority = layerManager ? layerManager->GetPriority(trail->GetSortingLayer()) : 0;
+                    dc.sortingOrder  = trail->GetSortingOrder();
+                    drawCalls.push_back(dc);
+                }
+            }
+        }
+
         // An object can carry both a sprite and an emitter; each is its own entry
         // and sorts on its own layer/order.
         if (ParticleComponent* emitter = obj->GetComponent<ParticleComponent>())
@@ -201,12 +251,23 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
         if (a.layerPriority != b.layerPriority) return a.layerPriority < b.layerPriority;
         if (a.sortingOrder  != b.sortingOrder)  return a.sortingOrder  < b.sortingOrder;
         // Within a layer+order tie, order by kind so the result is deterministic:
-        // sprites, then text, then particles. Text sits above sprites because a
-        // label tied with the art it annotates is meant to be readable over it;
-        // particles stay last because they are usually the effect on top of
-        // everything. Then group by shader to cut program rebinds.
+        // trails, then sprites, then text, then particles. Trails come first so
+        // an object draws over the ribbon it is dragging behind it. Text sits
+        // above sprites because a label tied with the art it annotates is meant
+        // to be readable over it; particles stay last because they are usually
+        // the effect on top of everything. Then group by shader to cut program
+        // rebinds.
+        //
+        // PickingPass replays this comparison to decide what a click resolves
+        // to, and its own kindOf still numbers sprite/text/particle 0/1/2.
+        // That stays correct ONLY because trails are never pickable, so the two
+        // functions never disagree about the RELATIVE order of the kinds they
+        // both see. Making a trail pickable breaks that and both must change.
         auto kindOf = [](const DrawCall& d) {
-            return d.emitter ? 2 : (d.text ? 1 : 0);
+            if (d.trail)   return 0;
+            if (d.emitter) return 3;
+            if (d.text)    return 2;
+            return 1;
         };
         const int ka = kindOf(a), kb = kindOf(b);
         if (ka != kb) return ka < kb;
@@ -302,6 +363,38 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
             lastProgramID = dc.shader->GetProgramID();
         }
 
+        if (dc.trail)
+        {
+            const int vertexCount = TrailManager::Get().EnsureMesh(dc.trail, frameId);
+            if (vertexCount > 0)
+            {
+                // Identity: TrailMesh builds the ribbon in world space, because
+                // the points were recorded in world space and must NOT follow
+                // the object once laid down -- that is the whole point of a
+                // trail. Set explicitly rather than skipped so a material whose
+                // shader declares uModel does not inherit the previous draw's.
+                dc.shader->SetMat4("uModel", glm::mat4(1.0f));
+
+                const int nextSlot = dc.mat->ApplyUniforms();
+                dc.trail->OverrideUniforms(nextSlot);
+
+                glad_glBindVertexArray(trailVao);
+                glad_glBindVertexBuffer(0, TrailManager::Get().GetVBO(dc.trail->GetID()), 0,
+                                        TrailMesh::kFloatsPerVertex * sizeof(float));
+
+                // The tail of a trail is fully transparent alpha, so it must not
+                // write depth -- same reasoning as the glyph edges below.
+                glad_glDepthMask(GL_FALSE);
+                glad_glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+                glad_glDepthMask(GL_TRUE);
+
+                // Hand the sprite quad's VAO back, since the loop's other branch
+                // assumes it is still bound.
+                glad_glBindVertexArray(vao);
+            }
+            continue;
+        }
+
         if (dc.text)
         {
             const int vertexCount = FontManager::Get().EnsureMesh(dc.text, dc.font, frameId);
@@ -361,6 +454,7 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
     // meshes the next call is about to redraw.
     if (frameId != lastGcFrame) {
         FontManager::Get().GarbageCollect(frameId);
+        TrailManager::Get().GarbageCollect(frameId);
         lastGcFrame = frameId;
     }
 }
@@ -374,5 +468,6 @@ void ScenePass::Shutdown()
     // deleted here.
     if (particleVao) glad_glDeleteVertexArrays(1, &particleVao);
     if (textVao) glad_glDeleteVertexArrays(1, &textVao);
-    vao = vbo = particleVao = textVao = 0;
+    if (trailVao) glad_glDeleteVertexArrays(1, &trailVao);
+    vao = vbo = particleVao = textVao = trailVao = 0;
 }

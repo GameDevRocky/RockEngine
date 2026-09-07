@@ -1,5 +1,6 @@
 #pragma once
 #include "engine/core/Observable.hpp"
+#include <algorithm>
 
 // Which Scene-view gizmo overlays are drawn.
 //
@@ -26,6 +27,7 @@ public:
         Cameras,            // camera view-region rects
         Lights,             // Light shapes + ShadowCaster outlines
         AudioSources,       // min/max attenuation rings
+        Particles,          // particle emitter spawn-shape outlines + handles
         Joints,             // joint anchors + link line
         ComponentIcons,     // billboarded component-type icons
         SelectionOutlines,  // white outline around each selected sprite
@@ -56,11 +58,18 @@ public:
     static const char* CategoryLabel(Category c);
 
 private:
-    GizmoSettings() = default;
-
     static constexpr int kCount = static_cast<int>(Category::Count);
 
     // All-on by default: unchanged behaviour until something is unticked.
+    //
+    // Filled in the constructor rather than with a braced initializer list. A
+    // list has to be extended by hand every time a Category is added, and
+    // forgetting silently value-initializes the tail to FALSE while still
+    // compiling cleanly -- so the last category in the enum just quietly stops
+    // being drawn. That is exactly what adding Particles did to
+    // SelectionOutlines. std::fill cannot drift out of sync with kCount.
+    GizmoSettings() { std::fill(std::begin(m_categories), std::end(m_categories), true); }
+
     bool m_enabled = true;
-    bool m_categories[kCount] = { true, true, true, true, true, true };
+    bool m_categories[kCount];
 };

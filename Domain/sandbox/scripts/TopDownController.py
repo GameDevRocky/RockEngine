@@ -6,13 +6,12 @@ from Raycaster import Raycaster
 from ObjectPool import ObjectPool
 
 class TopDownController(ScriptableComponent):
-
-
     velocity : Reflect[Vector2, ReadOnly()] = Vector2(0,0)
     speed : Reflect[float, Slider, Step(1), Range(1, 100)] = 1.00
     friction : Reflect[float, Slider, Step(0.05), Range(0, 1)] = 0.8
     camera : Camera
 
+    emit : Event
     light : Light = None
 
     camera_smoothing : Reflect[float, Slider, Step(0.1), Range(1, 10)] = 0.1
@@ -36,6 +35,7 @@ class TopDownController(ScriptableComponent):
 
 
     def awake(self):
+        self.audio = self.get_component(AudioSource)
         self.rb = self.get_component(Rigidbody)
         self.rb.body_type = Rigidbody.DYNAMIC
 
@@ -48,6 +48,7 @@ class TopDownController(ScriptableComponent):
         # to the emitter, so moving it would drag the last burst along to the new hit.
         if self.bullet_impact:
             self.bullet_impact.space = ParticleComponent.Space.WORLD
+
     def start(self):
         # Get reference to the bullet pool script
         if self.bullet_pool:
@@ -87,7 +88,7 @@ class TopDownController(ScriptableComponent):
         self.transform.rotation = math.degrees(math.atan2(direction.y, direction.x))
         self.velocity = self.rb.velocity
 
-
+    @action
     def shoot(self):
         """Get a bullet from the pool, place it at the muzzle, and launch it."""
         now = Time.elapsed_time
@@ -127,18 +128,23 @@ class TopDownController(ScriptableComponent):
         # The Bullet instance, resolved by script class name. A ScriptRef
         # forwards attribute access straight through to the live instance and re-resolves
         # every time, so it survives the hot-reload that would invalidate a captured one.
+
         script = ScriptRef(bullet.id, "Bullet")
         if not script:
             Console.warn("TopDownController: bullet has no Bullet script.")
             bullet.active = False
             self._pool_script.return_to_pool(bullet)
             return
+        self.audio.play_one_shot()
 
         # The impact emitter stays OURS and is only borrowed: one living on the bullet
         # would be destroyed along with it before a single particle was drawn.
         # Pass the pool reference so the bullet can return itself when done.
         script.launch(direction, owner_id=self.gameobject.id,
                       impact_emitter=self.bullet_impact, pool=self._pool_script)
+
+        
+        
 
     @action
     def Test_Function(self, val : str):

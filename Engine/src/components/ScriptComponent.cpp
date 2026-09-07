@@ -90,6 +90,10 @@ namespace {
             const char* want = typeName == "vec4" ? "Vector4" : typeName == "vec3" ? "Vector3" : "Vector2";
             return qual.find(want) != std::string::npos;
         }
+        if (typeName == "curve") {
+            if (cur.is_none()) return false;
+            return py::isinstance<AnimationCurve>(cur);
+        }
         return true; // unknown type — don't second-guess it
     }
 
@@ -344,6 +348,11 @@ YAML::Node ScriptComponent::Serialize()
                     fieldsNode[field.name].push_back(py::getattr(val, "y").cast<float>());
                     fieldsNode[field.name].push_back(py::getattr(val, "z").cast<float>());
                     fieldsNode[field.name].push_back(py::getattr(val, "w").cast<float>());
+                } else if (field.typeName == "curve") {
+                    // The curve serializes itself, so a script field and a native
+                    // component field (TrailRenderer::widthCurve) share one YAML
+                    // shape and one parser.
+                    fieldsNode[field.name] = val.cast<AnimationCurve>().Serialize();
                 } else if (field.typeName == "list") {
                     // Variable-length sequence of the element type.
                     const int elemWidth = VecWidth(field.elementTypeName);
@@ -877,6 +886,19 @@ void ScriptComponent::IntrospectFields()
                 }
             }
 
+            // Same aliasing problem as the list above, and the same fix. A curve
+            // default written as a class attribute -- or one seeded from the
+            // introspection dict, which hands the SAME object to every instance --
+            // is mutable, so without this two GameObjects running one script class
+            // would share a curve and editing either would move both.
+            if (info.typeName == "curve" && py::hasattr(scriptInstance, info.name.c_str())) {
+                py::object cur = py::getattr(scriptInstance, info.name.c_str());
+                if (py::isinstance<AnimationCurve>(cur)) {
+                    py::setattr(scriptInstance, info.name.c_str(),
+                                py::cast(cur.cast<AnimationCurve>()));   // cast<> copies out, py::cast copies in
+                }
+            }
+
             info.changeEvent = Observable::CreateEvent();
             m_fields.push_back(std::move(info));
         }
@@ -1054,6 +1076,10 @@ void ScriptComponent::ApplyPendingFields()
                     py::object vec4Cls = re_math.attr("Vector4");
                     py::setattr(scriptInstance, field.name.c_str(), vec4Cls(seq[0], seq[1], seq[2], seq[3]));
                 }
+            } else if (field.typeName == "curve") {
+                AnimationCurve curve;
+                curve.Deserialize(val);   // defaults every read; a bad node gives an empty curve
+                py::setattr(scriptInstance, field.name.c_str(), py::cast(curve));
             } else if (field.typeName == "list") {
                 const int elemWidth = VecWidth(field.elementTypeName);
                 py::list lst;
@@ -1139,6 +1165,8 @@ ScriptFieldValue ScriptComponent::GetFieldValue(const std::string& name)
             float z = py::getattr(val, "z").cast<float>();
             float w = py::getattr(val, "w").cast<float>();
             return glm::vec4(x, y, z, w);
+        } else if (fieldInfo->typeName == "curve") {
+            return val.cast<AnimationCurve>();
         } else if (fieldInfo->typeName == "list") {
             return ReadListField(val, *fieldInfo);
         }
@@ -1197,6 +1225,8 @@ std::map<std::string, ScriptFieldValue> ScriptComponent::GetAllFieldValues()
                 float z = py::getattr(val, "z").cast<float>();
                 float w = py::getattr(val, "w").cast<float>();
                 result[field.name] = glm::vec4(x, y, z, w);
+            } else if (field.typeName == "curve") {
+                result[field.name] = val.cast<AnimationCurve>();
             } else if (field.typeName == "list") {
                 result[field.name] = ReadListField(val, field);
             }
@@ -1245,6 +1275,10 @@ void ScriptComponent::SetFieldValue(const std::string& name, const ScriptFieldVa
                 py::setattr(scriptInstance, name.c_str(), py::int_(v));
             } else if constexpr (std::is_same_v<T, bool>) {
                 py::setattr(scriptInstance, name.c_str(), py::bool_(v));
+            } else if constexpr (std::is_same_v<T, AnimationCurve>) {
+                // py::cast copies, which is what we want: the script must not end
+                // up sharing a curve with the inspector widget that just edited it.
+                py::setattr(scriptInstance, name.c_str(), py::cast(v));
             } else if constexpr (std::is_same_v<T, std::string>) {
                 if (refTypeName == "sprite") {
                     if (v.empty()) {

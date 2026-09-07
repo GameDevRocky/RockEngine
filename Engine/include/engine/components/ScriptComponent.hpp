@@ -1,6 +1,7 @@
 #pragma once
 
 #include "engine/components/Component.hpp"
+#include "engine/utils/AnimationCurve.hpp"
 
 #include <string>
 #include <vector>
@@ -18,8 +19,14 @@
 // Variant type for script field values — no pybind11 types exposed.
 // Scalars plus homogeneous lists (list[T]); ref lists (sprite/material) marshal
 // as std::vector<std::string> of IDs, like the scalar str-ref path.
+//
+// AnimationCurve is the one non-scalar, non-list alternative. It earns its place
+// because it is a VALUE (copyable, comparable, self-serializing) rather than a
+// handle into the Registry — every ref type here is stored as an id string
+// precisely because it is not. There is deliberately no list<AnimationCurve>:
+// introspection rejects list[AnimationCurve] rather than marshalling it.
 using ScriptFieldValue = std::variant<
-    float, int, bool, std::string, glm::vec2, glm::vec3, glm::vec4,
+    float, int, bool, std::string, glm::vec2, glm::vec3, glm::vec4, AnimationCurve,
     std::vector<int>, std::vector<float>, std::vector<bool>, std::vector<std::string>,
     std::vector<glm::vec2>, std::vector<glm::vec3>, std::vector<glm::vec4>>;
 
@@ -32,7 +39,7 @@ struct ScriptClassInfo {
 
 struct ScriptFieldInfo {
     std::string name;
-    std::string typeName;      // "float", "int", "bool", "str", "vec2", "vec3", "vec4", "list"
+    std::string typeName;      // "float", "int", "bool", "str", "vec2", "vec3", "vec4", "curve", "list"
     std::string refTypeName;   // For str fields: "material", "sprite", "gameobject:<ClassName>" (empty = plain string)
     // For "list" fields only: the element type (any scalar typeName above) and,
     // when the element is an asset ref, its ref type ("material"/"sprite"/...).

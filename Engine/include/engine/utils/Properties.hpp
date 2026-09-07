@@ -33,7 +33,8 @@ namespace Properties {
         SCRIPT,
         CALL_ENTRY,    // one wired call inside an Event field (target + method + arg)
         DROPDOWN,
-        LIST
+        LIST,
+        CURVE          // AnimationCurve, edited in place on a plotted graph
     };
 
     struct PropDesc {

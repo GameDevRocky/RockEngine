@@ -42,6 +42,25 @@ static const std::unordered_set<std::string>& TextReservedUniforms()
     return kReserved;
 }
 
+// Additionally reserved on a TRAIL-domain shader.
+//
+// All four are written every draw by TrailRenderer::OverrideUniforms: the
+// texture comes from the component's Sprite (with uHasTexture saying whether
+// there is one at all), and the UV transform is that sprite's atlas sub-rect. A
+// material row for any of them would be overwritten before it could take effect.
+//
+// uColor is deliberately NOT reserved here, unlike on the text domain: on a
+// trail it is a genuine per-material tint layered over the per-vertex gradient,
+// and it is the one knob that makes two materials on the same shader look
+// different.
+static const std::unordered_set<std::string>& TrailReservedUniforms()
+{
+    static const std::unordered_set<std::string> kReserved = {
+        "uTexture", "uHasTexture", "uUVScale", "uUVOffset"
+    };
+    return kReserved;
+}
+
 
 YAML::Node Material::Serialize() {
     YAML::Node node;
@@ -143,11 +162,15 @@ void Material::Validate() {
     auto& shaderUniforms = shader->GetActiveUniforms();
 
     const auto& baseReserved = EngineReservedUniforms();
-    const bool isText = shader->GetDomain() == EngineUtils::ShaderDomain::Text;
-    const auto& textReserved = TextReservedUniforms();
+    const bool isText  = shader->GetDomain() == EngineUtils::ShaderDomain::Text;
+    const bool isTrail = shader->GetDomain() == EngineUtils::ShaderDomain::Trail;
+    const auto& textReserved  = TextReservedUniforms();
+    const auto& trailReserved = TrailReservedUniforms();
 
     auto isReserved = [&](const std::string& name) {
-        return baseReserved.count(name) > 0 || (isText && textReserved.count(name) > 0);
+        return baseReserved.count(name) > 0
+            || (isText  && textReserved.count(name) > 0)
+            || (isTrail && trailReserved.count(name) > 0);
     };
 
     auto prune = [&](auto& map) {
