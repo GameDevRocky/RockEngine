@@ -2,7 +2,8 @@ from .component_handler import Component
 from .collider_handler import Collider
 from ..systems.time_system import Time
 from rock_engine.core import gameobject_module
-
+from ..systems.console_system import Console
+from ...utils.properties import action
 _TICK_METHODS = ('update', 'fixed_update', 'late_update')
 
 
@@ -121,4 +122,16 @@ class ScriptableComponent(Component):
     def handle_trigger_exit(self, id ):
         other = Collider(id)
         self.on_trigger_exit(other)
+
+    @action
+    def comment(self, message):
+        Console.comment(message)
+        
+    @action
+    def warn(self, message):
+        Console.warn(message)
+        
+    @action
+    def alert(self, message):
+        Console.alert(message)
         

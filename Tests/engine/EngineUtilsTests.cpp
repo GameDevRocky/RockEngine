@@ -80,6 +80,28 @@ TEST_CASE("engine-managed texture slots do not collide") {
     CHECK(NormalMap   != FontAtlas);
 }
 
+TEST_CASE("text shaders expose separate unlit and lit variants") {
+    using namespace EngineUtils;
+
+    const ShaderSource unlit = ParseShaderSource(
+        GetAssetPath("Domain/lib/assets/shaders/msdf_text.glsl"));
+    const ShaderSource lit = ParseShaderSource(
+        GetAssetPath("Domain/lib/assets/shaders/msdf_text_lit.glsl"));
+
+    CHECK(unlit.domain == ShaderDomain::Text);
+    CHECK(lit.domain == ShaderDomain::Text);
+    CHECK_FALSE(unlit.vertex.empty());
+    CHECK_FALSE(unlit.fragment.empty());
+    CHECK_FALSE(lit.vertex.empty());
+    CHECK_FALSE(lit.fragment.empty());
+
+    // The existing default remains deliberately independent of scene lighting,
+    // while the opt-in variant consumes the renderer's shared lighting resources.
+    CHECK(unlit.fragment.find("LightBlock") == std::string::npos);
+    CHECK(lit.fragment.find("LightBlock") != std::string::npos);
+    CHECK(lit.fragment.find("uShadowAtlas") != std::string::npos);
+}
+
 TEST_CASE("ToAssetRelative inverts GetAssetPath") {
     const std::string relative = "Domain/sandbox/default.scene";
     const std::string absolute = EngineUtils::GetAssetPath(relative);

@@ -294,6 +294,11 @@ void TextRenderer::OverrideUniforms(int firstFreeTextureSlot) {
     shader->SetVec4("uOutlineColor", outlineColor);
     shader->SetFloat("uOutlineWidth", outlineWidth);
 
+    // LightingPass binds the atlas texture globally for the current view; a
+    // lit text shader still needs its sampler directed to that reserved slot.
+    // This is a harmless no-op for the default unlit text shader.
+    shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
+
     // ── Per-instance overrides ──────────────────────────────────────────────
     // The starting texture slot is handed in rather than assumed, because the
     // material has already consumed slots 0..n-1 for its own samplers and only

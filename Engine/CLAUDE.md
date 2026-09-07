@@ -192,6 +192,9 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
 
 - `src/rendering/core/`: Shader, Texture2D, Material, Sprite, Resource, GizmosManager,
   `RenderTarget` (FBO + color texture + depth renderbuffer; owned by `RenderPipeline`).
+- MSDF text has separate unlit and lit assets. `text`/`msdf_text` remains the default;
+  `text_lit`/`msdf_text_lit` is opt-in and consumes the same LightBlock and shadow atlas as
+  lit sprites while retaining TextRenderer-owned fill, weight, and outline controls.
 - `src/rendering/cameras/`: `RenderCamera` (resolved state, see above), `EditorCamera`
   (editor-viewport navigation; pan via `PanByPixels`, zoom-to-cursor via `ZoomAt`).
 - `src/rendering/passes/`: ClearPass, GridPass, ScenePass, PickingPass (mouse-pick via id
