@@ -6,6 +6,7 @@ class DistanceJoint(Joint):
     """Holds two anchors a set distance apart -- ropes, tethers, springs."""
 
     _type_name = "DistanceJoint"
+    __slots__ = ()
 
     @property
     def length(self) -> float:

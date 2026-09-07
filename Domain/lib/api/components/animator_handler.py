@@ -6,6 +6,7 @@ class Animator(Component):
     """Scripting handle for the Animator state machine. Set parameters (which
     drive transitions) and query/force the current state."""
     _type_name = "Animator"
+    __slots__ = ()
 
     def __init__(self, obj_id=None):
         super().__init__(obj_id)

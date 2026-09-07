@@ -7,3 +7,4 @@ class AudioListener(Component):
     (mirrors Camera)."""
 
     _type_name = "AudioListener"
+    __slots__ = ()

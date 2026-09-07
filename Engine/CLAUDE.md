@@ -114,6 +114,10 @@ Scenes are `.scene` YAML. There is no default/sample scene wired up — scenes l
 drag-and-drop onto the hierarchy panel (`Editor/src/dock-widgets/HierarchyGui.cpp`). The only
 scene checked into the repo is `Domain/sandbox/default.scene`.
 
+`GameObject::active` is serialized per object and defaults to `true` when loading legacy scene
+files without the field. Deserialization assigns it directly rather than calling `SetActive()`,
+because components and hierarchy links have not yet been reconstructed at that stage.
+
 `GameObject::component_ids` is an ordered sequence, not just an ownership list. Its order is
 serialized, copied into play mode, displayed by the Inspector, and used by component lifecycle
 iteration. Authoring reorder operations must go through `GameObject::MoveComponent` so its

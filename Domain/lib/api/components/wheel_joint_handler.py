@@ -11,6 +11,7 @@ class WheelJoint(Joint):
     """
 
     _type_name = "WheelJoint"
+    __slots__ = ()
 
     @property
     def axis_angle(self) -> float:

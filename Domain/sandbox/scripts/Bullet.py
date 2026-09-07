@@ -1,4 +1,4 @@
-"""A physics projectile that flies straight and dies on contact.
+"""A physics projectile that either impacts or ricochets on contact.
 
 Spawned by cloning a disabled reference object in the scene -- see
 TopDownController.shoot(). The shooter positions and activates the clone, then calls
@@ -22,6 +22,8 @@ class Bullet(ScriptableComponent):
     speed : Reflect[float, Slider, Step(50), Range(50, 8000)] = 1800.0
     lifetime : Reflect[float, Slider, Step(0.1), Range(0.1, 30),
                        Tooltip("Seconds before the bullet expires if it never hits anything.")] = 3.0
+    ricochet : Reflect[bool,
+                       Tooltip("Bounce off collisions instead of impacting and returning to the pool.")] = False
     impact_count : Reflect[int, Slider, Step(1), Range(0, 64)] = 14
     impact_spread : Reflect[float, Slider, Step(5), Range(0, 180),
                             Tooltip("Cone width of the impact spray around the bounce direction.")] = 40.0
@@ -45,6 +47,7 @@ class Bullet(ScriptableComponent):
         muzzle with no clue why.
         """
         rb = self.get_component(Rigidbody)
+        rb.is_bullet = True
         if rb is None:
             Console.warn("Bullet prefab has no Rigidbody -- it cannot move.")
             self.gameobject.destroy()
@@ -57,6 +60,14 @@ class Bullet(ScriptableComponent):
 
         rb.body_type = Rigidbody.DYNAMIC
         rb.use_gravity = False              # top-down: a bullet should not arc
+
+        # Let Box2D calculate the reflection from the real contact normal. Reset
+        # restitution in both modes because pooled bullets can be relaunched after
+        # this setting changes during play.
+        collider = self.get_component(Collider)
+        if collider:
+            collider.bounciness = 1.0 if self.ricochet else 0.0
+
         rb.velocity = heading * self.speed
 
         self._owner_id = owner_id
@@ -78,7 +89,8 @@ class Bullet(ScriptableComponent):
             return
 
         self._spawn_impact()
-        self._return_to_pool()
+        if not self.ricochet:
+            self._return_to_pool()
 
     def _return_to_pool(self):
         """Return this bullet to the pool for reuse, or destroy it if no pool is set."""
@@ -118,7 +130,11 @@ class Bullet(ScriptableComponent):
         heading = travel.normalize()
 
         position = self.transform.world_position
-        bounce = self._bounce(heading, position)
+        # PhysicsSystem dispatches collision-enter after Box2D has solved the
+        # contact. In ricochet mode velocity therefore already points along the
+        # true reflected path; impact mode still estimates that direction with
+        # the ray-based fallback used before ricochets were supported.
+        bounce = heading if self.ricochet else self._bounce(heading, position)
 
         emitter.transform.world_position = position
         emitter.direction = math.degrees(math.atan2(bounce.y, bounce.x))

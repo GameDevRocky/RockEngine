@@ -9,6 +9,7 @@ class ParticleComponent(Component):
     ``particle_module`` (C++). Enum-valued fields use the nested int constants
     below, mirroring the editor dropdowns."""
     _type_name = "ParticleComponent"
+    __slots__ = ()
 
     class Shape:
         POINT, CIRCLE, BOX, CONE = 0, 1, 2, 3

@@ -112,6 +112,7 @@ YAML::Node GameObject::Serialize() {
     YAML::Node node = Serializable::Serialize();
     node["name"] = name;
     node["tag"] = tag;
+    node["active"] = active;
     node["component_ids"] = component_ids;
     return node;
 }
@@ -123,6 +124,10 @@ void GameObject::Deserialize(const YAML::Node& node) {
         tag = node["tag"].as<std::string>("Untagged");
         if (tag.empty()) tag = "Untagged";
     };
+    // Restore the authored value directly. Scene::Deserialize creates all
+    // GameObjects before their components and hierarchy links, so SetActive()
+    // would propagate through an incomplete object graph during loading.
+    active = node["active"] ? node["active"].as<bool>(true) : true;
     if (node["component_ids"]) {
         const YAML::Node& cids = node["component_ids"];
         if (cids.IsSequence()) {

@@ -22,6 +22,7 @@ class TrailRenderer(Component):
         trail.clear()               # or drop it instantly, e.g. after a teleport
     """
     _type_name = "TrailRenderer"
+    __slots__ = ()
 
     def __init__(self, obj_id=None):
         super().__init__(obj_id)

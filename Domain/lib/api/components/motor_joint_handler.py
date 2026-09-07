@@ -11,6 +11,7 @@ class MotorJoint(Joint):
     """
 
     _type_name = "MotorJoint"
+    __slots__ = ()
 
     @property
     def linear_velocity(self) -> Vector2:

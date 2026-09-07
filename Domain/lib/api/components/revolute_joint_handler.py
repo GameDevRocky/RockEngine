@@ -9,6 +9,7 @@ class RevoluteJoint(Joint):
     """
 
     _type_name = "RevoluteJoint"
+    __slots__ = ()
 
     @property
     def target_angle(self) -> float:

@@ -146,7 +146,7 @@ void SceneViewGui::OnViewInitialized()
     imGuiInstance = new ImGuiInstance();
     imGuiInstance->Init();
     imGuiInstance->AddDrawCall([this](){DrawGizmos();});
-    //imGuiInstance->AddDrawCall([this](){DrawFPS();});
+    imGuiInstance->AddDrawCall([this](){DrawFPS();});
 
     // Two floating overlays: the tool palette (vertical) and the view options
     // (horizontal), stacked with the options strip just above the palette.

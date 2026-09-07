@@ -40,18 +40,78 @@ components:
     blendMode: 1
     sortingLayer: Default
     sortingOrder: 0
-  - id: 55254489371ad55ec9941cb2cf1a1d11
+  - id: 24d52bfedcf2d1874b58375296cf14cb
     enabled: true
-    type: ScriptComponent
+    type: BoxCollider
     gameobject: c6fcedddc5c8b43218fd215b94f0ee12
-    module: ""
-    class: ""
+    center: [0, 0]
+    isSensor: false
+    density: 1
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+    size: [1, 1]
+  - id: bbb0c50db57f8d568fe7a4779f034f3b
+    enabled: true
+    type: RigidBody
+    gameobject: c6fcedddc5c8b43218fd215b94f0ee12
+    bodyType: Dynamic
+    useGravity: true
+    lockRotation: false
+    bullet: false
+  - id: b024b4eb6a8bbabe7abce874d33ba86f
+    enabled: true
+    type: Transform
+    gameobject: f345eb37b5cf903cd596a60642ff77dc
+    localPosition: [290.4604, 430.99622]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: eaa48fbe50f1c82ba00f69283b1833d7
+    enabled: true
+    type: DistanceJoint
+    gameobject: f345eb37b5cf903cd596a60642ff77dc
+    connectedBody: c6fcedddc5c8b43218fd215b94f0ee12
+    collideConnected: false
+    localAnchorA: [0, 0]
+    localAnchorB: [197, 234]
+    length: 32
+    enableSpring: false
+    hertz: 4
+    dampingRatio: 0.5
+    lowerSpringForce: -1e+09
+    upperSpringForce: 1e+09
+    enableLimit: false
+    minLength: 0
+    maxLength: 320
+    enableMotor: false
+    motorSpeed: 0
+    maxMotorForce: 0
+  - id: 3df6152eb157d433839414d7d65680b3
+    enabled: true
+    type: RigidBody
+    gameobject: f345eb37b5cf903cd596a60642ff77dc
+    bodyType: Kinematic
+    useGravity: true
+    lockRotation: false
+    bullet: false
 gameobjects:
   - id: c6fcedddc5c8b43218fd215b94f0ee12
     type: GameObject
     name: Fire
     tag: Untagged
+    active: true
     component_ids:
       - f90a4e0fe2b56ac1a8805f83a3e824df
       - 54c73bc1c02f0cfcc298fe466085320c
-      - 55254489371ad55ec9941cb2cf1a1d11
+      - 24d52bfedcf2d1874b58375296cf14cb
+      - bbb0c50db57f8d568fe7a4779f034f3b
+  - id: f345eb37b5cf903cd596a60642ff77dc
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    active: true
+    component_ids:
+      - b024b4eb6a8bbabe7abce874d33ba86f
+      - eaa48fbe50f1c82ba00f69283b1833d7
+      - 3df6152eb157d433839414d7d65680b3

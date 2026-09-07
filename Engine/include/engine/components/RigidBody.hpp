@@ -13,6 +13,7 @@ public:
     static inline const Event USE_GRAVITY_CHANGED_EVENT = RigidBody::CreateEvent();
     static inline const Event LOCK_ROTATION_CHANGED_EVENT = RigidBody::CreateEvent();
     static inline const Event BODY_TYPE_CHANGED_EVENT = RigidBody::CreateEvent();
+    static inline const Event BULLET_CHANGED_EVENT = RigidBody::CreateEvent();
 
     YAML::Node Serialize() override;
     void Deserialize(const YAML::Node& node) override;
@@ -33,6 +34,8 @@ public:
     bool GetUseGravity() const;
     void SetLockRotation(bool value);
     bool GetLockRotation() const;
+    void SetBullet(bool value);
+    bool GetBullet() const;
     b2BodyId GetBodyId(){return bodyId;}
     
     void SetLinearVelocity(const glm::vec2& vel);
@@ -68,6 +71,7 @@ private:
     b2BodyType bodyType = b2BodyType::b2_dynamicBody;
     bool useGravity = true;
     bool lockRotation = false;
+    bool bullet = false;
     bool writingToTransform = false;
 
     // Last pose written back to the Transform in LateUpdate — runtime cache,

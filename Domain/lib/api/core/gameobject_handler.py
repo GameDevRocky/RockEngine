@@ -11,6 +11,42 @@ def get_gameobject(obj_id) -> GameObject:
         _GO_REGISTRY[obj_id] = GameObject(obj_id)
     return _GO_REGISTRY[obj_id] 
 
+def _script_class_name(cls):
+    """The script class name if `cls` is a user script, else None.
+
+    A user script is a ScriptableComponent subclass, which is a different kind of
+    thing from every other component handler: Transform/Rigidbody/Camera are
+    STATELESS proxies that forward to C++, so `cls(obj_id)` builds a valid one on
+    demand. A script instance is real Python state -- its fields, its coroutines --
+    created and owned by the engine, so constructing one here would produce a
+    detached duplicate that is never ticked and shares nothing with the live
+    object. It has to be looked up, not built.
+
+    Imported lazily for the same circular-import reason the `transform` property
+    below defers its import.
+    """
+    try:
+        from ..components.scriptable_component_handler import ScriptableComponent
+    except ImportError:
+        return None
+    if (isinstance(cls, type)
+            and issubclass(cls, ScriptableComponent)
+            and cls is not ScriptableComponent):
+        return cls.__name__
+    return None
+
+
+def _script_ref(gameobject_id, class_name):
+    """A live ScriptRef, or None when the object does not run that script.
+
+    None rather than an unresolved ref so get_component keeps its one contract --
+    "the component, or None" -- across natives and scripts alike.
+    """
+    from ..components.script_ref import ScriptRef
+    ref = ScriptRef(gameobject_id, class_name)
+    return ref if ref else None
+
+
 class GameObject:
     def __init__(self, obj_id):
         self.id = obj_id
@@ -47,6 +83,18 @@ class GameObject:
         return self.get_component(Transform)
 
     def add_component(self, cls: Type[T]) -> Optional[T]:
+        # Attaching a script needs a new ScriptComponent with its module and class
+        # set, and script_module exposes no binding for that yet. Raised rather
+        # than returned as None because the old fall-through built a detached
+        # instance and handed it back as if it had worked -- a failure that only
+        # showed up later as a script that never ticked.
+        script_name = _script_class_name(cls)
+        if script_name:
+            raise TypeError(
+                f"add_component({script_name}) is not supported: scripts cannot be "
+                f"attached from Python yet. Add the ScriptComponent in the editor, "
+                f"then reach it with get_component({script_name}).")
+
         type_name = getattr(cls, '_type_name', None)
         if type_name:
             comp_id = gameobject_module.add_component(self.id, type_name)
@@ -61,6 +109,26 @@ class GameObject:
 
     def get_component(self, cls: Type[T]) -> Optional[T]:
         # cls is the Class type (e.g., Transform)
+        script_name = _script_class_name(cls)
+        if script_name:
+            # Re-checked on a cache hit, unlike the native path below: a ScriptRef
+            # stays valid across a hot-reload (that is the whole point of it) but
+            # NOT across the script being removed or its GameObject destroyed, and
+            # returning a falsy ref there would break the "component or None"
+            # contract every caller writes `if comp:` against.
+            cached = self._comp_cache.get(cls)
+            if cached is not None:
+                if cached:
+                    return cached
+                del self._comp_cache[cls]
+
+            ref = _script_ref(self.id, script_name)
+            # Absence is deliberately NOT cached -- the script may be attached
+            # later, and a cached None would hide it for the object's lifetime.
+            if ref is not None:
+                self._comp_cache[cls] = ref
+            return ref
+
         if cls in self._comp_cache:
             return self._comp_cache[cls]
 
@@ -82,6 +150,15 @@ class GameObject:
         get_component() can only ever name one instance per type; use this for
         anything a GameObject can carry several of, such as joints.
         """
+        script_name = _script_class_name(cls)
+        if script_name:
+            # At most one: the engine addresses a script by CLASS NAME, so a
+            # second ScriptComponent running the same class on one object is not
+            # separately reachable (get_script_instance returns the first match).
+            # Reporting one is honest; reporting two identical refs would not be.
+            ref = _script_ref(self.id, script_name)
+            return [ref] if ref is not None else []
+
         type_name = getattr(cls, '_type_name', None)
         if not type_name:
             return []

@@ -11,6 +11,11 @@ if TYPE_CHECKING:
     from .transform_handler import Transform
 
 class Component:
+    # Native component handlers are thin proxies. Concrete native subclasses
+    # declare empty slots so misspelled properties cannot become detached
+    # Python-only state. ScriptableComponent intentionally retains a __dict__.
+    __slots__ = ("_gameobject_id", "_component_id")
+
     def __init__(self, obj_id=None, component_id=None):
         self._gameobject_id = obj_id
         # The component's OWN id. Needed by anything a GameObject can hold more

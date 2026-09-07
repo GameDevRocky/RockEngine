@@ -20,6 +20,7 @@ class Joint(Component):
     """
 
     _addressed_by_component_id = True
+    __slots__ = ()
 
     def __init__(self, obj_id=None, component_id=None):
         super().__init__(obj_id, component_id)

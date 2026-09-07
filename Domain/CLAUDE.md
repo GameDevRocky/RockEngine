@@ -24,6 +24,10 @@ Loaded at runtime relative to `PROJECT_ROOT` (the source dir, baked in at build 
 The Python API wraps the embedded `rock_engine` C++ module. Each Python handler is a thin
 proxy holding an object id and forwarding to the C++ binding.
 
+- Native component proxy classes use `__slots__`: `Component` owns the object/component IDs,
+  and each native subclass declares `__slots__ = ()` so it cannot acquire detached Python-only
+  state. `ScriptableComponent` intentionally remains dynamic because user scripts define fields.
+
 - **`ScriptableComponent`** (`lib/api/components/scriptable_component_handler.py`) is the base
   class user scripts subclass. It provides:
   - Unity-like lifecycle hooks: `awake`, `start`, `update`, `fixed_update`, `late_update`.

@@ -10,6 +10,7 @@ class WeldJoint(Joint):
     """
 
     _type_name = "WeldJoint"
+    __slots__ = ()
 
     @property
     def linear_hertz(self) -> float:

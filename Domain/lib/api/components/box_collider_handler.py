@@ -4,6 +4,7 @@ from .collider_handler import Collider
 
 class BoxCollider(Collider):
     _type_name = "BoxCollider"
+    __slots__ = ()
 
     def __init__(self, obj_id=None):
         super().__init__(obj_id)

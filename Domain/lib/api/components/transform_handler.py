@@ -5,6 +5,7 @@ import math
 
 class Transform(Component):
     _type_name = "Transform"
+    __slots__ = ()
 
     def __init__(self, obj_id= None):
         super().__init__(obj_id)
@@ -100,5 +101,3 @@ class Transform(Component):
         from ..core.gameobject_handler import get_gameobject
         ids = transform_module.get_children(self._gameobject_id)
         return [get_gameobject(cid).transform for cid in ids]
-
-    

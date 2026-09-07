@@ -20,6 +20,8 @@
 
 #include "engine/components/Component.hpp"
 #include "engine/components/ComponentRegistrars.hpp"
+#include "engine/components/RigidBody.hpp"
+#include "engine/core/GameObject.hpp"
 #include "engine/serialization/Serializable.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
 
@@ -122,6 +124,62 @@ TEST_CASE("Component::Deserialize tolerates a node missing its base fields") {
 
         CHECK_NOTHROW(component->Component::Deserialize(node));
     }
+}
+
+TEST_CASE("GameObject active state survives YAML serialization") {
+    YAML::Node inactiveNode;
+    inactiveNode["id"] = "inactive-object";
+    inactiveNode["name"] = "Inactive";
+    inactiveNode["active"] = false;
+
+    GameObject original;
+    REQUIRE_NOTHROW(original.Deserialize(inactiveNode));
+    REQUIRE_FALSE(original.GetActive());
+
+    const YAML::Node serialized = original.Serialize();
+    REQUIRE(serialized["active"]);
+    CHECK_FALSE(serialized["active"].as<bool>());
+
+    GameObject restored;
+    REQUIRE_NOTHROW(restored.Deserialize(YAML::Load(Emit(serialized))));
+    CHECK_FALSE(restored.GetActive());
+}
+
+TEST_CASE("GameObject active state defaults true for legacy YAML") {
+    YAML::Node legacyNode;
+    legacyNode["id"] = "legacy-object";
+    legacyNode["name"] = "Legacy";
+
+    GameObject restored;
+    REQUIRE_NOTHROW(restored.Deserialize(legacyNode));
+    CHECK(restored.GetActive());
+}
+
+TEST_CASE("RigidBody bullet mode survives serialization and copying") {
+    RigidBody original;
+    original.SetBullet(true);
+
+    const YAML::Node serialized = original.Serialize();
+    REQUIRE(serialized["bullet"]);
+    CHECK(serialized["bullet"].as<bool>());
+
+    RigidBody restored;
+    REQUIRE_NOTHROW(restored.Deserialize(YAML::Load(Emit(serialized))));
+    CHECK(restored.GetBullet());
+
+    std::unique_ptr<RigidBody> copy(original.Copy());
+    REQUIRE(copy != nullptr);
+    CHECK(copy->GetBullet());
+}
+
+TEST_CASE("RigidBody bullet mode defaults false for legacy YAML") {
+    RigidBody original;
+    YAML::Node legacyNode = original.Serialize();
+    legacyNode.remove("bullet");
+
+    RigidBody restored;
+    REQUIRE_NOTHROW(restored.Deserialize(legacyNode));
+    CHECK_FALSE(restored.GetBullet());
 }
 
 TEST_CASE("Copy() yields a distinct object with identical serialized content") {

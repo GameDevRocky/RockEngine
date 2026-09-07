@@ -17,6 +17,7 @@ YAML::Node RigidBody::Serialize(){
     node["bodyType"] = type;
     node["useGravity"] = useGravity;
     node["lockRotation"] = lockRotation;
+    node["bullet"] = bullet;
     return node;
 }
 
@@ -29,6 +30,7 @@ void RigidBody::Deserialize(const YAML::Node& node){
     else if (type == "Static") bodyType = b2BodyType::b2_staticBody;
     useGravity = node["useGravity"].as<bool>();
     lockRotation = node["lockRotation"].as<bool>();
+    bullet = node["bullet"] ? node["bullet"].as<bool>(false) : false;
     bodyId = b2_nullBodyId;
     state = State::Loaded;
 }
@@ -45,6 +47,7 @@ void RigidBody::Init(){
     SetLockRotation(lockRotation);
     SetBodyType(bodyType);
     SetUseGravity(useGravity);
+    SetBullet(bullet);
     state = State::Initialized;
 }
 
@@ -143,12 +146,27 @@ bool RigidBody::GetLockRotation() const {
     return lockRotation;
 }
 
+void RigidBody::SetBullet(bool value){
+    bullet = value;
+    if (b2Body_IsValid(bodyId)) {
+        b2Body_SetBullet(bodyId, bullet);
+        b2Body_SetAwake(bodyId, true);
+        Notify(BULLET_CHANGED_EVENT);
+        Notify(CHANGED_EVENT);
+    }
+}
+
+bool RigidBody::GetBullet() const {
+    return bullet;
+}
+
 void RigidBody::Awake(){
     if (state >= State::Awakened) return;
     
     SetBodyType(bodyType);
     SetUseGravity(useGravity);
     SetLockRotation(lockRotation);
+    SetBullet(bullet);
     state = State::Awakened;
 }
 
@@ -306,6 +324,7 @@ RigidBody* RigidBody::Copy(){
     copy->useGravity = useGravity;
     copy->bodyId = b2_nullBodyId;
     copy->lockRotation = lockRotation;
+    copy->bullet = bullet;
     copy->state = State::Loaded;
     return copy;
 }

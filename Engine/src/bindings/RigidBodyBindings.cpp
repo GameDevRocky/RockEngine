@@ -116,4 +116,20 @@ void BindRigidBody(pybind11::module_& m) {
         return rb->GetLockRotation();
     });
 
+    rigidbody_module.def("set_bullet", [](const std::string& id, bool val) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) return;
+        auto* rb = go->GetComponent<RigidBody>();
+        if (!rb) return;
+        rb->SetBullet(val);
+    });
+
+    rigidbody_module.def("get_bullet", [](const std::string& id) {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (!go) return false;
+        auto* rb = go->GetComponent<RigidBody>();
+        if (!rb) return false;
+        return rb->GetBullet();
+    });
+
 }

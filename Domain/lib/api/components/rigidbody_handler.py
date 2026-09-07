@@ -5,6 +5,7 @@ from .component_handler import Component
 
 class Rigidbody(Component):
     _type_name = "RigidBody"
+    __slots__ = ()
 
     DYNAMIC   = "Dynamic"
     KINEMATIC = "Kinematic"
@@ -62,3 +63,12 @@ class Rigidbody(Component):
     @lock_rotation.setter
     def lock_rotation(self, val : bool):
         rigidbody_module.set_lock_rotation(self._gameobject_id, bool(val))
+
+    @property
+    def is_bullet(self) -> bool:
+        """Enable Box2D continuous collision detection for fast-moving bodies."""
+        return rigidbody_module.get_bullet(self._gameobject_id)
+
+    @is_bullet.setter
+    def is_bullet(self, val: bool):
+        rigidbody_module.set_bullet(self._gameobject_id, bool(val))

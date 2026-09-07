@@ -10,6 +10,7 @@ class PrismaticJoint(Joint):
     """
 
     _type_name = "PrismaticJoint"
+    __slots__ = ()
 
     @property
     def axis_angle(self) -> float:

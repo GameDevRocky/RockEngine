@@ -52,7 +52,7 @@ class ObjectPool(ScriptableComponent):
             return None
 
         # Cut it loose from any parent hierarchy
-        obj.transform.parent = None
+        obj.transform.parent = self.transform
 
         # Keep it inactive until requested
         obj.active = False
@@ -84,9 +84,14 @@ class ObjectPool(ScriptableComponent):
         if not obj:
             return
 
-        # Move from in_use to available
-        self._in_use.discard(obj)
-        self._available.add(obj)
+        # Both sets hold GameObject HANDLES -- that is what get() puts in _in_use
+        # and what awake() puts in _available. This used to look them up by
+        # obj.id, which never matched a handle, so nothing was ever removed from
+        # _in_use and the pool grew forever instead of recycling. The add was
+        # worse: _available is a set, and .append() on one raises AttributeError,
+        # so the first returned object took the frame down with it.
+        self._in_use.discard(obj)      # discard, not remove: returning twice is harmless
+        self._available.add(obj)       # a set already ignores a duplicate
 
         # Deactivate the object to hide it
         obj.active = False
