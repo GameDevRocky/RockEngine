@@ -52,8 +52,8 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     mainLayout->setSpacing(0);
 
     navBar = new QWidget(this);
-    navBar->setFixedHeight(36);
-    navBar->setStyleSheet("background-color: #2d2d2d; border-bottom: 1px solid #454545;");
+    navBar->setFixedHeight(24);
+    navBar->setStyleSheet("background: transparent; border-bottom: 1px solid #2f2f2f;");
     QHBoxLayout* navLayout = new QHBoxLayout(navBar);
     navLayout->setContentsMargins(8, 1, 8, 1);
     navLayout->setSpacing(4);

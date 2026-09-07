@@ -215,7 +215,8 @@ void UnsubscribeFromContainer(Container* container, const std::string& scene_id,
 
 SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
     model = new GameObjectDragModel(this);
-    auto* headerItem = new QStandardItem(style()->standardIcon(QStyle::SP_DirIcon), "Hierarchy");
+    auto* headerItem = new QStandardItem(
+        EditorUtils::CustomIconProvider::assetIcon("Scene"), QStringLiteral("  Hierarchy"));
     model->setHorizontalHeaderItem(0, headerItem);
     setModel(model);
     // Multi-select. Qt's ExtendedSelection hardwires Ctrl = toggle and Shift =
@@ -550,7 +551,7 @@ void SceneTree::RebuildFromScene(Scene* scene) {
 
     auto setHeader = [this](const QString& name) {
         model->setHorizontalHeaderItem(0, new QStandardItem(
-            QIcon(EngineUtils::GetAssetPath("Domain/lib/assets/icons/scene_icon.png").c_str()), name));
+            EditorUtils::CustomIconProvider::assetIcon("Scene"), QStringLiteral("  ") + name));
     };
 
     if (!scene) {
@@ -559,13 +560,14 @@ void SceneTree::RebuildFromScene(Scene* scene) {
         deleteLater();
         return;
     }
-    header()->setFixedHeight(30);
+    //header()->setFixedHeight(24);
 
     setHeader(scene->GetName().c_str());
     sceneNameSubscriptionId = scene->Subscribe([this](const std::any& data){
         const std::string& name = std::any_cast<std::string>(data);
         model->setHorizontalHeaderItem(0, new QStandardItem(
-            style()->standardIcon(QStyle::SP_DirIcon), name.c_str()));
+            EditorUtils::CustomIconProvider::assetIcon("Scene"),
+            QStringLiteral("  ") + QString::fromStdString(name)));
         return true;
     }, Scene::NAME_CHANGED_EVENT);
 
@@ -1091,7 +1093,7 @@ void SceneTree::OnItemEntered(const QModelIndex& index) {
 
     QRect itemRect = visualRect(index);
     int btnSize = m_activeBtn->height();
-    m_activeBtn->move(itemRect.left() + 4,
+    m_activeBtn->move(itemRect.left() + 0,
                       itemRect.top() + (itemRect.height() - btnSize) / 2);
 
     m_activeBtn->blockSignals(true);

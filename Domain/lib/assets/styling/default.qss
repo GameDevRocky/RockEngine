@@ -1002,8 +1002,20 @@ SceneTree
     show-decoration-selected: 0;
 }
 
+SceneTree QHeaderView
+{
+    background: rgb(32, 32, 32);
+    border: none;
+}
+
 SceneTree QHeaderView::section
 {
+    background: rgb(32, 32, 32);
+    border: none;
+    border-bottom: 1px solid rgb(49, 49, 51);
+    color: rgb(185, 185, 188);
+    font-weight: 600;
+    padding: 4px 12px;
 }
 
 SceneTree::item
