@@ -51,3 +51,31 @@ struct ParticleSimulationStep {
     float gravity[2] = {};
     float damping = 0.0f;
 };
+
+// One std430 descriptor per emitter. The batched GLSL simulation indexes this
+// table through a parallel owner buffer, allowing every active emitter to be
+// advanced by a single compute dispatch while retaining independent settings.
+struct alignas(16) ParticleEmitterGpuData {
+    // particle offset, capacity, ring head, particles to emit this frame
+    std::uint32_t meta[4] = {};
+    // enabled, frame seed, simulation space, emission shape
+    std::uint32_t flags[4] = {};
+    // emitter position.xy, emitter rotation, cone angle
+    float pose[4] = {};
+    // shape size.xy, direction, spread
+    float shapeMotion[4] = {};
+    // speed min/max, lifetime min/max
+    float speedLifetime[4] = {};
+    // gravity.xy, damping, delta time
+    float physics[4] = {};
+};
+
+static_assert(std::is_standard_layout_v<ParticleEmitterGpuData>);
+static_assert(alignof(ParticleEmitterGpuData) == 16);
+static_assert(sizeof(ParticleEmitterGpuData) == 96);
+static_assert(offsetof(ParticleEmitterGpuData, meta) == 0);
+static_assert(offsetof(ParticleEmitterGpuData, flags) == 16);
+static_assert(offsetof(ParticleEmitterGpuData, pose) == 32);
+static_assert(offsetof(ParticleEmitterGpuData, shapeMotion) == 48);
+static_assert(offsetof(ParticleEmitterGpuData, speedLifetime) == 64);
+static_assert(offsetof(ParticleEmitterGpuData, physics) == 80);

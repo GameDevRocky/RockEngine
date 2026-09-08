@@ -4,11 +4,13 @@
 #include "engine/components/Transform.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/Scene.hpp"
+#include "engine/core/SceneManager.hpp"
 #include "engine/core/TimeManager.hpp"
 #include "engine/debug/FrameProfiler.hpp"
 #include "Engine.hpp"
 
 #include <glm/glm.hpp>
+#include <vector>
 
 void ParticleSimulationPass::Execute(RenderCamera* camera, Scene* scene)
 {
@@ -23,20 +25,35 @@ void ParticleSimulationPass::Execute(RenderCamera* camera, Scene* scene)
     const float dt = time->DeltaTime();
     const std::uint64_t frameId = time->FrameCount();
 
-    for (auto* obj : scene->GetAllGameObjects()) {
-        if (!obj || !obj->GetActive()) continue;
-        ParticleComponent* emitter = obj->GetComponent<ParticleComponent>();
-        if (!emitter || !emitter->GetEnabled()) continue;
-        Transform* transform = obj->GetComponent<Transform>();
-        if (!transform) continue;
+    ParticleManager& particles = ParticleManager::Get();
+    if (!particles.BeginSimulationFrame(dt, frameId)) return;
 
-        ParticleManager::Get().Simulate(emitter, transform->GetWorldPosition(),
-                                       transform->GetWorldRotation(), dt, frameId);
+    // RenderPipeline invokes scene passes once per loaded scene. The first
+    // invocation collects every scene so the global dispatch is complete;
+    // BeginSimulationFrame suppresses all later scene and viewport invocations.
+    SceneManager* sceneManager = active->FindSystem<SceneManager>();
+    const std::vector<Scene*> scenes = sceneManager
+        ? sceneManager->GetScenes()
+        : std::vector<Scene*>{ scene };
+    for (Scene* simulationScene : scenes) {
+        if (!simulationScene) continue;
+        for (auto* obj : simulationScene->GetAllGameObjects()) {
+            if (!obj || !obj->GetActive()) continue;
+            ParticleComponent* emitter = obj->GetComponent<ParticleComponent>();
+            if (!emitter || !emitter->GetEnabled()) continue;
+            Transform* transform = obj->GetComponent<Transform>();
+            if (!transform) continue;
+
+            particles.QueueEmitter(emitter, transform->GetWorldPosition(),
+                                   transform->GetWorldRotation());
+        }
     }
+
+    particles.EndSimulationFrame();
 
     // GC once per frame regardless of view/scene count.
     if (frameId != lastGcFrame) {
-        ParticleManager::Get().GarbageCollect(frameId);
+        particles.GarbageCollect(frameId);
         lastGcFrame = frameId;
     }
 }

@@ -2,21 +2,25 @@
 #include <cstdint>
 #include <string>
 #include <unordered_map>
+#include <vector>
 #include <glm/glm.hpp>
+
+#include "engine/rendering/core/ParticleSimulationTypes.hpp"
 
 class ParticleComponent;
 
 // Process-global owner of every emitter's GPU simulation state, living OUTSIDE
 // any Container alongside Renderer/AssetManager (render resources have no
 // per-world identity and must survive the editor/runtime swap). Owns the
-// compute + draw programs and the shared unit-quad VBO -- all shared across
-// viewport GL contexts -- plus one particle SSBO per emitter, keyed by the
-// emitter component's id.
+// compute + draw programs, shared unit-quad VBO, and one global particle arena
+// shared by every emitter. Emitters own stable slices of the arena and stable
+// descriptor slots; a frame uploads all descriptors once and advances the
+// whole arena with one fused GLSL compute dispatch.
 //
-// Simulation model (deliberately simple/robust): each emitter's SSBO is a fixed
-// ring buffer of particles. Emission writes new particles at a moving head;
-// particles carry age/lifetime and are integrated by a compute pass; dead slots
-// are culled in the draw vertex shader. No free-lists, no atomics, no readback.
+// Simulation model (deliberately simple/robust): each emitter's arena slice is
+// a fixed ring of particles. Emission writes new particles at a moving head;
+// particles carry age/lifetime and are integrated by the fused compute pass;
+// dead slots are culled in the draw vertex shader. No atomics or readback.
 class ParticleManager
 {
 public:
@@ -26,14 +30,14 @@ public:
     // and wires the play-mode reset subscription. Idempotent.
     bool EnsureInitialized();
 
-    // Advance one emitter by dt, exactly once per frame (guarded by frameId even
-    // when several viewports draw the same frame). Creates/resizes GPU state as
-    // needed. Context must be current. emitterPos/emitterRot are the resolved
-    // world pose used for World-space emission.
-    void Simulate(ParticleComponent* emitter, const glm::vec2& emitterPos,
-                  float emitterRot, float dt, std::uint64_t frameId);
+    // A simulation frame is collected first, then executed as one GPU batch.
+    // Begin returns false when another viewport already simulated this frame.
+    bool BeginSimulationFrame(float dt, std::uint64_t frameId);
+    void QueueEmitter(ParticleComponent* emitter, const glm::vec2& emitterPos,
+                      float emitterRot);
+    void EndSimulationFrame();
 
-    // Draw an emitter's particles. Simulate() must have run this frame. The
+    // Draw an emitter's particles. Its shared-arena slice must exist. The
     // caller owns the VAO (per-context) and the blend/depth state. `model` is
     // identity for World space or the emitter's world matrix for Local space.
     // `textureId` == 0 draws untextured (tinted quads).
@@ -48,7 +52,7 @@ public:
               const glm::mat4& model, unsigned int textureId,
               const glm::vec2& uvScale, const glm::vec2& uvOffset, unsigned int vao);
 
-    // Free GPU state for emitters not touched since `frameId` (deleted
+    // Reclaim arena slices for emitters not touched since `frameId` (deleted
     // components, unloaded scenes). Context must be current.
     void GarbageCollect(std::uint64_t frameId);
 
@@ -61,37 +65,64 @@ private:
     ParticleManager& operator=(const ParticleManager&) = delete;
 
     struct EmitterState {
-        unsigned int particleSSBO = 0;
-        void* cudaResource = nullptr;   // opaque cudaGraphicsResource_t
-        int capacity = 0;
+        std::uint32_t offset = 0;
+        std::uint32_t capacity = 0;
+        std::uint32_t descriptorSlot = 0;
         unsigned int head = 0;          // ring write cursor
         float emitAccumulator = 0.0f;   // fractional particles carried between frames
         float emitterTime = 0.0f;       // seconds since (re)start, for duration/loop
         std::uint32_t seed = 0;
-        std::uint64_t lastSimulatedFrame = ~0ull;
         std::uint64_t lastTouchedFrame = 0;
         bool startBurstFired = false;
-        int lastRequestedBackend = -1;
-        bool cudaDisabled = false;
+    };
+
+    struct FreeRange {
+        std::uint32_t offset = 0;
+        std::uint32_t count = 0;
+    };
+
+    struct QueuedEmitter {
+        EmitterState* state = nullptr;
+        ParticleEmitterGpuData descriptor{};
     };
 
     EmitterState& GetOrCreate(ParticleComponent* emitter);
     void DestroyState(EmitterState& st);
-    void ResetAll();   // free all emitter buffers (keeps programs/VBO)
+    void ResetAll();
+    void EnsureArenaCapacity(std::uint32_t required);
+    void EnsureDescriptorCapacity(std::uint32_t required);
+    std::uint32_t AcquireRange(std::uint32_t count);
+    void ReleaseRange(std::uint32_t offset, std::uint32_t count);
+    std::uint32_t AcquireDescriptorSlot();
+    void ReleaseDescriptorSlot(std::uint32_t slot);
+    void ClearArenaRange(std::uint32_t offset, std::uint32_t count,
+                         std::uint32_t owner);
+    void RecomputeArenaHighWater();
 
     bool initialized = false;
-    bool pendingReset = false;   // set by play-mode events; serviced in Simulate (context-current)
+    bool pendingReset = false;   // serviced at the next context-current frame
+    bool warnedCudaDeferred = false;
 
     unsigned int quadVBO = 0;
-    unsigned int emitProgram = 0;
     unsigned int simProgram = 0;
     unsigned int drawProgram = 0;
 
-    // Capability failures affect the process/context group, not one emitter.
-    // Keep identical failures from being repeated as play-mode resets rebuild
-    // per-emitter state. A successful CUDA step clears this so later failures
-    // remain observable.
-    std::string lastCudaWarning;
+    unsigned int particleSSBO = 0;
+    unsigned int ownerSSBO = 0;
+    unsigned int emitterSSBO = 0;
+    std::uint32_t arenaCapacity = 0;
+    std::uint32_t arenaHighWater = 0;
+    std::uint32_t descriptorCapacity = 0;
+    std::uint32_t descriptorHighWater = 0;
+
+    float frameDt = 0.0f;
+    std::uint64_t currentFrame = 0;
+    std::uint64_t lastBatchedFrame = ~0ull;
+
+    std::vector<FreeRange> freeRanges;
+    std::vector<std::uint32_t> freeDescriptorSlots;
+    std::vector<QueuedEmitter> queuedEmitters;
+    std::vector<ParticleEmitterGpuData> descriptorUpload;
 
     std::unordered_map<std::string, EmitterState> states;
 };

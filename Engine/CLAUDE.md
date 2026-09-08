@@ -205,21 +205,25 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
 
 ### Particle simulation backends
 
-`ParticleManager` owns one std430 SSBO per emitter and can update it through either the existing
-OpenGL compute shaders or the optional CUDA/OpenGL interop backend. The authored
-`ParticleComponent::SimulationBackend` setting is serialized, copied into play mode, exposed to
-the editor inspector/MCP/Python, and defaults to `OpenGLCompute` for legacy scenes.
+`ParticleManager` owns one growable std430 particle arena shared by every emitter. Each emitter
+keeps a persistent slice and a descriptor slot; a parallel owner SSBO maps every arena particle
+to that descriptor. `ParticleSimulationPass` collects active emitters, uploads the complete
+descriptor table once, then a fused GLSL kernel performs emission and integration across the
+arena in one dispatch. Rendering addresses the same arena with base-instance draws, so resizing
+or garbage-collecting an emitter only reallocates/reclaims its slice and never copies particles
+through the CPU.
 
-The CPU prepares one `ParticleSimulationStep` per emitter per frame and advances emission timing
-and the ring head only once. Both GPU backends consume that same step. CUDA registers the existing
-OpenGL SSBO lazily, maps it only for the kernel dispatch, and unregisters it before the buffer is
-resized, garbage-collected, or switched back to OpenGL. Do not introduce a second CUDA-owned
-particle buffer: rendering must continue to read the shared SSBO without CPU copies.
+The authored `ParticleComponent::SimulationBackend` value remains serialized, copied into play
+mode, and exposed to the editor/MCP/Python for forward compatibility. While the particle-world
+revamp is GLSL-first, all values execute through the batched GLSL path; the optional CUDA source
+and build boundary remain in the tree but are not selected by `ParticleManager`. Restore CUDA
+only against the global-arena/descriptor model--do not return to one registered SSBO and one
+map/dispatch/unmap sequence per emitter.
 
-CUDA headers stay behind `CudaParticleBackend`'s plain C++ boundary. Builds without CUDA compile
-the stub implementation and remain fully functional. A CUDA request that cannot initialize
-(non-NVIDIA GPU, driver/context mismatch, or a CUDA-disabled build) warns once per emitter and
-falls back to OpenGL compute; changing the backend retries initialization.
+The frame id is a global simulation guard because the Scene and Game view can render the same
+world in one engine frame. Play-mode transitions defer arena clearing until a GL context is
+current. Emitter slots remain fixed-capacity rings: zeroed particles are dead, emission overwrites
+from the per-emitter head, and no readback or atomics are required.
 
 On Windows hybrid-GPU systems, both executable entry points export the NVIDIA Optimus and AMD
 PowerXpress high-performance hints before Qt/SDL creates a context. Windows' per-application
