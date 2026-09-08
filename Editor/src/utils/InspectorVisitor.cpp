@@ -1316,6 +1316,14 @@ void InspectorVisitor::Visit(ParticleComponent* p) {
             {"World", static_cast<int>(PC::SimulationSpace::World)}
         }));
 
+    BindProperty<int>(p, "Simulation Backend: ",
+        [=]() { return static_cast<int>(p->GetSimulationBackend()); },
+        [](PC* e, const int& v) { e->SetSimulationBackend(static_cast<PC::SimulationBackend>(v)); },
+        p->SIMULATION_BACKEND_CHANGED_EVENT, PropDesc().Tag(Tags::DROPDOWN).DropVals({
+            {"OpenGL Compute (GLSL)", static_cast<int>(PC::SimulationBackend::OpenGLCompute)},
+            {"CUDA",                  static_cast<int>(PC::SimulationBackend::CUDA)}
+        }));
+
     // ── Shape ──
     BindProperty<int>(p, "Shape: ",
         [=]() { return static_cast<int>(p->GetShape()); },

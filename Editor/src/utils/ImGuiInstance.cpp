@@ -65,5 +65,10 @@ void ImGuiInstance::Resize(int width, int height, float dpiScale){
 }
 
 void ImGuiInstance::Shutdown(){
+    if (!context) return;
     MakeCurrent();
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui::DestroyContext(context);
+    context = nullptr;
+    drawCalls.clear();
 }

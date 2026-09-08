@@ -71,6 +71,7 @@ protected:
 
 private:
     explicit SceneViewGui(QWidget* parent = nullptr);
+    ~SceneViewGui() override;
 
     // Spawn a GameObject with a SpriteRenderer (set to spriteId) in the first loaded
     // scene at the given view position. Returns false if no scene is loaded.

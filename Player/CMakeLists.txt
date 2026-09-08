@@ -5,7 +5,7 @@
 # If you ever find yourself adding Qt6::* or RockEngineEditor here, the code you are trying
 # to reach belongs in Engine instead.
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.23)
 
 file(GLOB_RECURSE PLAYER_SOURCES CONFIGURE_DEPENDS
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"

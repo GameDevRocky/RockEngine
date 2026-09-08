@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.23)
 project(RockEngine VERSION 1.0 LANGUAGES C CXX)
 
 
@@ -10,8 +10,10 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 add_compile_definitions(PROJECT_ROOT="${CMAKE_SOURCE_DIR}")
 
 if(MSVC)
-    add_compile_options(/Zc:__cplusplus)
-    add_compile_options(/EHsc)
+    # These are cl.exe options. Passing them directly to nvcc makes it parse
+    # them as extra input files; CUDA host flags are supplied by CMake itself.
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/Zc:__cplusplus>)
+    add_compile_options($<$<COMPILE_LANGUAGE:CXX>:/EHsc>)
      
     string(REPLACE "/Zi" "/Z7" CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
     string(REPLACE "/Zi" "/Z7" CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
@@ -31,6 +33,38 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 option(ROCKENGINE_BUILD_EDITOR         "Build the Qt6 editor (RockEngineEditor + RockEngineLauncher)" ON)
 option(ROCKENGINE_BUILD_TESTS          "Build the headless unit tests (RockEngineTests)"              OFF)
 option(ROCKENGINE_STAGE_PLAYER_RUNTIME "Stage the shippable Python runtime beside the Player"         ON)
+
+# CUDA particle simulation is optional because CUDA is NVIDIA-only while RockEngine's
+# OpenGL compute backend remains the portable default. AUTO enables it when a compatible
+# CUDA compiler is available; ON makes a missing compiler a configure error; OFF never
+# probes for CUDA. The public Engine API remains identical in all three modes.
+set(ROCKENGINE_ENABLE_CUDA "AUTO" CACHE STRING
+    "Build the optional CUDA particle backend (AUTO, ON, or OFF)")
+set_property(CACHE ROCKENGINE_ENABLE_CUDA PROPERTY STRINGS AUTO ON OFF)
+string(TOUPPER "${ROCKENGINE_ENABLE_CUDA}" ROCKENGINE_ENABLE_CUDA)
+if(NOT ROCKENGINE_ENABLE_CUDA MATCHES "^(AUTO|ON|OFF)$")
+    message(FATAL_ERROR "ROCKENGINE_ENABLE_CUDA must be AUTO, ON, or OFF")
+endif()
+
+set(ROCKENGINE_HAS_CUDA OFF)
+if(NOT ROCKENGINE_ENABLE_CUDA STREQUAL "OFF")
+    include(CheckLanguage)
+    check_language(CUDA)
+    if(CMAKE_CUDA_COMPILER)
+        # Must be enabled at the highest directory containing every consumer of
+        # RockEngineCore (Editor, Player, and tests).
+        enable_language(CUDA)
+        find_package(CUDAToolkit REQUIRED)
+        set(ROCKENGINE_HAS_CUDA ON)
+        message(STATUS "RockEngine CUDA particles enabled with ${CMAKE_CUDA_COMPILER}")
+    elseif(ROCKENGINE_ENABLE_CUDA STREQUAL "ON")
+        message(FATAL_ERROR
+            "ROCKENGINE_ENABLE_CUDA=ON but no compatible CUDA compiler was found. "
+            "Set CMAKE_CUDA_COMPILER or CUDACXX to the desired nvcc executable.")
+    else()
+        message(STATUS "CUDA compiler not found; particle simulation will use OpenGL compute")
+    endif()
+endif()
 
 # --- Which MSVC runtime the build links ---------------------------------------------------
 # OFF by default, and it has to be: the editor links Qt, whose official binaries use the

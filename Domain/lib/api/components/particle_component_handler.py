@@ -17,6 +17,9 @@ class ParticleComponent(Component):
     class Space:
         LOCAL, WORLD = 0, 1
 
+    class Backend:
+        OPENGL_COMPUTE, CUDA = 0, 1
+
     class Blend:
         ALPHA, ADDITIVE = 0, 1
 
@@ -123,6 +126,16 @@ class ParticleComponent(Component):
     @space.setter
     def space(self, v):
         particle_module.set_space(self._gameobject_id, int(v))
+
+    @property
+    def simulation_backend(self) -> int:
+        """Requested GPU simulation backend. CUDA falls back to OpenGL compute
+        when this build, GPU, driver, or current OpenGL context cannot use it."""
+        return particle_module.get_simulation_backend(self._gameobject_id)
+
+    @simulation_backend.setter
+    def simulation_backend(self, v):
+        particle_module.set_simulation_backend(self._gameobject_id, int(v))
 
     # ── Shape ────────────────────────────────────────────────────────────────
     @property

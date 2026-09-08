@@ -319,7 +319,12 @@ void Editor::Shutdown() {
     // so no further Pump will run and any in-flight result is simply dropped.
     JobSystem::Get().Shutdown();
 
+    // Destroy widgets while QApplication and the shared OpenGL context group
+    // still exist. QOpenGLWidget owns QRhi backing textures; leaking the
+    // Scene/Game widgets leaves those native resources behind at app teardown.
+    SetFrameDriver(nullptr);
     MainWindow::Get()->Shutdown();
+    MainWindow::Destroy();
 
     if (timer) {
         timer->stop();

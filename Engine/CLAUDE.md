@@ -203,6 +203,30 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
   `RenderPass`.
 - OpenGL 4.6 core profile.
 
+### Particle simulation backends
+
+`ParticleManager` owns one std430 SSBO per emitter and can update it through either the existing
+OpenGL compute shaders or the optional CUDA/OpenGL interop backend. The authored
+`ParticleComponent::SimulationBackend` setting is serialized, copied into play mode, exposed to
+the editor inspector/MCP/Python, and defaults to `OpenGLCompute` for legacy scenes.
+
+The CPU prepares one `ParticleSimulationStep` per emitter per frame and advances emission timing
+and the ring head only once. Both GPU backends consume that same step. CUDA registers the existing
+OpenGL SSBO lazily, maps it only for the kernel dispatch, and unregisters it before the buffer is
+resized, garbage-collected, or switched back to OpenGL. Do not introduce a second CUDA-owned
+particle buffer: rendering must continue to read the shared SSBO without CPU copies.
+
+CUDA headers stay behind `CudaParticleBackend`'s plain C++ boundary. Builds without CUDA compile
+the stub implementation and remain fully functional. A CUDA request that cannot initialize
+(non-NVIDIA GPU, driver/context mismatch, or a CUDA-disabled build) warns once per emitter and
+falls back to OpenGL compute; changing the backend retries initialization.
+
+On Windows hybrid-GPU systems, both executable entry points export the NVIDIA Optimus and AMD
+PowerXpress high-performance hints before Qt/SDL creates a context. Windows' per-application
+Graphics preference can override those hints. CUDA initialization validates `GL_VENDOR` first and
+reports the active GL vendor/renderer because an AMD/Intel-owned context cannot interoperate with
+CUDA even when an NVIDIA CUDA device is present.
+
 ## Audio
 
 `src/audio/`: `AudioEngine` (singleton, owns miniaudio's `ma_engine` — the audio device + mixing

@@ -45,6 +45,13 @@ headers (embedded interpreter — see `requirements.txt`). `PROJECT_ROOT` is com
 `PROJECT_ROOT`. Setting `ROCKENGINE_BUNDLE_PYTHON=ON` bundles a standalone Python runtime +
 `Domain/` next to the launcher for distribution (see `CMakeLists.txt`).
 
+CUDA particle simulation is optional and NVIDIA-only. `ROCKENGINE_ENABLE_CUDA` accepts `AUTO`
+(default), `ON` (require a toolkit/compiler), or `OFF` (portable OpenGL-only build). When several
+toolkits are installed, select one at the first configure with `CMAKE_CUDA_COMPILER` or `CUDACXX`;
+for example, `cmake --preset local -DROCKENGINE_ENABLE_CUDA=ON
+-DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.3/bin/nvcc.exe"`.
+The chosen compiler is cached per build directory.
+
 ## How the layers fit together
 
 - `src/main.cpp` runs `Engine::Init → Editor::Init → Engine::PostInit → Editor::PostInit`

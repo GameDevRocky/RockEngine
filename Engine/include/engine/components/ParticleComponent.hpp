@@ -17,6 +17,7 @@ class ParticleComponent : public Component
 public:
     enum class Shape { Point, Circle, Box, Cone };
     enum class SimulationSpace { Local, World };
+    enum class SimulationBackend { OpenGLCompute, CUDA };
     enum class BlendMode { Alpha, Additive };
 
     // One change event per inspector-editable field (drives the deferred
@@ -33,6 +34,7 @@ public:
     static inline const Event GRAVITY_CHANGED_EVENT        = ParticleComponent::CreateEvent();
     static inline const Event DAMPING_CHANGED_EVENT        = ParticleComponent::CreateEvent();
     static inline const Event SPACE_CHANGED_EVENT          = ParticleComponent::CreateEvent();
+    static inline const Event SIMULATION_BACKEND_CHANGED_EVENT = ParticleComponent::CreateEvent();
     static inline const Event SHAPE_CHANGED_EVENT          = ParticleComponent::CreateEvent();
     static inline const Event SHAPE_SIZE_CHANGED_EVENT     = ParticleComponent::CreateEvent();
     static inline const Event CONE_ANGLE_CHANGED_EVENT     = ParticleComponent::CreateEvent();
@@ -90,6 +92,14 @@ public:
 
     SimulationSpace GetSpace() const { return space; }
     void SetSpace(SimulationSpace v) { space = v; Notify(SPACE_CHANGED_EVENT); }
+
+    SimulationBackend GetSimulationBackend() const { return simulationBackend; }
+    void SetSimulationBackend(SimulationBackend v) {
+        if (v != SimulationBackend::CUDA) v = SimulationBackend::OpenGLCompute;
+        if (simulationBackend == v) return;
+        simulationBackend = v;
+        Notify(SIMULATION_BACKEND_CHANGED_EVENT);
+    }
 
     // ── Shape ───────────────────────────────────────────────────────────────
     Shape GetShape() const { return shape; }
@@ -164,6 +174,7 @@ private:
     glm::vec2 gravity = { 0.0f, -2.0f };
     float damping = 0.0f;           // per-second velocity drag; vel *= exp(-damping*dt)
     SimulationSpace space = SimulationSpace::World;
+    SimulationBackend simulationBackend = SimulationBackend::OpenGLCompute;
 
     // Shape (shapeSize in pixels, like sprite pixel sizes -- see PixelsToWorld)
     Shape shape = Shape::Point;

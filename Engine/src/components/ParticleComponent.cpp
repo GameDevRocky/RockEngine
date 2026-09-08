@@ -33,6 +33,7 @@ YAML::Node ParticleComponent::Serialize()
     node["gravity"].SetStyle(YAML::EmitterStyle::Flow);
     node["damping"] = damping;
     node["space"]   = static_cast<int>(space);
+    node["simulationBackend"] = static_cast<int>(simulationBackend);
 
     node["shape"] = static_cast<int>(shape);
     node["shapeSize"][0] = shapeSize.x;
@@ -86,6 +87,11 @@ void ParticleComponent::Deserialize(const YAML::Node& node)
         gravity = glm::vec2(node["gravity"][0].as<float>(), node["gravity"][1].as<float>());
     damping = node["damping"].as<float>(0.0f);
     space   = static_cast<SimulationSpace>(node["space"].as<int>(static_cast<int>(SimulationSpace::World)));
+    const int backendValue = node["simulationBackend"].as<int>(
+        static_cast<int>(SimulationBackend::OpenGLCompute));
+    simulationBackend = backendValue == static_cast<int>(SimulationBackend::CUDA)
+        ? SimulationBackend::CUDA
+        : SimulationBackend::OpenGLCompute;
 
     shape = static_cast<Shape>(node["shape"].as<int>(static_cast<int>(Shape::Point)));
     if (node["shapeSize"])
@@ -139,6 +145,7 @@ ParticleComponent* ParticleComponent::Copy()
     copy->gravity = gravity;
     copy->damping = damping;
     copy->space   = space;
+    copy->simulationBackend = simulationBackend;
 
     copy->shape     = shape;
     copy->shapeSize = shapeSize;

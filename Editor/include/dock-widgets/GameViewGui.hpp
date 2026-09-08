@@ -55,5 +55,5 @@ private:
 
     static inline Proxy<InputManager> inputManager;
 
-    ~GameViewGui() override = default;
+    ~GameViewGui() override;
 };

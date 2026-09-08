@@ -32,6 +32,9 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 - `app->exec()` (in `PostInit`) blocks as the app's main loop.
 - Entry order from `src/main.cpp`: `Engine::Init → Editor::Init → Engine::PostInit →
   Editor::PostInit` (blocks) → shutdown in reverse.
+- Shutdown deletes `MainWindow` before `QApplication`; its owned `QOpenGLWidget`s must release
+  their QRhi backing textures and ImGui renderer resources while the shared context group still
+  exists. The singleton pointer is cleared through `MainWindow::Destroy()`.
 
 ## Layout
 

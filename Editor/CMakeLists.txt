@@ -1,6 +1,6 @@
 # Editor module
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.23)
 
 file(GLOB_RECURSE EDITOR_SOURCES CONFIGURE_DEPENDS
 	"${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"

@@ -13,6 +13,15 @@
 // they keep the console subsystem, which does want main().
 #include <SDL3/SDL_main.h>
 
+#if defined(_WIN32)
+// Prefer the discrete GPU before SDL creates the OpenGL context. CUDA/OpenGL
+// interop requires rendering and CUDA to use the same NVIDIA adapter.
+extern "C" {
+__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
 // Entry point for RockEnginePlayer -- the standalone game executable.
 //
 // The editor's counterpart is src/main.cpp, which runs Engine::Init -> Editor::Init ->

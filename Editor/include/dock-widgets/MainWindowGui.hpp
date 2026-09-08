@@ -9,11 +9,16 @@ class MainWindow : public QMainWindow {
 
 public:
     static MainWindow* Get() {
-        static MainWindow* instance = nullptr;
+        MainWindow*& instance = Instance();
         if (!instance) {
             instance = new MainWindow(nullptr);
         }
         return instance;
+    }
+    static void Destroy() {
+        MainWindow*& instance = Instance();
+        delete instance;
+        instance = nullptr;
     }
     void Init();
     void PostInit();
@@ -46,6 +51,10 @@ public:
     class GameViewGui* game_view;
     
 private:
+    static MainWindow*& Instance() {
+        static MainWindow* instance = nullptr;
+        return instance;
+    }
     explicit MainWindow(QWidget* parent = nullptr);
     void LoadLayout();
     void SaveLayout();

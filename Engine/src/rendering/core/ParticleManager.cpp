@@ -1,4 +1,6 @@
 #include "engine/rendering/core/ParticleManager.hpp"
+#include "engine/rendering/core/CudaParticleBackend.hpp"
+#include "engine/rendering/core/ParticleSimulationTypes.hpp"
 #include "engine/components/ParticleComponent.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "Engine.hpp"
@@ -13,8 +15,7 @@
 
 // A particle is 8 floats / 32 bytes, std430-friendly (vec2s first). Must match
 // the `struct Particle` declared in every shader below.
-static constexpr int kParticleFloats = 8;
-static constexpr int kParticleBytes  = kParticleFloats * sizeof(float);
+static constexpr int kParticleBytes  = sizeof(ParticleGpuData);
 static constexpr int kLocalSize      = 64;
 
 // ── Shared GLSL: the particle struct + SSBO binding, prepended to each stage ──
@@ -246,6 +247,7 @@ bool ParticleManager::EnsureInitialized()
 
 void ParticleManager::DestroyState(EmitterState& st)
 {
+    CudaParticleBackend::UnregisterBuffer(st.cudaResource);
     if (st.particleSSBO) glad_glDeleteBuffers(1, &st.particleSSBO);
     st.particleSSBO = 0;
     st.capacity = 0;
@@ -267,6 +269,7 @@ ParticleManager::EmitterState& ParticleManager::GetOrCreate(ParticleComponent* e
         return st;
 
     // (Re)allocate: capacity changed or first sight of this emitter.
+    CudaParticleBackend::UnregisterBuffer(st.cudaResource);
     if (st.particleSSBO) glad_glDeleteBuffers(1, &st.particleSSBO);
 
     st.capacity = wanted;
@@ -275,6 +278,8 @@ ParticleManager::EmitterState& ParticleManager::GetOrCreate(ParticleComponent* e
     st.emitterTime = 0.0f;
     st.startBurstFired = false;
     st.seed = static_cast<std::uint32_t>(std::hash<std::string>{}(id)) | 1u;
+    st.lastRequestedBackend = -1;
+    st.cudaDisabled = false;
 
     glad_glGenBuffers(1, &st.particleSSBO);
     glad_glBindBuffer(GL_SHADER_STORAGE_BUFFER, st.particleSSBO);
@@ -336,44 +341,119 @@ void ParticleManager::Simulate(ParticleComponent* emitter, const glm::vec2& emit
     emit += emitter->ConsumePendingBurst();
     emit = std::clamp(emit, 0, capacity);
 
-    glad_glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, st.particleSSBO);
+    const glm::vec2 shapeSize = EngineUtils::RenderUtils::PixelsToWorld(emitter->GetShapeSize());
+    const glm::vec2 speedRange = emitter->GetSpeed();
+    const glm::vec2 lifetimeRange = emitter->GetLifetime();
+    const glm::vec2 gravity = emitter->GetGravity();
 
-    // ── Emit pass ──
-    if (emit > 0) {
-        glad_glUseProgram(emitProgram);
-        SetU1ui(emitProgram, "uEmitCount", static_cast<GLuint>(emit));
-        SetU1ui(emitProgram, "uCapacity",  static_cast<GLuint>(capacity));
-        SetU1ui(emitProgram, "uHead",      st.head);
-        SetU1ui(emitProgram, "uFrameSeed", st.seed ^ static_cast<GLuint>(frameId * 2654435761u));
-        SetU1i (emitProgram, "uSpace",     static_cast<int>(emitter->GetSpace()));
-        SetU2f (emitProgram, "uEmitterPos", emitterPos);
-        SetU1f (emitProgram, "uEmitterRot", emitterRot);
-        SetU1i (emitProgram, "uShape",     static_cast<int>(emitter->GetShape()));
-        SetU2f (emitProgram, "uShapeSize", EngineUtils::RenderUtils::PixelsToWorld(emitter->GetShapeSize()));
-        SetU1f (emitProgram, "uConeAngle", emitter->GetConeAngle());
-        SetU1f (emitProgram, "uDirection", emitter->GetDirection());
-        SetU1f (emitProgram, "uSpread",    emitter->GetSpread());
-        SetU2f (emitProgram, "uSpeedRange", emitter->GetSpeed());
-        SetU2f (emitProgram, "uLifeRange",  emitter->GetLifetime());
+    ParticleSimulationStep step{};
+    step.emitCount = static_cast<std::uint32_t>(emit);
+    step.capacity = static_cast<std::uint32_t>(capacity);
+    step.head = st.head;
+    step.frameSeed = st.seed ^ static_cast<std::uint32_t>(frameId * 2654435761u);
+    step.space = static_cast<int>(emitter->GetSpace());
+    step.shape = static_cast<int>(emitter->GetShape());
+    step.emitterPosition[0] = emitterPos.x;
+    step.emitterPosition[1] = emitterPos.y;
+    step.emitterRotation = emitterRot;
+    step.shapeSize[0] = shapeSize.x;
+    step.shapeSize[1] = shapeSize.y;
+    step.coneAngle = emitter->GetConeAngle();
+    step.direction = emitter->GetDirection();
+    step.spread = emitter->GetSpread();
+    step.speedRange[0] = speedRange.x;
+    step.speedRange[1] = speedRange.y;
+    step.lifetimeRange[0] = lifetimeRange.x;
+    step.lifetimeRange[1] = lifetimeRange.y;
+    step.dt = dt;
+    step.gravity[0] = gravity.x;
+    step.gravity[1] = gravity.y;
+    step.damping = emitter->GetDamping();
 
-        GLuint groups = (static_cast<GLuint>(emit) + kLocalSize - 1) / kLocalSize;
-        glad_glDispatchCompute(groups, 1, 1);
+    const auto simulateOpenGL = [&]() {
+        glad_glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, st.particleSSBO);
+
+        // ── Emit pass ──
+        if (emit > 0) {
+            glad_glUseProgram(emitProgram);
+            SetU1ui(emitProgram, "uEmitCount", static_cast<GLuint>(emit));
+            SetU1ui(emitProgram, "uCapacity",  static_cast<GLuint>(capacity));
+            SetU1ui(emitProgram, "uHead",      st.head);
+            SetU1ui(emitProgram, "uFrameSeed", st.seed ^ static_cast<GLuint>(frameId * 2654435761u));
+            SetU1i (emitProgram, "uSpace",     static_cast<int>(emitter->GetSpace()));
+            SetU2f (emitProgram, "uEmitterPos", emitterPos);
+            SetU1f (emitProgram, "uEmitterRot", emitterRot);
+            SetU1i (emitProgram, "uShape",     static_cast<int>(emitter->GetShape()));
+            SetU2f (emitProgram, "uShapeSize", shapeSize);
+            SetU1f (emitProgram, "uConeAngle", emitter->GetConeAngle());
+            SetU1f (emitProgram, "uDirection", emitter->GetDirection());
+            SetU1f (emitProgram, "uSpread",    emitter->GetSpread());
+            SetU2f (emitProgram, "uSpeedRange", speedRange);
+            SetU2f (emitProgram, "uLifeRange",  lifetimeRange);
+
+            GLuint groups = (static_cast<GLuint>(emit) + kLocalSize - 1) / kLocalSize;
+            glad_glDispatchCompute(groups, 1, 1);
+            glad_glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+        }
+
+        // ── Integrate pass ──
+        glad_glUseProgram(simProgram);
+        SetU1ui(simProgram, "uCapacity", static_cast<GLuint>(capacity));
+        SetU1f (simProgram, "uDt",       dt);
+        SetU2f (simProgram, "uGravity",  gravity);
+        SetU1f (simProgram, "uDamping",  emitter->GetDamping());
+        GLuint simGroups = (static_cast<GLuint>(capacity) + kLocalSize - 1) / kLocalSize;
+        glad_glDispatchCompute(simGroups, 1, 1);
         glad_glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 
-        st.head = (st.head + static_cast<GLuint>(emit)) % static_cast<GLuint>(capacity);
+        glad_glUseProgram(0);
+    };
+
+    const int requestedBackend = static_cast<int>(emitter->GetSimulationBackend());
+    if (requestedBackend != st.lastRequestedBackend) {
+        if (requestedBackend == static_cast<int>(ParticleComponent::SimulationBackend::OpenGLCompute))
+            CudaParticleBackend::UnregisterBuffer(st.cudaResource);
+        st.lastRequestedBackend = requestedBackend;
+        st.cudaDisabled = false;
     }
 
-    // ── Integrate pass ──
-    glad_glUseProgram(simProgram);
-    SetU1ui(simProgram, "uCapacity", static_cast<GLuint>(capacity));
-    SetU1f (simProgram, "uDt",       dt);
-    SetU2f (simProgram, "uGravity",  emitter->GetGravity());
-    SetU1f (simProgram, "uDamping",  emitter->GetDamping());
-    GLuint simGroups = (static_cast<GLuint>(capacity) + kLocalSize - 1) / kLocalSize;
-    glad_glDispatchCompute(simGroups, 1, 1);
-    glad_glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
+    bool simulated = false;
+    if (requestedBackend == static_cast<int>(ParticleComponent::SimulationBackend::CUDA) &&
+        !st.cudaDisabled) {
+        std::string cudaError;
+        const bool registered = CudaParticleBackend::RegisterBuffer(
+            st.particleSSBO, st.cudaResource, cudaError);
+        if (registered)
+            simulated = CudaParticleBackend::Simulate(st.cudaResource, step, cudaError);
 
-    glad_glUseProgram(0);
+        if (!simulated) {
+            if (cudaError != lastCudaWarning) {
+                std::cerr << "ParticleManager: CUDA unavailable for emitter '"
+                          << emitter->GetID() << "': " << cudaError
+                          << "; falling back to OpenGL compute." << std::endl;
+                lastCudaWarning = cudaError;
+            }
+            CudaParticleBackend::UnregisterBuffer(st.cudaResource);
+            st.cudaDisabled = true;
+
+            // A failed launch may have modified only part of the SSBO. Restart
+            // it before replaying this already-prepared step in GLSL.
+            if (registered) {
+                glad_glBindBuffer(GL_SHADER_STORAGE_BUFFER, st.particleSSBO);
+                const GLuint zero = 0;
+                glad_glClearBufferData(GL_SHADER_STORAGE_BUFFER, GL_R32UI, GL_RED_INTEGER,
+                                       GL_UNSIGNED_INT, &zero);
+                glad_glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+            }
+        } else {
+            lastCudaWarning.clear();
+        }
+    }
+
+    if (!simulated) simulateOpenGL();
+
+    if (step.emitCount > 0)
+        st.head = (st.head + step.emitCount) % step.capacity;
 }
 
 void ParticleManager::Draw(ParticleComponent* emitter, const glm::mat4& view,

@@ -48,6 +48,16 @@ GameViewGui::GameViewGui(QWidget* parent)
     setMouseTracking(true);
 }
 
+GameViewGui::~GameViewGui()
+{
+    if (!imGuiInstance) return;
+    makeCurrent();
+    imGuiInstance->Shutdown();
+    doneCurrent();
+    delete imGuiInstance;
+    imGuiInstance = nullptr;
+}
+
 void GameViewGui::Init(){
     resize(300, 500);
     std::cout << "GameViewGui Initialized" << std::endl;

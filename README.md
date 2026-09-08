@@ -53,6 +53,19 @@ Python is needed at build time (the engine embeds a Python interpreter via pybin
 `aqtinstall` for the Qt download. The shipped app bundles its own Python runtime, so end users of
 a packaged build do not need Python installed.
 
+CUDA is optional. With an NVIDIA CUDA toolkit installed, particle emitters can select **CUDA** in
+the inspector; otherwise they continue using the default OpenGL compute backend. CMake probes for
+CUDA by default. Use `-DROCKENGINE_ENABLE_CUDA=ON` to require it or `=OFF` for an explicitly
+portable build. If multiple toolkits are installed, also pass
+`-DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.3/bin/nvcc.exe"`
+on the first configure of that build directory.
+
+On Windows laptops with integrated and NVIDIA graphics, RockEngine requests the high-performance
+GPU automatically. A Windows per-app Graphics preference overrides that request; if CUDA reports
+that the OpenGL vendor is AMD or Intel, set `RockEngineLauncher.exe` (and an exported
+`RockEnginePlayer.exe`) to **High performance** under Settings > System > Display > Graphics,
+then restart the application.
+
 ---
 
 ## Using an IDE

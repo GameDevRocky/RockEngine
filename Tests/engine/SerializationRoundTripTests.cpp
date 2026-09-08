@@ -20,6 +20,7 @@
 
 #include "engine/components/Component.hpp"
 #include "engine/components/ComponentRegistrars.hpp"
+#include "engine/components/ParticleComponent.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/serialization/Serializable.hpp"
@@ -180,6 +181,42 @@ TEST_CASE("RigidBody bullet mode defaults false for legacy YAML") {
     RigidBody restored;
     REQUIRE_NOTHROW(restored.Deserialize(legacyNode));
     CHECK_FALSE(restored.GetBullet());
+}
+
+TEST_CASE("ParticleComponent simulation backend survives serialization and copying") {
+    ParticleComponent original;
+    original.SetSimulationBackend(ParticleComponent::SimulationBackend::CUDA);
+
+    const YAML::Node serialized = original.Serialize();
+    REQUIRE(serialized["simulationBackend"]);
+    CHECK(serialized["simulationBackend"].as<int>() ==
+          static_cast<int>(ParticleComponent::SimulationBackend::CUDA));
+
+    ParticleComponent restored;
+    REQUIRE_NOTHROW(restored.Deserialize(YAML::Load(Emit(serialized))));
+    CHECK(restored.GetSimulationBackend() == ParticleComponent::SimulationBackend::CUDA);
+
+    std::unique_ptr<ParticleComponent> copy(original.Copy());
+    REQUIRE(copy != nullptr);
+    CHECK(copy->GetSimulationBackend() == ParticleComponent::SimulationBackend::CUDA);
+}
+
+TEST_CASE("ParticleComponent legacy and invalid backends fall back to OpenGL compute") {
+    ParticleComponent original;
+    YAML::Node legacy = original.Serialize();
+    legacy.remove("simulationBackend");
+
+    ParticleComponent restoredLegacy;
+    REQUIRE_NOTHROW(restoredLegacy.Deserialize(legacy));
+    CHECK(restoredLegacy.GetSimulationBackend() ==
+          ParticleComponent::SimulationBackend::OpenGLCompute);
+
+    YAML::Node invalid = original.Serialize();
+    invalid["simulationBackend"] = 99;
+    ParticleComponent restoredInvalid;
+    REQUIRE_NOTHROW(restoredInvalid.Deserialize(invalid));
+    CHECK(restoredInvalid.GetSimulationBackend() ==
+          ParticleComponent::SimulationBackend::OpenGLCompute);
 }
 
 TEST_CASE("Copy() yields a distinct object with identical serialized content") {

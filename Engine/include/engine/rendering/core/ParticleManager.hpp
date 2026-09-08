@@ -62,6 +62,7 @@ private:
 
     struct EmitterState {
         unsigned int particleSSBO = 0;
+        void* cudaResource = nullptr;   // opaque cudaGraphicsResource_t
         int capacity = 0;
         unsigned int head = 0;          // ring write cursor
         float emitAccumulator = 0.0f;   // fractional particles carried between frames
@@ -70,6 +71,8 @@ private:
         std::uint64_t lastSimulatedFrame = ~0ull;
         std::uint64_t lastTouchedFrame = 0;
         bool startBurstFired = false;
+        int lastRequestedBackend = -1;
+        bool cudaDisabled = false;
     };
 
     EmitterState& GetOrCreate(ParticleComponent* emitter);
@@ -83,6 +86,12 @@ private:
     unsigned int emitProgram = 0;
     unsigned int simProgram = 0;
     unsigned int drawProgram = 0;
+
+    // Capability failures affect the process/context group, not one emitter.
+    // Keep identical failures from being repeated as play-mode resets rebuild
+    // per-emitter state. A successful CUDA step clears this so later failures
+    // remain observable.
+    std::string lastCudaWarning;
 
     std::unordered_map<std::string, EmitterState> states;
 };

@@ -113,6 +113,19 @@ void BindParticleComponent(pybind11::module_& m) {
         if (auto* p = Resolve(id)) p->SetSpace(static_cast<ParticleComponent::SimulationSpace>(v));
     });
 
+    pm.def("get_simulation_backend", [](const std::string& id) {
+        if (auto* p = Resolve(id)) return static_cast<int>(p->GetSimulationBackend());
+        return static_cast<int>(ParticleComponent::SimulationBackend::OpenGLCompute);
+    });
+    pm.def("set_simulation_backend", [](const std::string& id, int v) {
+        if (auto* p = Resolve(id)) {
+            const auto backend = v == static_cast<int>(ParticleComponent::SimulationBackend::CUDA)
+                ? ParticleComponent::SimulationBackend::CUDA
+                : ParticleComponent::SimulationBackend::OpenGLCompute;
+            p->SetSimulationBackend(backend);
+        }
+    });
+
     // ── Shape ──
     pm.def("get_shape", [](const std::string& id) {
         if (auto* p = Resolve(id)) return static_cast<int>(p->GetShape());

@@ -16,7 +16,7 @@
 #include <QOpenGLWidget>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent){}
-MainWindow::~MainWindow(){SaveLayout();}
+MainWindow::~MainWindow() = default;
 
 void MainWindow::Init()
 {

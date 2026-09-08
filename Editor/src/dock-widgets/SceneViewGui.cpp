@@ -130,6 +130,16 @@ SceneViewGui::SceneViewGui(QWidget* parent)
     m_boxSelectRubberBand = new QRubberBand(QRubberBand::Rectangle, this);
 }
 
+SceneViewGui::~SceneViewGui()
+{
+    if (!imGuiInstance) return;
+    makeCurrent();
+    imGuiInstance->Shutdown();
+    doneCurrent();
+    delete imGuiInstance;
+    imGuiInstance = nullptr;
+}
+
 RenderView* SceneViewGui::CreateView(int pixelW, int pixelH)
 {
     editorView = Renderer::Get().CreateEditorView(pixelW, pixelH);
