@@ -53,7 +53,7 @@ class GameObject:
         self._comp_cache = {}
 
     @property
-    def tag(self):
+    def tag(self) -> str:
         return gameobject_module.get_tag(self.id)
 
     @tag.setter

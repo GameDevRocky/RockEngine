@@ -45,6 +45,7 @@ public:
     QDockWidget* consoleDock;
     QDockWidget* aiAssistantDock;
     QDockWidget* runtimeBarDock;
+    QDockWidget* settingsDock;
     QDockWidget* animatorDock = nullptr;   // created lazily by ShowAnimator()
 
     class SceneViewGui* scene_view;

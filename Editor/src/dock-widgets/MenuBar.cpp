@@ -33,6 +33,9 @@ void MenuBar::Init() {
     saveSceneAsAction = fileMenu->addAction("Save Scene As...");
 
     fileMenu->addSeparator();
+    preferencesMenu = fileMenu->addMenu("Preferences");
+    settingsAction = preferencesMenu->addAction("Settings");
+
     buildGameAction = fileMenu->addAction("Build Game...");
     // Application-scoped for the same reason Undo/Redo are (see below): a WindowShortcut
     // would not fire while a QOpenGLWidget viewport has focus, which is most of the time.
@@ -109,6 +112,7 @@ void MenuBar::Init() {
     connect(openSceneAction, &QAction::triggered, this, &MenuBar::OpenSceneRequested);
     connect(saveSceneAction, &QAction::triggered, this, &MenuBar::SaveSceneRequested);
     connect(saveSceneAsAction, &QAction::triggered, this, &MenuBar::SaveSceneAsRequested);
+    connect(settingsAction, &QAction::triggered, this, &MenuBar::SettingsRequested);
     connect(exitAction, &QAction::triggered, this, &MenuBar::ExitRequested);
     connect(resetLayoutAction, &QAction::triggered, this, &MenuBar::ResetLayoutRequested);
     connect(aboutAction, &QAction::triggered, this, &MenuBar::AboutRequested);

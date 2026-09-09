@@ -44,7 +44,10 @@ class TopDownController(ScriptableComponent):
         self.rb.body_type = Rigidbody.DYNAMIC
 
         self.bc = self.get_component(BoxCollider)
+        self._camera_shake = (ScriptRef(self.camera.id, "CameraShake")
+                              if self.camera else None)
 
+        self._next_emit = 0.0
         self._next_shot = 0.0
 
         # The impact emitter is teleported to each hit point and left there, so it must
@@ -67,15 +70,28 @@ class TopDownController(ScriptableComponent):
             if Input.mouse_pressed(MouseButton.MIDDLE):
                 self.light.enabled = not self.light.enabled
 
-        # mouse_down is true every frame the button is held, so the cooldown inside
-        # shoot() is what makes this a fire rate rather than one shot per frame.
-        if Input.is_key_down(Keys.SPACE) or Input.mouse_down(MouseButton.LEFT):
+        # Emit once per fire interval so every listener (muzzle flash, camera
+        # shake, etc.) stays synchronized with the shot while the button is held.
+        now = Time.elapsed_time
+        if ((Input.is_key_down(Keys.SPACE) or Input.mouse_down(MouseButton.LEFT))
+                and now >= self._next_emit):
+            self._next_emit = now + self.fire_rate
             self.emit.invoke()
 
 
     def fixed_update(self): 
         if self.camera:
-            self.camera.transform.position += (self.transform.position - self.camera.transform.position) * self.camera_smoothing * 0.01
+            shake_offset = Vector2(0, 0)
+            if self._camera_shake:
+                shake_offset = Vector2(self._camera_shake.dx, self._camera_shake.dy)
+
+            # Follow the unshaken camera position. CameraShake leaves its visual
+            # offset on the Transform between frames, so including that offset
+            # in the smoothing calculation would slowly make the camera drift.
+            camera_position = self.camera.transform.position - shake_offset
+            camera_position += ((self.transform.position - camera_position)
+                                * self.camera_smoothing * 0.01)
+            self.camera.transform.position = camera_position + shake_offset
 
         mouse_pos = Input.get_mouse_pos()
 
@@ -156,9 +172,6 @@ class TopDownController(ScriptableComponent):
         # Pass the pool reference so the bullet can return itself when done.
         bullet.launch(direction, owner_id=self.gameobject.id,
                       impact_emitter=self.bullet_impact, pool=self._pool_script)
-
-        
-        
 
     @action
     def Test_Function(self, val : str):

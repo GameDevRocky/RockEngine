@@ -11,6 +11,7 @@
 #include "dock-widgets/MenuBar.hpp"
 #include "dock-widgets/AnimatorGui.hpp"
 #include "dock-widgets/AiChatGui.hpp"
+#include "dock-widgets/SettingsGui.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "Editor.hpp"
 #include <QOpenGLWidget>
@@ -31,6 +32,7 @@ void MainWindow::Init()
     MenuBar* menu_bar = MenuBar::Get();
     AnimatorGui* animator_gui = AnimatorGui::Get();
     AiChatGui* ai_chat = AiChatGui::Get();
+    SettingsGui* settings = SettingsGui::Get();
 
     console_widget->Init();
     game_view->Init();
@@ -43,6 +45,7 @@ void MainWindow::Init()
     menu_bar->Init();
     animator_gui->Init();
     ai_chat->Init();
+    settings->Init();
 
     setMenuBar(menu_bar);
 
@@ -142,6 +145,25 @@ void MainWindow::Init()
     tabifyDockWidget(inspectorDock, aiAssistantDock);
     inspectorDock->raise();
     menu_bar->AddWindowAction(aiAssistantDock->toggleViewAction());
+
+    settingsDock = new QDockWidget("Settings", this);
+    settingsDock->setWidget(settings);
+    settingsDock->setAllowedAreas(Qt::AllDockWidgetAreas);
+    settingsDock->setFeatures(QDockWidget::DockWidgetMovable |
+                              QDockWidget::DockWidgetFloatable |
+                              QDockWidget::DockWidgetClosable);
+    settingsDock->setObjectName("SettingsDock");
+    addDockWidget(Qt::RightDockWidgetArea, settingsDock);
+    tabifyDockWidget(inspectorDock, settingsDock);
+    settingsDock->hide();
+    inspectorDock->raise();
+    menu_bar->AddWindowAction(settingsDock->toggleViewAction());
+
+    connect(menu_bar, &MenuBar::SettingsRequested, this, [this]() {
+        SettingsGui::Get()->Refresh();
+        settingsDock->show();
+        settingsDock->raise();
+    });
 
     tabifyDockWidget(consoleDock, folderViewDock);
 

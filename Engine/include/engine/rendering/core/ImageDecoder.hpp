@@ -9,9 +9,8 @@
 //
 // Before this existed, Texture2D::Awake did stbi_load and glTexImage2D in one
 // function and freed the pixels immediately, so there was no seam to thread at
-// and no buffer to hand across one. (It also meant Sprite::RebuildOpaqueOutline
-// and Texture2D::RebuildNormalMap had to re-read the same PNG off disk, each
-// with a comment saying so.)
+// and no buffer to hand across one. The CPU normal-map fallback still re-reads
+// the PNG; the compute path reads the uploaded texture directly.
 struct DecodedImage {
     bool ok = false;
     std::string error;

@@ -2,7 +2,9 @@
 #include "stb_image.h"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
+#include "engine/rendering/core/GpuNormalMapGenerator.hpp"
 #include "engine/rendering/core/Sprite.hpp"
+#include "engine/core/Globals.hpp"
 #include <iostream>
 #include <algorithm>
 #include <cmath>
@@ -11,8 +13,26 @@
 
 using namespace EngineUtils;
 
+Texture2D::Texture2D()
+{
+    globalsSubscription = Globals::Get()->Subscribe([this](std::any payload) {
+        if (!payload.has_value() || payload.type() != typeid(GlobalPropertyChange))
+            return true;
+
+        const auto& change = std::any_cast<const GlobalPropertyChange&>(payload);
+        const bool normalBackendChanged =
+            change.group == "Rendering" &&
+            (change.property == "useGPUNormalMapGeneration" ||
+             change.property == "useAcceleratedNMapGen");
+        if (normalBackendChanged && applyNormal) normalDirty = true;
+        return true;
+    }, Globals::PROPERTY_CHANGED_EVENT);
+}
+
 Texture2D::~Texture2D()
 {
+    if (globalsSubscription >= 0)
+        Globals::Get()->Unsubscribe(globalsSubscription);
     Notify(DESTROYED_EVENT, GetID());
     if (texture_id)
         glDeleteTextures(1, &texture_id);
@@ -207,6 +227,17 @@ void Texture2D::Accept(IVisitor* v) { v->Visit(this); }
 // ─────────────────────────────────────────────────────────────────────────────
 namespace {
 
+    bool WantsGpuNormalMapGeneration()
+    {
+        Globals* globals = Globals::Get();
+        if (globals->FindProperty("Rendering", "useGPUNormalMapGeneration"))
+            return globals->Get<bool>("Rendering", "useGPUNormalMapGeneration", false);
+
+        // Compatibility with the provisional name used by the first Globals
+        // config before the CPU/GPU backend switch was implemented.
+        return globals->Get<bool>("Rendering", "useAcceleratedNMapGen", false);
+    }
+
     // Clamp or wrap a coordinate to match how the texture itself samples, so the
     // generated normals tile exactly when the texture is set to Repeat.
     inline int SampleCoord(int v, int size, TextureWrap wrap)
@@ -258,6 +289,53 @@ void Texture2D::RebuildNormalMap()
         DestroyNormalMap();
         return;
     }
+
+    const bool useGpu = WantsGpuNormalMapGeneration();
+    if (useGpu && RebuildNormalMapGpu()) return;
+
+    if (useGpu)
+    {
+        static bool warned = false;
+        if (!warned)
+        {
+            std::cerr << "Texture2D: GPU normal-map generation is unavailable; "
+                         "falling back to CPU generation." << std::endl;
+            warned = true;
+        }
+    }
+    RebuildNormalMapCpu();
+}
+
+bool Texture2D::RebuildNormalMapGpu()
+{
+    GpuNormalMapSettings settings;
+    settings.strength = normalStrength;
+    settings.blurRadius = normalBlur;
+    settings.useAlpha = heightSource == NormalHeightSource::Alpha;
+    settings.useScharr = edgeFilter == NormalEdgeFilter::Scharr;
+    settings.invertX = normalInvertX;
+    settings.invertY = normalInvertY;
+    settings.repeat = wrap == TextureWrap::Repeat;
+
+    if (!GpuNormalMapGenerator::Generate(texture_id, normal_texture_id,
+                                         width, height, settings)) return false;
+
+    // Match the albedo sampler after the compute output and its mip chain exist.
+    GLint previousTexture = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTexture);
+    glBindTexture(GL_TEXTURE_2D, normal_texture_id);
+    const GLenum sampleFilter = filter == TextureFilter::Linear ? GL_LINEAR : GL_NEAREST;
+    const GLenum wrapMode = wrap == TextureWrap::Repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampleFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampleFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+    glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(previousTexture));
+    return true;
+}
+
+void Texture2D::RebuildNormalMapCpu()
+{
 
     // UploadDecoded frees its pixels right after upload, so the source has to be
     // re-decoded here. The vertical flip MUST match the albedo's, or the normal
@@ -351,6 +429,8 @@ void Texture2D::RebuildNormalMap()
         }
     }
 
+    GLint previousTexture = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTexture);
     if (!normal_texture_id)
         glGenTextures(1, &normal_texture_id);
 
@@ -372,7 +452,7 @@ void Texture2D::RebuildNormalMap()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(previousTexture));
 }
 
 void Texture2D::DestroyNormalMap()

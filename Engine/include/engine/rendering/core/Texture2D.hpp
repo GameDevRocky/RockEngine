@@ -90,9 +90,9 @@ public:
     // persist (into the .texture meta), and the map is rebuilt from them on load.
     //
     // Rebuilds are deferred, not immediate: a setter only raises normalDirty, and
-    // EnsureNormalMap() does the decode + upload from inside the render pass,
-    // where a GL context is guaranteed current. Same "pull at render time" rule
-    // the cameras follow.
+    // EnsureNormalMap() runs the selected CPU or GPU recipe from inside the
+    // render pass, where a GL context is guaranteed current. Same "pull at
+    // render time" rule the cameras follow.
     bool GetApplyNormal() const { return applyNormal; }
     void SetApplyNormal(bool v);
 
@@ -121,13 +121,15 @@ public:
     // 0 when Apply Normal is off or generation failed.
     GLuint GetNormalTextureID() const { return normal_texture_id; }
 
-    Texture2D() = default;
+    Texture2D();
     ~Texture2D();
 
 private:
-    // Re-decodes the source file, builds the height field, runs the gradient
-    // operator and uploads the result. Called only by EnsureNormalMap().
+    // Selects the project-wide CPU/GPU backend and falls back to CPU if compute
+    // initialization is unavailable. Called only by EnsureNormalMap().
     void RebuildNormalMap();
+    void RebuildNormalMapCpu();
+    bool RebuildNormalMapGpu();
     void DestroyNormalMap();
 
     GLuint texture_id = 0;
@@ -141,6 +143,7 @@ private:
 
     GLuint normal_texture_id = 0;
     bool   normalDirty       = false;
+    int    globalsSubscription = -1;
     bool   applyNormal       = false;
     float  normalStrength    = 2.0f;
     int    normalBlur        = 1;

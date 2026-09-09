@@ -11,6 +11,7 @@
 #include "engine/core/UndoSystem.hpp"
 #include "engine/core/LayerManager.hpp"
 #include "engine/core/TagManager.hpp"
+#include "engine/core/Globals.hpp"
 #include "engine/core/FileWatcherSystem.hpp"
 #include "engine/jobs/JobSystem.hpp"
 #include "engine/jobs/MainThread.hpp"
@@ -81,6 +82,9 @@ void Engine::Init() {
 
     engine::RegisterPythonBindings();
     RegisterComponentTypes();
+    // Process-global project settings: initialized once, never attached to or
+    // copied with either world container.
+    Globals::Get();
 
     editorContainer = new Container();
     editorContainer->AddSystem(new Registry());

@@ -6,19 +6,18 @@ class EnemyController(ScriptableComponent):
     speed: Reflect[float, Slider, Step(1), Range(1, 100)] = 50.0
     follow_distance: float = 200.0
     shoot_cooldown: float = 1.0
-    
+
     rb: Reflect[Rigidbody, ReadOnly()]
-    
     _timer = 0.0
+
+    health : Reflect[float, Slider, Step(1), Range(0, 100), ReadOnly()] = 100.0
 
     def awake(self):
         self.rb = self.get_component(Rigidbody)
+        self.health = 100
         if not self.rb:
             self.rb = self.transform.gameobject.add_component(Rigidbody)
             self.rb.body_type = Rigidbody.DYNAMIC
-
-    def update(self):
-        pass
 
     def fixed_update(self):
         if self.player:
@@ -41,6 +40,13 @@ class EnemyController(ScriptableComponent):
             if self._timer <= 0 and dist <= self.follow_distance + 100:
                 self.shoot()
                 self._timer = self.shoot_cooldown
+
+    def late_update(self):
+        
+        if self.health <= 0:
+            self.gameobject.destroy()
+
+
 
     def _find_child_by_name(self, parent_transform, name):
         for child in parent_transform.children:
@@ -67,3 +73,10 @@ class EnemyController(ScriptableComponent):
                     particle = ar.get_component(ParticleComponent)
                     if particle:
                         particle.emit_burst(10)
+
+
+    def on_collision_enter(self, other):
+        if other.gameobject.tag == "Bullet":
+            if self.health > 0:
+                self.health -= 1
+            self.rb.apply_impulse(self.transform.right * -1000)

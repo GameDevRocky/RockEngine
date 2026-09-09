@@ -326,6 +326,28 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
         menu.addAction("Duplicate", this, [this, id = idQt.toStdString()]() {
             DuplicateObject(id);
         });
+        
+        menu.addAction("New GameObject", this, [this, id = idQt.toStdString()]() {
+            auto* scene = registry->Find<Scene>(scene_id);
+            if (!scene) return;
+            auto* obj = new GameObject();
+            obj->SetName("GameObject");
+            scene->AddGameObject(obj);
+            selectionManager->Select(obj->GetID());
+            auto* parent = registry->Find<GameObject>(id);
+            if (parent){
+                auto* transform = obj->GetTransform();
+                if (transform){
+                    transform->SetParent(parent->GetTransform());
+                }
+            }
+            if (undoSystem) {
+                undoSystem->Push(SubtreeCommand::RecordCreated(
+                    obj, scene->SnapshotSubtree(obj), "Create GameObject"));
+            }
+
+        });
+
         menu.exec(viewport()->mapToGlobal(pos));
     });
 

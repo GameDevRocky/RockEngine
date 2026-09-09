@@ -123,6 +123,35 @@ serialized, copied into play mode, displayed by the Inspector, and used by compo
 iteration. Authoring reorder operations must go through `GameObject::MoveComponent` so its
 resolved-component cache is invalidated and `COMPONENT_ORDER_CHANGED_EVENT` is emitted.
 
+### Project globals
+
+`Globals` is a process-wide `System` singleton reached through `Globals::Get()`. It deliberately
+is not attached to a `Container` and is not copied when play mode creates its runtime world. It
+loads grouped typed values from `Domain/lib/configs/Globals.config`; its `Serialize()` output is
+the same YAML shape that `Deserialize()` accepts. Supported setting types are `bool`, `int`,
+`float`, `string`, `vec2`, `vec3`, `vec4`, and `color`. Feature code reads them with
+`Get<T>(group, property, fallback)`. Groups and properties are exposed read-only, while
+`SetValue()`/`SaveConfig()` reject calls outside the editor process or while a runtime world is
+active.
+
+Successful changes notify `Globals::PROPERTY_CHANGED_EVENT` with a `GlobalPropertyChange`
+payload containing `group`, `property`, `previousValue`, and `value`. A same-value assignment or
+type mismatch does not notify. `VALUES_CHANGED_EVENT` remains an alias for compatibility.
+
+Each expanded property entry has `type` and `value`, and may declare `description`, `readOnly`,
+`range`, `step`, `widget`, and `options`. Widget values currently include `slider` for bounded
+floats, `range_slider` for bounded vec2 values, `multiline` for strings, and `dropdown` for
+string/int options. These become the same `PropDesc` consumed by the Inspector widgets. Scalar
+and vector shorthand is accepted. If `Globals.config` is absent, the old `Gatekeeper.config`
+path and boolean root are accepted for one-way migration, but saves always emit the canonical
+expanded `Globals` schema.
+
+The singleton is loaded once and mutation is disabled while play mode is active, so project
+settings remain stable for the run without belonging to either world. Add properties to the
+YAML under the subsystem they control; the editor Settings panel enumerates them without
+hard-coded rows. Defaults belong in both the checked-in config and `Globals::LoadDefaults()` so
+a missing or malformed installation config fails conservatively.
+
 ## Assets
 
 - **`AssetManager`** (singleton, `include/engine/rendering/core/AssetManager.hpp`) — maps of
@@ -192,6 +221,12 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
 
 - `src/rendering/core/`: Shader, Texture2D, Material, Sprite, Resource, GizmosManager,
   `RenderTarget` (FBO + color texture + depth renderbuffer; owned by `RenderPipeline`).
+- Generated texture normal maps select their backend through the Rendering global
+  `useGPUNormalMapGeneration` (false = CPU, true = OpenGL compute). The GPU path reads the
+  uploaded albedo directly, performs separable height-field blur and Sobel/Scharr encoding in
+  three compute dispatches, and never reads pixels back. It preserves the render GL state it
+  borrows and falls back to the CPU generator when compute initialization is unavailable.
+  `Texture2D::EnsureNormalMap()` notices backend changes lazily at the next context-current draw.
 - MSDF text has separate unlit and lit assets. `text`/`msdf_text` remains the default;
   `text_lit`/`msdf_text_lit` is opt-in and consumes the same LightBlock and shadow atlas as
   lit sprites while retaining TextRenderer-owned fill, weight, and outline controls.

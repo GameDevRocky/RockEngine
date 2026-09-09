@@ -70,6 +70,11 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 ## Patterns
 
 - GUI singletons use static `Get()` (e.g. `MainWindow::Get()`, `SceneViewGui::Get()`).
+- `SettingsGui` mirrors a project-settings browser: its left navigation currently contains only
+  Globals, while its right pane dynamically groups every typed value loaded by the engine's
+  process-wide `Globals::Get()` singleton. Rows use the same two-column `PropertyFactory` widgets and `PropDesc`
+  metadata as the Inspector. It is view-only in play mode; Editor-mode changes are persisted to
+  `Domain/lib/configs/Globals.config`. Do not duplicate property definitions in Qt.
 - The editor reacts to engine state via the Engine **Observable/Event** system (e.g. play-mode
   enter/exit, selection changes, `ASSET_ADDED_EVENT`) — subscribe to engine events rather than
   polling. See Engine's CLAUDE.md for the event semantics (notably: a callback returning
@@ -143,7 +148,9 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   rendered live; login still uses the Codex CLI. ChatGPT browser login and
   `codex login --with-api-key` are supported;
   `CODEX_HOME` is isolated under Qt's local app-data directory and Codex is forced to use the OS
-  keyring (`cli_auth_credentials_store="keyring"`) with no plaintext fallback.
+  keyring (`cli_auth_credentials_store="keyring"`) with no plaintext fallback. On Windows, the
+  app-server launch also explicitly selects Codex's elevated native sandbox because the isolated
+  home does not inherit the user's Codex configuration; turns remain scoped to workspace-write.
 - Claude runs through Claude Code in non-interactive JSONL mode. Third-party Claude.ai OAuth is
   intentionally not exposed: Anthropic requires this integration to use a Console API key. The
   key is stored by `tools/ai/credential_store.py` in Windows Credential Manager, macOS Keychain,

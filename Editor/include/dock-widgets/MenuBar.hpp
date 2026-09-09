@@ -33,6 +33,7 @@ signals:
     // QUndoStack::createUndoAction and are already connected to the stack.
     // Routing them through a signal would invite a second, competing path.
     void ResetLayoutRequested();
+    void SettingsRequested();
     void AboutRequested();
 
 private:
@@ -53,6 +54,7 @@ private:
 
     QMenu* fileMenu = nullptr;
     QMenu* editMenu = nullptr;
+    QMenu* preferencesMenu = nullptr;
     QMenu* windowMenu = nullptr;
     QMenu* helpMenu = nullptr;
 
@@ -61,6 +63,7 @@ private:
     QAction* saveSceneAction = nullptr;
     QAction* saveSceneAsAction = nullptr;
     QAction* buildGameAction = nullptr;
+    QAction* settingsAction = nullptr;
     QAction* exitAction = nullptr;
 
     QAction* undoAction = nullptr;

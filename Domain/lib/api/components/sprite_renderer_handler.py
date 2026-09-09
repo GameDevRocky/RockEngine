@@ -1,6 +1,7 @@
 from rock_engine.components import sprite_renderer_module
 from ...utils.re_math import Vector2
 from .component_handler import Component
+from ..rendering.material_handler import Material
 from ..rendering.sprite_handler import Sprite
 
 class SpriteRenderer(Component):
@@ -19,6 +20,16 @@ class SpriteRenderer(Component):
     def sprite(self, value: Sprite):
         if value is not None:
             sprite_renderer_module.set_sprite_id(self._gameobject_id, value.id)
+
+    @property
+    def material(self) -> Material:
+        material_id = sprite_renderer_module.get_material_id(self._gameobject_id)
+        return Material(material_id) if material_id else None
+
+    @material.setter
+    def material(self, value: Material):
+        if value is not None:
+            sprite_renderer_module.set_material_id(self._gameobject_id, value.id)
 
     @property
     def transform(self):

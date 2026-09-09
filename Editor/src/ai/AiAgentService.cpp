@@ -610,6 +610,12 @@ void AiAgentService::SendMessage(Provider provider, const QString& model,
     QProcessEnvironment environment = ProcessEnvironment(provider);
     if (provider == Provider::OpenAI) {
         arguments = CodexMcpArguments();
+#ifdef Q_OS_WIN
+        // RockEngine uses an isolated CODEX_HOME, so explicitly retain the native
+        // Windows sandbox mode used by the host Codex installation.
+        arguments << QStringLiteral("-c")
+                  << QStringLiteral("windows.sandbox=\"elevated\"");
+#endif
         arguments << QStringLiteral("-c")
                   << QStringLiteral("cli_auth_credentials_store=\"keyring\"");
         if (!selectedModel.isEmpty()) {

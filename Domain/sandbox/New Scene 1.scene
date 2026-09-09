@@ -24,6 +24,7 @@ components:
       camera: 0a14507c32ffbde319398347ae800168
       emit:
         - fdf9523b905ef98c2dce7d1afc8662ed|f07154fff273fc0be169683fa4935691|shoot|
+        - 0a14507c32ffbde319398347ae800168|78c6314d1b5c4e28b6f606c04e258c83|shake|
       light: 6d2716c5bce63ad0ba3c81222dc008df
       camera_smoothing: 1
       rb: ""
@@ -31,8 +32,8 @@ components:
       muzzle: 16ade0e77cc80ecee1e580d428df7ecb
       bullet_impact: 6f57b5ced6648402132cddb7547dc232
       bullet_pool: 370512c57b07c73ad7162bdf3ee85904
-      fire_rate: 0.1
-      bullet_spread: 16
+      fire_rate: 0.24
+      bullet_spread: 9
       muzzle_offset: 300
       muzzle_count: 4
   - id: 226e591b3871f38ee54f3c7a60abd0ca
@@ -145,7 +146,7 @@ components:
     enabled: true
     type: Transform
     gameobject: dfcc941c6d90526f092e34d0eb7d1e85
-    localPosition: [55.318573, -73.145294]
+    localPosition: [55.318634, -73.14522]
     localRotation: -8.537736e-06
     localScale: [1.0000001, 1.0000001]
     parent_id: 2d7967f4224d173abdeb11b19d8a9f99
@@ -219,6 +220,7 @@ components:
     gravity: [0, 0]
     damping: 2
     space: 0
+    simulationBackend: 0
     shape: 0
     shapeSize: [32, 32]
     coneAngle: 25
@@ -281,6 +283,19 @@ components:
     enabled: true
     type: AudioListener
     gameobject: 0a14507c32ffbde319398347ae800168
+  - id: 78c6314d1b5c4e28b6f606c04e258c83
+    enabled: true
+    type: ScriptComponent
+    gameobject: 0a14507c32ffbde319398347ae800168
+    module: CameraShake
+    class: CameraShake
+    fields:
+      strength: 38
+      duration: 0.36
+      frequency: 28
+      decay: true
+      dx: 0
+      dy: 0
   - id: 38f8bc7953de23d79a4396b4451c8cc8
     enabled: true
     type: Transform
@@ -306,15 +321,15 @@ components:
     castShadows: false
     shadowStrength: 1
   - id: 32fb44831bfc816b0201fc19ba633c86
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: 6210de1b236a39b9eca8f10571103ebe
-    localPosition: [896.40466, 1454.5653]
-    localRotation: 168.7604
-    localScale: [0.9999999, 0.9999999]
+    localPosition: [1386.9194, 1531.5087]
+    localRotation: -154.38626
+    localScale: [1, 1]
     parent_id: ~
   - id: 62ef716075ca10d97aaf392014d2e4e8
-    enabled: false
+    enabled: true
     type: BoxCollider
     gameobject: 6210de1b236a39b9eca8f10571103ebe
     center: [75.56735, -4.818695]
@@ -325,7 +340,7 @@ components:
     rollingResistance: 0
     size: [459.45184, 263.0323]
   - id: a1c9eb772037300f508e2eb033abae35
-    enabled: false
+    enabled: true
     type: RigidBody
     gameobject: 6210de1b236a39b9eca8f10571103ebe
     bodyType: Dynamic
@@ -333,7 +348,7 @@ components:
     lockRotation: false
     bullet: false
   - id: b0e91c78fdc1892d8d63eb98d2dc2403
-    enabled: false
+    enabled: true
     type: ScriptComponent
     gameobject: 6210de1b236a39b9eca8f10571103ebe
     module: Domain.sandbox.scripts.EnemyController
@@ -344,16 +359,25 @@ components:
       follow_distance: 200
       shoot_cooldown: 1
       rb: ""
+      health: 100
+  - id: ba673c38edb1a33d4dbd8af5a3e2344c
+    enabled: true
+    type: ScriptComponent
+    gameobject: 6210de1b236a39b9eca8f10571103ebe
+    module: EnemyFlash
+    class: EnemyFlash
+    fields:
+      flash_material: m_enemy_flash
   - id: 6b6f5c68873aa40c470bde9460d7d8aa
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: bf83147d9f61b9147047718874258b1f
-    localPosition: [-6.1035156e-05, 0]
+    localPosition: [0, 0]
     localRotation: 90
-    localScale: [0.9999982, 0.9999982]
+    localScale: [0.9999981, 0.9999981]
     parent_id: 32fb44831bfc816b0201fc19ba633c86
   - id: bda87ed9f4243ba694891842e4102b21
-    enabled: false
+    enabled: true
     type: ScriptComponent
     gameobject: bf83147d9f61b9147047718874258b1f
     module: EnemyController
@@ -364,16 +388,17 @@ components:
       follow_distance: 200
       shoot_cooldown: 1
       rb: ""
+      health: 100
   - id: b33c48e8b41e4c2d33552bac301c8299
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: a95ef85b0ef1e4acaac4b95f09b878d4
-    localPosition: [-79.559326, -43.134216]
-    localRotation: -7.770761e-06
-    localScale: [0.98883027, 1.0000002]
+    localPosition: [-79.559326, -43.134277]
+    localRotation: -8.634177e-06
+    localScale: [0.9888303, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: 6da58e7a8a7b1e88f273f2d551e1c18a
-    enabled: false
+    enabled: true
     type: SpriteRenderer
     gameobject: a95ef85b0ef1e4acaac4b95f09b878d4
     material_id: m1
@@ -387,7 +412,7 @@ components:
     flipY: false
     visible: true
   - id: c5b12c534bcbdd9cf7837a249209ac3e
-    enabled: false
+    enabled: true
     type: ShadowCaster
     gameobject: a95ef85b0ef1e4acaac4b95f09b878d4
     shape: 4
@@ -397,15 +422,15 @@ components:
     circleSegments: 16
     alphaThreshold: 0.5
   - id: 943de381a064572f529208017fd4aeb1
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: 91570af60a063648c1dbf65965161606
-    localPosition: [-0.44250488, 92.59808]
-    localRotation: -5.9764143e-06
+    localPosition: [-0.44244385, 92.598145]
+    localRotation: -1.0245281e-05
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: c2975f03a1621de61496da9fd2f087ae
-    enabled: false
+    enabled: true
     type: SpriteRenderer
     gameobject: 91570af60a063648c1dbf65965161606
     material_id: m1
@@ -419,7 +444,7 @@ components:
     flipY: false
     visible: true
   - id: 0b77455fd8b873b28e253362eea9e575
-    enabled: false
+    enabled: true
     type: ShadowCaster
     gameobject: 91570af60a063648c1dbf65965161606
     shape: 4
@@ -429,15 +454,15 @@ components:
     circleSegments: 16
     alphaThreshold: 0.5
   - id: 6f052161cd3f943d1907a7fa30550a86
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: 716969e15ff084327807c99c32d47749
-    localPosition: [-3.2301025, -2.1130981]
-    localRotation: -5.9764143e-06
+    localPosition: [-3.2302246, -2.1135254]
+    localRotation: -1.0245281e-05
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: 02d3241378d021171ccdf24dafb2f0e1
-    enabled: false
+    enabled: true
     type: SpriteRenderer
     gameobject: 716969e15ff084327807c99c32d47749
     material_id: m1
@@ -451,7 +476,7 @@ components:
     flipY: false
     visible: true
   - id: 6d3a822cd6ea8a5b1220aab9bdd75541
-    enabled: false
+    enabled: true
     type: ShadowCaster
     gameobject: 716969e15ff084327807c99c32d47749
     shape: 4
@@ -461,15 +486,15 @@ components:
     circleSegments: 16
     alphaThreshold: 0.5
   - id: 1bae01dbca20ca51835eed87d4a7a0db
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: 5934f97a770f3d90d0ecef87f4dfa951
-    localPosition: [55.320312, -73.14496]
-    localRotation: -5.9764143e-06
+    localPosition: [55.32068, -73.145386]
+    localRotation: -1.0245281e-05
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: 482fedf3a2377ab9832c002cff458720
-    enabled: false
+    enabled: true
     type: SpriteRenderer
     gameobject: 5934f97a770f3d90d0ecef87f4dfa951
     material_id: m1
@@ -483,7 +508,7 @@ components:
     flipY: false
     visible: true
   - id: a0b39811feae70ab7d4fea0eab257672
-    enabled: false
+    enabled: true
     type: ShadowCaster
     gameobject: 5934f97a770f3d90d0ecef87f4dfa951
     shape: 4
@@ -493,23 +518,23 @@ components:
     circleSegments: 16
     alphaThreshold: 0.5
   - id: fcdf1b93b3bc6625f1f93dd9aa8baf51
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: a46c57e9729fecbbfe6d522794177f58
-    localPosition: [0.0017089844, 0.0014038086]
-    localRotation: -5.9764143e-06
+    localPosition: [0.0015258789, 0.0008544922]
+    localRotation: -1.0245281e-05
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
   - id: d64e6281c521f949eabb0ddf75e5b801
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: 39aab30b6216e0ee461085d6ff0fa759
-    localPosition: [-15.483765, -132.5437]
-    localRotation: -7.683957e-06
-    localScale: [1.0000007, 1.0000007]
+    localPosition: [-15.483887, -132.5437]
+    localRotation: -1.0245276e-05
+    localScale: [1.0000008, 1.0000008]
     parent_id: fcdf1b93b3bc6625f1f93dd9aa8baf51
   - id: 544faff5bafd3855a432a212fcc116c1
-    enabled: false
+    enabled: true
     type: SpriteRenderer
     gameobject: 39aab30b6216e0ee461085d6ff0fa759
     material_id: m1
@@ -523,15 +548,15 @@ components:
     flipY: false
     visible: true
   - id: bcfd60461691e91831a9097767dbab3d
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: 3b135ce2a0d6dc1bc918747a5daacfb4
-    localPosition: [150.00098, 0.0007324219]
+    localPosition: [150.00134, 0.00048828125]
     localRotation: 101.23959
     localScale: [0.9999996, 0.9999996]
     parent_id: d64e6281c521f949eabb0ddf75e5b801
   - id: 81bcffc076753affa7d9454474db493a
-    enabled: false
+    enabled: true
     type: ParticleComponent
     gameobject: 3b135ce2a0d6dc1bc918747a5daacfb4
     emissionRate: 0
@@ -548,6 +573,7 @@ components:
     gravity: [0, 0]
     damping: 2
     space: 1
+    simulationBackend: 0
     shape: 0
     shapeSize: [32, 32]
     coneAngle: 25
@@ -562,15 +588,15 @@ components:
     sortingLayer: Default
     sortingOrder: 0
   - id: a29772a93d9d2287830045153d0b3d98
-    enabled: false
+    enabled: true
     type: Transform
     gameobject: 3fb3fc3d98e2c2cf4e3813b9b135a9b2
-    localPosition: [-10.000977, -286.05267]
+    localPosition: [-10.000977, -286.05273]
     localRotation: -92.81315
     localScale: [1.0000002, 1.0000002]
     parent_id: fcdf1b93b3bc6625f1f93dd9aa8baf51
   - id: 5a73f52e8ed8851f9c208053f4db49c2
-    enabled: false
+    enabled: true
     type: Light
     gameobject: 3fb3fc3d98e2c2cf4e3813b9b135a9b2
     lightType: 1
@@ -633,6 +659,7 @@ components:
     gravity: [0, 0]
     damping: 0
     space: 1
+    simulationBackend: 0
     shape: 0
     shapeSize: [32, 32]
     coneAngle: 25
@@ -672,6 +699,7 @@ components:
     gravity: [0, -50]
     damping: 0
     space: 1
+    simulationBackend: 0
     shape: 3
     shapeSize: [4, 32]
     coneAngle: 10
@@ -2483,7 +2511,7 @@ components:
     type: Transform
     gameobject: 4c136a0729bc8e6e985f1ee3596ec5a7
     localPosition: [1576.5746, 552.7452]
-    localRotation: 90
+    localRotation: 0
     localScale: [0.5851363, 0.5851363]
     parent_id: ~
   - id: e1a0b9c6cefb248d1ccea222baf409e8
@@ -2507,14 +2535,14 @@ components:
     bodyType: Dynamic
     useGravity: true
     lockRotation: false
-    bullet: false
+    bullet: true
   - id: eda64a90dfc2b76710d52951360bd8a1
     enabled: false
     type: BoxCollider
     gameobject: 4c136a0729bc8e6e985f1ee3596ec5a7
     center: [0, 0]
     isSensor: false
-    density: 1
+    density: 100
     friction: 0
     bounciness: 0
     rollingResistance: 0
@@ -2555,7 +2583,7 @@ components:
     enabled: false
     type: Transform
     gameobject: 659f4fa2185a8690d1d3978c18d72ccc
-    localPosition: [-0.0006713867, 0]
+    localPosition: [-0.0007324219, 0]
     localRotation: 0
     localScale: [1.7090036, 1.7090036]
     parent_id: 7317f128bb0f4505f275083d38fee713
@@ -2619,6 +2647,7 @@ components:
     gravity: [0, -0]
     damping: 0
     space: 1
+    simulationBackend: 0
     shape: 2
     shapeSize: [6255.5713, 3795.5698]
     coneAngle: 25
@@ -2723,6 +2752,7 @@ gameobjects:
       - 5c985d22ee8ecc0c68961fd6f4442c9b
       - 8e5e4c02b56ea17b83756e67db699fa4
       - dba72c877400eaceebfde5e853d0473f
+      - 78c6314d1b5c4e28b6f606c04e258c83
   - id: 64219757135ae15d86a2dadbcaea7fa8
     type: GameObject
     name: Directional light
@@ -2741,6 +2771,7 @@ gameobjects:
       - 62ef716075ca10d97aaf392014d2e4e8
       - a1c9eb772037300f508e2eb033abae35
       - b0e91c78fdc1892d8d63eb98d2dc2403
+      - ba673c38edb1a33d4dbd8af5a3e2344c
   - id: bf83147d9f61b9147047718874258b1f
     type: GameObject
     name: Body
@@ -3235,7 +3266,7 @@ gameobjects:
   - id: 4c136a0729bc8e6e985f1ee3596ec5a7
     type: GameObject
     name: BulletPrefab
-    tag: Untagged
+    tag: Bullet
     active: false
     component_ids:
       - 7317f128bb0f4505f275083d38fee713

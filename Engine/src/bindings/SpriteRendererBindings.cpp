@@ -109,6 +109,25 @@ void BindSpriteRenderer(pybind11::module_& m) {
         }
     });
 
+    sprite_renderer_module.def("get_material_id", [](const std::string& id) -> std::string {
+        GameObject* go = registry->Find<GameObject>(id);
+        if (go) {
+            if (auto* renderer = go->GetComponent<SpriteRenderer>()) {
+                if (auto* material = renderer->GetMaterial())
+                    return material->GetID();
+            }
+        }
+        return {};
+    });
+
+    sprite_renderer_module.def("set_material_id", [](const std::string& go_id, std::string material_id) {
+        GameObject* go = registry->Find<GameObject>(go_id);
+        if (go) {
+            if (auto* renderer = go->GetComponent<SpriteRenderer>())
+                renderer->SetMaterial(material_id);
+        }
+    });
+
     sprite_renderer_module.def("set_uniform_float", [](const std::string& go_id, const std::string& name, float v) {
         GameObject* go = registry->Find<GameObject>(go_id);
         if (go) {
