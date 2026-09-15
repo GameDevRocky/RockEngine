@@ -14,6 +14,7 @@ class TopDownController(ScriptableComponent):
 
     emit : Event
     light : Light = None
+    seth : float
 
     camera_smoothing : Reflect[float, Slider, Step(0.1), Range(1, 10)] = 0.1
 
