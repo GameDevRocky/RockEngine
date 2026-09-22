@@ -27,6 +27,7 @@ components:
         - 0a14507c32ffbde319398347ae800168|78c6314d1b5c4e28b6f606c04e258c83|shake|
       light: 6d2716c5bce63ad0ba3c81222dc008df
       seth: 0
+      alex: 0
       camera_smoothing: 1
       rb: ""
       bc: ""
@@ -147,7 +148,7 @@ components:
     enabled: true
     type: Transform
     gameobject: dfcc941c6d90526f092e34d0eb7d1e85
-    localPosition: [55.31865, -73.14519]
+    localPosition: [55.318665, -73.14517]
     localRotation: -8.537736e-06
     localScale: [1.0000001, 1.0000001]
     parent_id: 2d7967f4224d173abdeb11b19d8a9f99
@@ -402,7 +403,7 @@ components:
     enabled: true
     type: SpriteRenderer
     gameobject: a95ef85b0ef1e4acaac4b95f09b878d4
-    material_id: m1
+    material_id: m_enemy_flash
     sprite_id: 6013bc43f1e616a485b723a18886eec8
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
@@ -434,7 +435,7 @@ components:
     enabled: true
     type: SpriteRenderer
     gameobject: 91570af60a063648c1dbf65965161606
-    material_id: m1
+    material_id: m_enemy_flash
     sprite_id: 64cf24736657758ecb9e0fb399290b61
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
@@ -458,7 +459,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 716969e15ff084327807c99c32d47749
-    localPosition: [-3.2303467, -2.1137695]
+    localPosition: [-3.2304077, -2.1138916]
     localRotation: -1.0245281e-05
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
@@ -466,7 +467,7 @@ components:
     enabled: true
     type: SpriteRenderer
     gameobject: 716969e15ff084327807c99c32d47749
-    material_id: m1
+    material_id: m_enemy_flash
     sprite_id: b84fa6157bba0ebf9387608fc22a5b8b
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
@@ -490,7 +491,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 5934f97a770f3d90d0ecef87f4dfa951
-    localPosition: [55.32068, -73.14563]
+    localPosition: [55.320618, -73.14575]
     localRotation: -1.0245281e-05
     localScale: [1.0000002, 1.0000002]
     parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
@@ -498,7 +499,7 @@ components:
     enabled: true
     type: SpriteRenderer
     gameobject: 5934f97a770f3d90d0ecef87f4dfa951
-    material_id: m1
+    material_id: m_enemy_flash
     sprite_id: 3c79c00e1d11bf271aaae7910e54077e
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
@@ -530,7 +531,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 39aab30b6216e0ee461085d6ff0fa759
-    localPosition: [-15.484009, -132.54407]
+    localPosition: [-15.48407, -132.54407]
     localRotation: -1.0245276e-05
     localScale: [1.0000008, 1.0000008]
     parent_id: fcdf1b93b3bc6625f1f93dd9aa8baf51
@@ -538,7 +539,7 @@ components:
     enabled: true
     type: SpriteRenderer
     gameobject: 39aab30b6216e0ee461085d6ff0fa759
-    material_id: m1
+    material_id: m_enemy_flash
     sprite_id: f5d96795c1d59daeb72a1677d2f2988f
     color: [1, 1, 1, 1]
     uvOffset: [0, 0]
@@ -552,7 +553,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 3b135ce2a0d6dc1bc918747a5daacfb4
-    localPosition: [150.00159, 0.00048828125]
+    localPosition: [150.00171, 0.00036621094]
     localRotation: 101.23959
     localScale: [0.9999996, 0.9999996]
     parent_id: d64e6281c521f949eabb0ddf75e5b801

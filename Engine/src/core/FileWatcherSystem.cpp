@@ -20,6 +20,20 @@ void FileWatcherSystem::Init()
         m_pyWatcher.attr("watch_directory")(scriptsPath);
     } catch (const py::error_already_set& e) {
         std::cerr << "[FileWatcherSystem] Python error in Init(): " << e.what() << std::endl;
+        // A missing watchdog is the one failure with an obvious fix, and the traceback alone
+        // does not say which interpreter to install it into -- the embedded one need not be
+        // the "python" on PATH. Print the prefix that was actually used.
+        if (e.matches(PyExc_ModuleNotFoundError)) {
+            try {
+                py::module_ sys = py::module_::import("sys");
+                std::cerr << "[FileWatcherSystem] Hot reload is off. The embedded interpreter's "
+                             "prefix is " << sys.attr("prefix").cast<std::string>()
+                          << "; install requirements.txt there (pip install -r requirements.txt)."
+                          << std::endl;
+            } catch (const py::error_already_set&) {
+                // Diagnostics only -- never let them replace the real error above.
+            }
+        }
     }
 }
 

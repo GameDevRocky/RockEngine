@@ -47,6 +47,16 @@ target_link_libraries(RockEngineCore
 
 target_compile_definitions(RockEngineCore PRIVATE ROCK_ENGINE_EXPORT)
 
+# Where the Python found at configure time actually lives (see External/CMakeLists.txt).
+# Engine::Init uses these when no bundled runtime sits beside the executable, so a dev
+# build does not depend on which python3XX.dll the loader picks off PATH.
+if(ROCKENGINE_PYTHON_HOME)
+    target_compile_definitions(RockEngineCore PRIVATE
+        ROCKENGINE_PYTHON_HOME="${ROCKENGINE_PYTHON_HOME}"
+        ROCKENGINE_PYTHON_SITES="${ROCKENGINE_PYTHON_SITES}"
+    )
+endif()
+
 # 6. Precompiled Headers (Kept the extra headers from your AI)
 target_precompile_headers(RockEngineCore PUBLIC 
     <vector>

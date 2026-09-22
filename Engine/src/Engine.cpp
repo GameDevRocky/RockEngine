@@ -26,6 +26,20 @@
 
 namespace py = pybind11;
 
+namespace {
+
+// PYTHONHOME has to be in the environment before the interpreter is created: PyConfig reads
+// it during initialization, and nothing after that can move the prefix.
+void SetPythonHome(const std::string& home) {
+#if defined(_WIN32)
+    _putenv_s("PYTHONHOME", home.c_str());
+#else
+    setenv("PYTHONHOME", home.c_str(), 1);
+#endif
+}
+
+} // namespace
+
 void Engine::SetAppMode(AppMode mode) {
     // Init() reads this to decide which systems the container gets, so a call after Init()
     // would silently leave the mode and the container disagreeing -- the kind of mismatch
@@ -49,20 +63,28 @@ void Engine::Init() {
     // the ordering unambiguous.
     JobSystem::Get();
 
-    // If a bundled Python runtime sits next to the executable (distribution build),
-    // point the embedded interpreter at it so the app runs without a system Python.
-    // In a dev build there is no such folder, so the build-time interpreter is used
-    // and this is a no-op (behavior unchanged).
+    // Decide where the embedded interpreter's prefix comes from, before it exists.
+    // A bundled runtime next to the executable (distribution build) wins, so a shipped
+    // game runs on a machine with no Python at all; a dev build falls back to the
+    // interpreter this build was configured against.
     {
         const std::string bundledHome = EngineUtils::ExecutableDir() + "/python";
         std::error_code ec;
         if (std::filesystem::exists(bundledHome, ec)) {
-#if defined(_WIN32)
-            _putenv_s("PYTHONHOME", bundledHome.c_str());
-#else
-            setenv("PYTHONHOME", bundledHome.c_str(), 1);
-#endif
+            SetPythonHome(bundledHome);
         }
+#if defined(ROCKENGINE_PYTHON_HOME)
+        // Dev build: pin the interpreter to the Python this build was configured against.
+        // Left unpinned, CPython derives sys.prefix from whichever python3XX.dll the loader
+        // resolved, and on Windows any unrelated app that ships one earlier on PATH (the AWS
+        // CLI does) wins over the real installation. The stdlib still imports -- the registry
+        // supplies it -- but sys.prefix lands on the working directory, so
+        // "<prefix>/Lib/site-packages" never reaches sys.path and every pip-installed package
+        // quietly disappears, taking FileWatcherSystem's watchdog with it.
+        else if (std::filesystem::exists(ROCKENGINE_PYTHON_HOME, ec)) {
+            SetPythonHome(ROCKENGINE_PYTHON_HOME);
+        }
+#endif
     }
 
     static auto* guard = new py::scoped_interpreter();
@@ -76,6 +98,24 @@ void Engine::Init() {
         for (const char* rel : { "", "Domain/sandbox/scripts", "Domain/lib" }) {
             path.attr("insert")(0, EngineUtils::GetAssetPath(rel));
         }
+#if defined(ROCKENGINE_PYTHON_SITES)
+        // The site-packages directories of the configure-time interpreter, appended (not
+        // inserted) so they never shadow Domain. PYTHONHOME above covers the base
+        // installation's own site-packages; these add the ones site.py cannot infer from it
+        // -- a virtualenv's, and the per-user one -- so requirements.txt works wherever a
+        // developer happened to pip install it.
+        const std::string sites = ROCKENGINE_PYTHON_SITES;
+        std::error_code siteEc;
+        for (size_t begin = 0; begin <= sites.size(); ) {
+            const size_t sep = sites.find('|', begin);
+            const std::string dir = sites.substr(begin, sep - begin);
+            if (!dir.empty() && std::filesystem::exists(dir, siteEc)) {
+                path.attr("append")(dir);
+            }
+            if (sep == std::string::npos) break;
+            begin = sep + 1;
+        }
+#endif
     }
 
     static auto* release = new py::gil_scoped_release();

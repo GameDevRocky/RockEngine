@@ -1,5 +1,12 @@
 import typing
 
+# Attributes the engine owns on every script instance, never the script's own state.
+# ApplyHotReload re-stamps the two ids on the new instance immediately after the
+# transfer, and the coroutine list is deliberately left empty: a suspended generator
+# holds a frame bound to the OLD instance and the OLD module's code objects, so
+# carrying it over would keep ticking a dead object against stale code.
+_ENGINE_OWNED = frozenset({'_gameobject_id', '_component_id', '_coroutines'})
+
 
 def _base_type(hint):
     """Unwrap Annotated[T, ...] → T, or return hint unchanged."""
@@ -95,13 +102,22 @@ def transfer_fields(old_instance, new_instance) -> None:
             print(f"[transfer_fields] Could not set '{name}': {e}")
 
     # ------------------------------------------------------------------
-    # Pass 2 — runtime instance attributes (set in init / awake / start).
+    # Pass 2 — runtime instance attributes (set in __init__ / awake / start).
+    #
+    # Underscore-prefixed names are included, and that is the whole point of this
+    # pass: awake() and start() do not run again after a reload, so private state
+    # they established (`self._pool_script`, `self._camera_shake`, a cooldown
+    # timestamp) exists only on the old instance. Dropping it left the new instance
+    # missing attributes its own update() goes on to read — an AttributeError every
+    # frame until play mode was restarted.
     # ------------------------------------------------------------------
     for name, value in old_instance_vars.items():
-        if name.startswith('_'):
+        if name in _ENGINE_OWNED:
             continue
-        # Skip annotated fields; already handled above.
-        if name in new_hints or name in old_hints:
+        # Skip annotated fields; already handled above. Not the underscore-prefixed
+        # ones though: Pass 1 passes over those because they are not inspector
+        # fields, which leaves them to this pass.
+        if (name in new_hints or name in old_hints) and not name.startswith('_'):
             continue
         try:
             setattr(new_instance, name, value)

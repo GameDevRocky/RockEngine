@@ -27,6 +27,44 @@ find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter Development)
 set(PYBIND11_FINDPYTHON ON)
 add_subdirectory(pybind11)
 
+# Pin the embedded interpreter to the Python found above, for dev builds that have no
+# bundled runtime beside the executable.
+#
+# Without a pin, the embedded interpreter's sys.prefix is whatever CPython's getpath
+# derives from the python3XX.dll the Windows loader happened to resolve -- and any
+# unrelated application that ships its own copy of that DLL earlier on PATH (the AWS
+# CLI does) wins over the real installation. The stdlib still imports, because it is
+# found through the registry, but sys.prefix lands on the process's working directory
+# and so "<prefix>/Lib/site-packages" never reaches sys.path: every pip-installed
+# package silently disappears, watchdog (FileWatcherSystem) first.
+#
+# base_prefix, not prefix: when the configuring interpreter is a virtualenv the venv
+# has no stdlib of its own, so PYTHONHOME has to be the base installation. The venv's
+# own site-packages (and the per-user one) are handed over separately and appended to
+# sys.path at startup, so requirements.txt works wherever a developer installed it.
+execute_process(
+    COMMAND "${Python3_EXECUTABLE}" -c
+            "import sys,site;print('|'.join([sys.base_prefix]+list(dict.fromkeys(site.getsitepackages()+[site.getusersitepackages()]))))"
+    OUTPUT_VARIABLE _py_runtime_probe
+    ERROR_VARIABLE  _py_runtime_probe_err
+    RESULT_VARIABLE _py_runtime_probe_rc
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if(_py_runtime_probe_rc EQUAL 0 AND _py_runtime_probe)
+    # One "|"-separated line: the home first, then every site-packages dir.
+    string(REPLACE "|" ";" _py_runtime_dirs "${_py_runtime_probe}")
+    list(POP_FRONT _py_runtime_dirs _py_home)
+    list(JOIN _py_runtime_dirs "|" _py_sites)
+    file(TO_CMAKE_PATH "${_py_home}"  _py_home)
+    file(TO_CMAKE_PATH "${_py_sites}" _py_sites)
+    set(ROCKENGINE_PYTHON_HOME  "${_py_home}"  CACHE INTERNAL "Home of the Python the embedded interpreter should use")
+    set(ROCKENGINE_PYTHON_SITES "${_py_sites}" CACHE INTERNAL "Extra site-packages dirs ('|'-separated) for the embedded interpreter")
+else()
+    message(WARNING "Could not probe ${Python3_EXECUTABLE} for its runtime layout; the embedded "
+                    "interpreter will fall back to whatever sys.prefix CPython derives at startup. "
+                    "${_py_runtime_probe_err}")
+endif()
+
 # --- FreeType ---
 # Only here because msdfgen-ext needs it to read glyph outlines and metrics out of
 # a font file (msdfgen-core can generate a distance field but cannot parse a font).

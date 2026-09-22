@@ -16,6 +16,8 @@ class TopDownController(ScriptableComponent):
     light : Light = None
     seth : float
 
+    alex : float
+
     camera_smoothing : Reflect[float, Slider, Step(0.1), Range(1, 10)] = 0.1
 
     rb : Reflect[Rigidbody, ReadOnly()]
@@ -58,6 +60,7 @@ class TopDownController(ScriptableComponent):
             self.bullet_impact.space = ParticleComponent.Space.WORLD
 
     def start(self):
+
         # Get reference to the bullet pool script
         if self.bullet_pool:
             self._pool_script = ScriptRef(self.bullet_pool.id, "ObjectPool")
@@ -67,6 +70,7 @@ class TopDownController(ScriptableComponent):
             self._pool_script = None
 
     def update(self):
+        
         if self.light:
             if Input.mouse_pressed(MouseButton.MIDDLE):
                 self.light.enabled = not self.light.enabled

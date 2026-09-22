@@ -12,12 +12,23 @@ class EnemyController(ScriptableComponent):
 
     health : Reflect[float, Slider, Step(1), Range(0, 100), ReadOnly()] = 100.0
 
+    # Flash effect variables
+    _flash_timer = 0.0
+    _flash_duration = 0.1
+    _sprite_renderers = []
+    _materials = []
+
     def awake(self):
         self.rb = self.get_component(Rigidbody)
         self.health = 100
         if not self.rb:
             self.rb = self.transform.gameobject.add_component(Rigidbody)
             self.rb.body_type = Rigidbody.DYNAMIC
+
+        # Collect all sprite renderers from children for flash effect
+        self._sprite_renderers = []
+        self._materials = []
+        self._collect_sprite_renderers(self.transform)
 
     def fixed_update(self):
         if self.player:
