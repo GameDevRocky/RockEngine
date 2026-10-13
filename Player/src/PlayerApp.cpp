@@ -6,6 +6,11 @@
 #include "engine/core/SceneManager.hpp"
 #include "engine/debug/Console.hpp"
 #include "engine/input/GamepadService.hpp"
+#include "engine/input/CursorManager.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
+#include "engine/rendering/core/ImageDecoder.hpp"
+#include "engine/rendering/core/Sprite.hpp"
+#include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/Renderer.hpp"
 #include "engine/rendering/views/GameRenderView.hpp"
 #include "engine/utils/EngineUtils.hpp"
@@ -13,6 +18,9 @@
 #include <glad/glad.h>
 #include <filesystem>
 #include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -168,6 +176,125 @@ void PlayerApp::OnResized()
     if (pixelH < 1) pixelH = 1;
 }
 
+void PlayerApp::ReleaseCursorCapture()
+{
+    if (!window) return;
+    SDL_SetWindowRelativeMouseMode(window, false);
+    SDL_SetWindowMouseGrab(window, false);
+}
+
+void PlayerApp::ApplyCursorState(bool force)
+{
+    if (!window) return;
+
+    CursorManager& state = CursorManager::Get();
+    if (!force && appliedCursorRevision == state.GetRevision()) return;
+    appliedCursorRevision = state.GetRevision();
+
+    const glm::vec2 hotspot = state.GetHotspot();
+    if (appliedCursorSprite != state.GetSpriteID() ||
+        appliedHotspotX != hotspot.x || appliedHotspotY != hotspot.y) {
+        // Never destroy the active cursor. Restore SDL's owned default first, then replace
+        // our owned object after a successful rebuild.
+        SDL_SetCursor(SDL_GetDefaultCursor());
+        if (customCursor) {
+            SDL_DestroyCursor(customCursor);
+            customCursor = nullptr;
+        }
+
+        appliedCursorSprite = state.GetSpriteID();
+        appliedHotspotX = hotspot.x;
+        appliedHotspotY = hotspot.y;
+
+        if (!appliedCursorSprite.empty()) {
+            Sprite* sprite = AssetManager::Get().GetSprite(appliedCursorSprite);
+            Texture2D* texture = sprite ? sprite->GetTexture() : nullptr;
+            DecodedImage source = texture
+                ? ImageDecoder::Decode(texture->GetPath(), false) // native top-left rows
+                : DecodedImage{};
+
+            if (sprite && source.ok) {
+                const glm::vec2 uvMin = sprite->GetUVMin();
+                const glm::vec2 uvMax = sprite->GetUVMax();
+                const int x0 = std::clamp(static_cast<int>(std::lround(uvMin.x * source.width)),
+                                          0, source.width);
+                const int x1 = std::clamp(static_cast<int>(std::lround(uvMax.x * source.width)),
+                                          0, source.width);
+                const int y0 = std::clamp(source.height -
+                                          static_cast<int>(std::lround(uvMax.y * source.height)),
+                                          0, source.height);
+                const int y1 = std::clamp(source.height -
+                                          static_cast<int>(std::lround(uvMin.y * source.height)),
+                                          0, source.height);
+                const int width = x1 - x0;
+                const int height = y1 - y0;
+
+                if (width > 0 && height > 0) {
+                    std::vector<unsigned char> rgba(static_cast<std::size_t>(width) * height * 4);
+                    for (int y = 0; y < height; ++y) {
+                        for (int x = 0; x < width; ++x) {
+                            const auto src = (static_cast<std::size_t>(y0 + y) * source.width +
+                                              (x0 + x)) * source.channels;
+                            const auto dst = (static_cast<std::size_t>(y) * width + x) * 4;
+                            const unsigned char gray = source.pixels[src];
+                            rgba[dst + 0] = source.channels >= 3 ? source.pixels[src + 0] : gray;
+                            rgba[dst + 1] = source.channels >= 3 ? source.pixels[src + 1] : gray;
+                            rgba[dst + 2] = source.channels >= 3 ? source.pixels[src + 2] : gray;
+                            rgba[dst + 3] = source.channels == 2 ? source.pixels[src + 1]
+                                           : source.channels >= 4 ? source.pixels[src + 3]
+                                                                  : 255;
+                        }
+                    }
+
+                    SDL_Surface* surface = SDL_CreateSurfaceFrom(
+                        width, height, SDL_PIXELFORMAT_RGBA32, rgba.data(), width * 4);
+                    if (surface) {
+                        const int hotX = std::clamp(static_cast<int>(std::lround(hotspot.x)),
+                                                    0, width - 1);
+                        const int hotY = std::clamp(static_cast<int>(std::lround(hotspot.y)),
+                                                    0, height - 1);
+                        customCursor = SDL_CreateColorCursor(surface, hotX, hotY);
+                        SDL_DestroySurface(surface);
+                    }
+                }
+            }
+
+            if (!customCursor)
+                Console::Warn("Could not create cursor from sprite '" + appliedCursorSprite +
+                              "'; using the platform cursor.");
+        }
+
+        SDL_SetCursor(customCursor ? customCursor : SDL_GetDefaultCursor());
+    }
+
+    if (!applicationFocused) {
+        ReleaseCursorCapture();
+        SDL_ShowCursor();
+        return;
+    }
+
+    switch (state.GetLockState()) {
+        case CursorLockState::None:
+            ReleaseCursorCapture();
+            break;
+        case CursorLockState::Confined:
+            SDL_SetWindowRelativeMouseMode(window, false);
+            SDL_SetWindowMouseGrab(window, true);
+            break;
+        case CursorLockState::Locked:
+            SDL_SetWindowMouseGrab(window, false);
+            SDL_SetWindowRelativeMouseMode(window, true);
+            if (InputManager* input = Input())
+                input->SetMouseScreenPosition(view, {pixelW * 0.5f, pixelH * 0.5f});
+            break;
+    }
+
+    if (state.GetLockState() == CursorLockState::Locked || !state.IsVisible())
+        SDL_HideCursor();
+    else
+        SDL_ShowCursor();
+}
+
 void PlayerApp::PumpEvents()
 {
     InputManager* input = Input();
@@ -193,10 +320,15 @@ void PlayerApp::PumpEvents()
             // while unfocused but keeps devices open, so nothing re-enumerates on the way
             // back. Same behaviour the editor gets from Qt's applicationStateChanged.
             case SDL_EVENT_WINDOW_FOCUS_GAINED:
+                applicationFocused = true;
                 GamepadService::Get().SetApplicationFocused(true);
+                ApplyCursorState(true);
                 break;
             case SDL_EVENT_WINDOW_FOCUS_LOST:
+                applicationFocused = false;
                 GamepadService::Get().SetApplicationFocused(false);
+                ReleaseCursorCapture();
+                SDL_ShowCursor();
                 // Keyboard state is pushed, not polled, so a key held at the moment focus is
                 // lost never receives its release event and would stay down forever. The
                 // editor has the same shape of problem and dodges it by only receiving input
@@ -215,6 +347,11 @@ void PlayerApp::PumpEvents()
                 if (input && !e.key.repeat) {
                     const int qtKey = PlayerInput::ToQtKey(e.key.key);
                     if (qtKey >= 0) input->SetKeyState(qtKey, true);
+                    if (qtKey == 0x01000000 &&
+                        CursorManager::Get().GetLockState() != CursorLockState::None) {
+                        CursorManager::Get().SetLockState(CursorLockState::None);
+                        CursorManager::Get().SetVisible(true);
+                    }
                 }
                 break;
 
@@ -245,8 +382,12 @@ void PlayerApp::PumpEvents()
                     SDL_GetWindowSize(window, &winW, &winH);
                     const float sx = winW > 0 ? static_cast<float>(pixelW) / winW : 1.0f;
                     const float sy = winH > 0 ? static_cast<float>(pixelH) / winH : 1.0f;
-                    const glm::vec2 fbPos(e.motion.x * sx, e.motion.y * sy);
+                    const glm::vec2 fbPos =
+                        CursorManager::Get().GetLockState() == CursorLockState::Locked
+                            ? glm::vec2(pixelW * 0.5f, pixelH * 0.5f)
+                            : glm::vec2(e.motion.x * sx, e.motion.y * sy);
                     input->SetMouseScreenPosition(view, fbPos);
+                    input->AddMouseDelta({e.motion.xrel * sx, e.motion.yrel * sy});
                 }
                 break;
 
@@ -264,6 +405,7 @@ int PlayerApp::Run()
         // Engine::Update pumps the JobSystem, and the startup scene load finishes from
         // inside that pump -- so this has to be ticked before the scene exists, not after.
         Engine::Get()->Update();
+        ApplyCursorState();
 
         if (sceneLoaded && !playing)
             BeginPlay();
@@ -301,6 +443,13 @@ int PlayerApp::Run()
 
 void PlayerApp::Shutdown()
 {
+    ReleaseCursorCapture();
+    SDL_ShowCursor();
+    SDL_SetCursor(SDL_GetDefaultCursor());
+    if (customCursor) {
+        SDL_DestroyCursor(customCursor);
+        customCursor = nullptr;
+    }
     // Renderer::DestroyView needs the context current, so it has to happen before the
     // context is torn down.
     if (view && glCtx) {

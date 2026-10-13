@@ -119,6 +119,10 @@ Three more things `PlayerApp` must replicate from `GameViewGui`, all easy to for
   Without it every pad reads as zeroes forever.
 - **Key release on focus loss.** Keyboard state is pushed, not polled, so a key held when
   focus is lost never gets its release event and stays down forever.
+- **Cursor state.** `CursorManager` is backend-neutral Engine state; the Player applies it with
+  SDL color cursors, mouse grab, and relative mouse mode. Relative `xrel`/`yrel` is forwarded as
+  framebuffer-pixel `Input.get_mouse_delta()`. Focus loss always releases physical capture and
+  focus regain reapplies the requested state.
 
 ## What `AppMode::Player` turns off
 

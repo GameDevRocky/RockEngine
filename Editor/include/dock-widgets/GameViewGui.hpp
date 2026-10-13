@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <QWheelEvent>
 #include <QMouseEvent>
+#include <QPointF>
 #include "engine/rendering/views/GameRenderView.hpp"
 #include "utils/ImGuiInstance.hpp"
 #include "Engine.hpp"
@@ -36,6 +37,9 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
+    void focusInEvent(QFocusEvent* event) override;
+    void focusOutEvent(QFocusEvent* event) override;
+    void hideEvent(QHideEvent* event) override;
     bool eventFilter(QObject* obj, QEvent* event) override;
 
 private:
@@ -44,6 +48,8 @@ private:
     // Centered notice shown when no Camera is resolving for the Game view.
     void DrawNoCameraOverlay();
     void ApplyAspectPreset(int index);
+    void ApplyCursorState();
+    void ReleaseCursorCapture();
 
     GameRenderView* gameView = nullptr;   // borrowed; same object as ViewportWidget::view
     ImGuiInstance* imGuiInstance = nullptr;
@@ -52,6 +58,11 @@ private:
     // hit-testing for free instead of competing with the viewport for mouse input.
     GameViewToolbar* m_toolbar = nullptr;
     int aspectPresetIndex = 0;            // index into kPresets (0 == Free Aspect)
+
+    int m_cursorSubscription = -1;
+    int m_appliedLockState = 0;
+    QPointF m_lastMousePos;
+    bool m_haveLastMousePos = false;
 
     static inline Proxy<InputManager> inputManager;
 

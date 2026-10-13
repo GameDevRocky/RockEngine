@@ -307,6 +307,13 @@ stb/glad); `AudioEngine.cpp` is the one translation unit with `MINIAUDIO_IMPLEME
 
 ## Input & gamepads
 
+`CursorManager` is the process-global, window-system-neutral cursor intent: visibility,
+`None`/`Confined`/`Locked` capture, sprite id, and pixel hotspot. Like gamepad hardware it is
+not attached to a `Container` and is never deep-copied. Engine code and Python mutate only this
+state; `GameViewGui` translates it to Qt and `PlayerApp` translates it to SDL. Exiting play mode
+resets it so a stopped script cannot leave the editor pointer hidden or captured. Locked input
+uses `InputManager`'s per-frame mouse delta; absolute position remains centered.
+
 Keyboard/mouse and gamepads reach the engine by **opposite routes**, and the difference drives
 most of the design here.
 

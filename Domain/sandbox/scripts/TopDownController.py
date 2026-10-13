@@ -39,8 +39,8 @@ class TopDownController(ScriptableComponent):
                                     "and it spawns inside your own collider.")] = 60.0
     muzzle_count : Reflect[int, Slider, Step(1), Range(0, 32)] = 4
 
-
     def awake(self):
+
         self.audio = self.get_component(AudioSource)
         self.rb = self.get_component(Rigidbody)
         

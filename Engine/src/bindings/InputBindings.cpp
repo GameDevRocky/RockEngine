@@ -36,4 +36,9 @@ void BindInputManager(pybind11::module_& m) {
         glm::vec2 val = inputManager->GetMouseScreenPosition();
         return std::make_tuple(val.x, val.y);
     });
+
+    input_module.def("get_mouse_delta", []() {
+        glm::vec2 val = inputManager->GetMouseDelta();
+        return std::make_tuple(val.x, val.y);
+    });
 }

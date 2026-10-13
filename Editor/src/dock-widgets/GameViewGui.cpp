@@ -5,11 +5,22 @@
 #include "engine/debug/Console.hpp"
 #include "engine/core/InputManager.hpp"
 #include "engine/core/TimeManager.hpp"
+#include "engine/input/CursorManager.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
+#include "engine/rendering/core/Sprite.hpp"
+#include "engine/rendering/core/Texture2D.hpp"
 #include <glm/glm.hpp>
 #include "engine/rendering/Renderer.hpp"
 #include "Engine.hpp"
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
+#include <QCursor>
+#include <QFocusEvent>
+#include <QHideEvent>
+#include <QImage>
+#include <QPixmap>
+#include <algorithm>
+#include <cmath>
 
 namespace {
     // The Game view's aspect/resolution presets, mirroring Unity's Game-view
@@ -46,10 +57,16 @@ GameViewGui::GameViewGui(QWidget* parent)
 {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
+    m_cursorSubscription = CursorManager::Get().Subscribe([this]() {
+        ApplyCursorState();
+        return true;
+    }, CursorManager::CHANGED_EVENT);
 }
 
 GameViewGui::~GameViewGui()
 {
+    CursorManager::Get().Unsubscribe(m_cursorSubscription);
+    ReleaseCursorCapture();
     if (!imGuiInstance) return;
     makeCurrent();
     imGuiInstance->Shutdown();
@@ -86,6 +103,7 @@ void GameViewGui::OnViewInitialized()
     // camera's authored aspect. Matches Unity's default and fixes the image not
     // filling the Game view widget out of the box.
     ApplyAspectPreset(0);
+    ApplyCursorState();
 
     std::cout << "GameViewGui OpenGL Initialized. " << std::endl;
 }
@@ -110,6 +128,83 @@ void GameViewGui::OnAfterPresent()
     io.DeltaTime = (dt > 0.0f) ? dt : (1.0f / 60.0f);
 
     imGuiInstance->Render();
+}
+
+void GameViewGui::ReleaseCursorCapture()
+{
+    if (QWidget::mouseGrabber() == this)
+        releaseMouse();
+    m_appliedLockState = static_cast<int>(CursorLockState::None);
+    m_haveLastMousePos = false;
+}
+
+void GameViewGui::ApplyCursorState()
+{
+    CursorManager& state = CursorManager::Get();
+    const bool runtime = Engine::Get()->GetActiveContainer() &&
+                         Engine::Get()->GetActiveContainer()->GetMode() == Container::Mode::Runtime;
+    const bool canCapture = runtime && hasFocus() && window() && window()->isActiveWindow();
+    const CursorLockState requested = runtime ? state.GetLockState() : CursorLockState::None;
+
+    if (!canCapture || requested == CursorLockState::None) {
+        ReleaseCursorCapture();
+    }
+
+    // Appearance belongs only to the Game view widget. A bad/missing sprite degrades to the
+    // platform cursor; it must never leave the editor with an invisible pointer.
+    if ((canCapture && requested == CursorLockState::Locked) || !state.IsVisible()) {
+        setCursor(Qt::BlankCursor);
+    } else if (!state.GetSpriteID().empty()) {
+        Sprite* sprite = AssetManager::Get().GetSprite(state.GetSpriteID());
+        Texture2D* texture = sprite ? sprite->GetTexture() : nullptr;
+        QImage source(texture ? QString::fromStdString(texture->GetPath()) : QString());
+        if (sprite && !source.isNull()) {
+            const glm::vec2 uvMin = sprite->GetUVMin();
+            const glm::vec2 uvMax = sprite->GetUVMax();
+            const int x0 = std::clamp(static_cast<int>(std::lround(uvMin.x * source.width())),
+                                      0, source.width());
+            const int x1 = std::clamp(static_cast<int>(std::lround(uvMax.x * source.width())),
+                                      0, source.width());
+            // Sprite UVs are bottom-left; QImage rows are top-left.
+            const int y0 = std::clamp(source.height() -
+                                      static_cast<int>(std::lround(uvMax.y * source.height())),
+                                      0, source.height());
+            const int y1 = std::clamp(source.height() -
+                                      static_cast<int>(std::lround(uvMin.y * source.height())),
+                                      0, source.height());
+            if (x1 > x0 && y1 > y0) {
+                QPixmap pixmap = QPixmap::fromImage(source.copy(x0, y0, x1 - x0, y1 - y0));
+                const glm::vec2 hotspot = state.GetHotspot();
+                const int hotX = std::clamp(static_cast<int>(std::lround(hotspot.x)), 0,
+                                            pixmap.width() - 1);
+                const int hotY = std::clamp(static_cast<int>(std::lround(hotspot.y)), 0,
+                                            pixmap.height() - 1);
+                setCursor(QCursor(pixmap, hotX, hotY));
+            } else {
+                unsetCursor();
+            }
+        } else {
+            unsetCursor();
+        }
+    } else {
+        unsetCursor();
+    }
+
+    if (canCapture && requested != CursorLockState::None) {
+        if (QWidget::mouseGrabber() != this)
+            grabMouse();
+        m_appliedLockState = static_cast<int>(requested);
+
+        if (requested == CursorLockState::Locked) {
+            const QPoint center = rect().center();
+            if (inputManager && gameView) {
+                const float dpr = devicePixelRatioF();
+                inputManager->SetMouseScreenPosition(
+                    gameView, {center.x() * dpr, center.y() * dpr});
+            }
+            QCursor::setPos(mapToGlobal(center));
+        }
+    }
 }
 
 void GameViewGui::ApplyAspectPreset(int index)
@@ -179,6 +274,12 @@ void GameViewGui::DrawNoCameraOverlay()
 }
 
 void GameViewGui::keyPressEvent(QKeyEvent* event) {
+    // Unity-style editor escape hatch: a game script cannot trap the developer's pointer.
+    if (event->key() == Qt::Key_Escape &&
+        CursorManager::Get().GetLockState() != CursorLockState::None) {
+        CursorManager::Get().SetLockState(CursorLockState::None);
+        CursorManager::Get().SetVisible(true);
+    }
     inputManager->SetKeyState(event->key(), true);
 }
 
@@ -195,6 +296,7 @@ void GameViewGui::wheelEvent(QWheelEvent* event)
 
 void GameViewGui::mousePressEvent(QMouseEvent* event)
 {
+    setFocus(Qt::MouseFocusReason);
     inputManager->SetMouseButtonState(static_cast<int>(event->button()), true);
     event->accept();
 }
@@ -214,9 +316,63 @@ void GameViewGui::mouseMoveEvent(QMouseEvent* e)
         return;
     }
 
-    glm::vec2 fbPos(e->pos().x() * devicePixelRatioF(), e->pos().y() * devicePixelRatioF());
-    inputManager->SetMouseScreenPosition(gameView, fbPos);
+    const float dpr = devicePixelRatioF();
+    const auto applied = static_cast<CursorLockState>(m_appliedLockState);
+
+    if (applied == CursorLockState::Locked) {
+        const QPoint centerGlobal = mapToGlobal(rect().center());
+        const QPoint global = e->globalPosition().toPoint();
+        const QPoint logicalDelta = global - centerGlobal;
+        if (!logicalDelta.isNull()) {
+            inputManager->AddMouseDelta({logicalDelta.x() * dpr, logicalDelta.y() * dpr});
+            QCursor::setPos(centerGlobal);
+        }
+        const QPoint center = rect().center();
+        inputManager->SetMouseScreenPosition(gameView, {center.x() * dpr, center.y() * dpr});
+        e->accept();
+        return;
+    }
+
+    QPointF logicalPos = e->position();
+    if (m_haveLastMousePos) {
+        const QPointF delta = logicalPos - m_lastMousePos;
+        inputManager->AddMouseDelta({delta.x() * dpr, delta.y() * dpr});
+    }
+
+    // Qt's grab delivers moves beyond the widget. Clamp and warp those back for true
+    // confinement rather than merely continuing to receive out-of-bounds events.
+    if (applied == CursorLockState::Confined) {
+        const QPointF clamped(
+            std::clamp(logicalPos.x(), 0.0, std::max(0, width() - 1) * 1.0),
+            std::clamp(logicalPos.y(), 0.0, std::max(0, height() - 1) * 1.0));
+        if (clamped != logicalPos) {
+            logicalPos = clamped;
+            QCursor::setPos(mapToGlobal(clamped.toPoint()));
+        }
+    }
+
+    m_lastMousePos = logicalPos;
+    m_haveLastMousePos = true;
+    inputManager->SetMouseScreenPosition(gameView, {logicalPos.x() * dpr, logicalPos.y() * dpr});
     e->accept();
+}
+
+void GameViewGui::focusInEvent(QFocusEvent* event)
+{
+    ViewportWidget::focusInEvent(event);
+    ApplyCursorState();
+}
+
+void GameViewGui::focusOutEvent(QFocusEvent* event)
+{
+    ReleaseCursorCapture();
+    ViewportWidget::focusOutEvent(event);
+}
+
+void GameViewGui::hideEvent(QHideEvent* event)
+{
+    ReleaseCursorCapture();
+    ViewportWidget::hideEvent(event);
 }
 
 bool GameViewGui::eventFilter(QObject* obj, QEvent* event)

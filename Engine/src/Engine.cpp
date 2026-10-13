@@ -18,6 +18,7 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/audio/AudioEngine.hpp"
 #include "engine/input/GamepadService.hpp"
+#include "engine/input/CursorManager.hpp"
 #include "engine/components/AudioListener.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/Transform.hpp"
@@ -297,6 +298,7 @@ void Engine::ExitPlayMode(){
     // latch in the controller until told otherwise, so a game stopped mid-shake would leave the
     // pad buzzing on the editor's desk with nothing left running to turn it off.
     GamepadService::Get().StopAllRumble();
+    CursorManager::Get().Reset();
 
     Notify(EXIT_PLAY_MODE_EVENT);
 }

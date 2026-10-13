@@ -67,7 +67,17 @@ class PlayerController(ScriptableComponent):
     camera: Camera = None
     camera_smoothing: float = 0.1
 
+    cursor : Sprite = None
+
     def awake(self):
+
+        Cursor.set_sprite(self.cursor, Vector2(3, 2))
+        Cursor.visible = True
+        Cursor.lock_state = CursorLockState.CONFINED
+
+        # Camera/look controls:
+        delta = Input.get_mouse_delta()
+
         self.rb = self.get_component(Rigidbody)
         self.sr = self.get_component(SpriteRenderer)
         self.animator = self.get_component(Animator)

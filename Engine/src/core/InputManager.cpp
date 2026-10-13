@@ -17,6 +17,9 @@ glm::vec2 InputManager::GetMousePosition() const {
 }
 
 void InputManager::Update(){
+    m_mouseDelta = m_mouseDeltaQueue;
+    m_mouseDeltaQueue = {0.0f, 0.0f};
+
     m_keysJustPressed = m_keysJustPressedQueue;
     m_keysJustPressedQueue.clear();
 
@@ -134,6 +137,10 @@ InputManager* InputManager::Copy(){
     input->m_mouseScreenPos  = m_mouseScreenPos;
     input->m_keyStates = m_keyStates;
     input->m_stickDeadzone = m_stickDeadzone;
+    // Motion is an edge-like per-frame value. Carrying either buffer into the runtime copy
+    // would manufacture a look delta on the first play-mode frame.
+    input->m_mouseDeltaQueue = {0.0f, 0.0f};
+    input->m_mouseDelta = {0.0f, 0.0f};
 
     // Seeded from live hardware rather than copied from this manager: both buffers start equal,
     // so a button already held when play mode starts reads as down but never fires a press edge

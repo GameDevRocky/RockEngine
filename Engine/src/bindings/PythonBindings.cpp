@@ -23,6 +23,7 @@ void BindPhysics(py::module_& m);
 void BindDebugDraw(py::module_& m);
 void BindScene(py::module_& m);
 void BindApplication(py::module_& m);
+void BindCursor(py::module_& m);
 
 // CORE
 void BindGameObject(py::module_& m);
@@ -76,6 +77,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindTime(systems);
     BindScene(systems);
     BindApplication(systems);
+    BindCursor(systems);
 
     // COMPONENTS
     py::module_ components = m.def_submodule("components", " RockEngine components APIs");

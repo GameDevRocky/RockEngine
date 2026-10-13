@@ -40,6 +40,12 @@ public:
 
     glm::vec2 GetMouseScreenPosition() const { return m_mouseScreenPos; }
 
+    // Accumulated framebuffer-pixel movement for the current engine frame. Hosts push every
+    // native motion event into the queue; Update latches the total before scripts run. This
+    // remains useful in locked/relative mode, where absolute cursor position is stationary.
+    void AddMouseDelta(glm::vec2 delta) { m_mouseDeltaQueue += delta; }
+    glm::vec2 GetMouseDelta() const { return m_mouseDelta; }
+
     // World-space cursor, resolved against the source view's CURRENT camera. Falls back to the
     // raw screen position before any host has pushed a view.
     glm::vec2 GetMousePosition() const;
@@ -132,4 +138,6 @@ private:
 
     RenderView* m_mouseSourceView = nullptr;   // non-owning; see SetMouseScreenPosition
     glm::vec2   m_mouseScreenPos  = {0.0f, 0.0f};
+    glm::vec2   m_mouseDeltaQueue = {0.0f, 0.0f};
+    glm::vec2   m_mouseDelta      = {0.0f, 0.0f};
 };

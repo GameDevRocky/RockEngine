@@ -138,3 +138,12 @@ class Input:
         use it for screen-space UI hit-testing, not for aiming at things in the world."""
         return Vector2(input_module.get_mouse_screen_pos())
 
+    @staticmethod
+    def get_mouse_delta():
+        """Framebuffer-pixel movement accumulated during this frame.
+
+        Unlike mouse position, this keeps reporting unrestricted relative motion while the
+        cursor is locked, making it the appropriate value for camera/look controls.
+        """
+        return Vector2(input_module.get_mouse_delta())
+

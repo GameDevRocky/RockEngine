@@ -83,6 +83,10 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   `QOpenGLWidget` base that hosts an engine-owned `RenderView` (`EditorRenderView`/
   `GameRenderView`) and hands it an FBO id each frame — the pipeline, passes, and camera all
   live in Engine, not here. See Engine's CLAUDE.md "Rendering" section for the ownership chain.
+- `GameViewGui` is also the Qt backend for the engine's process-global `CursorManager`. Custom
+  cursors are cropped from Sprite UVs, confinement applies only to the Game view, and locked
+  motion is converted into framebuffer-pixel deltas by recentering the native pointer. Escape,
+  focus loss, hiding the view, and leaving play mode release any physical mouse grab.
 - Plain Scene-view picking is root-first: clicking a rendered child selects its highest
   ancestor, then a consecutive click on that same rendered child drills into the child and keeps
   it selected. The raw hit and prior resolved target live on `SceneViewGui`, not

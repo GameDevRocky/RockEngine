@@ -4,6 +4,7 @@
 
 #include <SDL3/SDL.h>
 #include <string>
+#include <cstdint>
 
 class GameRenderView;
 
@@ -33,6 +34,8 @@ public:
 private:
     void PumpEvents();
     void OnResized();
+    void ApplyCursorState(bool force = false);
+    void ReleaseCursorCapture();
 
     // Called once the startup scene has finished loading (LoadScene is asynchronous), which
     // is the point at which the world is real enough to start simulating.
@@ -50,4 +53,11 @@ private:
     bool playing        = false;   // BeginPlay has run; the runtime container is live
     bool sceneLoaded    = false;
     bool warnedNoCamera = false;   // the "nothing is rendering" notice is once-per-run
+    bool applicationFocused = true;
+
+    SDL_Cursor* customCursor = nullptr;
+    std::string appliedCursorSprite;
+    float appliedHotspotX = -1.0f;
+    float appliedHotspotY = -1.0f;
+    std::uint64_t appliedCursorRevision = static_cast<std::uint64_t>(-1);
 };

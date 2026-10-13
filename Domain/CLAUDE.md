@@ -12,7 +12,8 @@ Loaded at runtime relative to `PROJECT_ROOT` (the source dir, baked in at build 
   - `core/` — `gameobject_handler`.
   - `rendering/` — `sprite_handler`, `material_handler`.
   - `systems/` — `input_system`, `gamepad_system`, `physics_system`, `time_system`,
-    `console_system`, `debug_draw`.
+    `console_system`, `debug_draw`, `cursor_system`. `Cursor` controls visibility, locking,
+    and custom Sprite cursors; locked look controls read `Input.get_mouse_delta()`.
 - **`lib/assets/`** — textures, sprites, icons, fonts, shaders, `styling/default.qss` (the Qt
   editor stylesheet). Each source asset has a sibling meta file (e.g. `foo.png` +
   `foo.png.texture`) — see Engine's CLAUDE.md for the meta convention.
