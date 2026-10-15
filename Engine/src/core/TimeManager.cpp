@@ -1,8 +1,9 @@
 #include "engine/core/TimeManager.hpp"
 #include <iostream>
+#include "engine/core/Container.hpp"
 #include "engine/debug/Console.hpp"
 void TimeManager::Init() {
-    lastFrameTime = std::chrono::high_resolution_clock::now();
+    lastFrameTime = std::chrono::steady_clock::now();
     deltaTime = 0.0f;
     elapsedTime = 0.0f;
     unscaledTime = 0.0f;
@@ -13,7 +14,7 @@ void TimeManager::Init() {
 
 void TimeManager::Update() {
     using namespace std::chrono;
-    auto now = high_resolution_clock::now();
+    auto now = steady_clock::now();
     unscaledDeltaTime = duration<float>(now - lastFrameTime).count();
     
     if (unscaledDeltaTime > 0.0f) {
@@ -22,10 +23,19 @@ void TimeManager::Update() {
     }
 
     unscaledTime += unscaledDeltaTime;
-    deltaTime = unscaledDeltaTime * timeScale;
-    elapsedTime += deltaTime;
+    if (container && container->IsPaused()) {
+        deltaTime = 0.0f;
+    } else {
+        deltaTime = unscaledDeltaTime * timeScale;
+        elapsedTime += deltaTime;
+    }
     lastFrameTime = now;
     ++frameCount;
+}
+
+void TimeManager::StepFrame() {
+    deltaTime = fixedDeltaTime;
+    elapsedTime += deltaTime;
 }
 
 void TimeManager::Shutdown() {

@@ -15,6 +15,14 @@ class _Time:
         return time_module.get_elapsed_time()
 
     @property
+    def unscaled_time(self) -> float:
+        return time_module.get_unscaled_time()
+
+    @property
+    def unscaled_delta_time(self) -> float:
+        return time_module.get_unscaled_delta_time()
+
+    @property
     def fps(self) -> float:
         return time_module.get_fps()
 

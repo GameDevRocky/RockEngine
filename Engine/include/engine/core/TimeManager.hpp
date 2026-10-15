@@ -14,6 +14,10 @@ public:
     void Update() override;
     void Shutdown() override;
 
+    // Advances scaled simulation time by one fixed step while the container is
+    // paused. Wall-clock time is updated only by Update().
+    void StepFrame();
+
     TimeManager* Copy() override;
     TimeManager* Copy(Container* container) override;
 
@@ -36,7 +40,7 @@ public:
 
     private:
     
-    std::chrono::high_resolution_clock::time_point lastFrameTime;
+    std::chrono::steady_clock::time_point lastFrameTime;
     
     float currentFps = 0.0f;
     float deltaTime = 0.0f;

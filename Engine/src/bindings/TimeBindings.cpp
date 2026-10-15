@@ -20,6 +20,16 @@ void BindTime(pybind11::module_& m) {
         return timeManager ? timeManager->ElapsedTime() : 0.0f;
     });
 
+    time_module.def("get_unscaled_time", []() -> float {
+
+        return timeManager ? timeManager->UnscaledTime() : 0.0f;
+    });
+
+    time_module.def("get_unscaled_delta_time", []() -> float {
+
+        return timeManager ? timeManager->UnscaledDeltaTime() : 0.0f;
+    });
+
     time_module.def("get_time_scale", []() -> float {
         
         return timeManager ? timeManager->TimeScale() : 1.0f;

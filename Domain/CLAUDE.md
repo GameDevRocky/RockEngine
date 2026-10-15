@@ -40,6 +40,9 @@ proxy holding an object id and forwarding to the C++ binding.
     `_tick_coroutines()`; if a subclass defines no update method, a minimal one is injected.
 - User scripts do `from Domain import *` and subclass `ScriptableComponent`. Example:
   `sandbox/scripts/BallScript.py` (animates a sprite via a coroutine).
+- `Time.delta_time` and `Time.elapsed_time` are scaled simulation values and freeze during
+  play-mode pause. `Time.unscaled_delta_time` and `Time.unscaled_time` expose the continuing
+  wall clock for UI and other pause-independent behavior.
 
 ## When changing Domain code
 

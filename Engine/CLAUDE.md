@@ -28,6 +28,12 @@ The whole engine is built from `RuntimeObject`s living inside a `Container`.
 `Engine::Update()` (called every frame by the editor's vsync-driven frame loop, or by
 `PlayerApp`'s loop in a shipped game) ticks `activeContainer`.
 
+`TimeManager` keeps separate simulation and wall clocks. `DeltaTime()` and `ElapsedTime()`
+are scaled by `timeScale` and freeze while the runtime container is paused;
+`UnscaledDeltaTime()` and `UnscaledTime()` continue from the monotonic wall clock. A manual
+paused `StepFrame()` advances scaled time by exactly one fixed step without altering the
+unscaled clock.
+
 Lifecycle traversal is snapshot-based because component callbacks are allowed to mutate the
 world. `Scene` snapshots root ids and re-resolves each root; `GameObject::recurseTopDown` and
 `recurseBottomUp` snapshot their resolved child pointers before invoking more game code. Never

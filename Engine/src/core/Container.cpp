@@ -46,6 +46,9 @@ void Container::Update(){
 }
 
 void Container::StepFrame(){
+    if (auto* timeManager = FindSystem<TimeManager>()) {
+        timeManager->StepFrame();
+    }
     if (auto* sceneManager = FindSystem<SceneManager>()) {
         sceneManager->StepFrame();
     }
