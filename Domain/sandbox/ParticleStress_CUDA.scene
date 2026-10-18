@@ -1,60 +1,111 @@
 name: ParticleStress_CUDA
 id: f63724271a637acdf64571784e20a4ed
 components:
-  - id: 058677751b339ed84031cbc2258f27f2
+  - id: c3c9cafa986dc42d9a359d01481a495a
     enabled: true
     type: Transform
-    gameobject: e843e4b2cb767a06c3661a3ad1c987e4
-    localPosition: [-712.3243, 391.7818]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 4ec3ae107e559e1aed712efdffbe7d8b
-    enabled: true
-    type: ParticleComponent
-    gameobject: e843e4b2cb767a06c3661a3ad1c987e4
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: b0ed588a6cf2adf23ff3bd648cb08555
-    enabled: true
-    type: Transform
-    gameobject: 1f8284d1a9fd28a1452733c3f73819b6
+    gameobject: a7d24d593ee61be211f88f9a89535579
     localPosition: [0, 0]
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
-  - id: 4acdbd884fe026e60efebfa831c6a229
+  - id: d8d29271533e9b7f38a8b046e3f1a2c1
+    enabled: true
+    type: PrismaticJoint
+    gameobject: a7d24d593ee61be211f88f9a89535579
+    connectedBody: 511130bab1b422f1606599678edbb2a2
+    collideConnected: false
+    localAnchorA: [0, 0]
+    localAnchorB: [0, 0]
+    axisAngle: 90
+    enableSpring: false
+    hertz: 4
+    dampingRatio: 0.5
+    targetTranslation: 0
+    enableLimit: true
+    lowerTranslation: -120
+    upperTranslation: 0
+    enableMotor: true
+    motorSpeed: 0
+    maxMotorForce: 100000
+  - id: 63d24f31dac733c44c781b3f21fcfc6f
+    enabled: true
+    type: RigidBody
+    gameobject: a7d24d593ee61be211f88f9a89535579
+    bodyType: Static
+    useGravity: true
+    lockRotation: false
+    bullet: false
+  - id: 7ca437ca927400cea6005f0cbafe5feb
+    enabled: true
+    type: Transform
+    gameobject: 511130bab1b422f1606599678edbb2a2
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 1e7aefc008d0e3d36dda02e06a2139e3
+    enabled: true
+    type: ScriptComponent
+    gameobject: 511130bab1b422f1606599678edbb2a2
+    module: ThwompController
+    class: ThwompController
+    fields:
+      joint: a7d24d593ee61be211f88f9a89535579
+      slam_speed: 650
+      rise_speed: 140
+      motor_force: 100000
+      bottom_pause: 0.45
+      top_pause: 1
+      arrival_tolerance: 2
+      state: Disabled
+  - id: 1a023554947409970af8be2dd0bb1bb7
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 511130bab1b422f1606599678edbb2a2
+    material_id: m1
+    sprite_id: 0115f0687a3dd8c996f26b3a6439d15f
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 231a97c1d0dd47e193e5048a268ab750
+    enabled: true
+    type: BoxCollider
+    gameobject: 511130bab1b422f1606599678edbb2a2
+    center: [0, 0]
+    isSensor: false
+    density: 1
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+    size: [31.999998, 31.999998]
+  - id: 60f65b26504034d17115c6a6c5eccaba
+    enabled: true
+    type: RigidBody
+    gameobject: 511130bab1b422f1606599678edbb2a2
+    bodyType: Dynamic
+    useGravity: false
+    lockRotation: true
+    bullet: false
+  - id: 83b09baccfa762e29a3dbfa00919e12f
+    enabled: true
+    type: Transform
+    gameobject: 513fa45e698228d46c6accca153f782e
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 5d9f5cc029e2fc419b6a8547ff1147dd
     enabled: true
     type: Camera
-    gameobject: 1f8284d1a9fd28a1452733c3f73819b6
+    gameobject: 513fa45e698228d46c6accca153f782e
     projection: 0
-    orthoSize: 540
+    orthoSize: 119.43156
     clearFlags: 0
     clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
     priority: 0
@@ -62,452 +113,83 @@ components:
     viewportRect: [0, 0, 1, 1]
     cullingLayers: []
     targetTextureId: ""
-  - id: 51ce779f6bfadb4f534e8bfd4ab8d778
+  - id: 3faacba472a7d35ddf271f3fe61190aa
     enabled: true
     type: Transform
-    gameobject: b6febbd40fd690d754f15d54287edb79
-    localPosition: [-482.82468, 1096.9589]
+    gameobject: 72ed130908c2a8b1ba9a2518be28dd20
+    localPosition: [5.9326553, -88.24845]
     localRotation: 0
-    localScale: [1, 1]
+    localScale: [3.1220694, 0.47518665]
     parent_id: ~
-  - id: 87ff2324181393123ef6f90124e3ef8b
+  - id: 09d7c188c44ec83824ef11779cfc75cb
     enabled: true
-    type: ParticleComponent
-    gameobject: b6febbd40fd690d754f15d54287edb79
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
+    type: SpriteRenderer
+    gameobject: 72ed130908c2a8b1ba9a2518be28dd20
+    material_id: m1
+    sprite_id: default
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
     flipX: false
     flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: fde44ebb518a5957c7e45587488f8eda
+    visible: true
+  - id: 4b6a0502cf970ac30b5d066c53f1274b
     enabled: true
-    type: Transform
-    gameobject: 2d5691d225714b6e85675fdad642b022
-    localPosition: [18.019989, 590.6095]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: d4c26af55bb460d2ac19bac2fb89c58f
+    type: BoxCollider
+    gameobject: 72ed130908c2a8b1ba9a2518be28dd20
+    center: [0, 0]
+    isSensor: false
+    density: 1
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+    size: [65, 65]
+  - id: 21ff3bb749c764be4510d85beb047819
     enabled: true
-    type: ParticleComponent
-    gameobject: 2d5691d225714b6e85675fdad642b022
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: f0b50eef07685b87366249f8e90f2814
-    enabled: true
-    type: Transform
-    gameobject: 8572a0cae82dc0fb4445aff7ececef03
-    localPosition: [-1198.3184, 821.76886]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: cfacf02e68ff52a96b2373c054843c2e
-    enabled: true
-    type: ParticleComponent
-    gameobject: 8572a0cae82dc0fb4445aff7ececef03
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: 6fa37bc308bbbbb58440f8b2100a8f77
-    enabled: true
-    type: Transform
-    gameobject: 07109c662efcb1f4c0ce7b25dff9c60e
-    localPosition: [18.019989, 590.6095]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 8d3112119699f0d0ecd2be97369741f3
-    enabled: true
-    type: ParticleComponent
-    gameobject: 07109c662efcb1f4c0ce7b25dff9c60e
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: 03804f652b3aad8b43727a4057302cc4
-    enabled: true
-    type: Transform
-    gameobject: 4d01eda018fff1bfa97624b4b4cc1f10
-    localPosition: [18.019989, 590.6095]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 86939ec4c27ff64c76124a5adfcdb780
-    enabled: true
-    type: ParticleComponent
-    gameobject: 4d01eda018fff1bfa97624b4b4cc1f10
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: c6101064305a88a686f47231a963e319
-    enabled: true
-    type: Transform
-    gameobject: 659113b1adcff9648ca85b84ed119a07
-    localPosition: [18.019989, 590.6095]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 7d41e06168f68cc3abeb0e5967dbb782
-    enabled: true
-    type: ParticleComponent
-    gameobject: 659113b1adcff9648ca85b84ed119a07
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: 7a08db2a4c98d281522a2950653efdbe
-    enabled: true
-    type: Transform
-    gameobject: 8d659b4abf09f8aab10b461b04ae8c2e
-    localPosition: [18.019989, 590.6095]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 55e282b5d2104b4359040d120e7a88c0
-    enabled: true
-    type: ParticleComponent
-    gameobject: 8d659b4abf09f8aab10b461b04ae8c2e
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: d6992442e6b89f7a0bc77f444a6355e1
-    enabled: true
-    type: Transform
-    gameobject: aaf63b81ba5f4a4db732d99b1e4f4eab
-    localPosition: [18.019989, 590.6095]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 876abef5ae6ee2324ab85d992805e8cf
-    enabled: true
-    type: ParticleComponent
-    gameobject: aaf63b81ba5f4a4db732d99b1e4f4eab
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: 44f9e08bb5206d2ab22c405619ad3c40
-    enabled: true
-    type: Transform
-    gameobject: 5e3355f8b17aa98a4217db1847418e6d
-    localPosition: [18.019989, 590.6095]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: ~
-  - id: 792d6c5509e12b4c702356b81559ab9f
-    enabled: true
-    type: ParticleComponent
-    gameobject: 5e3355f8b17aa98a4217db1847418e6d
-    emissionRate: 25000
-    maxParticles: 1000000
-    duration: 30
-    looping: true
-    startBurst: 50000
-    lifetimeMin: 3
-    lifetimeMax: 5
-    startSpeedMin: 40
-    startSpeedMax: 140
-    directionAngle: 90
-    spreadDegrees: 360
-    gravity: [0, -20]
-    damping: 0.15
-    space: 1
-    simulationBackend: 1
-    shape: 1
-    shapeSize: [256, 256]
-    coneAngle: 25
-    sprite_id: ""
-    flipX: false
-    flipY: false
-    startColor: [0.2, 1, 0.35, 1]
-    endColor: [0.05, 0.5, 0.1, 0]
-    startSize: 12
-    endSize: 2
-    blendMode: 1
-    sortingLayer: Default
-    sortingOrder: 0
+    type: RigidBody
+    gameobject: 72ed130908c2a8b1ba9a2518be28dd20
+    bodyType: Kinematic
+    useGravity: true
+    lockRotation: false
+    bullet: false
 gameobjects:
-  - id: e843e4b2cb767a06c3661a3ad1c987e4
+  - id: a7d24d593ee61be211f88f9a89535579
     type: GameObject
-    name: CUDA Particle Stress Emitter
+    name: Joint
     tag: Untagged
     active: true
     component_ids:
-      - 058677751b339ed84031cbc2258f27f2
-      - 4ec3ae107e559e1aed712efdffbe7d8b
-  - id: 1f8284d1a9fd28a1452733c3f73819b6
+      - c3c9cafa986dc42d9a359d01481a495a
+      - d8d29271533e9b7f38a8b046e3f1a2c1
+      - 63d24f31dac733c44c781b3f21fcfc6f
+  - id: 511130bab1b422f1606599678edbb2a2
     type: GameObject
-    name: Stress Test Camera
+    name: Block
     tag: Untagged
     active: true
     component_ids:
-      - b0ed588a6cf2adf23ff3bd648cb08555
-      - 4acdbd884fe026e60efebfa831c6a229
-  - id: b6febbd40fd690d754f15d54287edb79
+      - 7ca437ca927400cea6005f0cbafe5feb
+      - 1e7aefc008d0e3d36dda02e06a2139e3
+      - 1a023554947409970af8be2dd0bb1bb7
+      - 231a97c1d0dd47e193e5048a268ab750
+      - 60f65b26504034d17115c6a6c5eccaba
+  - id: 513fa45e698228d46c6accca153f782e
     type: GameObject
-    name: CUDA Particle Stress Emitter (1)
+    name: Camera
     tag: Untagged
     active: true
     component_ids:
-      - 51ce779f6bfadb4f534e8bfd4ab8d778
-      - 87ff2324181393123ef6f90124e3ef8b
-  - id: 2d5691d225714b6e85675fdad642b022
+      - 83b09baccfa762e29a3dbfa00919e12f
+      - 5d9f5cc029e2fc419b6a8547ff1147dd
+  - id: 72ed130908c2a8b1ba9a2518be28dd20
     type: GameObject
-    name: CUDA Particle Stress Emitter (2)
+    name: Ground
     tag: Untagged
     active: true
     component_ids:
-      - fde44ebb518a5957c7e45587488f8eda
-      - d4c26af55bb460d2ac19bac2fb89c58f
-  - id: 8572a0cae82dc0fb4445aff7ececef03
-    type: GameObject
-    name: CUDA Particle Stress Emitter (3)
-    tag: Untagged
-    active: true
-    component_ids:
-      - f0b50eef07685b87366249f8e90f2814
-      - cfacf02e68ff52a96b2373c054843c2e
-  - id: 07109c662efcb1f4c0ce7b25dff9c60e
-    type: GameObject
-    name: CUDA Particle Stress Emitter (4)
-    tag: Untagged
-    active: true
-    component_ids:
-      - 6fa37bc308bbbbb58440f8b2100a8f77
-      - 8d3112119699f0d0ecd2be97369741f3
-  - id: 4d01eda018fff1bfa97624b4b4cc1f10
-    type: GameObject
-    name: CUDA Particle Stress Emitter (5)
-    tag: Untagged
-    active: true
-    component_ids:
-      - 03804f652b3aad8b43727a4057302cc4
-      - 86939ec4c27ff64c76124a5adfcdb780
-  - id: 659113b1adcff9648ca85b84ed119a07
-    type: GameObject
-    name: CUDA Particle Stress Emitter (6)
-    tag: Untagged
-    active: true
-    component_ids:
-      - c6101064305a88a686f47231a963e319
-      - 7d41e06168f68cc3abeb0e5967dbb782
-  - id: 8d659b4abf09f8aab10b461b04ae8c2e
-    type: GameObject
-    name: CUDA Particle Stress Emitter (7)
-    tag: Untagged
-    active: true
-    component_ids:
-      - 7a08db2a4c98d281522a2950653efdbe
-      - 55e282b5d2104b4359040d120e7a88c0
-  - id: aaf63b81ba5f4a4db732d99b1e4f4eab
-    type: GameObject
-    name: CUDA Particle Stress Emitter (8)
-    tag: Untagged
-    active: true
-    component_ids:
-      - d6992442e6b89f7a0bc77f444a6355e1
-      - 876abef5ae6ee2324ab85d992805e8cf
-  - id: 5e3355f8b17aa98a4217db1847418e6d
-    type: GameObject
-    name: CUDA Particle Stress Emitter (9)
-    tag: Untagged
-    active: true
-    component_ids:
-      - 44f9e08bb5206d2ab22c405619ad3c40
-      - 792d6c5509e12b4c702356b81559ab9f
+      - 3faacba472a7d35ddf271f3fe61190aa
+      - 09d7c188c44ec83824ef11779cfc75cb
+      - 4b6a0502cf970ac30b5d066c53f1274b
+      - 21ff3bb749c764be4510d85beb047819

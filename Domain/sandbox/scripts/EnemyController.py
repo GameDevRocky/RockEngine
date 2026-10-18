@@ -25,6 +25,14 @@ class EnemyController(ScriptableComponent):
     muzzle_offset: Reflect[float, Slider, Step(5), Range(0, 500)] = 30.0
     search_duration: Reflect[float, Slider, Step(0.5), Range(0.5, 15)] = 4.0
     draw_ranges: Reflect[bool, Tooltip("Draw color-coded AI ranges during gameplay.")] = True
+    knockback_force: Reflect[float, Slider, Step(1000), Range(1000, 100000),
+                             Tooltip("Impulse applied when a bullet hits the enemy.")] = 35000.0
+    knockback_duration: Reflect[float, Slider, Step(0.05), Range(0.05, 2.0),
+                                Tooltip("Time before the AI regains movement control.")] = 0.45
+    knockback_drag: Reflect[float, Slider, Step(0.01), Range(0.8, 1.0),
+                            Tooltip("Velocity retained each physics tick during knockback.")] = 0.97
+    knockback_spin: Reflect[float, Slider, Step(1000), Range(0, 100000),
+                            Tooltip("Random torque added to make hits feel more explosive.")] = 40000.0
 
     rb: Reflect[Rigidbody, ReadOnly()]
     health: Reflect[float, Slider, Step(1), Range(0, 100), ReadOnly()] = 100.0
@@ -45,6 +53,7 @@ class EnemyController(ScriptableComponent):
         self._shoot_timer = random.uniform(0.0, self.shoot_cooldown)
         self._strafe_direction = random.choice((-1.0, 1.0))
         self._strafe_timer = random.uniform(0.8, 1.8)
+        self._knockback_timer = 0.0
 
     def start(self):
         self._pool_script = (ScriptRef(self.bullet_pool.id, "ObjectPool")
@@ -82,6 +91,13 @@ class EnemyController(ScriptableComponent):
         self._shoot_timer = max(0.0, self._shoot_timer - dt)
         self._state_timer -= dt
         self._strafe_timer -= dt
+
+        # Let the hit impulse own the body briefly. Normal steering and its heavy
+        # damping would otherwise erase the exaggerated reaction almost instantly.
+        if self._knockback_timer > 0.0:
+            self._knockback_timer = max(0.0, self._knockback_timer - dt)
+            self.rb.velocity *= self.knockback_drag
+            return
 
         if not self.player:
             self._change_state("Return")
@@ -273,7 +289,23 @@ class EnemyController(ScriptableComponent):
         if other.gameobject.tag == "Bullet":
             if self.health > 0:
                 self.health -= 1
-            self.rb.apply_impulse(self.transform.right * -1000)
+
+            # Prefer the projectile's actual travel direction. Depending on callback
+            # order a pooled bullet may already have stopped, so fall back to pushing
+            # directly away from the player and finally to the enemy's facing axis.
+            bullet_rb = other.gameobject.get_component(Rigidbody)
+            hit_direction = bullet_rb.velocity if bullet_rb else Vector2(0.0, 0.0)
+            if hit_direction.magnitude <= 0.001 and self.player:
+                hit_direction = (self.transform.world_position
+                                 - self.player.transform.world_position)
+            if hit_direction.magnitude <= 0.001:
+                hit_direction = self.transform.right * -1.0
+
+            self.rb.apply_impulse(hit_direction.normalize() * self.knockback_force)
+            if self.knockback_spin > 0.0:
+                self.rb.apply_torque(random.choice((-1.0, 1.0)) * self.knockback_spin)
+            self._knockback_timer = self.knockback_duration
+
             if self.player:
                 self._last_seen_position = Vector2(self.player.transform.position)
                 self._change_state("Chase")

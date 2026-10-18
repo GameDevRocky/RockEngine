@@ -73,7 +73,7 @@ class PlayerController(ScriptableComponent):
 
         Cursor.set_sprite(self.cursor, Vector2(3, 2))
         Cursor.visible = True
-        Cursor.lock_state = CursorLockState.CONFINED
+        Cursor.lock_state = CursorLockState.NONE
 
         # Camera/look controls:
         delta = Input.get_mouse_delta()
