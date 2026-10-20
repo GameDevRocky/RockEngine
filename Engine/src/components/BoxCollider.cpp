@@ -71,6 +71,7 @@ void BoxCollider::Awake(){
 void BoxCollider::SetSize(glm::vec2 size){
     this->size = size;
     CreateShape();
+    this->Notify(BoxCollider::SIZE_CHANGED_EVENT);
     this->Notify(BoxCollider::CHANGED_EVENT);
 }
 
@@ -136,6 +137,7 @@ BoxCollider* BoxCollider::Copy(){
     
     BoxCollider* copy = new BoxCollider();
     copy->id = id;
+    copy->enabled = enabled;
     copy->gameobject_id = gameobject_id;
     copy->center = center;
     copy->filter = filter;
@@ -148,11 +150,5 @@ BoxCollider* BoxCollider::Copy(){
     copy->size = size;
 
     copy->state = State::Loaded;
-    return copy;
-}
-
-BoxCollider* BoxCollider::Copy(Container* container){
-    BoxCollider* copy = this->Copy();
-    copy->Attach(container);
     return copy;
 }

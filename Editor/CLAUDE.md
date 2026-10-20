@@ -40,8 +40,10 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 
 - **`src/dock-widgets/`** — the dockable panels: `MainWindowGui` (the `QMainWindow` host),
   `HierarchyGui`, `InspectorGui`, `ConsoleGui`, `SceneViewGui`, `GameViewGui`, `FolderViewGui`,
-  `FileExplorerGui`, `AiChatGui`, `MenuBar`, `RuntimeBar` (play/pause/stop), `BuildWindow` (File → Build
-  Game…, a top-level window rather than a dock).
+  `FileExplorerGui`, `AiChatGui`, `SpriteEditor`, `MenuBar`, `RuntimeBar` (play/pause/stop),
+  `BuildWindow` (File → Build Game…, a top-level window rather than a dock). The Sprite Editor
+  is created lazily and tabbed into the central Scene/Game dock area. Once created, it follows
+  texture asset selection and clears to an empty state if its texture is destroyed.
 - **`src/component-widgets/`** — per-component inspector UI pieces: `ComponentHeader`,
   `ObjectHeader`. Dragging a `ComponentHeader` label or non-interactive header surface starts
   the component MIME drag. A drop back in the Inspector commits through
@@ -99,7 +101,8 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   `frameSwapped` still fires → `Editor::FrameTick` → `Engine::Update` → `JobSystem::Pump`,
   re-entering the pump from inside a job step. `QApplication::processEvents()` and
   `QProgressDialog` are out for the same reason. Windows are plain top-level `QWidget`s shown
-  with `show(); raise(); activateWindow();` (see `BuildWindow`, `SpriteEditorModal`). The static
+  with `show(); raise(); activateWindow();` (see `BuildWindow`); editor panels such as the Sprite
+  Editor use docks. The static
   `QFileDialog::getExistingDirectory` helper is fine — it runs the platform's own loop, not ours.
 - Don't put game/runtime logic here — it belongs in Engine. The Editor only observes and
   drives the engine. Game *build* tooling (`utils/GameBuilder`) is the exception and correctly

@@ -162,9 +162,3 @@ WheelJoint* WheelJoint::Copy(){
     copy->maxMotorTorque = maxMotorTorque;
     return copy;
 }
-
-WheelJoint* WheelJoint::Copy(Container* container){
-    WheelJoint* copy = this->Copy();
-    copy->Attach(container);
-    return copy;
-}

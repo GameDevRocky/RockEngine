@@ -38,6 +38,7 @@ class AudioSource;
 class AudioListener;
 class AudioClip;
 class Scene;
+class Grid;
 
 class IVisitor {
 public:
@@ -75,4 +76,5 @@ public:
     virtual void Visit(AudioListener* a) {}
     virtual void Visit(AudioClip* a) {}
     virtual void Visit(Scene* s) {}
+    virtual void Visit(Grid* g) {}
 };

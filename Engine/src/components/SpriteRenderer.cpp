@@ -236,6 +236,7 @@ SpriteRenderer* SpriteRenderer::Copy()
     copy->uvOffset = uvOffset;
     copy->uvScale = uvScale;
     copy->color = color;
+    copy->sortingLayer = sortingLayer;
     copy->sortingOrder = sortingOrder;
     copy->flipX = flipX;
     copy->flipY = flipY;

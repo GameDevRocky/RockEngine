@@ -53,7 +53,6 @@ public:
     void Accept(IVisitor* v) override;
 
     RigidBody* Copy() override;
-    RigidBody* Copy(Container* container) override;
 
     RigidBody() = default;
     ~RigidBody() = default;

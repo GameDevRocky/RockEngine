@@ -45,9 +45,8 @@ BuildWindow* BuildWindow::Get() {
 
 BuildWindow::BuildWindow(QWidget* parent) : QWidget(parent) {
     setWindowTitle("Build Game");
-    // A normal OS-decorated window, unlike SpriteEditorModal's frameless one: this is a
-    // settings form the user may well want to leave open beside the editor while they
-    // check something, not a light modal that should vanish on click-outside.
+    // A normal OS-decorated window: this settings form can remain open beside the
+    // editor while the user checks something.
     setWindowFlags(Qt::Window);
     setMinimumWidth(560);
     BuildUi();

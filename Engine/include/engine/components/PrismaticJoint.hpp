@@ -53,7 +53,6 @@ public:
     std::string GetTypeName() const override { return "PrismaticJoint"; }
 
     PrismaticJoint* Copy() override;
-    PrismaticJoint* Copy(Container* container) override;
 
     PrismaticJoint() = default;
 

@@ -1,4 +1,5 @@
 #include "dock-widgets/InspectorGui.hpp"
+#include "dock-widgets/MainWindowGui.hpp"
 
 #include "Engine.hpp"
 #include "engine/core/SelectionManager.hpp"
@@ -436,6 +437,11 @@ void InspectorGui::OnObjectSelected(const std::string& id)
     auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
     Serializable* selectable = selMgr ? selMgr->GetSerializable() : nullptr;
     if (!selectable) return;
+
+    // Once the Sprite Editor has been opened, selecting another texture in the
+    // asset browser retargets it without forcing its dock open or to the front.
+    if (auto* texture = dynamic_cast<Texture2D*>(selectable))
+        MainWindow::Get()->UpdateSpriteEditorTexture(texture);
 
     auto* obj = dynamic_cast<GameObject*>(selectable);
 

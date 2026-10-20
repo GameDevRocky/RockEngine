@@ -140,7 +140,7 @@ void Material::Deserialize(const YAML::Node& node) {
     if (uniforms["vec4"] && uniforms["vec4"].IsMap()) {
         for (auto pair : uniforms["vec4"]) {
             YAML::Node v = pair.second;
-            SetVec4(pair.first.as<std::string>(), glm::vec4(v[0].as<float>(), v[1].as<float>(), v[2].as<float>(), v[2].as<float>() ));
+            SetVec4(pair.first.as<std::string>(), glm::vec4(v[0].as<float>(), v[1].as<float>(), v[2].as<float>(), v[3].as<float>() ));
         }
     }
 }

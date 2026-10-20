@@ -27,7 +27,6 @@ public:
     std::string GetTypeName() const override { return "WeldJoint"; }
 
     WeldJoint* Copy() override;
-    WeldJoint* Copy(Container* container) override;
 
     WeldJoint() = default;
 

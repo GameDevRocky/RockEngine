@@ -161,9 +161,3 @@ MotorJoint* MotorJoint::Copy(){
     copy->maxSpringTorque = maxSpringTorque;
     return copy;
 }
-
-MotorJoint* MotorJoint::Copy(Container* container){
-    MotorJoint* copy = this->Copy();
-    copy->Attach(container);
-    return copy;
-}

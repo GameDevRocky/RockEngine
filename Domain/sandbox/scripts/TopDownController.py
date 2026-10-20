@@ -14,7 +14,7 @@ class TopDownController(ScriptableComponent):
 
     emit : Event
     light : Light = None
-    seth : float
+    elias : bool
 
     alex : float
 

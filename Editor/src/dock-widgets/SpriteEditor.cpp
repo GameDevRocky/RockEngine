@@ -1,4 +1,4 @@
-#include "dock-widgets/SpriteEditorModal.hpp"
+#include "dock-widgets/SpriteEditor.hpp"
 #include "dock-widgets/SpriteCanvasWidget.hpp"
 
 #include <QVBoxLayout>
@@ -9,13 +9,6 @@
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QLabel>
-#include <QSizeGrip>
-#include <QApplication>
-#include <QScreen>
-#include <QGuiApplication>
-#include <QMouseEvent>
-#include <QKeyEvent>
-#include <QEvent>
 
 #include <cmath>
 #include <string>
@@ -25,60 +18,49 @@
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 
-SpriteEditorModal::SpriteEditorModal(Texture2D* tex, QWidget* parent)
-    : QWidget(parent), m_texture(tex) {
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
-    setAttribute(Qt::WA_DeleteOnClose);
-    setObjectName("SpriteEditorModal");
-    setStyleSheet("#SpriteEditorModal { background: #232326; border: 1px solid #4a4a50; }");
-
+SpriteEditor::SpriteEditor(QWidget* parent)
+    : QWidget(parent) {
+    setObjectName("SpriteEditor");
     BuildUi();
+}
 
-    // Auto-close if the texture is destroyed in memory (one-shot; auto-unsubscribes).
+SpriteEditor::~SpriteEditor() {
+    if (m_texture && m_texSubId != -1)
+        m_texture->Unsubscribe(m_texSubId);
+}
+
+void SpriteEditor::SetTexture(Texture2D* texture) {
+    if (texture == m_texture) {
+        UpdateStatus();
+        return;
+    }
+
+    if (m_texture && m_texSubId != -1)
+        m_texture->Unsubscribe(m_texSubId);
+
+    m_texture = texture;
+    m_texSubId = -1;
+
     if (m_texture) {
         m_texSubId = m_texture->Subscribe([this]() {
-            m_texAlive = false;
-            if (m_canvas) m_canvas->SetTexture(nullptr);
             m_texture = nullptr;
-            Close();
+            m_texSubId = -1;
+            m_canvas->SetTexture(nullptr);
+            m_deleteBtn->setEnabled(false);
+            UpdateStatus();
             return false;
         }, Texture2D::DESTROYED_EVENT);
     }
 
     m_canvas->SetTexture(m_texture);
+    m_deleteBtn->setEnabled(false);
     UpdateStatus();
-
-    resize(960, 680);
-    CenterOnScreen();
 }
 
-SpriteEditorModal::~SpriteEditorModal() {
-    // Only touch the texture if it is still alive (if it fired DESTROYED_EVENT the
-    // one-shot callback already auto-unsubscribed and cleared m_texture).
-    if (m_texAlive && m_texture && m_texSubId != -1)
-        m_texture->Unsubscribe(m_texSubId);
-}
-
-void SpriteEditorModal::BuildUi() {
+void SpriteEditor::BuildUi() {
     auto* root = new QVBoxLayout(this);
-    root->setContentsMargins(1, 1, 1, 1);
+    root->setContentsMargins(4, 4, 4, 4);
     root->setSpacing(4);
-
-    // --- draggable header / title bar ---
-    m_header = new QWidget();
-    m_header->setStyleSheet("background: #2c2c30;");
-    m_header->setFixedHeight(28);
-    m_header->installEventFilter(this);
-    auto* headerLayout = new QHBoxLayout(m_header);
-    headerLayout->setContentsMargins(8, 0, 4, 0);
-    m_titleLabel = new QLabel("Sprite Editor");
-    m_titleLabel->setStyleSheet("color: #dddddd; font-weight: bold;");
-    auto* closeBtn = new QPushButton("X");
-    closeBtn->setFixedSize(22, 22);
-    headerLayout->addWidget(m_titleLabel);
-    headerLayout->addStretch();
-    headerLayout->addWidget(closeBtn);
-    root->addWidget(m_header);
 
     // --- toolbar ---
     auto* toolbar = new QHBoxLayout();
@@ -125,18 +107,16 @@ void SpriteEditorModal::BuildUi() {
     m_canvas = new SpriteCanvasWidget();
     root->addWidget(m_canvas, 1);
 
-    // --- status bar (with a resize grip) ---
+    // --- status bar ---
     auto* statusBar = new QHBoxLayout();
-    statusBar->setContentsMargins(6, 0, 0, 0);
+    statusBar->setContentsMargins(6, 0, 6, 0);
     m_status = new QLabel();
     m_status->setStyleSheet("color: #9a9a9a; padding: 2px;");
     statusBar->addWidget(m_status);
     statusBar->addStretch();
-    statusBar->addWidget(new QSizeGrip(this), 0, Qt::AlignBottom | Qt::AlignRight);
     root->addLayout(statusBar);
 
     // --- wiring ---
-    connect(closeBtn, &QPushButton::clicked, this, [this]() { Close(); });
     connect(fitBtn, &QPushButton::clicked, this, [this]() { m_canvas->FitView(); m_canvas->update(); });
     connect(m_snap, &QCheckBox::toggled, this, [this](bool on) { m_canvas->SetSnapToPixel(on); });
     connect(m_deleteBtn, &QPushButton::clicked, this, [this]() { DeleteSelected(); });
@@ -152,54 +132,7 @@ void SpriteEditorModal::BuildUi() {
     UpdateSliceLabels();
 }
 
-void SpriteEditorModal::Close() {
-    close();   // WA_DeleteOnClose schedules deletion
-}
-
-bool SpriteEditorModal::eventFilter(QObject* obj, QEvent* e) {
-    if (obj == m_header) {
-        if (e->type() == QEvent::MouseButtonPress) {
-            auto* me = static_cast<QMouseEvent*>(e);
-            if (me->button() == Qt::LeftButton) {
-                m_dragging = true;
-                m_dragOffset = me->globalPosition().toPoint() - frameGeometry().topLeft();
-            }
-        } else if (e->type() == QEvent::MouseMove && m_dragging) {
-            auto* me = static_cast<QMouseEvent*>(e);
-            move(me->globalPosition().toPoint() - m_dragOffset);
-        } else if (e->type() == QEvent::MouseButtonRelease) {
-            m_dragging = false;
-        }
-    }
-    return QWidget::eventFilter(obj, e);
-}
-
-void SpriteEditorModal::changeEvent(QEvent* e) {
-    if (e->type() == QEvent::ActivationChange) {
-        if (isActiveWindow()) {
-            m_activatedOnce = true;
-        } else if (m_activatedOnce && !QApplication::activePopupWidget()) {
-            // Deactivated by a click outside the window (and not because a child popup
-            // like a combo-box dropdown opened) -> behave like a click-away modal.
-            Close();
-        }
-    }
-    QWidget::changeEvent(e);
-}
-
-void SpriteEditorModal::keyPressEvent(QKeyEvent* e) {
-    if (e->key() == Qt::Key_Escape) { Close(); return; }
-    QWidget::keyPressEvent(e);
-}
-
-void SpriteEditorModal::CenterOnScreen() {
-    QScreen* scr = screen() ? screen() : QGuiApplication::primaryScreen();
-    if (!scr) return;
-    const QRect g = scr->availableGeometry();
-    move(g.center() - QPoint(width() / 2, height() / 2));
-}
-
-void SpriteEditorModal::DeleteSelected() {
+void SpriteEditor::DeleteSelected() {
     const std::string id = m_canvas->GetSelectedSprite();
     if (id.empty()) return;
     AssetManager::Get().RemoveSprite(id);
@@ -209,7 +142,7 @@ void SpriteEditorModal::DeleteSelected() {
     UpdateStatus();
 }
 
-void SpriteEditorModal::ApplySlice() {
+void SpriteEditor::ApplySlice() {
     if (!m_texture) return;
     const int W = m_texture->GetWidth();
     const int H = m_texture->GetHeight();
@@ -264,21 +197,20 @@ void SpriteEditorModal::ApplySlice() {
     UpdateStatus();
 }
 
-void SpriteEditorModal::UpdateStatus() {
+void SpriteEditor::UpdateStatus() {
     if (!m_status) return;
-    if (!m_texture) { m_status->setText("Texture destroyed"); return; }
+    if (!m_texture) { m_status->setText("No Texture to Edit"); return; }
 
     int count = 0;
     for (const auto& [id, s] : AssetManager::Get().GetAllSprites())
         if (s && s->GetTextureID() == m_texture->GetID()) ++count;
 
-    m_titleLabel->setText(QString("Sprite Editor  -  %1")
-                              .arg(QString::fromStdString(m_texture->GetName())));
-    m_status->setText(QString("%1x%2   -   %3 sprites   -   drag to move/resize, draw on empty space to add")
+    m_status->setText(QString("%1   -   %2x%3   -   %4 sprites   -   drag to move/resize, draw on empty space to add")
+                          .arg(QString::fromStdString(m_texture->GetName()))
                           .arg(m_texture->GetWidth()).arg(m_texture->GetHeight()).arg(count));
 }
 
-void SpriteEditorModal::UpdateSliceLabels() {
+void SpriteEditor::UpdateSliceLabels() {
     const bool byCount = (m_sliceMode->currentIndex() == 0);
     m_sliceLabelA->setText(byCount ? "Columns" : "Cell W");
     m_sliceLabelB->setText(byCount ? "Rows" : "Cell H");

@@ -1456,6 +1456,7 @@ public:
         // so it works from a bundled build as well as a dev run, matching how the
         // picker's own fallback icons below are loaded.
         m_btn = new QPushButton();
+        m_btn->setObjectName("ObjectRefBrowseButton");
         m_btn->setIcon(QIcon(QString::fromStdString(
             EngineUtils::GetAssetPath("Domain/lib/assets/icons/search_icon.png"))));
         // Set explicitly: the style's default icon size is unrelated to this button's

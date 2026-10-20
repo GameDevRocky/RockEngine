@@ -1,4 +1,4 @@
-gameName: topdown-build
+gameName: mac-test-2
 version: 1.0.0
 startupScene: Domain/sandbox/New Scene 1.scene
 windowWidth: 1280

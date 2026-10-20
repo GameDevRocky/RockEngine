@@ -164,9 +164,3 @@ RevoluteJoint* RevoluteJoint::Copy(){
     copy->maxMotorTorque = maxMotorTorque;
     return copy;
 }
-
-RevoluteJoint* RevoluteJoint::Copy(Container* container){
-    RevoluteJoint* copy = this->Copy();
-    copy->Attach(container);
-    return copy;
-}

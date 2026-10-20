@@ -180,9 +180,3 @@ PrismaticJoint* PrismaticJoint::Copy(){
     copy->maxMotorForce = maxMotorForce;
     return copy;
 }
-
-PrismaticJoint* PrismaticJoint::Copy(Container* container){
-    PrismaticJoint* copy = this->Copy();
-    copy->Attach(container);
-    return copy;
-}

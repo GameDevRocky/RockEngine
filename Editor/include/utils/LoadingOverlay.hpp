@@ -11,7 +11,7 @@
 // centered progress card, shown while a modal job runs.
 //
 // A plain child QWidget of MainWindow rather than a top-level window, which is
-// what every other "modal" in this editor is (SpriteEditorModal, AssetPicker).
+// what the other non-blocking editor surfaces are (BuildWindow, AssetPicker).
 // The difference matters here: a scrim has to cover AND follow the window it is
 // dimming, and a top-level would mean re-implementing follow-on-move,
 // follow-on-resize, multi-monitor DPI, and z-order against every dock. A child

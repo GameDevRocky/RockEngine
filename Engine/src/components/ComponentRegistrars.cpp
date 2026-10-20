@@ -22,6 +22,7 @@
 #include "engine/components/MotorJoint.hpp"
 #include "engine/components/AudioSource.hpp"
 #include "engine/components/AudioListener.hpp"
+#include "engine/components/Grid.hpp"
 #include <iostream>
 
 
@@ -50,5 +51,7 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("MotorJoint", []() { return new MotorJoint(); });
     SerializableFactory::RegisterType("AudioSource", []() { return new AudioSource(); });
     SerializableFactory::RegisterType("AudioListener", []() { return new AudioListener(); });
+    // Tilemapping
+    SerializableFactory::RegisterType("Grid", []() { return new Grid(); });
 
 }

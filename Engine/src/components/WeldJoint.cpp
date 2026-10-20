@@ -80,9 +80,3 @@ WeldJoint* WeldJoint::Copy(){
     copy->angularDampingRatio = angularDampingRatio;
     return copy;
 }
-
-WeldJoint* WeldJoint::Copy(Container* container){
-    WeldJoint* copy = this->Copy();
-    copy->Attach(container);
-    return copy;
-}

@@ -52,7 +52,6 @@ public:
     std::string GetTypeName() const override { return "DistanceJoint"; }
 
     DistanceJoint* Copy() override;
-    DistanceJoint* Copy(Container* container) override;
 
     DistanceJoint() = default;
 

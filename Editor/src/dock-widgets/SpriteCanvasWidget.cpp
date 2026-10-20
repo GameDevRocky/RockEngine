@@ -163,7 +163,7 @@ void SpriteCanvasWidget::SetTexture(Texture2D* tex) {
         if (!path.empty()) m_pixmap = QPixmap(QString::fromStdString(path));
     }
     // Fit now if we already have a real size; otherwise defer to the first resizeEvent
-    // (the canvas may be created before it is shown, e.g. inside the editor modal).
+    // (the canvas may be created before its dock is shown).
     m_needsFit = true;
     if (width() > 0 && height() > 0 && !m_pixmap.isNull()) {
         FitView();
@@ -208,7 +208,7 @@ void SpriteCanvasWidget::paintEvent(QPaintEvent*) {
         painter.setPen(QColor(150, 150, 150));
         painter.drawText(rect(), Qt::AlignCenter,
                          m_texture ? "Texture image could not be loaded"
-                                   : "Select a texture to edit its sprites");
+                                   : "No Texture to Edit");
         return;
     }
 

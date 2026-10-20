@@ -25,7 +25,6 @@ public:
     float GetRadius(){return radius;}
     void Accept(IVisitor* v) override;
     CapsuleCollider* Copy() override;
-    CapsuleCollider* Copy(Container* container) override;
 
 
     

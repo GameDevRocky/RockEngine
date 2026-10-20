@@ -48,7 +48,6 @@ public:
     std::string GetTypeName() const override { return "WheelJoint"; }
 
     WheelJoint* Copy() override;
-    WheelJoint* Copy(Container* container) override;
 
     WheelJoint() = default;
 

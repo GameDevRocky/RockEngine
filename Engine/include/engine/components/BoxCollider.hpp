@@ -23,7 +23,6 @@ public:
     void SetSize(glm::vec2 size);
     void Accept(IVisitor* v) override;
     BoxCollider* Copy() override;
-    BoxCollider* Copy(Container* container) override;
 
 private:
     glm::vec2 size = {0, 0};

@@ -1,6 +1,9 @@
 #include "utils/InspectorVisitor.hpp"
 #include <algorithm>
 #include "engine/core/GameObject.hpp"
+
+//Components
+
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/TextRenderer.hpp"
@@ -24,6 +27,9 @@
 #include "engine/components/MotorJoint.hpp"
 #include "engine/components/AudioSource.hpp"
 #include "engine/components/AudioListener.hpp"
+#include "engine/components/Grid.hpp"
+
+
 #include "engine/audio/AudioClip.hpp"
 #include "engine/audio/AudioEngine.hpp"
 #include "engine/core/LayerManager.hpp"
@@ -40,7 +46,6 @@
 #include "utils/EditorUtils.hpp"
 #include "utils/ComponentPickerWidget.hpp"
 #include "utils/TexturePreviewWidget.hpp"
-#include "dock-widgets/SpriteEditorModal.hpp"
 #include "dock-widgets/MainWindowGui.hpp"
 #include "dock-widgets/AnimatorGui.hpp"
 #include "dock-widgets/InspectorGui.hpp"
@@ -1659,6 +1664,21 @@ void InspectorVisitor::Visit(ShadowCaster* caster) {
     }
 }
 
+
+void InspectorVisitor::Visit(Grid* grid){
+
+    const auto& set_size = [=](){
+
+    };
+
+
+    BindProperty<glm::vec2>(grid, "Cell Size: ",
+        [=]() { return grid->GetSize(); },
+        [](Grid* c, const glm::vec2& v) { c->SetSize(v); },
+        grid->SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1.0f));
+
+}
+
 void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
     // Every property row's label is normalised here, so a call site can pass a
     // hand-written "Color: " or a raw field name like "startOffset" and both come out
@@ -1798,13 +1818,10 @@ void InspectorVisitor::Visit(Texture2D* tex) {
     // reflects the Filtering/Wrap settings bound below.
     AddFullRow(new TexturePreviewWidget(tex->GetID()));
 
-    // Open the interactive sprite editor for this texture (a centered, click-away modal).
+    // Open this texture in the reusable Sprite Editor dock in the center area.
     auto* editSpritesBtn = new QPushButton("Edit Sprites");
     QObject::connect(editSpritesBtn, &QPushButton::clicked, editSpritesBtn, [tex]() {
-        auto* modal = new SpriteEditorModal(tex);
-        modal->show();
-        modal->raise();
-        modal->activateWindow();
+        MainWindow::Get()->ShowSpriteEditor(tex);
     });
     AddFullRow(editSpritesBtn);
 
@@ -2076,6 +2093,7 @@ void InspectorVisitor::Visit(Scene* scene) {
     
 
 }
+
 
 void InspectorVisitor::Visit(TrailRenderer* t) {
     using TRail = TrailRenderer;

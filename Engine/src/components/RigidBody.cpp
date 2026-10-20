@@ -329,13 +329,6 @@ RigidBody* RigidBody::Copy(){
     return copy;
 }
 
-RigidBody* RigidBody::Copy(Container* container){
-    RigidBody* copy = RigidBody::Copy();
-    copy->Attach(container);
-    return copy;
-}
-
-
 void RigidBody::Shutdown(){
     physicsSystem->DestroyBody(bodyId);
     physicsSystem = nullptr;

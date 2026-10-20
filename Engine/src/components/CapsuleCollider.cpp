@@ -149,6 +149,7 @@ void CapsuleCollider::Accept(IVisitor* v) {
 CapsuleCollider* CapsuleCollider::Copy(){
     CapsuleCollider* copy = new CapsuleCollider();
     copy->id = id;
+    copy->enabled = enabled;
     copy->gameobject_id = gameobject_id;
     copy->center = center;
     copy->filter = filter;
@@ -165,10 +166,3 @@ CapsuleCollider* CapsuleCollider::Copy(){
     return copy;
 
 }
-
-CapsuleCollider* CapsuleCollider::Copy(Container* container){
-    CapsuleCollider* copy = this->Copy();
-    copy->Attach(container);
-    return copy;
-}
-

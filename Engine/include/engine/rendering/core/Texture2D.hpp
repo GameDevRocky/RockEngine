@@ -41,7 +41,7 @@ public:
     // auto-save that persists them into the .texture meta.
     static inline const Event NORMAL_CHANGED_EVENT = Texture2D::CreateEvent();
     // Fired from the destructor (payload = id) so UI bound to this texture (e.g. the
-    // sprite editor modal) can close itself when the texture is destroyed in memory.
+    // Sprite Editor dock) can clear its reference when the texture is destroyed in memory.
     static inline const Event DESTROYED_EVENT      = Texture2D::CreateEvent();
 
     YAML::Node Serialize() override;

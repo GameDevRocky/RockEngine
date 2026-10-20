@@ -30,6 +30,12 @@ public:
     // Called from the Animator component's inspector "Open Animator" button.
     void ShowAnimator();
 
+    // Retarget and raise the reusable Sprite Editor dock in the central viewport area.
+    void ShowSpriteEditor(class Texture2D* texture);
+    // Keep an existing Sprite Editor synchronized with asset selection without
+    // creating or raising the dock solely because a texture was selected.
+    void UpdateSpriteEditorTexture(class Texture2D* texture);
+
     // Inner QMainWindow used as this window's central widget. It has no central
     // widget of its own, so the Scene/Game dock widgets fill its whole area and
     // can be tabbed, split, floated, and re-docked "in the center" -- something
@@ -47,6 +53,7 @@ public:
     QDockWidget* runtimeBarDock;
     QDockWidget* settingsDock;
     QDockWidget* animatorDock = nullptr;   // created lazily by ShowAnimator()
+    QDockWidget* spriteEditorDock = nullptr; // created lazily by ShowSpriteEditor()
 
     class SceneViewGui* scene_view;
     class GameViewGui* game_view;
@@ -61,6 +68,6 @@ private:
     void SaveLayout();
     ~MainWindow();
 
-
+    class SpriteEditor* spriteEditor = nullptr;
 
 };

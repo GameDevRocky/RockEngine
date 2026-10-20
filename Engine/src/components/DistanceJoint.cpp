@@ -190,9 +190,3 @@ DistanceJoint* DistanceJoint::Copy(){
     copy->maxMotorForce = maxMotorForce;
     return copy;
 }
-
-DistanceJoint* DistanceJoint::Copy(Container* container){
-    DistanceJoint* copy = this->Copy();
-    copy->Attach(container);
-    return copy;
-}

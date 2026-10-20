@@ -10,6 +10,7 @@
 #include "dock-widgets/RuntimeBar.hpp"
 #include "dock-widgets/MenuBar.hpp"
 #include "dock-widgets/AnimatorGui.hpp"
+#include "dock-widgets/SpriteEditor.hpp"
 #include "dock-widgets/AiChatGui.hpp"
 #include "dock-widgets/SettingsGui.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
@@ -209,6 +210,37 @@ void MainWindow::ShowAnimator(){
     }
     animatorDock->show();
     animatorDock->raise();
+}
+
+void MainWindow::ShowSpriteEditor(Texture2D* texture){
+    if (!texture)
+        return;
+
+    if (!spriteEditorDock) {
+        spriteEditor = new SpriteEditor();
+        spriteEditorDock = new QDockWidget("Sprite Editor", viewportArea);
+        spriteEditorDock->setObjectName("SpriteEditorDock");
+        spriteEditorDock->setWidget(spriteEditor);
+        spriteEditorDock->setFeatures(QDockWidget::DockWidgetMovable |
+                                      QDockWidget::DockWidgetFloatable |
+                                      QDockWidget::DockWidgetClosable);
+        viewportArea->addDockWidget(Qt::LeftDockWidgetArea, spriteEditorDock);
+        viewportArea->tabifyDockWidget(sceneviewDock, spriteEditorDock);
+
+        NavigationHistory::Get()->RegisterViewportDock(spriteEditorDock);
+        connect(spriteEditorDock, &QDockWidget::visibilityChanged, this, [](bool visible) {
+            if (visible) NavigationHistory::Get()->RecordCurrent();
+        });
+    }
+
+    spriteEditor->SetTexture(texture);
+    spriteEditorDock->show();
+    spriteEditorDock->raise();
+}
+
+void MainWindow::UpdateSpriteEditorTexture(Texture2D* texture){
+    if (spriteEditor)
+        spriteEditor->SetTexture(texture);
 }
 
 void MainWindow::SaveLayout()

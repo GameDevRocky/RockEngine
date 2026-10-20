@@ -23,7 +23,6 @@ public:
     void Accept(IVisitor* v) override;
 
     CircleCollider* Copy() override;
-    CircleCollider* Copy(Container* container) override;
 
 private:
     float radius = 0.0f;

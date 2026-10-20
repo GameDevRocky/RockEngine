@@ -47,7 +47,6 @@ public:
     std::string GetTypeName() const override { return "MotorJoint"; }
 
     MotorJoint* Copy() override;
-    MotorJoint* Copy(Container* container) override;
 
     MotorJoint() = default;
 

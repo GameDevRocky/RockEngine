@@ -154,6 +154,21 @@ components:
     useGravity: true
     lockRotation: false
     bullet: false
+  - id: 9ac82543ca181b7f1c1cb812d799c507
+    enabled: true
+    type: Transform
+    gameobject: 709a923a2be73184eb68579810af918c
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: d2fadb1ca2998f1df25a9cc2c36a6544
+    enabled: true
+    type: Grid
+    gameobject: 709a923a2be73184eb68579810af918c
+    cellSize:
+      - 11
+      - 1
 gameobjects:
   - id: a7d24d593ee61be211f88f9a89535579
     type: GameObject
@@ -193,3 +208,11 @@ gameobjects:
       - 09d7c188c44ec83824ef11779cfc75cb
       - 4b6a0502cf970ac30b5d066c53f1274b
       - 21ff3bb749c764be4510d85beb047819
+  - id: 709a923a2be73184eb68579810af918c
+    type: GameObject
+    name: Grid
+    tag: Untagged
+    active: true
+    component_ids:
+      - 9ac82543ca181b7f1c1cb812d799c507
+      - d2fadb1ca2998f1df25a9cc2c36a6544

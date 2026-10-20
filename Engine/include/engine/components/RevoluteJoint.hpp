@@ -47,7 +47,6 @@ public:
     std::string GetTypeName() const override { return "RevoluteJoint"; }
 
     RevoluteJoint* Copy() override;
-    RevoluteJoint* Copy(Container* container) override;
 
     RevoluteJoint() = default;
 

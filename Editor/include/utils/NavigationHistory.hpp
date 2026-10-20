@@ -41,7 +41,8 @@ public:
     // free, and an editing session is unbounded.
     static constexpr std::size_t kHistoryLimit = 100;
 
-    // Docks whose raised/tabbed state is worth remembering (Scene, Game, Animator).
+    // Docks whose raised/tabbed state is worth remembering (Scene, Game, Animator,
+    // Sprite Editor).
     // Held as QPointer so a dock destroyed later reads as null rather than dangling.
     void RegisterViewportDock(QDockWidget* dock);
 

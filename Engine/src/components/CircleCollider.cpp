@@ -72,6 +72,7 @@ void CircleCollider::Awake(){
 void CircleCollider::SetRadius(float radius){
     this->radius = radius;
     CreateShape();
+    this->Notify(CircleCollider::RADIUS_CHANGED_EVENT);
     this->Notify(CircleCollider::CHANGED_EVENT);
 }
 
@@ -141,6 +142,7 @@ CircleCollider* CircleCollider::Copy(){
     
     CircleCollider* copy = new CircleCollider();
     copy->id = id;
+    copy->enabled = enabled;
     copy->gameobject_id = gameobject_id;
     copy->center = center;
     copy->filter = filter;
@@ -153,11 +155,5 @@ CircleCollider* CircleCollider::Copy(){
     copy->radius = radius;
 
     copy->state = State::Loaded;
-    return copy;
-}
-
-CircleCollider* CircleCollider::Copy(Container* container){
-    CircleCollider* copy = this->Copy();
-    copy->Attach(container);
     return copy;
 }

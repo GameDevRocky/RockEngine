@@ -791,9 +791,16 @@ QFrame#FunctionCall QLabel#FunctionCallParen {
  * Driven by a dynamic `missing` property on the field (see
  * ObjectRefPropertyWidget::applyDisplay, which repolishes on the transition).
  * Shares the ListRemoveButton hover red so the editor keeps one "this is wrong"
- * colour, and keeps the 6px radius of the QLineEdit rule it overlays so the
+ * colour, and keeps the ObjectRef field's radius so the
  * shape does not change when a reference breaks -- only the colour does.
  *===========================================================================*/
+/* Reference fields and their browse buttons are rounder than ordinary property
+ * inputs so the paired picker surfaces read as one compact control. */
+QLineEdit#ObjectRefEdit,
+QPushButton#ObjectRefBrowseButton {
+    border-radius: 10px;
+}
+
 /* An unassigned reference reads "None" and sits on the same dark ground the
  * QLineEdit rule gives a hovered field. Empty is the state a ref field spends
  * most of its life in, so it gets a surface instead of dissolving into the panel
