@@ -3,8 +3,6 @@
 #include "engine/components/Component.hpp"
 #include "yaml-cpp/yaml.h"
 #include <glm/glm.hpp>
-// Make functionality for there to be only one grid per object at a time
-
 
 class Grid : public Component{
 

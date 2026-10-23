@@ -46,6 +46,7 @@ void BindParticleComponent(py::module_& m);
 void BindTrailRenderer(py::module_& m);
 void BindJoint(py::module_& m);
 void BindAudioSource(py::module_& m);
+void BindGrid(py::module_& m);
 
 // RENDERING
 void BindSprite(py::module_ & m);
@@ -96,6 +97,7 @@ PYBIND11_EMBEDDED_MODULE(rock_engine, m) {
     BindTrailRenderer(components);
     BindJoint(components);
     BindAudioSource(components);
+    BindGrid(components);
 
     // RENDERING
     py::module_ rendering = m.def_submodule("rendering", "ReockEngine rendering APIs");

@@ -333,6 +333,7 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
             auto* obj = new GameObject();
             obj->SetName("GameObject");
             scene->AddGameObject(obj);
+            auto& object_test_id = obj->GetID();
             selectionManager->Select(obj->GetID());
             auto* parent = registry->Find<GameObject>(id);
             if (parent){
@@ -345,7 +346,6 @@ SceneTree::SceneTree(QWidget* parent): QTreeView(parent) {
                 undoSystem->Push(SubtreeCommand::RecordCreated(
                     obj, scene->SnapshotSubtree(obj), "Create GameObject"));
             }
-
         });
 
         menu.exec(viewport()->mapToGlobal(pos));
