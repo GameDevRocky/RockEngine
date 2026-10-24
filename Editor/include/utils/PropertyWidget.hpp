@@ -7,7 +7,6 @@
 #include <QDoubleSpinBox>
 #include <QCheckBox>
 #include <QPushButton>
-#include <QColorDialog>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -41,6 +40,7 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "utils/EditorUtils.hpp"
 #include "utils/RefDropFilter.hpp"
+#include "utils/InlineColorPicker.hpp"
 #include "dock-widgets/FolderViewGui.hpp"
 #include <QFileInfo>
 
@@ -49,6 +49,9 @@ class PropertyWidgetBase {
 public:
     virtual ~PropertyWidgetBase() = default;
     virtual QWidget* GetWidget() = 0;
+    // Optional detail surface placed by two-column hosts on a separate row
+    // spanning both columns. Most properties are a single compact widget.
+    virtual QWidget* GetFullRowWidget() { return nullptr; }
     virtual bool IsValid() = 0;
 };
 
@@ -919,72 +922,40 @@ private:
 class Vec4ColorPropertyWidget : public PropertyWidget<glm::vec4> {
 public:
     explicit Vec4ColorPropertyWidget(const Properties::PropDesc& desc) {
-        btn = new QPushButton();
-        btn->setObjectName("ColorButton");
-        btn->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-        // The swatch IS the control, so disabling it is the whole story — there is
-        // no colour dialog to open and nothing else on the row to interact with.
-        if (IsReadOnly(desc)) btn->setEnabled(false);
+        picker = new InlineColorPicker();
+        if (IsReadOnly(desc)) picker->setEnabled(false);
 
-        QObject::connect(btn, &QPushButton::clicked, [this]() {
-            glm::vec4 current = GetValue();
-            QColor initial(
-                static_cast<int>(current.r * 255),
-                static_cast<int>(current.g * 255),
-                static_cast<int>(current.b * 255),
-                static_cast<int>(current.a * 255)
-            );
-
-            auto* dialog = new QColorDialog();
-            dialog->setCurrentColor(initial);
-            dialog->setOptions(QColorDialog::ShowAlphaChannel);
-            dialog->setModal(false);
-            dialog->setAttribute(Qt::WA_DeleteOnClose);
-            dialog->setOption(QColorDialog::NoButtons);
-            dialog->setOption(QColorDialog::DontUseNativeDialog);
-            dialog->setWindowFlags(Qt::Popup);
-
-            QObject::connect(dialog, &QColorDialog::currentColorChanged,
-                [this](const QColor& selected) {
-                    if (!selected.isValid()) return;
-                    glm::vec4 c(
-                        static_cast<float>(selected.redF()),
-                        static_cast<float>(selected.greenF()),
-                        static_cast<float>(selected.blueF()),
-                        static_cast<float>(selected.alphaF())
-                    );
-                    cachedColor = c;
-                    UpdateButtonColor(c);
-                    if (onChanged) onChanged(c);
-                });
-
-            dialog->show();
-        });
+        picker->onColorChanged = [this](const QColor& selected) {
+            glm::vec4 color(
+                static_cast<float>(selected.redF()),
+                static_cast<float>(selected.greenF()),
+                static_cast<float>(selected.blueF()),
+                static_cast<float>(selected.alphaF()));
+            cachedColor = color;
+            if (onChanged) onChanged(color);
+        };
     }
 
-    QWidget* GetWidget() override { return btn; }
-    bool IsValid() override { return !btn.isNull(); }
+    QWidget* GetWidget() override { return picker; }
+    QWidget* GetFullRowWidget() override {
+        return picker.isNull() ? nullptr : picker->TakeExpandedWidget();
+    }
+    bool IsValid() override { return !picker.isNull(); }
 
     void SetValue(const glm::vec4& val) override {
         cachedColor = val;
-        UpdateButtonColor(val);
+        if (picker.isNull()) return;
+        picker->SetColor(QColor::fromRgbF(
+            std::clamp(static_cast<double>(val.r), 0.0, 1.0),
+            std::clamp(static_cast<double>(val.g), 0.0, 1.0),
+            std::clamp(static_cast<double>(val.b), 0.0, 1.0),
+            std::clamp(static_cast<double>(val.a), 0.0, 1.0)));
     }
 
     glm::vec4 GetValue() override { return cachedColor; }
 
 private:
-    void UpdateButtonColor(const glm::vec4& color) {
-        if (btn.isNull()) return;
-        QColor qcol(
-            static_cast<int>(color.r * 255),
-            static_cast<int>(color.g * 255),
-            static_cast<int>(color.b * 255),
-            static_cast<int>(color.a * 255)
-        );
-        btn->setStyleSheet(QString("background-color: %1;").arg(qcol.name()));
-    }
-
-    QPointer<QPushButton> btn;
+    QPointer<InlineColorPicker> picker;
     glm::vec4 cachedColor{1, 1, 1, 1};
 };
 

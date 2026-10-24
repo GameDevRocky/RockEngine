@@ -65,6 +65,11 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   - `AssetThumbnails` / `AssetPreviewDelegate` — asset-browser previews. The Folder grid's
     delegate bypasses Qt's item-style painter, so it paints the default stylesheet's rounded
     hover/selection bubbles itself rather than relying on `QListView::item` rules.
+  - `InlineColorPicker` — the Inspector's collapsible, in-place color editor. It keeps the
+    current-color swatch in the value column and expands a full-width row beneath it with
+    saturation/value, hue, alpha, RGBA, and hex controls, without creating a dialog or another
+    event loop. `PropertyWidgetBase::GetFullRowWidget()` is the optional host contract for that
+    secondary detail row.
   - `SceneTree` / `SceneTreeItemDelegate` — hierarchy tree model/rendering.
   - `ImGuiInstance` — ImGui + ImGuizmo for in-viewport gizmos, rendered over the Qt GL widget.
   - `CollapsableWidget`, `EditorUtils`, `MessageGui`.

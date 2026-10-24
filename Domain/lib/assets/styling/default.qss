@@ -1150,12 +1150,53 @@ QToolButton#ActiveToggleBtn:checked:hover {
 
 
 /*===========================================================================
- * ColorButton (Inspector color picker)
+ * InlineColorPicker (Inspector color picker)
  *===========================================================================*/
-QPushButton#ColorButton
-{
-    border: 1px solid #333;
-    border-radius: 10px;
+InlineColorPicker,
+InlineColorPicker > QWidget {
+    background: transparent;
+}
+
+QToolButton#ColorPickerToggle,
+QToolButton#ColorPickerToggle:hover,
+QToolButton#ColorPickerToggle:pressed,
+QToolButton#ColorPickerToggle:checked {
+    background: transparent;
+    border: none;
+    border-radius: 0px;
+    padding: 0px;
+}
+
+QFrame#InlineColorPickerBody {
+    background: rgb(28, 28, 30);
+    border: 1px solid rgb(52, 52, 54);
+    border-radius: 7px;
+}
+
+QLabel#ColorPickerChannelLabel,
+QLabel#ColorPickerHexLabel {
+    background: transparent;
+    color: rgb(170, 170, 174);
+    font-weight: bold;
+}
+
+QSpinBox#ColorChannelSpin,
+QLineEdit#ColorHexEdit {
+    background: rgb(23, 23, 25);
+    border: 1px solid transparent;
+    border-radius: 5px;
+    padding: 3px;
+}
+
+QSpinBox#ColorChannelSpin:hover,
+QLineEdit#ColorHexEdit:hover {
+    background: rgb(20, 20, 22);
+}
+
+QSpinBox#ColorChannelSpin:focus,
+QLineEdit#ColorHexEdit:focus {
+    background: rgb(16, 16, 18);
+    border-color: rgb(87, 126, 100);
 }
 
 

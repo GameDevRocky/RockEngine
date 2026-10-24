@@ -303,6 +303,10 @@ void SettingsGui::RebuildGlobalsPage()
 
             grid->addWidget(label, row, 0);
             grid->addWidget(editorWidget, row, 1);
+            if (QWidget* detail = editor->GetFullRowWidget()) {
+                detail->setToolTip(toolTip);
+                grid->addWidget(detail, ++row, 0, 1, 2);
+            }
             propertyWidgets.push_back(std::move(editor));
             ++row;
         }
