@@ -54,20 +54,6 @@ Environment overrides:
 
 Default exe path is `<repo>/build/local/bin/RockEngineLauncher.exe`.
 
-## Testing without an MCP client
-
-`tests/raw_pipe_smoke_test.py` talks to the pipe directly, so a failure is unambiguously in
-the bridge rather than in MCP framing. Launch the editor, then:
-
-```sh
-python tests/raw_pipe_smoke_test.py                                   # ping
-python tests/raw_pipe_smoke_test.py scene.hierarchy
-python tests/raw_pipe_smoke_test.py transform.set_position '{"id":"<goid>","x":3,"y":1}'
-python tests/property_coverage_test.py                              # editor not required
-```
-
-Get an object id from `scene.hierarchy` first.
-
 ## Discoverable properties
 
 Use `get_capabilities`, then `list_components` or `describe_component`. Components are

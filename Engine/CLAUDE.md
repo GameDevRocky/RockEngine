@@ -101,7 +101,7 @@ broadcasts included; a specific id receives only that event (and `ALL_EVENT`).
 it; the asymmetry runs the other way — a plain `Notify(ANY_EVENT)` reaches only `ANY_EVENT`
 subscribers and never a specific event's. Payload is type-erased `std::any`; sender and
 handler must agree on the type (commonly the object's string `id`, e.g.
-`Notify(SHUTDOWN_EVENT, id)`). These rules are pinned by `Tests/engine/ObservableTests.cpp`.
+`Notify(SHUTDOWN_EVENT, id)`).
 
 ## Serialization
 

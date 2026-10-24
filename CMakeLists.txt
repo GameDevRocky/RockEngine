@@ -26,11 +26,10 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # --- What to build ---------------------------------------------------------------------
-# All three default to the full local-dev build, so the normal `--preset local` workflow is
-# unchanged. They exist for CI, which wants a fast headless lane: Engine + tests only, with
-# no Qt to find and no CPython standard library to copy. See the `ci-*` presets.
+# Both default to the full local-dev build, so the normal `--preset local` workflow is
+# unchanged. They exist for the export-template build, which wants Engine + Player only, with
+# no Qt to find and no CPython standard library to copy. See the `*-release` presets.
 option(ROCKENGINE_BUILD_EDITOR         "Build the Qt6 editor (RockEngineEditor + RockEngineLauncher)" ON)
-option(ROCKENGINE_BUILD_TESTS          "Build the headless unit tests (RockEngineTests)"              OFF)
 option(ROCKENGINE_STAGE_PLAYER_RUNTIME "Stage the shippable Python runtime beside the Player"         ON)
 
 # CUDA particle simulation is optional because CUDA is NVIDIA-only while RockEngine's
@@ -51,7 +50,7 @@ if(NOT ROCKENGINE_ENABLE_CUDA STREQUAL "OFF")
     check_language(CUDA)
     if(CMAKE_CUDA_COMPILER)
         # Must be enabled at the highest directory containing every consumer of
-        # RockEngineCore (Editor, Player, and tests).
+        # RockEngineCore (Editor and Player).
         enable_language(CUDA)
         find_package(CUDAToolkit REQUIRED)
         set(ROCKENGINE_HAS_CUDA ON)
@@ -128,12 +127,6 @@ endif()
 # editor's Build window copies the binary this produces into each game build, which is why
 # it is built alongside the editor rather than on demand (Unity's "export template" model).
 add_subdirectory(Player)
-
-# Headless unit tests over RockEngineCore. No Qt, no GPU, no window -- see Tests/CMakeLists.txt.
-if(ROCKENGINE_BUILD_TESTS)
-    enable_testing()
-    add_subdirectory(Tests)
-endif()
 
 if(ROCKENGINE_BUILD_EDITOR)
 

@@ -3,6 +3,7 @@
 #include "engine/core/Container.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/HierarchyUtils.hpp"
+#include "engine/core/RuntimeObject.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 
@@ -55,7 +56,7 @@ void SelectionManager::ClearShutdownSubs()
 {
     for (const auto& [id, subId] : m_shutdownSubs) {
         if (!registry) break;
-        if (auto* obj = registry->Find<GameObject>(id)) obj->Unsubscribe(subId);
+        if (auto* obj = registry->Find<RuntimeObject>(id)) obj->Unsubscribe(subId);
     }
     m_shutdownSubs.clear();
 }
@@ -83,7 +84,9 @@ void SelectionManager::SetSelection(std::vector<std::string> ids)
 
     for (const std::string& id : m_selectedIds) {
         if (!registry) break;
-        auto* obj = registry->Find<GameObject>(id);
+        // Any RuntimeObject, not just GameObjects: a selected Scene has to drop out
+        // when it is unloaded too, or the inspector keeps editing a freed Scene*.
+        auto* obj = registry->Find<RuntimeObject>(id);
         if (!obj) continue;   // assets have no shutdown event
 
         m_shutdownSubs[id] = obj->Subscribe([this, id](std::any) {
