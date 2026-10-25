@@ -801,6 +801,25 @@ QPushButton#ObjectRefBrowseButton {
     border-radius: 10px;
 }
 
+QToolButton#ObjectRefPickerToggle,
+QToolButton#ObjectRefPickerToggle:hover,
+QToolButton#ObjectRefPickerToggle:pressed {
+    background: transparent;
+    border: none;
+    border-radius: 0px;
+    padding: 0px;
+}
+
+QFrame#InlineObjectRefPickerBody {
+    background: rgb(28, 28, 30);
+    border: 1px solid rgb(52, 52, 54);
+    border-radius: 7px;
+}
+
+QWidget#InlineObjectRefPicker {
+    background: transparent;
+}
+
 /* An unassigned reference reads "None" and sits on the same dark ground the
  * QLineEdit rule gives a hovered field. Empty is the state a ref field spends
  * most of its life in, so it gets a surface instead of dissolving into the panel

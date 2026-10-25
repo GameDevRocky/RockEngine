@@ -7,6 +7,7 @@
 #include <QDoubleSpinBox>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QToolButton>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
@@ -41,6 +42,7 @@
 #include "utils/EditorUtils.hpp"
 #include "utils/RefDropFilter.hpp"
 #include "utils/InlineColorPicker.hpp"
+#include "utils/ObjectRefPickerObserver.hpp"
 #include "dock-widgets/FolderViewGui.hpp"
 #include <QFileInfo>
 
@@ -1413,11 +1415,23 @@ public:
     explicit ObjectRefPropertyWidget(const Properties::PropDesc& desc) : m_desc(desc) {
         m_container = new QWidget();
         m_container->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
-        auto* layout = new QHBoxLayout(m_container);
+        auto* outer = new QVBoxLayout(m_container);
+        outer->setContentsMargins(0, 0, 0, 0);
+        outer->setSpacing(4);
+
+        m_header = new QWidget(m_container);
+        auto* layout = new QHBoxLayout(m_header);
         layout->setContentsMargins(0, 0, 0, 0);
         layout->setSpacing(4);
 
-        m_edit = new ClickableLineEdit();
+        m_toggle = new QToolButton(m_header);
+        m_toggle->setObjectName("ObjectRefPickerToggle");
+        m_toggle->setArrowType(Qt::RightArrow);
+        m_toggle->setFixedSize(18, 24);
+        m_toggle->setToolTip("Expand reference picker");
+        layout->addWidget(m_toggle);
+
+        m_edit = new ClickableLineEdit(m_header);
         m_edit->setReadOnly(true);
         m_edit->setObjectName("ObjectRefEdit");
         m_edit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -1426,7 +1440,7 @@ public:
         // Search icon in place of the old ellipsis glyph. Resolved through GetAssetPath
         // so it works from a bundled build as well as a dev run, matching how the
         // picker's own fallback icons below are loaded.
-        m_btn = new QPushButton();
+        m_btn = new QPushButton(m_header);
         m_btn->setObjectName("ObjectRefBrowseButton");
         m_btn->setIcon(QIcon(QString::fromStdString(
             EngineUtils::GetAssetPath("Domain/lib/assets/icons/search_icon.png"))));
@@ -1438,6 +1452,15 @@ public:
         m_btn->setFixedWidth(26);
         m_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         layout->addWidget(m_btn);
+        outer->addWidget(m_header);
+
+        m_detail = new QFrame(m_container);
+        m_detail->setObjectName("InlineObjectRefPickerBody");
+        m_detailLayout = new QVBoxLayout(m_detail);
+        m_detailLayout->setContentsMargins(5, 5, 5, 5);
+        m_detailLayout->setSpacing(0);
+        outer->addWidget(m_detail);
+        m_detail->hide();
 
         // A display-only reference keeps its name field (and the hover preview
         // below) but loses every way to reassign it: the picker is disabled rather
@@ -1447,12 +1470,14 @@ public:
         // display formatting, not the property being read-only.
         const bool readOnly = IsReadOnly(desc);
         if (readOnly) {
+            m_toggle->setEnabled(false);
             m_btn->setEnabled(false);
             m_btn->setToolTip("Read-only");
             // ClickableLineEdit claims the pointing-hand cursor in its constructor,
             // which would keep advertising a click that no longer does anything.
             m_edit->setCursor(Qt::IBeamCursor);
         } else {
+            QObject::connect(m_toggle, &QToolButton::clicked, [this]() { openPicker(); });
             QObject::connect(m_btn, &QPushButton::clicked, [this]() { openPicker(); });
             QObject::connect(m_edit, &ClickableLineEdit::clicked, [this]() { openPicker(); });
         }
@@ -1464,11 +1489,11 @@ public:
         // a drop is an edit, and it would bypass the disabled picker.
         m_edit->setAcceptDrops(false);
         if (!readOnly) {
-            m_container->setAcceptDrops(true);
-            m_container->installEventFilter(new RefDropFilter(m_desc, [this](const std::string& id) {
+            m_header->setAcceptDrops(true);
+            m_header->installEventFilter(new RefDropFilter(m_desc, [this](const std::string& id) {
                 SetValue(id);
                 if (onChanged) onChanged(id);
-            }, m_container));
+            }, m_header));
         }
 
         // Ref fields with a previewable thumbnail get a hover preview: a popup that
@@ -1480,17 +1505,32 @@ public:
             m_desc.tag == Properties::Tags::SPRITE     ||
             m_desc.tag == Properties::Tags::MATERIAL   ||
             m_desc.tag == Properties::Tags::OBJECT_REF) {
-            m_previewPopup = new AssetPreviewPopup(m_container);
+            m_previewPopup = new AssetPreviewPopup(m_header);
             auto* hover = new AssetHoverFilter(
-                m_container, m_previewPopup,
-                [this]() { return currentThumbnail(); }, m_container);
-            m_container->installEventFilter(hover);
+                m_header, m_previewPopup,
+                [this]() { return currentThumbnail(); }, m_header);
+            m_header->installEventFilter(hover);
+            m_toggle->installEventFilter(hover);
             m_edit->installEventFilter(hover);
             m_btn->installEventFilter(hover);
         }
+
+        // Observe only while the detail grid is open. Parenting the observer to
+        // this row guarantees inspector rebuilds tear its engine callbacks down.
+        m_pickerObserver = new ObjectRefPickerObserver(m_desc, [this]() {
+            applyDisplay();
+            if (!m_picker.isNull()) m_picker->refreshItems(buildItems());
+        }, m_container);
     }
 
     QWidget* GetWidget() override { return m_container; }
+    QWidget* GetFullRowWidget() override {
+        if (m_detail && m_detail->parentWidget() == m_container) {
+            m_container->layout()->removeWidget(m_detail);
+            m_detail->setParent(nullptr);
+        }
+        return m_detail;
+    }
     bool IsValid() override { return !m_edit.isNull(); }
 
     // Stores the ID internally; displays the resolved name in the text field.
@@ -1500,6 +1540,7 @@ public:
         m_edit->blockSignals(true);
         applyDisplay();
         m_edit->blockSignals(false);
+        if (!m_picker.isNull()) m_picker->setSelectedId(m_currentId);
     }
 
     // Always returns the ID, not the display name.
@@ -1575,6 +1616,30 @@ private:
     }
 
     void openPicker() {
+        setPickerExpanded(!m_pickerExpanded);
+    }
+
+    void setPickerExpanded(bool expanded) {
+        if (m_pickerExpanded == expanded) return;
+        m_pickerExpanded = expanded;
+        m_toggle->setArrowType(expanded ? Qt::DownArrow : Qt::RightArrow);
+        m_toggle->setToolTip(expanded ? "Collapse reference picker"
+                                      : "Expand reference picker");
+        m_btn->setToolTip(expanded ? "Collapse reference picker"
+                                   : "Browse");
+        if (expanded) {
+            rebuildPicker();
+            m_pickerObserver->Start();
+        } else {
+            m_pickerObserver->Stop();
+        }
+        m_detail->setVisible(expanded);
+        m_detail->updateGeometry();
+        m_container->updateGeometry();
+    }
+
+    void rebuildPicker() {
+        if (!m_picker.isNull()) delete m_picker;
         auto items = buildItems();
 
         std::function<QPixmap(const std::string&)> thumbGen;
@@ -1656,15 +1721,16 @@ private:
                 return EditorUtils::CustomIconProvider::gameObjectIcon();
             };
 
-        auto* picker = new AssetPickerWidget(std::move(items), std::move(thumbGen), std::move(fallbackIconGen), m_container);
-        picker->onSelected = [this](const std::string& id) {
+        m_picker = new AssetPickerWidget(
+            std::move(items), std::move(thumbGen), std::move(fallbackIconGen), m_detail);
+        m_picker->setInline(true);
+        m_picker->onSelected = [this](const std::string& id) {
             SetValue(id);
             if (onChanged) onChanged(id);
         };
-        picker->setSelectedId(m_currentId);   // highlight + scroll to the current value
-        auto pos = m_container->rect().topLeft();
-        pos.setX(pos.x() - picker->width());
-        picker->showAt(m_container->mapToGlobal(pos));
+        m_picker->onDismissed = [this]() { setPickerExpanded(false); };
+        m_picker->setSelectedId(m_currentId);
+        m_detailLayout->addWidget(m_picker);
     }
 
     // Resolves a human-readable name for an ID based on the widget's tag type.
@@ -1727,7 +1793,9 @@ private:
     }
 
     std::vector<std::pair<std::string, std::string>> buildItems() {
-        std::vector<std::pair<std::string, std::string>> items;
+        // Empty id is the canonical "clear this reference" value. Keep it first;
+        // the real assets/objects below remain alphabetically sorted.
+        std::vector<std::pair<std::string, std::string>> items{{"None", ""}};
         auto& am = AssetManager::Get();
 
         if (m_desc.tag == Properties::Tags::MATERIAL) {
@@ -1783,7 +1851,7 @@ private:
             }
         }
 
-        std::sort(items.begin(), items.end(),
+        std::sort(items.begin() + 1, items.end(),
             [](const auto& a, const auto& b) { return a.first < b.first; });
         return items;
     }
@@ -1794,8 +1862,15 @@ private:
     // SetMissingOverride. Unset means "work it out from resolves()".
     std::optional<bool> m_forcedMissing;
     QWidget* m_container = nullptr;
+    QWidget* m_header = nullptr;
+    QToolButton* m_toggle = nullptr;
+    QFrame* m_detail = nullptr;
+    QVBoxLayout* m_detailLayout = nullptr;
     QPointer<ClickableLineEdit> m_edit;
     QPointer<QPushButton> m_btn;
+    QPointer<AssetPickerWidget> m_picker;
+    ObjectRefPickerObserver* m_pickerObserver = nullptr;
+    bool m_pickerExpanded = false;
     AssetPreviewPopup* m_previewPopup = nullptr;   // hover preview (asset tags only)
 };
 

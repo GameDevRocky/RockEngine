@@ -4,6 +4,7 @@ id: 2f14494f6050458c46aa8b85f5a18230
 shader_id: s1
 uniforms:
   textures:
+    uNormalMap: a5e44dfe8e1c67db24678bb98123cd67
     uTexture: ac675f8a863ca37b30fd98330f997bd4
   floats:
     uLitAmount: 1

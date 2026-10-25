@@ -850,12 +850,18 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
             // ref is "module:class"; split and reassign the script live. SetScript
             // fires SCRIPT_RELOADED_EVENT, which rebuilds this inspector (queued),
             // so it's safe to run from the widget's own callback.
+            if (ref.empty()) {
+                sc->SetScript("", "");
+                return;
+            }
             const auto colon = ref.find(':');
             if (colon == std::string::npos) return;
             sc->SetScript(ref.substr(0, colon), ref.substr(colon + 1));
         };
 
         AddRow("Script", pw->GetWidget());
+        if (QWidget* detail = pw->GetFullRowWidget())
+            AddFullRow(detail);
     }
 
     const auto& fields = sc->GetFields();
@@ -1200,8 +1206,15 @@ void InspectorVisitor::Visit(ScriptComponent* sc){
                     elemDesc = PropDesc().Tag(Tags::OBJECT_REF).RefType(Tags::OBJECT_REF).ComponentType(comp);
                 }
 
-                BindProperty<std::vector<std::string>>(sc, label, getter, setter, field.changeEvent,
-                    PropDesc().Tag(Tags::LIST).ReadOnly(ro).Element(elemDesc.ReadOnly(ro)));
+                PropDesc listDesc;
+                listDesc.Tag(Tags::LIST).ReadOnly(ro).Element(elemDesc.ReadOnly(ro));
+                // A nested reference expands beneath its compact list row. Give
+                // the list the Inspector width so that detail surface is not
+                // confined to the ordinary value column.
+                if (elemDesc.refType == Tags::OBJECT_REF)
+                    listDesc.FullRow();
+                BindProperty<std::vector<std::string>>(
+                    sc, label, getter, setter, field.changeEvent, listDesc);
             }
             else if (field.elementTypeName == "vec2") {
                 auto getter = [sc, name = field.name]() -> std::vector<glm::vec2> {

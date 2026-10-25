@@ -70,6 +70,20 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
     saturation/value, hue, alpha, RGBA, and hex controls, without creating a dialog or another
     event loop. `PropertyWidgetBase::GetFullRowWidget()` is the optional host contract for that
     secondary detail row.
+  - `ObjectRefPropertyWidget` uses that same secondary-row contract: its compact reference field
+    stays beside the label, while its searchable thumbnail grid expands beneath it across the
+    Inspector. `AssetPickerWidget::setInline()` reuses the popup picker's filtering and selection
+    behavior without creating a floating window. Picker cells use an auto-fit grid: the viewport
+    chooses the column count from the minimum cell width, then stretches those cells evenly across
+    each row. Reference pickers prepend a `None` tile whose empty ID clears the current reference.
+    Expanded asset/GameObject pickers subscribe to engine Observable events rather than polling:
+    asset add/remove/resource changes, scene/object add, GameObject name/component changes, and
+    RuntimeObject shutdown all update the open grid. Subscriptions exist only while expanded and
+    are owned by the Qt property widget, so collapse or inspector rebuild removes them. Script
+    discovery remains on the existing script file-watcher/Inspector-rebuild path because it scans
+    and imports under the GIL.
+    Script selectors and nested list/event references must forward `GetFullRowWidget()` so their
+    detail grids receive the same full-width row as ordinary reflected references.
   - `SceneTree` / `SceneTreeItemDelegate` — hierarchy tree model/rendering.
   - `ImGuiInstance` — ImGui + ImGuizmo for in-viewport gizmos, rendered over the Qt GL widget.
   - `CollapsableWidget`, `EditorUtils`, `MessageGui`.

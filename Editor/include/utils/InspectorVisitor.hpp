@@ -206,7 +206,7 @@ void InspectorVisitor::BindProperty(TargetT* instance, const std::string& label,
         AddLabeledFullRow(label, pw->GetWidget());
     } else {
         AddRow(label, pw->GetWidget());
-        if (QWidget* detail = pw->GetFullRowWidget())
-            AddFullRow(detail);
     }
+    if (QWidget* detail = pw->GetFullRowWidget())
+        AddFullRow(detail);
 }

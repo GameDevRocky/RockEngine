@@ -12,6 +12,7 @@
 #include <QListWidget>
 #include <QKeyEvent>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QPixmap>
 #include <QIcon>
 #include <QScreen>
@@ -97,10 +98,13 @@ public:
         m_list->setGridSize(QSize(kCellWidth, kCellHeight));
         m_list->setResizeMode(QListView::Adjust);
         m_list->setWordWrap(true);
-        m_list->setSpacing(2);
+        // Cell spacing is carried by the item style. Keeping the layout spacing
+        // at zero lets the computed grid widths consume the viewport exactly.
+        m_list->setSpacing(0);
         m_list->setMovement(QListView::Static);
         m_list->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         m_list->setUniformItemSizes(true);
+        m_list->viewport()->installEventFilter(this);
         root->addWidget(m_list);
 
         // Confirm bar, only shown in multi-select mode.
@@ -123,6 +127,8 @@ public:
         connect(m_search, &QLineEdit::textChanged, this, &AssetPickerWidget::filterItems);
         connect(m_list, &QListWidget::itemDoubleClicked,
                 this, &AssetPickerWidget::commitSelection);
+        connect(m_list, &QListWidget::itemSelectionChanged,
+                this, [this]() { updateConfirmText(); });
 
         m_search->setFocus();
     }
@@ -131,8 +137,23 @@ public:
     std::function<void(const std::string&)> onSelected;
     // Multi-pick callback, fired by the confirm button / Enter in multi mode.
     std::function<void(const std::vector<std::string>&)> onSelectedMany;
+    // Inline owners use Escape to collapse their detail row instead of leaving
+    // an expanded but empty shell after QWidget::close().
+    std::function<void()> onDismissed;
 
     void setTitle(const QString& t) { if (m_title) m_title->setText(t); }
+
+    // Replace the model after an engine Observable reports a structural or name
+    // change. Preserves the search text and current selection, so an event-driven
+    // refresh does not interrupt what the user is doing in an expanded picker.
+    void refreshItems(std::vector<std::pair<std::string, std::string>> items) {
+        const QString filter = m_search->text();
+        m_allItems = std::move(items);
+        buildAllItems();
+        filterItems(filter);
+        applySelection();
+        QTimer::singleShot(0, this, [this]() { applySelection(); });
+    }
 
     // Ctrl/Shift-extendable selection plus an "Add Selected" button. Implies
     // persistent, since picking several then confirming is a multi-step gesture
@@ -171,9 +192,37 @@ public:
 
     // Preselect the item with this id when the popup opens: it becomes the current
     // (highlighted) item and is scrolled into view, so a field that already has a
-    // value doesn't make the user hunt for it. No match / empty = leave the default
-    // (first item). Call before showAt().
-    void setSelectedId(std::string id) { m_selectedId = std::move(id); }
+    // value doesn't make the user hunt for it. Empty selects a supplied "None"
+    // item; no match leaves the default first item. Call before showAt().
+    void setSelectedId(std::string id) {
+        m_selectedId = std::move(id);
+        if (m_inline) {
+            applySelection();
+            QTimer::singleShot(0, this, [this]() { applySelection(); });
+        }
+    }
+
+    // Embeds the existing searchable thumbnail grid into a property row. The
+    // floating title/close chrome and window sizing are removed, while the same
+    // filtering, selection, thumbnails, and callbacks remain in use.
+    void setInline(bool on) {
+        if (m_inline == on) return;
+        m_inline = on;
+        setAttribute(Qt::WA_DeleteOnClose, !on);
+        setWindowFlags(on ? Qt::Widget
+                          : (m_persistent ? (Qt::Tool | Qt::FramelessWindowHint)
+                                          : Qt::Popup));
+        m_header->setVisible(!on);
+        if (on) {
+            setObjectName("InlineObjectRefPicker");
+            setMinimumSize(0, 0);
+            setMaximumWidth(QWIDGETSIZE_MAX);
+            setFixedHeight(kCellHeight * 2 + m_search->sizeHint().height() + 18);
+            setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+            show();
+            applySelection();
+        }
+    }
 
     // Show the popup with its top-left at the given global position, nudged so the
     // whole widget stays within the available area of the screen it lands on — it is
@@ -202,12 +251,19 @@ public:
     }
 
 protected:
+    bool eventFilter(QObject* watched, QEvent* event) override {
+        if (watched == m_list->viewport() && event->type() == QEvent::Resize)
+            updateGridColumns();
+        return QWidget::eventFilter(watched, event);
+    }
+
     void keyPressEvent(QKeyEvent* e) override {
         if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) {
             if (m_multiSelect) commitMulti();
             else commitSelection(m_list->currentItem());
         } else if (e->key() == Qt::Key_Escape) {
-            close();
+            if (m_inline && onDismissed) onDismissed();
+            else close();
         } else {
             QWidget::keyPressEvent(e);
         }
@@ -264,7 +320,7 @@ private slots:
         if (!item) return;
         const std::string id = item->data(Qt::UserRole).toString().toStdString();
         if (onSelected) onSelected(id);
-        close();
+        if (!m_inline) close();
     }
 
 private:
@@ -273,7 +329,7 @@ private:
         if (ids.empty()) return;
         if (onSelectedMany) onSelectedMany(ids);
         else if (onSelected) for (const auto& id : ids) onSelected(id);
-        close();
+        if (!m_inline) close();
     }
 
     // Selection in the order the list shows it, so frames land in the order the
@@ -308,7 +364,7 @@ private:
     // Make the item whose id matches m_selectedId the current one and scroll it
     // into view. No-op if unset or not found.
     void applySelection() {
-        if (m_selectedId.empty() || !m_list) return;
+        if (!m_list) return;
         for (int i = 0; i < m_list->count(); ++i) {
             QListWidgetItem* item = m_list->item(i);
             if (item->data(Qt::UserRole).toString().toStdString() == m_selectedId) {
@@ -320,14 +376,29 @@ private:
     }
 
     void buildAllItems() {
+        m_list->clear();
+        m_cellWidth = 0;
         for (const auto& [name, id] : m_allItems) {
             auto* item = new QListWidgetItem(QString::fromStdString(name));
             item->setData(Qt::UserRole, QString::fromStdString(id));
             item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
 
             QPixmap px;
-            if (m_thumbnailGen)
+            if (id.empty()) {
+                // A deliberately quiet clear-reference tile: distinct from a
+                // missing thumbnail placeholder, but still the same cell shape.
+                px = QPixmap(kThumbSize, kThumbSize);
+                px.fill(Qt::transparent);
+                QPainter painter(&px);
+                painter.setRenderHint(QPainter::Antialiasing);
+                painter.setPen(QPen(QColor(125, 125, 130), 2.0));
+                painter.setBrush(QColor(42, 42, 44));
+                painter.drawRoundedRect(QRectF(8, 8, kThumbSize - 16, kThumbSize - 16), 8, 8);
+                painter.drawLine(QPointF(23, 23), QPointF(kThumbSize - 23, kThumbSize - 23));
+                item->setToolTip("Clear the current reference");
+            } else if (m_thumbnailGen) {
                 px = m_thumbnailGen(id);
+            }
 
             if (!px.isNull()) {
                 item->setIcon(QIcon(px.scaled(kThumbSize, kThumbSize,
@@ -348,11 +419,28 @@ private:
             }
             m_list->addItem(item);
         }
+        updateGridColumns();
         if (m_list->count() > 0)
             m_list->setCurrentRow(0);
+    }
 
-        connect(m_list, &QListWidget::itemSelectionChanged,
-                this, [this]() { updateConfirmText(); });
+    // CSS-grid-like `repeat(auto-fit, minmax(kCellWidth, 1fr))`: choose how
+    // many minimum-width cells fit, then divide the whole viewport evenly among
+    // them. Explicit item size hints make the painted hover/selection surfaces
+    // expand with their grid cells instead of leaving a fixed-width tile inside.
+    void updateGridColumns() {
+        if (!m_list || !m_list->viewport()) return;
+        const int available = m_list->viewport()->width();
+        if (available <= 0) return;
+
+        const int columns = std::max(1, available / kCellWidth);
+        const int cellWidth = std::max(1, available / columns);
+        if (cellWidth == m_cellWidth) return;
+        m_cellWidth = cellWidth;
+
+        m_list->setGridSize(QSize(cellWidth, kCellHeight));
+        for (int i = 0; i < m_list->count(); ++i)
+            m_list->item(i)->setSizeHint(QSize(cellWidth, kCellHeight));
     }
 
     QWidget*     m_header  = nullptr;
@@ -366,8 +454,10 @@ private:
     std::function<QPixmap(const std::string& id)>    m_thumbnailGen;
     std::function<QIcon(const std::string& id)>      m_fallbackIconGen;
     std::string m_selectedId;
+    int    m_cellWidth   = 0;
     bool   m_multiSelect = false;
     bool   m_persistent  = false;
+    bool   m_inline      = false;
     bool   m_dragging    = false;
     QPoint m_dragOffset;
 };

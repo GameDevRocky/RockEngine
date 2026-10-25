@@ -255,7 +255,12 @@ private:
             };
 
             QWidget* row = new QWidget();
-            auto* rl = new QHBoxLayout(row);
+            auto* rowLayout = new QVBoxLayout(row);
+            rowLayout->setContentsMargins(0, 0, 0, 0);
+            rowLayout->setSpacing(3);
+
+            QWidget* compactRow = new QWidget(row);
+            auto* rl = new QHBoxLayout(compactRow);
             rl->setContentsMargins(0, 0, 0, 0);
             rl->setSpacing(4);
 
@@ -264,7 +269,7 @@ private:
             // rather than to the field inside it.
             ListRow::DragHandle* handle = nullptr;
             if (!m_readOnly) {
-                handle = new ListRow::DragHandle(row);
+                handle = new ListRow::DragHandle(compactRow);
                 rl->addWidget(handle);
             }
 
@@ -274,7 +279,7 @@ private:
             // button is likewise omitted from the header) — that's all read-only
             // changes.
             if (!m_readOnly) {
-                auto* removeBtn = ListRow::MakeRemoveButton(row);
+                auto* removeBtn = ListRow::MakeRemoveButton(compactRow);
                 QObject::connect(removeBtn, &QPushButton::clicked, [this, i]() {
                     if (i >= m_data.size()) return;
                     m_data.erase(m_data.begin() + i);
@@ -288,6 +293,9 @@ private:
                 rl->addWidget(removeBtn);
             }
 
+            rowLayout->addWidget(compactRow);
+            if (QWidget* detail = child->GetFullRowWidget())
+                rowLayout->addWidget(detail);
             m_rowsLayout->addWidget(row);
             if (handle) {
                 if (!m_reorder) {
@@ -431,6 +439,9 @@ public:
     }
 
     QWidget* GetWidget() override { return m_container; }
+    QWidget* GetFullRowWidget() override {
+        return m_target ? m_target->GetFullRowWidget() : nullptr;
+    }
     bool IsValid() override { return !m_container.isNull(); }
 
     void SetValue(const std::string& encoded) override {
