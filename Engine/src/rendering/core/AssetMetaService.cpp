@@ -10,7 +10,7 @@ namespace fs = std::filesystem;
 // ──────────────────────────────────────────────────────────────────────────────
 bool AssetMetaService::IsMetaExtension(const std::string& ext) {
     return ext == ".texture" || ext == ".shader" || ext == ".material" || ext == ".font"
-        || ext == ".audio";
+        || ext == ".audio" || ext == ".tilemap" || ext == ".tileset";
 }
 
 std::string AssetMetaService::MetaExtensionFor(const std::string& sourceExt) {

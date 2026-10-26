@@ -39,6 +39,9 @@ class AudioListener;
 class AudioClip;
 class Scene;
 class Grid;
+class TileMapEditor;
+class TileMap;
+class TileSet;
 
 class IVisitor {
 public:
@@ -77,4 +80,7 @@ public:
     virtual void Visit(AudioClip* a) {}
     virtual void Visit(Scene* s) {}
     virtual void Visit(Grid* g) {}
+    virtual void Visit(TileMapEditor* t) {}
+    virtual void Visit(TileMap* t) {}
+    virtual void Visit(TileSet* t) {}
 };

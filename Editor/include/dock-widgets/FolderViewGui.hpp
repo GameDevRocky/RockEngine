@@ -55,6 +55,8 @@ private:
     // Right-click "New" menu: create asset files on disk in the current folder.
     void ShowContextMenu(const QPoint& pos);
     void CreateNewMaterial();
+    void CreateNewTileMap();
+    void CreateNewTileSet();
     void CreateNewScene();
     void CreateNewScript();
     // A non-colliding path in `folder` for "<baseName><ext>", adding "<sep>1",

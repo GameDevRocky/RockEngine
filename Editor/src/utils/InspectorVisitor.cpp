@@ -28,6 +28,7 @@
 #include "engine/components/AudioSource.hpp"
 #include "engine/components/AudioListener.hpp"
 #include "engine/components/Grid.hpp"
+#include "engine/components/TileMapEditor.hpp"
 
 
 #include "engine/audio/AudioClip.hpp"
@@ -1690,6 +1691,31 @@ void InspectorVisitor::Visit(Grid* grid){
         [](Grid* c, const glm::vec2& v) { c->SetSize(v); },
         grid->SIZE_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2).Step(1.0f));
 
+}
+
+void InspectorVisitor::Visit(TileMapEditor* tileMapEditor)
+{
+    BindProperty<std::string>(tileMapEditor, "Tile Map: ",
+        [=]() {
+            TileMap* map = tileMapEditor->GetTileMap();
+            return map ? map->GetID() : std::string{};
+        },
+        [](TileMapEditor* editor, const std::string& id) {
+            editor->SetTileMap(AssetManager::Get().GetTileMap(id));
+        },
+        tileMapEditor->TILEMAP_CHANGED_EVENT,
+        PropDesc().Tag(Tags::TILEMAP).RefType(Tags::OBJECT_REF));
+
+    BindProperty<std::string>(tileMapEditor, "Tile Set: ",
+        [=]() {
+            TileSet* set = tileMapEditor->GetTileSet();
+            return set ? set->GetID() : std::string{};
+        },
+        [](TileMapEditor* editor, const std::string& id) {
+            editor->SetTileSet(AssetManager::Get().GetTileSet(id));
+        },
+        tileMapEditor->TILESET_CHANGED_EVENT,
+        PropDesc().Tag(Tags::TILESET).RefType(Tags::OBJECT_REF));
 }
 
 void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){

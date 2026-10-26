@@ -117,11 +117,11 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
         const QString filePath = model->filePath(sourceIndex);
         const QString ext = QFileInfo(filePath).suffix().toLower();
 
-        // Every meta type AssetManager can load, so clicking one selects the
-        // asset it describes. "font" and "audio" were missing, which made those
-        // two the only assets in the grid that could not be inspected.
+        // Every file-backed type AssetManager can load, so clicking one selects
+        // the asset it describes in the Inspector.
         static const QSet<QString> assetExts = {
-            "mat", "material", "texture", "shader", "font", "audio", "scene" };
+            "mat", "material", "texture", "shader", "font", "audio", "tilemap",
+            "tileset", "scene" };
         if (assetExts.contains(ext)) {
             try {
                 YAML::Node node = YAML::LoadFile(filePath.toStdString());
@@ -567,6 +567,8 @@ void FolderViewGui::ShowContextMenu(const QPoint& pos) {
     QMenu menu(this);
     QMenu* newMenu = menu.addMenu("New");
     newMenu->addAction("Material", this, [this]() { CreateNewMaterial(); });
+    newMenu->addAction("Tile Map", this, [this]() { CreateNewTileMap(); });
+    newMenu->addAction("Tile Set", this, [this]() { CreateNewTileSet(); });
     newMenu->addAction("Scene",    this, [this]() { CreateNewScene(); });
     newMenu->addAction("Script",   this, [this]() { CreateNewScript(); });
 
@@ -625,7 +627,8 @@ void FolderViewGui::DeleteOneAsset(const QString& filePath) {
         QString source = filePath;
         source.chop(QFileInfo(filePath).suffix().size() + 1);   // strip ".<metaExt>"
         if (QFileInfo::exists(source)) toDelete << source;
-    } else if (lower.endsWith(".material") || lower.endsWith(".mat")) {
+    } else if (lower.endsWith(".material") || lower.endsWith(".mat") ||
+               lower.endsWith(".tilemap") || lower.endsWith(".tileset")) {
         unregisterByFile(filePath);
         toDelete << filePath;
     } else if (lower.endsWith(".scene")) {
@@ -680,6 +683,48 @@ void FolderViewGui::CreateNewMaterial() {
     const std::string name = QFileInfo(path).completeBaseName().toStdString();
     AssetManager::Get().CreateMaterial(path.toStdString(), name);
     // QFileSystemModel watches the directory and shows the new file itself.
+}
+
+void FolderViewGui::CreateNewTileMap() {
+    const QString path = UniqueAssetPath("New Tile Map", ".tilemap");
+
+    YAML::Node node;
+    node["type"]  = "TileMap";
+    node["id"]    = EngineUtils::GenerateUUID();
+    node["name"]  = QFileInfo(path).completeBaseName().toStdString();
+    node["cells"] = YAML::Node(YAML::NodeType::Sequence);
+
+    std::ofstream out(path.toStdString());
+    if (!out.is_open()) {
+        std::cerr << "[FolderViewGui] Failed to create tile map: "
+                  << path.toStdString() << std::endl;
+        return;
+    }
+    out << node;
+    out.close();
+
+    AssetManager::Get().LoadAssetFromFile(path.toStdString());
+}
+
+void FolderViewGui::CreateNewTileSet() {
+    const QString path = UniqueAssetPath("New Tile Set", ".tileset");
+
+    YAML::Node node;
+    node["type"]      = "TileSet";
+    node["id"]        = EngineUtils::GenerateUUID();
+    node["name"]      = QFileInfo(path).completeBaseName().toStdString();
+    node["tileTypes"] = YAML::Node(YAML::NodeType::Sequence);
+
+    std::ofstream out(path.toStdString());
+    if (!out.is_open()) {
+        std::cerr << "[FolderViewGui] Failed to create tile set: "
+                  << path.toStdString() << std::endl;
+        return;
+    }
+    out << node;
+    out.close();
+
+    AssetManager::Get().LoadAssetFromFile(path.toStdString());
 }
 
 void FolderViewGui::CreateNewScene() {

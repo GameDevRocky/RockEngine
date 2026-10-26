@@ -1,6 +1,10 @@
 #include "engine/components/Grid.hpp"
 #include "engine/components/Transform.hpp"
 
+#include <cmath>
+
+#include <glm/gtc/matrix_inverse.hpp>
+
 
 void Grid::Deserialize(const YAML::Node& node){
     Component::Deserialize(node);
@@ -39,21 +43,38 @@ void Grid::SetSize(glm::vec2 size){
 void Grid::SetGap(glm::vec2 gap){
     if (this->gapSize == gap) return;
     this->gapSize = gap;
-    Notify(SIZE_CHANGED_EVENT, gapSize);  
+    Notify(GAP_CHANGED_EVENT, gapSize);
 }
 
-glm::vec2 Grid::CellToWorld(const glm::vec2& cell){
-    float x;
-    float y;
-    const glm::vec2 worldPos = GetTransform()->GetWorldPosition();
-    x = cell.x * (cellSize.x + gapSize.x) + worldPos.x;
-    y = cell.y * (cellSize.y + gapSize.y) + worldPos.y;
-    return {x, y};
+glm::vec2 Grid::CellToWorld(const glm::ivec2& cell){
+    const glm::vec2 stride = cellSize + gapSize;
+    const glm::vec2 local = glm::vec2(cell) * stride;
+
+    Transform* transform = GetTransform();
+    if (transform == nullptr) return local;
+
+    const glm::vec4 world = transform->GetWorldMatrix()
+                          * glm::vec4(local, 0.0f, 1.0f);
+    return {world.x, world.y};
 }
 
-glm::ivec2 Grid::WorldToCell(const glm::vec2& origin){
-    const glm::vec2 worldPos = GetTransform()->GetWorldPosition();
-    int x = std::floor((worldPos.x - origin.x) / (cellSize.x + gapSize.x));
-    int y = std::floor((worldPos.y - origin.y) / (cellSize.y + gapSize.y));
-    return {x, y};
+glm::ivec2 Grid::WorldToCell(const glm::vec2& world){
+    glm::vec2 local = world;
+    if (Transform* transform = GetTransform()) {
+        const glm::mat4 worldMatrix = transform->GetWorldMatrix();
+        if (std::abs(glm::determinant(worldMatrix)) <= 1.0e-6f) return {0, 0};
+
+        const glm::vec4 localPoint = glm::inverse(worldMatrix)
+                                   * glm::vec4(world, 0.0f, 1.0f);
+        local = {localPoint.x, localPoint.y};
+    }
+
+    const glm::vec2 stride = cellSize + gapSize;
+    if (std::abs(stride.x) <= 1.0e-6f || std::abs(stride.y) <= 1.0e-6f)
+        return {0, 0};
+
+    return {
+        static_cast<int>(std::floor(local.x / stride.x)),
+        static_cast<int>(std::floor(local.y / stride.y))
+    };
 }

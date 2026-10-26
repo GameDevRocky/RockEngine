@@ -68,7 +68,6 @@ class PlayerController(ScriptableComponent):
     camera_smoothing: float = 0.1
 
     cursor : Sprite = None
-    grid : Grid = None
     def awake(self):
 
         Cursor.set_sprite(self.cursor, Vector2(3, 2))
@@ -120,10 +119,7 @@ class PlayerController(ScriptableComponent):
         
         # Debug: Trigger Hit animation
         if Input.is_key_pressed(Keys.H) and self.animator:
-            self.animator.set_trigger('Hit')
-
-        self.grid.size += (1,1)
-            
+            self.animator.set_trigger('Hit')            
         self._update_animation()
         self._follow_camera()
         self.particle_gen.sprite = self.sr.sprite

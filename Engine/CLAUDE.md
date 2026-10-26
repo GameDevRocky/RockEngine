@@ -175,6 +175,16 @@ a missing or malformed installation config fails conservatively.
 New asset type → extend `AssetMetaService` (meta convention) and `AssetManager` (a `Load*`
 + storage map + `Get*` accessors). Asset *content* lives in `Domain/` — see its CLAUDE.md.
 
+`TileMap` and `TileSet` are resources registered by `AssetManager`. A file-backed TileMap is a
+lightweight shell at startup: its single YAML document contains metadata and cells, but startup
+deserializes only metadata; cells load when a `TileMapEditor` acquires it. TileMaps contain
+no TileSet reference. `TileMapEditor` stores independent TileMap and TileSet resource ids, resolves
+both through `AssetManager`, and balances TileMap `Load()`/`Unload()` across its lifecycle. It
+requires a Grid on the same GameObject during `Init()` and uses that Grid directly for coordinate
+conversion. It retains only the Grid id and resolves the component through its owning container;
+removing the required Grid also removes the dependent TileMapEditor component. Grid coordinate
+conversion reads the current world transform, so reparenting requires no TileMapEditor bookkeeping.
+
 ## Rendering
 
 Rendering lifecycle lives entirely in Engine, **outside any `Container`** — render resources
@@ -236,6 +246,10 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
 - MSDF text has separate unlit and lit assets. `text`/`msdf_text` remains the default;
   `text_lit`/`msdf_text_lit` is opt-in and consumes the same LightBlock and shadow atlas as
   lit sprites while retaining TextRenderer-owned fill, weight, and outline controls.
+- The polar shadow-atlas rasterizer interpolates each edge's light-relative position and measures
+  radial distance in the fragment stage. Do not interpolate endpoint distances directly: radial
+  length is nonlinear across a projected edge, so doing that overestimates oblique blockers and
+  leaks light through long or rotated ShadowCasters.
 - `src/rendering/cameras/`: `RenderCamera` (resolved state, see above), `EditorCamera`
   (editor-viewport navigation; pan via `PanByPixels`, zoom-to-cursor via `ZoomAt`).
 - `src/rendering/passes/`: ClearPass, GridPass, ScenePass, PickingPass (mouse-pick via id

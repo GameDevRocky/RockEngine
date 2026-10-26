@@ -24,7 +24,9 @@ bool IsAssetTag(Properties::Tags tag) {
         || tag == Properties::Tags::TEXTURE
         || tag == Properties::Tags::SHADER
         || tag == Properties::Tags::FONT
-        || tag == Properties::Tags::AUDIO_CLIP;
+        || tag == Properties::Tags::AUDIO_CLIP
+        || tag == Properties::Tags::TILEMAP
+        || tag == Properties::Tags::TILESET;
 }
 }
 
@@ -121,6 +123,8 @@ void ObjectRefPickerObserver::ObserveAssets() {
         case Properties::Tags::SHADER:     observeMap(assets.GetAllShaders()); break;
         case Properties::Tags::FONT:       observeMap(assets.GetAllFonts()); break;
         case Properties::Tags::AUDIO_CLIP: observeMap(assets.GetAllAudioClips()); break;
+        case Properties::Tags::TILEMAP:    observeMap(assets.GetAllTileMaps()); break;
+        case Properties::Tags::TILESET:    observeMap(assets.GetAllTileSets()); break;
         default: break;
     }
 }

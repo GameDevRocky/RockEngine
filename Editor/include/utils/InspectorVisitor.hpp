@@ -24,6 +24,7 @@ class Texture2D;
 class Shader;
 class Scene;
 class Grid;
+class TileMapEditor;
 
 class InspectorVisitor : public IVisitor{
 
@@ -62,6 +63,7 @@ class InspectorVisitor : public IVisitor{
         void Visit(AudioClip* audioClip) override;
         void Visit(Scene* scene) override;
         void Visit(Grid* grid) override;
+        void Visit(TileMapEditor* tileMapEditor) override;
 
 
         QWidget* GetContent(){ return content;}

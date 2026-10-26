@@ -28,6 +28,8 @@ namespace Properties {
         SHADER,
         FONT,
         AUDIO_CLIP,
+        TILEMAP,
+        TILESET,
         STRING,
         OBJECT_REF,
         SCRIPT,

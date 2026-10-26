@@ -1610,6 +1610,8 @@ private:
             case Properties::Tags::SHADER:     return am.GetShader(id)    != nullptr;
             case Properties::Tags::FONT:       return am.GetFont(id)      != nullptr;
             case Properties::Tags::AUDIO_CLIP: return am.GetAudioClip(id) != nullptr;
+            case Properties::Tags::TILEMAP:    return am.GetTileMap(id)   != nullptr;
+            case Properties::Tags::TILESET:    return am.GetTileSet(id)   != nullptr;
             case Properties::Tags::OBJECT_REF: return findGameObject(id)  != nullptr;
             default:                           return true;   // nothing to check against
         }
@@ -1649,7 +1651,9 @@ private:
             thumbGen = [](const std::string& id) { return AssetThumbnails::forSprite(id); };
         else if (m_desc.tag == Properties::Tags::TEXTURE)
             thumbGen = [](const std::string& id) { return AssetThumbnails::forTexture(id); };
-        else if (m_desc.tag == Properties::Tags::SCRIPT)
+        else if (m_desc.tag == Properties::Tags::SCRIPT ||
+                 m_desc.tag == Properties::Tags::TILEMAP ||
+                 m_desc.tag == Properties::Tags::TILESET)
             // Scripts have no visual thumbnail — the fallback file icon is used.
             thumbGen = nullptr;
         else
@@ -1706,6 +1710,16 @@ private:
                 auto* a = AssetManager::Get().GetAudioClip(id);
                 return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
             };
+        else if (m_desc.tag == Properties::Tags::TILEMAP)
+            fallbackIconGen = [iconFromFilePath](const std::string& id) {
+                auto* a = AssetManager::Get().GetTileMap(id);
+                return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
+            };
+        else if (m_desc.tag == Properties::Tags::TILESET)
+            fallbackIconGen = [iconFromFilePath](const std::string& id) {
+                auto* a = AssetManager::Get().GetTileSet(id);
+                return a ? iconFromFilePath(a->GetFilePath()) : QIcon{};
+            };
         else if (m_desc.tag == Properties::Tags::SCRIPT)
             fallbackIconGen = [iconFromFilePath](const std::string& id) -> QIcon {
                 // id is "module:class" — icon the module's .py file.
@@ -1750,6 +1764,10 @@ private:
             auto* a = am.GetFont(id);     return a ? a->GetName() : id;
         } else if (m_desc.tag == Properties::Tags::AUDIO_CLIP) {
             auto* a = am.GetAudioClip(id); return a ? a->GetName() : id;
+        } else if (m_desc.tag == Properties::Tags::TILEMAP) {
+            auto* a = am.GetTileMap(id); return a ? a->GetName() : id;
+        } else if (m_desc.tag == Properties::Tags::TILESET) {
+            auto* a = am.GetTileSet(id); return a ? a->GetName() : id;
         } else if (m_desc.tag == Properties::Tags::SCRIPT) {
             // id is "module:class" — show the class name (what the user picked).
             const auto colon = id.find(':');
@@ -1816,6 +1834,12 @@ private:
         } else if (m_desc.tag == Properties::Tags::AUDIO_CLIP) {
             for (const auto& [id, clip] : am.GetAllAudioClips())
                 items.push_back({clip->GetName(), id});
+        } else if (m_desc.tag == Properties::Tags::TILEMAP) {
+            for (const auto& [id, map] : am.GetAllTileMaps())
+                items.push_back({map->GetName(), id});
+        } else if (m_desc.tag == Properties::Tags::TILESET) {
+            for (const auto& [id, set] : am.GetAllTileSets())
+                items.push_back({set->GetName(), id});
         } else if (m_desc.tag == Properties::Tags::SCRIPT) {
             // Every ScriptableComponent subclass, keyed by "module:class".
             // Disambiguate a class name shared across modules as "Class (module)".

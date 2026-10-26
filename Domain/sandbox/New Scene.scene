@@ -1,6 +1,49 @@
 name: New Scene
 id: d3da870b1353555b95040585706c350e
-gameobjects:
-  []
 components:
-  []
+  - id: 074d85abf5d1126154181a3795f5d77f
+    enabled: true
+    type: Transform
+    gameobject: b2e0b95d649f618a792fe5f8bd6a6bbe
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 83a55ececcb1a404f46b1df311a8c357
+    enabled: true
+    type: Grid
+    gameobject: b2e0b95d649f618a792fe5f8bd6a6bbe
+    cellSize:
+      - 1
+      - 1
+  - id: 2ec31d391c00d3ed7f97894d11792798
+    enabled: true
+    type: Transform
+    gameobject: fe7c000685554200fa43f03763c5b833
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: 074d85abf5d1126154181a3795f5d77f
+  - id: 2c93d22d9cc13547fea4823b6e24d865
+    enabled: true
+    type: TileMapEditor
+    gameobject: fe7c000685554200fa43f03763c5b833
+    tileMapId: 13234d92cadb64faa6f3361bbf8d2fd4
+    tileSetId: be3822c9d191bf61998713619137d4e1
+gameobjects:
+  - id: b2e0b95d649f618a792fe5f8bd6a6bbe
+    type: GameObject
+    name: Grid
+    tag: Untagged
+    active: true
+    component_ids:
+      - 074d85abf5d1126154181a3795f5d77f
+      - 83a55ececcb1a404f46b1df311a8c357
+  - id: fe7c000685554200fa43f03763c5b833
+    type: GameObject
+    name: TileMap
+    tag: Untagged
+    active: true
+    component_ids:
+      - 2ec31d391c00d3ed7f97894d11792798
+      - 2c93d22d9cc13547fea4823b6e24d865

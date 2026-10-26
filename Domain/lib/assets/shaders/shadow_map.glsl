@@ -14,7 +14,13 @@ uniform vec2  uLightPos;
 uniform float uRange;
 uniform int   uQuadrant;   // 0 = +X, 1 = +Y, 2 = -X, 3 = -Y
 
-out float vDist;
+// Interpolate the light-relative position, not its already-computed length.
+// A scalar endpoint distance is perspective-correct interpolated as though it
+// were linear along the projected edge, but radial length is nonlinear. For a
+// long or oblique caster that overestimates the blocker distance and lets light
+// through immediately behind the edge. The position itself interpolates to the
+// exact ray/segment intersection; the fragment stage can then measure it.
+out vec2 vLightOffset;
 
 // ─── SHARED WITH sprite.glsl ─────────────────────────────────────────────────
 // Rotates a light-relative offset so the quadrant's forward axis becomes .x.
@@ -33,9 +39,7 @@ void main() {
     vec2 d  = aPos - uLightPos;
     vec2 dq = RotateToQuadrant(d, uQuadrant);
 
-    // Normalized distance, interpolated perspective-correctly along the segment
-    // because w below is the quadrant's forward depth.
-    vDist = length(d) / uRange;
+    vLightOffset = d;
 
     // A real 90-degree perspective face, done by hand:
     //   ndc.x = dq.y / dq.x  ->  spans exactly [-1,1] across the quadrant
@@ -46,11 +50,16 @@ void main() {
 
 #pragma fragment
 #version 450 core
-in float vDist;
+in vec2 vLightOffset;
 out vec4 FragColor;
+
+uniform float uRange;
 
 void main() {
     // Blended with glBlendEquation(GL_MIN), so the nearest occluder along each
-    // direction survives without a depth buffer or any sorting.
-    FragColor = vec4(vDist, 0.0, 0.0, 1.0);
+    // direction survives without a depth buffer or any sorting. Measuring after
+    // interpolation is essential: length(interpolate(offset)) is the true radial
+    // distance to this edge, while interpolate(length(offset)) is not.
+    float distanceToOccluder = length(vLightOffset) / uRange;
+    FragColor = vec4(distanceToOccluder, 0.0, 0.0, 1.0);
 }

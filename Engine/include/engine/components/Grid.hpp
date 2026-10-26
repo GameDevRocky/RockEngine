@@ -29,7 +29,7 @@ class Grid : public Component{
     void SetSize(glm::vec2 size);
     void SetGap(glm::vec2 gap);
 
-    glm::vec2 CellToWorld(const glm::vec2& pos);
+    glm::vec2 CellToWorld(const glm::ivec2& cell);
     glm::ivec2 WorldToCell(const glm::vec2& pos);
     
 

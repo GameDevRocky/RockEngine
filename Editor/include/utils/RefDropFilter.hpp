@@ -174,7 +174,8 @@ private:
         if (mime->hasUrls()) {
             if (m_desc.tag != Tags::MATERIAL && m_desc.tag != Tags::SPRITE &&
                 m_desc.tag != Tags::TEXTURE  && m_desc.tag != Tags::SHADER &&
-                m_desc.tag != Tags::FONT)
+                m_desc.tag != Tags::FONT     && m_desc.tag != Tags::TILEMAP &&
+                m_desc.tag != Tags::TILESET)
                 return false;   // object-ref fields reject asset files
 
             for (const QUrl& url : mime->urls()) {
@@ -235,6 +236,8 @@ private:
             case Properties::Tags::TEXTURE:  return am.GetTexture(id)  != nullptr;
             case Properties::Tags::SHADER:   return am.GetShader(id)   != nullptr;
             case Properties::Tags::FONT:     return am.GetFont(id)     != nullptr;
+            case Properties::Tags::TILEMAP:  return am.GetTileMap(id)  != nullptr;
+            case Properties::Tags::TILESET:  return am.GetTileSet(id)  != nullptr;
             default:                         return false;
         }
     }

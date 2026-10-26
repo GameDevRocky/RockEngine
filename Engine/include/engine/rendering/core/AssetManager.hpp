@@ -11,6 +11,8 @@
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Font.hpp"
 #include "engine/audio/AudioClip.hpp"
+#include "engine/tilemap/TileMap.hpp"
+#include "engine/tilemap/TileSet.hpp"
 
 class AssetManager : public System
 {
@@ -33,6 +35,8 @@ public:
     Sprite* GetSprite(const std::string& id);
     Font* GetFont(const std::string& id);
     AudioClip* GetAudioClip(const std::string& id);
+    TileMap* GetTileMap(const std::string& id);
+    TileSet* GetTileSet(const std::string& id);
 
     Shader* GetShaderByName(const std::string& name);
     Texture2D* GetTextureByName(const std::string& name);
@@ -47,6 +51,8 @@ public:
     const std::unordered_map<std::string, Shader*>&   GetAllShaders()   const { return shaders; }
     const std::unordered_map<std::string, Font*>&     GetAllFonts()     const { return fonts; }
     const std::unordered_map<std::string, AudioClip*>& GetAllAudioClips() const { return audioClips; }
+    const std::unordered_map<std::string, TileMap*>& GetAllTileMaps() const { return tileMaps; }
+    const std::unordered_map<std::string, TileSet*>& GetAllTileSets() const { return tileSets; }
 
     void AddShader(Shader* shader);
     void AddTexture(Texture2D* texture);
@@ -54,6 +60,8 @@ public:
     void AddSprite(Sprite* sprite);
     void AddFont(Font* font);
     void AddAudioClip(AudioClip* clip);
+    void AddTileMap(TileMap* tileMap);
+    void AddTileSet(TileSet* tileSet);
 
     // Create a new sprite carving a normalized-UV region out of an existing texture,
     // register it with that texture, and persist it into the texture's meta file.
@@ -122,6 +130,8 @@ public:
     void LoadSprite   (const YAML::Node& node, const std::string& filePath = {});
     void LoadFont     (const YAML::Node& node, const std::string& filePath = {});
     void LoadAudioClip(const YAML::Node& node, const std::string& filePath = {});
+    void LoadTileMap  (const YAML::Node& node, const std::string& filePath = {});
+    void LoadTileSet  (const YAML::Node& node, const std::string& filePath = {});
 
     // Persist the resource whenever it fires a change notification (once auto-save is armed).
     void SubscribeAutoSave(Resource* r);
@@ -135,4 +145,6 @@ public:
     std::unordered_map<std::string, Sprite*> sprites;
     std::unordered_map<std::string, Font*> fonts;
     std::unordered_map<std::string, AudioClip*> audioClips;
+    std::unordered_map<std::string, TileMap*> tileMaps;
+    std::unordered_map<std::string, TileSet*> tileSets;
 };

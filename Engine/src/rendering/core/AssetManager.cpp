@@ -63,6 +63,8 @@ void AssetManager::Init()
     for (auto& kv : materials) all.push_back(kv.second);
     for (auto& kv : fonts)     all.push_back(kv.second);
     for (auto& kv : audioClips) all.push_back(kv.second);
+    for (auto& kv : tileMaps) all.push_back(kv.second);
+    for (auto& kv : tileSets) all.push_back(kv.second);
 
     for (Resource* obj : all) obj->Init();
 
@@ -79,6 +81,8 @@ void AssetManager::Awake(){
     for (auto& kv : materials) all.push_back(kv.second);
     for (auto& kv : fonts)     all.push_back(kv.second);
     for (auto& kv : audioClips) all.push_back(kv.second);
+    for (auto& kv : tileMaps) all.push_back(kv.second);
+    for (auto& kv : tileSets) all.push_back(kv.second);
 
     for (Resource* obj : all) obj->Awake();
 }
@@ -163,6 +167,18 @@ AudioClip* AssetManager::GetAudioClip(const std::string& id)
     return (it != audioClips.end()) ? it->second : nullptr;
 }
 
+TileMap* AssetManager::GetTileMap(const std::string& id)
+{
+    auto it = tileMaps.find(id);
+    return it != tileMaps.end() ? it->second : nullptr;
+}
+
+TileSet* AssetManager::GetTileSet(const std::string& id)
+{
+    auto it = tileSets.find(id);
+    return it != tileSets.end() ? it->second : nullptr;
+}
+
 AudioClip* AssetManager::GetAudioClipByName(const std::string& name)
 {
     for (auto& kv : audioClips)
@@ -220,6 +236,22 @@ void AssetManager::AddAudioClip(AudioClip* clip)
     audioClips[clip->GetID()] = clip;
     SubscribeAutoSave(clip);
     Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(clip));
+}
+
+void AssetManager::AddTileMap(TileMap* tileMap)
+{
+    if (!tileMap) return;
+    tileMaps[tileMap->GetID()] = tileMap;
+    // TileMap loads cells on demand; do not subscribe to generic auto-save here.
+    Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(tileMap));
+}
+
+void AssetManager::AddTileSet(TileSet* tileSet)
+{
+    if (!tileSet) return;
+    tileSets[tileSet->GetID()] = tileSet;
+    SubscribeAutoSave(tileSet);
+    Notify(ASSET_ADDED_EVENT, static_cast<Resource*>(tileSet));
 }
 
 void AssetManager::AddTexture(Texture2D* texture)
@@ -374,6 +406,22 @@ Texture2D* AssetManager::ImportTexture(const std::string& sourceFile, const std:
 }
 
 void AssetManager::RemoveAsset(const std::string& id) {
+    if (auto it = tileMaps.find(id); it != tileMaps.end()) {
+        TileMap* tileMap = it->second;
+        tileMaps.erase(it);
+        Notify(ASSET_REMOVED_EVENT, id);
+        delete tileMap;
+        return;
+    }
+
+    if (auto it = tileSets.find(id); it != tileSets.end()) {
+        TileSet* tileSet = it->second;
+        tileSets.erase(it);
+        Notify(ASSET_REMOVED_EVENT, id);
+        delete tileSet;
+        return;
+    }
+
     if (auto it = materials.find(id); it != materials.end()) {
         Material* m = it->second;
         materials.erase(it);
@@ -446,12 +494,15 @@ void AssetManager::SaveResource(Resource* r) {
     const std::string& path = r->GetFilePath();
     if (path.empty()) return;
 
+    // TileMap::Serialize may read unloaded cells from this same file. Build the
+    // complete node before opening the output stream, which truncates the file.
+    YAML::Node serialized = r->Serialize();
     std::ofstream fout(path);
     if (!fout.is_open()) {
         Console::Alert("Failed to save asset to disk: " + path);
         return;
     }
-    fout << r->Serialize();
+    fout << serialized;
     std::cout << "Saved asset to: " + path << std::endl;
 }
 
@@ -467,6 +518,10 @@ void AssetManager::LoadAsset(const YAML::Node& node, const std::string& type) {
         LoadFont(node);
     } else if (type == "audioclip") {
         LoadAudioClip(node);
+    } else if (type == "tilemap") {
+        LoadTileMap(node);
+    } else if (type == "tileset") {
+        LoadTileSet(node);
     }
 }
 
@@ -562,6 +617,26 @@ void AssetManager::LoadAudioClip(const YAML::Node& node, const std::string& file
     std::cout << "Loaded and Registered AudioClip: " + clip->GetName() << std::endl;
 }
 
+void AssetManager::LoadTileMap(const YAML::Node& node, const std::string& filePath) {
+    if (node["id"] && tileMaps.count(node["id"].as<std::string>())) return;
+    auto* tileMap = new TileMap();
+    tileMap->Deserialize(node);
+    if (!filePath.empty()) tileMap->SetFilePath(filePath);
+    tileMap->Init();
+    tileMap->Awake();
+    AddTileMap(tileMap);
+}
+
+void AssetManager::LoadTileSet(const YAML::Node& node, const std::string& filePath) {
+    if (node["id"] && tileSets.count(node["id"].as<std::string>())) return;
+    auto* tileSet = new TileSet();
+    tileSet->Deserialize(node);
+    if (!filePath.empty()) tileSet->SetFilePath(filePath);
+    tileSet->Init();
+    tileSet->Awake();
+    AddTileSet(tileSet);
+}
+
 void AssetManager::LoadSprite(const YAML::Node& node, const std::string& filePath) {
     if (node["id"] && sprites.count(node["id"].as<std::string>())) return;
 
@@ -599,6 +674,10 @@ void AssetManager::LoadAssetFromFile(const std::string& filePath) {
         LoadFont(node, filePath);
     } else if (type == "audioclip") {
         LoadAudioClip(node, filePath);
+    } else if (type == "tilemap") {
+        LoadTileMap(node, filePath);
+    } else if (type == "tileset") {
+        LoadTileSet(node, filePath);
     }
 }
 
@@ -615,7 +694,8 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     // first, then materials. Fonts and audio clips depend on nothing and nothing
     // depends on them at load time (a TextRenderer/AudioSource resolves its
     // font/clip by id when used), so they can go anywhere in the order.
-    std::vector<fs::path> textureMetas, shaderMetas, materialMetas, fontMetas, audioMetas;
+    std::vector<fs::path> textureMetas, shaderMetas, materialMetas, fontMetas, audioMetas,
+                          tileMapMetas, tileSetMetas;
 
     std::error_code ec;
     for (auto& entry : fs::recursive_directory_iterator(root, ec)) {
@@ -625,6 +705,8 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
         else if (ext == ".shader")   shaderMetas  .push_back(entry.path());
         else if (ext == ".font")     fontMetas    .push_back(entry.path());
         else if (ext == ".audio")    audioMetas   .push_back(entry.path());
+        else if (ext == ".tilemap")  tileMapMetas .push_back(entry.path());
+        else if (ext == ".tileset")  tileSetMetas .push_back(entry.path());
         else if (ext == ".material" || ext == ".mat") materialMetas.push_back(entry.path());
     }
     if (ec)
@@ -634,7 +716,8 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     // app->exec(), so there is no event loop and no job pump -- BootProgress is
     // a direct call and the splash force-repaints itself on each one.
     const std::size_t total = textureMetas.size() + shaderMetas.size()
-                            + fontMetas.size() + materialMetas.size() + audioMetas.size();
+                            + fontMetas.size() + materialMetas.size() + audioMetas.size()
+                            + tileMapMetas.size() + tileSetMetas.size();
     std::size_t done = 0;
     auto loadAll = [&](const std::vector<fs::path>& metas, const char* kind) {
         for (const auto& p : metas) {
@@ -699,6 +782,8 @@ void AssetManager::LoadFromDirectory(const std::string& rootDir) {
     loadAll(fontMetas,     "Fonts");
     loadAll(audioMetas,    "Audio");
     loadAll(materialMetas, "Materials");
+    loadAll(tileSetMetas,  "TileSets");
+    loadAll(tileMapMetas,  "TileMaps");
 
     BootProgress::Report(1.0f, "Finishing up");
 

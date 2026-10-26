@@ -23,6 +23,7 @@
 #include "engine/components/AudioSource.hpp"
 #include "engine/components/AudioListener.hpp"
 #include "engine/components/Grid.hpp"
+#include "engine/components/TileMapEditor.hpp"
 #include <iostream>
 
 
@@ -53,5 +54,6 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("AudioListener", []() { return new AudioListener(); });
     // Tilemapping
     SerializableFactory::RegisterType("Grid", []() { return new Grid(); });
+    SerializableFactory::RegisterType("TileMapEditor", []() { return new TileMapEditor(); });
 
 }
