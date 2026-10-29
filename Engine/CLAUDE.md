@@ -41,6 +41,11 @@ range-for directly over the references returned by `Scene::GetRootObjects()` or
 `GameObject::ChildObjects()` across a callback: a spawn, destroy, reparent, or a later cache
 query can bump the registry generation, clear that same cache, and invalidate the iterator.
 
+New colliders use fixed dimensions in world units instead of measuring SpriteRenderers: boxes
+start at 32×32, circles at radius 16, and capsules at 16 wide by 32 tall. One world unit is one
+render pixel; Box2D uses 32 world units per meter through `PixelsPerMeter` in
+`EngineUtils::RenderUtils`.
+
 ## AppMode — editor process vs. shipped game
 
 `Engine::SetAppMode(AppMode::Editor | AppMode::Player)`, **called before `Init()`** (it decides
@@ -180,10 +185,13 @@ lightweight shell at startup: its single YAML document contains metadata and cel
 deserializes only metadata; cells load when a `TileMapEditor` acquires it. TileMaps contain
 no TileSet reference. `TileMapEditor` stores independent TileMap and TileSet resource ids, resolves
 both through `AssetManager`, and balances TileMap `Load()`/`Unload()` across its lifecycle. It
-requires a Grid on the same GameObject during `Init()` and uses that Grid directly for coordinate
-conversion. It retains only the Grid id and resolves the component through its owning container;
-removing the required Grid also removes the dependent TileMapEditor component. Grid coordinate
-conversion reads the current world transform, so reparenting requires no TileMapEditor bookkeeping.
+requires a Grid on the same GameObject during `Init()`, stores only its id, and uses it for
+coordinate conversion. Removing the Grid removes the TileMapEditor through a one-shot shutdown
+callback. Grid coordinate conversion reads the current world transform.
+`TileId` is the compact value stored in a map cell (`0` is empty); `Tile` is the named sprite/rule
+definition in a `TileSet`. TileSet YAML writes `tiles`, and TileMap cells write `tileId`.
+Grid YAML stores both `cellSize` and `gapSize`; an omitted `gapSize` defaults to zero.
+TileSet edits through `SetTile()` and `RemoveTile()` use the standard editor asset auto-save path.
 
 ## Rendering
 

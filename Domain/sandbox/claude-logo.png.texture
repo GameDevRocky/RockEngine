@@ -1,0 +1,12 @@
+type: Texture2D
+id: c13de27e76ba84205620b2735bfed32d
+name: claude-logo
+path: Domain/sandbox/claude-logo.png
+filtering: nearest
+wrap: repeat
+sprites:
+  - id: d5befe88bb2aa633b61abd190d687347
+    name: d5befe88bb2aa633b61abd190d687347
+    uvMin: [0.13780634, 0.15073001]
+    uvMax: [0.8564873, 0.8966161]
+    pivot: [0, 0]

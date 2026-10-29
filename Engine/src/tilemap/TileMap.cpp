@@ -15,7 +15,7 @@ std::size_t TileCellHash::operator()(const glm::ivec2& cell) const noexcept
 
 YAML::Node TileMap::Serialize()
 {
-    const bool loadForSerialization = !tiles && !GetFilePath().empty();
+    const bool loadForSerialization = !cells && !GetFilePath().empty();
     if (loadForSerialization && !Load())
         throw std::runtime_error("Failed to load TileMap cells: " + GetFilePath());
 
@@ -23,27 +23,27 @@ YAML::Node TileMap::Serialize()
     node["type"] = GetTypeName();
     node["id"] = GetID();
     node["name"] = GetName();
-    YAML::Node cells(YAML::NodeType::Sequence);
-    if (tiles)
+    YAML::Node serializedCells(YAML::NodeType::Sequence);
+    if (cells)
     {
-        std::vector<std::pair<glm::ivec2, TileTypeId>> orderedTiles;
-        orderedTiles.reserve(tiles->size());
-        for (const auto& entry : *tiles) orderedTiles.push_back(entry);
+        std::vector<std::pair<glm::ivec2, TileId>> orderedTiles;
+        orderedTiles.reserve(cells->size());
+        for (const auto& entry : *cells) orderedTiles.push_back(entry);
         std::sort(orderedTiles.begin(), orderedTiles.end(), [](const auto& a, const auto& b) {
             if (a.first.y != b.first.y) return a.first.y < b.first.y;
             return a.first.x < b.first.x;
         });
 
-        for (const auto& [cell, type] : orderedTiles)
+        for (const auto& [cell, tileId] : orderedTiles)
         {
             YAML::Node entry;
             entry["x"] = cell.x;
             entry["y"] = cell.y;
-            entry["tileType"] = type;
-            cells.push_back(entry);
+            entry["tileId"] = tileId;
+            serializedCells.push_back(entry);
         }
     }
-    node["cells"] = cells;
+    node["cells"] = serializedCells;
     if (loadForSerialization) Unload();
     return node;
 }
@@ -51,7 +51,7 @@ YAML::Node TileMap::Serialize()
 void TileMap::Deserialize(const YAML::Node& node)
 {
     Resource::Deserialize(node);
-    tiles.reset();
+    cells.reset();
     loadCount = 0;
     dirty = false;
 }
@@ -62,7 +62,7 @@ TileMap* TileMap::Copy()
     copy->id = id;
     copy->name = name;
     copy->m_filePath = m_filePath;
-    if (tiles) copy->tiles = std::make_unique<data>(*tiles);
+    if (cells) copy->cells = std::make_unique<CellData>(*cells);
     copy->dirty = dirty;
     return copy;
 }
@@ -74,7 +74,7 @@ void TileMap::Accept(IVisitor* visitor)
 
 bool TileMap::Load()
 {
-    if (tiles)
+    if (cells)
     {
         ++loadCount;
         return true;
@@ -85,18 +85,18 @@ bool TileMap::Load()
     try
     {
         const YAML::Node node = YAML::LoadFile(GetFilePath());
-        const YAML::Node cells = node["cells"];
-        if (!cells || !cells.IsSequence()) return false;
+        const YAML::Node serializedCells = node["cells"];
+        if (!serializedCells || !serializedCells.IsSequence()) return false;
 
-        auto loaded = std::make_unique<data>();
-        for (const YAML::Node& entry : cells)
+        auto loaded = std::make_unique<CellData>();
+        for (const YAML::Node& entry : serializedCells)
         {
-            if (!entry["x"] || !entry["y"] || !entry["tileType"]) continue;
-            const TileTypeId type = entry["tileType"].as<TileTypeId>(EMPTY_TILE_TYPE);
-            if (type == EMPTY_TILE_TYPE) continue;
-            (*loaded)[{entry["x"].as<int>(), entry["y"].as<int>()}] = type;
+            if (!entry["x"] || !entry["y"] || !entry["tileId"]) continue;
+            const TileId tileId = entry["tileId"].as<TileId>(EMPTY_TILE_ID);
+            if (tileId == EMPTY_TILE_ID) continue;
+            (*loaded)[{entry["x"].as<int>(), entry["y"].as<int>()}] = tileId;
         }
-        tiles = std::move(loaded);
+        cells = std::move(loaded);
         loadCount = 1;
         dirty = false;
         return true;
@@ -110,20 +110,20 @@ bool TileMap::Load()
 void TileMap::Unload()
 {
     if (loadCount > 0) --loadCount;
-    if (loadCount == 0 && !dirty) tiles.reset();
+    if (loadCount == 0 && !dirty) cells.reset();
 }
 
-bool TileMap::SetTileType(const glm::ivec2& cell, TileTypeId type)
+bool TileMap::SetTileId(const glm::ivec2& cell, TileId tileId)
 {
-    if (!tiles) return false;
-    if (type == EMPTY_TILE_TYPE)
+    if (!cells) return false;
+    if (tileId == EMPTY_TILE_ID)
     {
         return ClearTile(cell);
     }
 
-    const auto found = tiles->find(cell);
-    if (found != tiles->end() && found->second == type) return false;
-    (*tiles)[cell] = type;
+    const auto found = cells->find(cell);
+    if (found != cells->end() && found->second == tileId) return false;
+    (*cells)[cell] = tileId;
     dirty = true;
     Notify(CELL_CHANGED_EVENT, cell);
     return true;
@@ -131,7 +131,7 @@ bool TileMap::SetTileType(const glm::ivec2& cell, TileTypeId type)
 
 bool TileMap::ClearTile(const glm::ivec2& cell)
 {
-    if (!tiles || tiles->erase(cell) == 0) return false;
+    if (!cells || cells->erase(cell) == 0) return false;
     dirty = true;
     Notify(CELL_CHANGED_EVENT, cell);
     return true;
@@ -139,21 +139,21 @@ bool TileMap::ClearTile(const glm::ivec2& cell)
 
 bool TileMap::Clear()
 {
-    if (!tiles || tiles->empty()) return false;
-    tiles->clear();
+    if (!cells || cells->empty()) return false;
+    cells->clear();
     dirty = true;
     Notify(CLEARED_EVENT);
     return true;
 }
 
-TileTypeId TileMap::GetTileType(const glm::ivec2& cell) const
+TileId TileMap::GetTileId(const glm::ivec2& cell) const
 {
-    if (!tiles) return EMPTY_TILE_TYPE;
-    const auto found = tiles->find(cell);
-    return found == tiles->end() ? EMPTY_TILE_TYPE : found->second;
+    if (!cells) return EMPTY_TILE_ID;
+    const auto found = cells->find(cell);
+    return found == cells->end() ? EMPTY_TILE_ID : found->second;
 }
 
 bool TileMap::HasTile(const glm::ivec2& cell) const
 {
-    return tiles && tiles->contains(cell);
+    return cells && cells->contains(cell);
 }

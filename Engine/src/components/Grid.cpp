@@ -10,6 +10,10 @@ void Grid::Deserialize(const YAML::Node& node){
     Component::Deserialize(node);
     this->cellSize.x = node["cellSize"][0].as<float>();
     this->cellSize.y = node["cellSize"][1].as<float>();
+    if (node["gapSize"]){
+        this->gapSize.x = node["gapSize"][0].as<float>();
+        this->gapSize.y = node["gapSize"][1].as<float>();
+    }
     state = State::Loaded;
 }
 
@@ -17,6 +21,8 @@ YAML::Node Grid::Serialize(){
     YAML::Node node = Component::Serialize();
     node["cellSize"][0] = this->cellSize.x;
     node["cellSize"][1] = this->cellSize.y;
+    node["gapSize"][0] = this->gapSize.x;
+    node["gapSize"][1] = this->gapSize.y;
     return node;
 }
 
@@ -27,6 +33,7 @@ Grid* Grid::Copy(){
     c->enabled       = enabled;
     c->gameobject_id = gameobject_id;
     c->cellSize = cellSize;
+    c->gapSize = gapSize;
     return c;
 }
 

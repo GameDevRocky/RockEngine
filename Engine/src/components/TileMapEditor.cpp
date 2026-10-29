@@ -16,6 +16,17 @@ void TileMapEditor::Init()
     if (state >= State::Initialized) return;
 
     Component::Init();
+    Grid* grid = RequireComponent<Grid>();
+    gridId = grid->GetID();
+
+    const std::string id = GetID();
+    grid->Subscribe([id]() {
+        TileMapEditor* editor = Registry::FindInRuntime<TileMapEditor>(id);
+        if (!editor) return false;
+        if (GameObject* owner = editor->GetGameObject())
+            owner->RemoveComponent(editor);
+        return false;
+    }, RuntimeObject::SHUTDOWN_EVENT);
 }
 
 void TileMapEditor::PostInit()
@@ -98,8 +109,7 @@ TileSet* TileMapEditor::GetTileSet() const
 
 void TileMapEditor::SetTileMap(TileMap* map)
 {
-    if (!map) return;
-    const std::string id = map->GetID();
+    const std::string id = map ? map->GetID() : std::string{};
     if (tileMapId == id) return;
     ReleaseTileMap();
     tileMapId = id;
@@ -115,18 +125,18 @@ void TileMapEditor::SetTileSet(TileSet* set)
     Notify(TILESET_CHANGED_EVENT, tileSetId);
 }
 
-TileTypeId TileMapEditor::GetTileType(const glm::ivec2& cell) const
+TileId TileMapEditor::GetTileId(const glm::ivec2& cell) const
 {
     TileMap* map = GetTileMap();
-    if (map == nullptr) return EMPTY_TILE_TYPE;
-    return map->GetTileType(cell);
+    if (map == nullptr) return EMPTY_TILE_ID;
+    return map->GetTileId(cell);
 }
 
-bool TileMapEditor::SetTileType(const glm::ivec2& cell, TileTypeId type)
+bool TileMapEditor::SetTileId(const glm::ivec2& cell, TileId tileId)
 {
     TileMap* map = GetTileMap();
     if (map == nullptr) return false;
-    return map->SetTileType(cell, type);
+    return map->SetTileId(cell, tileId);
 }
 
 bool TileMapEditor::ClearTile(const glm::ivec2& cell)
@@ -145,7 +155,7 @@ NeighborMask TileMapEditor::GetNeighbors(const glm::ivec2& cell) const
 
     NeighborMask neighbors{};
     for (std::size_t i = 0; i < offsets.size(); ++i)
-        neighbors[i] = GetTileType(cell + offsets[i]);
+        neighbors[i] = GetTileId(cell + offsets[i]);
     return neighbors;
 }
 

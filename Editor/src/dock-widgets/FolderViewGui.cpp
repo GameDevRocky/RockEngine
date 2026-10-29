@@ -713,7 +713,7 @@ void FolderViewGui::CreateNewTileSet() {
     node["type"]      = "TileSet";
     node["id"]        = EngineUtils::GenerateUUID();
     node["name"]      = QFileInfo(path).completeBaseName().toStdString();
-    node["tileTypes"] = YAML::Node(YAML::NodeType::Sequence);
+    node["tiles"] = YAML::Node(YAML::NodeType::Sequence);
 
     std::ofstream out(path.toStdString());
     if (!out.is_open()) {

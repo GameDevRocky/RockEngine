@@ -3,7 +3,6 @@
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ComponentImpl.hpp"
 #include "engine/core/GameObjectImpl.hpp"
-#include "engine/components/SpriteRenderer.hpp"
 #include "engine/utils/EngineUtils.hpp"
 
 #include <cmath>
@@ -20,7 +19,7 @@ YAML::Node CapsuleCollider::Serialize(){
 void CapsuleCollider::Deserialize(const YAML::Node& node){
     if (state >= State::Loaded) return;
     Collider::Deserialize(node);
-    // Absent dimensions stay 0 so PostInit auto-sizes them from the sprite.
+    // Keep the default dimensions when a scene omits them.
     if (node["radius"]) radius = node["radius"].as<float>();
     if (node["height"]) height = node["height"].as<float>();
     state = State::Loaded;
@@ -29,21 +28,8 @@ void CapsuleCollider::Deserialize(const YAML::Node& node){
 void CapsuleCollider::PostInit(){
     if (state >= State::PostInitialized) return;
     Collider::PostInit();
-    if (radius <= 0.0f ||  height <= 0.0f) {
-        SpriteRenderer* renderer = GetComponent<SpriteRenderer>();
-        if (!renderer) {
-            renderer = GetComponentInParent<SpriteRenderer>();
-        }
-        if (renderer && renderer->GetSprite()) {
-            glm::vec2 pixelSize = renderer->GetSprite()->GetPixelSize();
-            glm::vec2 worldSize = PixelsToWorld(pixelSize);
-            radius = worldSize.x;
-            height = worldSize.y - radius / 2.0f;
-        } else {
-            radius = 1.0f;
-            height = 1.0f;
-        }
-    }
+    if (radius <= 0.0f) radius = 16.0f;
+    if (height <= 0.0f) height = 16.0f;
     state = State::PostInitialized;
     
 }

@@ -25,7 +25,7 @@ public:
     CircleCollider* Copy() override;
 
 private:
-    float radius = 0.0f;
+    float radius = 16.0f;
 
 
 

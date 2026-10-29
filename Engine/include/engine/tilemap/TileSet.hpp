@@ -1,17 +1,10 @@
 #pragma once
 
-#include <map>
 #include <string>
 #include <unordered_map>
 
 #include "engine/rendering/core/Resource.hpp"
-#include "engine/tilemap/TileTypes.hpp"
-
-struct TileType {
-    std::string name;
-    std::string defaultSpriteId;
-    std::map<NeighborMask, std::string> autoTileRules;
-};
+#include "engine/tilemap/Tile.hpp"
 
 class TileSet : public Resource {
 public:
@@ -22,16 +15,16 @@ public:
     void Accept(IVisitor* visitor) override;
     std::string GetTypeName() const override { return "TileSet"; }
 
-    const std::unordered_map<Tile, TileType>& GetTileTypes() const {
-        return tileTypes;
+    const std::unordered_map<TileId, Tile>& GetTiles() const {
+        return tiles;
     }
-    const TileType* GetTile(Tile id) const;
+    const Tile* GetTile(TileId id) const;
 
-    bool SetTile(Tile id, TileType type);
-    bool RemoveTile(Tile id);
+    bool SetTile(TileId id, Tile tile);
+    bool RemoveTile(TileId id);
 
-    std::string ResolveSprite(TileTypeId id, const NeighborMask& neighbors) const;
+    std::string ResolveSprite(TileId id, const NeighborMask& neighbors) const;
 
 private:
-    std::unordered_map<TileTypeId, TileType> tileTypes;
+    std::unordered_map<TileId, Tile> tiles;
 };

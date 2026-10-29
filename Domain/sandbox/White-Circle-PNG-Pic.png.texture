@@ -1,0 +1,12 @@
+type: Texture2D
+id: e85b9abf335f628b3fe17a213868a319
+name: White-Circle-PNG-Pic
+path: Domain/sandbox/White-Circle-PNG-Pic.png
+filtering: linear
+wrap: repeat
+sprites:
+  - id: 0a9a7aad879227f2b6c3407253a9a185
+    name: 0a9a7aad879227f2b6c3407253a9a185
+    uvMin: [0, 0]
+    uvMax: [1, 1]
+    pivot: [0, 0]

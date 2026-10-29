@@ -11,57 +11,57 @@ YAML::Node TileSet::Serialize()
     node["id"] = GetID();
     node["name"] = GetName();
 
-    std::vector<TileTypeId> ids;
-    ids.reserve(tileTypes.size());
-    for (const auto& [id, _] : tileTypes) ids.push_back(id);
+    std::vector<TileId> ids;
+    ids.reserve(tiles.size());
+    for (const auto& [id, _] : tiles) ids.push_back(id);
     std::sort(ids.begin(), ids.end());
 
-    YAML::Node types(YAML::NodeType::Sequence);
-    for (TileTypeId id : ids)
+    YAML::Node serializedTiles(YAML::NodeType::Sequence);
+    for (TileId id : ids)
     {
-        const TileType& type = tileTypes.at(id);
-        YAML::Node typeNode;
-        typeNode["id"] = id;
-        typeNode["name"] = type.name;
-        typeNode["defaultSpriteId"] = type.defaultSpriteId;
+        const Tile& tile = tiles.at(id);
+        YAML::Node tileNode;
+        tileNode["id"] = id;
+        tileNode["name"] = tile.name;
+        tileNode["defaultSpriteId"] = tile.defaultSpriteId;
 
         YAML::Node rules(YAML::NodeType::Sequence);
-        for (const auto& [neighbors, spriteId] : type.autoTileRules)
+        for (const auto& [neighbors, spriteId] : tile.autoTileRules)
         {
             YAML::Node rule;
             YAML::Node neighborNode(YAML::NodeType::Sequence);
-            for (TileTypeId neighbor : neighbors) neighborNode.push_back(neighbor);
+            for (TileId neighbor : neighbors) neighborNode.push_back(neighbor);
             neighborNode.SetStyle(YAML::EmitterStyle::Flow);
             rule["neighbors"] = neighborNode;
             rule["spriteId"] = spriteId;
             rules.push_back(rule);
         }
-        typeNode["rules"] = rules;
-        types.push_back(typeNode);
+        tileNode["rules"] = rules;
+        serializedTiles.push_back(tileNode);
     }
-    node["tileTypes"] = types;
+    node["tiles"] = serializedTiles;
     return node;
 }
 
 void TileSet::Deserialize(const YAML::Node& node)
 {
     Resource::Deserialize(node);
-    tileTypes.clear();
+    tiles.clear();
 
-    const YAML::Node types = node["tileTypes"];
-    if (!types || !types.IsSequence()) return;
+    const YAML::Node serializedTiles = node["tiles"];
+    if (!serializedTiles || !serializedTiles.IsSequence()) return;
 
-    for (const YAML::Node& typeNode : types)
+    for (const YAML::Node& tileNode : serializedTiles)
     {
-        if (!typeNode["id"]) continue;
-        const TileTypeId id = typeNode["id"].as<TileTypeId>(EMPTY_TILE_TYPE);
-        if (id == EMPTY_TILE_TYPE) continue;
+        if (!tileNode["id"]) continue;
+        const TileId id = tileNode["id"].as<TileId>(EMPTY_TILE_ID);
+        if (id == EMPTY_TILE_ID) continue;
 
-        TileType type;
-        type.name = typeNode["name"].as<std::string>("");
-        type.defaultSpriteId = typeNode["defaultSpriteId"].as<std::string>("");
+        Tile tile;
+        tile.name = tileNode["name"].as<std::string>("");
+        tile.defaultSpriteId = tileNode["defaultSpriteId"].as<std::string>("");
 
-        const YAML::Node rules = typeNode["rules"];
+        const YAML::Node rules = tileNode["rules"];
         if (rules && rules.IsSequence())
         {
             for (const YAML::Node& rule : rules)
@@ -72,14 +72,14 @@ void TileSet::Deserialize(const YAML::Node& node)
 
                 NeighborMask neighbors{};
                 for (std::size_t i = 0; i < neighbors.size(); ++i)
-                    neighbors[i] = neighborNode[i].as<TileTypeId>(EMPTY_TILE_TYPE);
+                    neighbors[i] = neighborNode[i].as<TileId>(EMPTY_TILE_ID);
 
                 const std::string spriteId = rule["spriteId"].as<std::string>("");
-                type.autoTileRules[neighbors] = spriteId;
+                tile.autoTileRules[neighbors] = spriteId;
             }
         }
 
-        tileTypes[id] = std::move(type);
+        tiles[id] = std::move(tile);
     }
 }
 
@@ -88,32 +88,32 @@ void TileSet::Accept(IVisitor* visitor)
     visitor->Visit(this);
 }
 
-const TileType* TileSet::GetTileType(TileTypeId id) const
+const Tile* TileSet::GetTile(TileId id) const
 {
-    const auto found = tileTypes.find(id);
-    return found == tileTypes.end() ? nullptr : &found->second;
+    const auto found = tiles.find(id);
+    return found == tiles.end() ? nullptr : &found->second;
 }
 
-bool TileSet::SetTileType(TileTypeId id, TileType type)
+bool TileSet::SetTile(TileId id, Tile tile)
 {
-    if (id == EMPTY_TILE_TYPE) return false;
-    tileTypes[id] = std::move(type);
+    if (id == EMPTY_TILE_ID) return false;
+    tiles[id] = std::move(tile);
     Notify(CHANGED_EVENT, id);
     return true;
 }
 
-bool TileSet::RemoveTileType(TileTypeId id)
+bool TileSet::RemoveTile(TileId id)
 {
-    if (id == EMPTY_TILE_TYPE || tileTypes.erase(id) == 0) return false;
+    if (id == EMPTY_TILE_ID || tiles.erase(id) == 0) return false;
     Notify(CHANGED_EVENT, id);
     return true;
 }
 
-std::string TileSet::ResolveSprite(TileTypeId id, const NeighborMask& neighbors) const
+std::string TileSet::ResolveSprite(TileId id, const NeighborMask& neighbors) const
 {
-    const TileType* type = GetTileType(id);
-    if (!type) return {};
+    const Tile* tile = GetTile(id);
+    if (!tile) return {};
 
-    const auto rule = type->autoTileRules.find(neighbors);
-    return rule == type->autoTileRules.end() ? type->defaultSpriteId : rule->second;
+    const auto rule = tile->autoTileRules.find(neighbors);
+    return rule == tile->autoTileRules.end() ? tile->defaultSpriteId : rule->second;
 }

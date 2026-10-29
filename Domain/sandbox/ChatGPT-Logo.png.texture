@@ -1,0 +1,12 @@
+type: Texture2D
+id: c7a1cc80f893b43f8bec8b04961d019e
+name: ChatGPT-Logo
+path: Domain/sandbox/ChatGPT-Logo.png
+filtering: linear
+wrap: repeat
+sprites:
+  - id: 68a1b276ab9ecbc44433010f78eafd47
+    name: 68a1b276ab9ecbc44433010f78eafd47
+    uvMin: [0.23411015, 0.0329566]
+    uvMax: [0.7627118, 1]
+    pivot: [0, 0]

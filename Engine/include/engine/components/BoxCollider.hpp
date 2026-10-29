@@ -25,6 +25,6 @@ public:
     BoxCollider* Copy() override;
 
 private:
-    glm::vec2 size = {0, 0};
+    glm::vec2 size = {32.0f, 32.0f};
 
 };

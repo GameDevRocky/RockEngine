@@ -37,8 +37,8 @@ public:
     void SetTileMap(TileMap* map);
     void SetTileSet(TileSet* set);
 
-    TileTypeId GetTileType(const glm::ivec2& cell) const;
-    bool SetTileType(const glm::ivec2& cell, TileTypeId type);
+    TileId GetTileId(const glm::ivec2& cell) const;
+    bool SetTileId(const glm::ivec2& cell, TileId tileId);
     bool ClearTile(const glm::ivec2& cell);
     NeighborMask GetNeighbors(const glm::ivec2& cell) const;
 

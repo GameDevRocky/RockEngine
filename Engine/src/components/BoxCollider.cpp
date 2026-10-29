@@ -2,7 +2,6 @@
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ComponentImpl.hpp"
 #include "engine/core/GameObjectImpl.hpp"
-#include "engine/components/SpriteRenderer.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/debug/Console.hpp"
 
@@ -21,7 +20,7 @@ void BoxCollider::Deserialize(const YAML::Node& node){
     if (state >= State::Loaded) return;
     Collider::Deserialize(node);
 
-    // Absent dimensions stay 0 so PostInit auto-sizes them from the sprite.
+    // Keep the 32x32 world-unit default when a scene omits size.
     if (node["size"]) {
         size = {node["size"][0].as<float>(), node["size"][1].as<float>()};
     }
@@ -31,18 +30,8 @@ void BoxCollider::Deserialize(const YAML::Node& node){
 void BoxCollider::PostInit(){
     if (state >= State::PostInitialized) return;
     Collider::PostInit();
-    if (size.x <= 0.0f || size.y <= 0.0f) {
-        SpriteRenderer* renderer = GetComponent<SpriteRenderer>();
-        if (!renderer) {
-            renderer = GetComponentInParent<SpriteRenderer>();
-        }
-        if (renderer && renderer->GetSprite()) {
-            glm::vec2 pixelSize = renderer->GetSprite()->GetPixelSize();
-            size = PixelsToWorld(pixelSize);
-        } else {
-            size = glm::vec2(1.0f, 1.0f);
-        }
-    }
+    if (size.x <= 0.0f) size.x = 32.0f;
+    if (size.y <= 0.0f) size.y = 32.0f;
     state = State::PostInitialized;
     
 }

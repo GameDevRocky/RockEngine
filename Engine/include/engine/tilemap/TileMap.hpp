@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 
 #include "engine/rendering/core/Resource.hpp"
-#include "engine/tilemap/TileTypes.hpp"
+#include "engine/tilemap/Tile.hpp"
 
 struct TileCellHash {
     std::size_t operator()(const glm::ivec2& cell) const noexcept;
@@ -31,13 +31,15 @@ public:
     bool ClearTile(const glm::ivec2& cell);
     bool Clear();
     
-    bool SetTile(const glm::ivec2& cell, Tile tile);
-    Tile GetTile(const glm::ivec2& cell) const;
+    bool SetTileId(const glm::ivec2& cell, TileId tileId);
+    TileId GetTileId(const glm::ivec2& cell) const;
     bool HasTile(const glm::ivec2& cell) const;
-    const std::unordered_map<glm::ivec2, Tile, TileCellHash>& GetTiles() { return tiles; }
+    using CellData = std::unordered_map<glm::ivec2, TileId, TileCellHash>;
+    // Null while the file-backed cell data is unloaded.
+    const CellData* GetCells() const { return cells.get(); }
 
 private:
-    std::unordered_map<glm::ivec2, Tile, TileCellHash> tiles;
+    std::unique_ptr<CellData> cells;
     std::size_t loadCount = 0;
     bool dirty = false;
 };

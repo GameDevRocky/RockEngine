@@ -1,9 +1,7 @@
 #include "engine/components/CircleCollider.hpp"
-#include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ComponentImpl.hpp"
 #include "engine/core/GameObjectImpl.hpp"
-#include "engine/components/SpriteRenderer.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/debug/Console.hpp"
 
@@ -15,7 +13,7 @@ void CircleCollider::Deserialize(const YAML::Node& node){
     if (state >= State::Loaded) return;
     Collider::Deserialize(node);
 
-    // Absent dimensions stay 0 so PostInit auto-sizes them from the sprite.
+    // Keep the 32-world-unit diameter default when a scene omits radius.
     if (node["radius"]) radius = node["radius"].as<float>();
     state = State::Loaded;
 }
@@ -30,20 +28,7 @@ YAML::Node CircleCollider::Serialize(){
 void CircleCollider::PostInit(){
     if (state >= State::PostInitialized) return;
     Collider::PostInit();
-    if (radius <= 0.0f) {
-        SpriteRenderer* renderer = GetComponent<SpriteRenderer>();
-        if (!renderer) {
-            renderer = GetComponentInParent<SpriteRenderer>();
-        }
-        if (renderer && renderer->GetSprite()) {
-            glm::vec2 pixelSize = renderer->GetSprite()->GetPixelSize();
-            glm::vec2 scaledSize = PixelsToWorld(pixelSize);
-            radius = std::max(scaledSize.x, scaledSize.y) / 2;
-        } else {
-            radius = 1.0f;
-            std::cout << "Defaulting Radius to 1.0f \n" << std::endl;
-        }
-    }
+    if (radius <= 0.0f) radius = 16.0f;
     state = State::PostInitialized;
     
 }
