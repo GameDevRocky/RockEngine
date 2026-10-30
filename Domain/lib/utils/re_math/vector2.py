@@ -1,12 +1,12 @@
 import math
 
 class Vector2:
-    # No per-instance __dict__: Vector2 is constructed constantly (every
-    # rigidbody/transform property read crosses the boundary and builds one), so
-    # dropping the dict cuts allocation cost and speeds x/y access.
-    __slots__ = ('x', 'y')
+    # A vector from a native property can carry its get/set pair. Standalone
+    # vectors keep their coordinates locally. Neither form needs a __dict__.
+    __slots__ = ('_x', '_y', '_binding')
 
     def __init__(self, x=None, y=None):
+        self._binding = None
         # Case: Vector2() -> (0.0, 0.0)
         if x is None:
             self.x = 0.0
@@ -26,6 +26,44 @@ class Vector2:
         else:
             self.x = float(x)
             self.y = float(y)
+
+    @classmethod
+    def _bound(cls, getter, setter, object_id):
+        vector = cls()
+        vector._binding = (getter, setter, object_id)
+        return vector
+
+    @property
+    def x(self):
+        if self._binding is None:
+            return self._x
+        getter, _, object_id = self._binding
+        return getter(object_id)[0]
+
+    @x.setter
+    def x(self, value):
+        if self._binding is None:
+            self._x = value
+            return
+        getter, setter, object_id = self._binding
+        _, y = getter(object_id)
+        setter(object_id, float(value), y)
+
+    @property
+    def y(self):
+        if self._binding is None:
+            return self._y
+        getter, _, object_id = self._binding
+        return getter(object_id)[1]
+
+    @y.setter
+    def y(self, value):
+        if self._binding is None:
+            self._y = value
+            return
+        getter, setter, object_id = self._binding
+        x, _ = getter(object_id)
+        setter(object_id, x, float(value))
 
     # --- Math Operators ---
     def __add__(self, other):

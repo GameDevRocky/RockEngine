@@ -17,7 +17,7 @@ class Transform(Component):
 
     @property
     def position(self) -> Vector2:
-        return Vector2(transform_module.get_position(self._gameobject_id))
+        return Vector2._bound(transform_module.get_position, transform_module.set_position, self._gameobject_id)
 
     @position.setter
     def position(self, value : Vector2):
@@ -34,7 +34,7 @@ class Transform(Component):
 
     @property
     def scale(self):
-        return Vector2(transform_module.get_scale(self._gameobject_id))
+        return Vector2._bound(transform_module.get_scale, transform_module.set_scale, self._gameobject_id)
 
     @scale.setter
     def scale(self, value):
@@ -43,7 +43,7 @@ class Transform(Component):
 
     @property
     def world_position(self) -> Vector2:
-        return Vector2(transform_module.get_world_position(self._gameobject_id))
+        return Vector2._bound(transform_module.get_world_position, transform_module.set_world_position, self._gameobject_id)
 
     @world_position.setter
     def world_position(self, value : Vector2):
@@ -70,7 +70,7 @@ class Transform(Component):
 
     @property
     def world_scale(self):
-        return Vector2(transform_module.get_world_scale(self._gameobject_id))
+        return Vector2._bound(transform_module.get_world_scale, transform_module.set_world_scale, self._gameobject_id)
 
     @world_scale.setter
     def world_scale(self, value):

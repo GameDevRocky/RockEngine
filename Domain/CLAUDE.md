@@ -28,6 +28,11 @@ proxy holding an object id and forwarding to the C++ binding.
 - Native component proxy classes use `__slots__`: `Component` owns the object/component IDs,
   and each native subclass declares `__slots__ = ()` so it cannot acquire detached Python-only
   state. `ScriptableComponent` intentionally remains dynamic because user scripts define fields.
+- Mutable native `Vector2` properties return a bound `Vector2`. Assigning `x` or `y`
+  reads the other coordinate and calls the property's existing native setter, so expressions
+  like `transform.position.y += 1` update the component. Plain `Vector2` values and read-only
+  vector properties remain independent values. Copy a live view with `Vector2(view)` when a
+  detached value is needed.
 
 - **`ScriptableComponent`** (`lib/api/components/scriptable_component_handler.py`) is the base
   class user scripts subclass. It provides:

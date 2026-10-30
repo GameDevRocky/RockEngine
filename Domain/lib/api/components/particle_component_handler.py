@@ -70,7 +70,7 @@ class ParticleComponent(Component):
     # ── Lifetime / motion ── (min,max as Vector2: x=min, y=max)
     @property
     def lifetime(self) -> Vector2:
-        return Vector2(particle_module.get_lifetime(self._gameobject_id))
+        return Vector2._bound(particle_module.get_lifetime, particle_module.set_lifetime, self._gameobject_id)
 
     @lifetime.setter
     def lifetime(self, value):
@@ -79,7 +79,7 @@ class ParticleComponent(Component):
 
     @property
     def speed(self) -> Vector2:
-        return Vector2(particle_module.get_speed(self._gameobject_id))
+        return Vector2._bound(particle_module.get_speed, particle_module.set_speed, self._gameobject_id)
 
     @speed.setter
     def speed(self, value):
@@ -104,7 +104,7 @@ class ParticleComponent(Component):
 
     @property
     def gravity(self) -> Vector2:
-        return Vector2(particle_module.get_gravity(self._gameobject_id))
+        return Vector2._bound(particle_module.get_gravity, particle_module.set_gravity, self._gameobject_id)
 
     @gravity.setter
     def gravity(self, value):
@@ -148,7 +148,7 @@ class ParticleComponent(Component):
 
     @property
     def shape_size(self) -> Vector2:
-        return Vector2(particle_module.get_shape_size(self._gameobject_id))
+        return Vector2._bound(particle_module.get_shape_size, particle_module.set_shape_size, self._gameobject_id)
 
     @shape_size.setter
     def shape_size(self, value):

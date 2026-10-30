@@ -32,7 +32,7 @@ class Rigidbody(Component):
 
     @property
     def velocity(self) -> Vector2:
-        return Vector2(rigidbody_module.get_velocity(self._gameobject_id))
+        return Vector2._bound(rigidbody_module.get_velocity, rigidbody_module.set_velocity, self._gameobject_id)
 
     @velocity.setter
     def velocity(self, velocity : Vector2):

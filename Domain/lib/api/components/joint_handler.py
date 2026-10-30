@@ -46,7 +46,7 @@ class Joint(Component):
 
     @property
     def local_anchor_a(self) -> Vector2:
-        return Vector2(joint_module.get_local_anchor_a(self._component_id))
+        return Vector2._bound(joint_module.get_local_anchor_a, joint_module.set_local_anchor_a, self._component_id)
 
     @local_anchor_a.setter
     def local_anchor_a(self, value: Vector2):
@@ -55,7 +55,7 @@ class Joint(Component):
 
     @property
     def local_anchor_b(self) -> Vector2:
-        return Vector2(joint_module.get_local_anchor_b(self._component_id))
+        return Vector2._bound(joint_module.get_local_anchor_b, joint_module.set_local_anchor_b, self._component_id)
 
     @local_anchor_b.setter
     def local_anchor_b(self, value: Vector2):

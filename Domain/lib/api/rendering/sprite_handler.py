@@ -9,7 +9,7 @@ class Sprite:
 
     @property
     def uv_min(self) -> Vector2:
-        return Vector2(sprite_module.get_uv_min(self.id))
+        return Vector2._bound(sprite_module.get_uv_min, sprite_module.set_uv_min, self.id)
     
     @uv_min.setter
     def uv_min(self, value : Vector2):
@@ -18,7 +18,7 @@ class Sprite:
     
     @property
     def uv_max(self) -> Vector2:
-        return Vector2(sprite_module.get_uv_max(self.id))
+        return Vector2._bound(sprite_module.get_uv_max, sprite_module.set_uv_max, self.id)
     
     @uv_max.setter
     def uv_max(self, value : Vector2):
@@ -27,7 +27,7 @@ class Sprite:
     
     @property
     def pivot(self) -> Vector2:
-        return Vector2(sprite_module.get_pivot(self.id))
+        return Vector2._bound(sprite_module.get_pivot, sprite_module.set_pivot, self.id)
     
     @pivot.setter
     def pivot(self, value : Vector2):

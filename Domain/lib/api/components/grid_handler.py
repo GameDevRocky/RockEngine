@@ -10,7 +10,7 @@ class Grid(Component):
 
     @property
     def size(self):
-        return Vector2(grid_module.get_size(self._gameobject_id))
+        return Vector2._bound(grid_module.get_size, grid_module.set_size, self._gameobject_id)
 
     @size.setter
     def size(self, size : Vector2):

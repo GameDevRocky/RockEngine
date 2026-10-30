@@ -11,7 +11,7 @@ class Collider(Component):
 
     @property
     def center(self) -> Vector2:
-        return Vector2(collider_module.get_center(self._gameobject_id))
+        return Vector2._bound(collider_module.get_center, collider_module.set_center, self._gameobject_id)
 
     @center.setter
     def center(self, value: Vector2):

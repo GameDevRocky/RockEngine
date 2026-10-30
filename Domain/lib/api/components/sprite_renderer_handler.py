@@ -67,7 +67,7 @@ class SpriteRenderer(Component):
     
     @property
     def uv_offset(self) -> Vector2:
-        return Vector2(sprite_renderer_module.get_uv_offset(self._gameobject_id))
+        return Vector2._bound(sprite_renderer_module.get_uv_offset, sprite_renderer_module.set_uv_offset, self._gameobject_id)
 
     @uv_offset.setter
     def uv_offset(self, value):
@@ -76,7 +76,7 @@ class SpriteRenderer(Component):
 
     @property
     def uv_scale(self) -> Vector2:
-        return Vector2(sprite_renderer_module.get_uv_scale(self._gameobject_id))
+        return Vector2._bound(sprite_renderer_module.get_uv_scale, sprite_renderer_module.set_uv_scale, self._gameobject_id)
 
     @uv_scale.setter
     def uv_scale(self, value):

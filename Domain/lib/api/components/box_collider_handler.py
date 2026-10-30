@@ -11,7 +11,7 @@ class BoxCollider(Collider):
 
     @property
     def size(self) -> Vector2:
-        return Vector2(box_collider_module.get_size(self._gameobject_id))
+        return Vector2._bound(box_collider_module.get_size, box_collider_module.set_size, self._gameobject_id)
 
     @size.setter
     def size(self, value: Vector2):

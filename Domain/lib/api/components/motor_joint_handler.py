@@ -16,7 +16,7 @@ class MotorJoint(Joint):
     @property
     def linear_velocity(self) -> Vector2:
         """Target linear velocity, in pixels per second."""
-        return Vector2(motor_joint_module.get_linear_velocity(self._component_id))
+        return Vector2._bound(motor_joint_module.get_linear_velocity, motor_joint_module.set_linear_velocity, self._component_id)
 
     @linear_velocity.setter
     def linear_velocity(self, value: Vector2):

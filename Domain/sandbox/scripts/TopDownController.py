@@ -179,5 +179,5 @@ class TopDownController(ScriptableComponent):
                       impact_emitter=self.bullet_impact, pool=self._pool_script)
 
     @action
-    def Test_Function(self, val : str):
+    def Test_Function(self, val : GameObject):
         Console.comment(f'{val} : {Time.elapsed_time}')
