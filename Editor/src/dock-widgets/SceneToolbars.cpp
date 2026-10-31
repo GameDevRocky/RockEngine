@@ -12,6 +12,7 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
+#include "engine/components/ChainCollider.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/UndoSystem.hpp"
@@ -642,7 +643,8 @@ void SceneToolsToolbar::Refresh()
     const bool hasSprite = object && object->GetComponent<SpriteRenderer>();
     const bool hasCollider = object && (object->GetComponent<BoxCollider>() ||
                                         object->GetComponent<CircleCollider>() ||
-                                        object->GetComponent<CapsuleCollider>());
+                                        object->GetComponent<CapsuleCollider>() ||
+                                        object->GetComponent<ChainCollider>());
 
     // isVisibleTo(this), not isHidden(): Refresh runs once from the constructor,
     // before this widget is ever shown, and isHidden() is true for every

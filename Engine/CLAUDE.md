@@ -46,6 +46,17 @@ start at 32×32, circles at radius 16, and capsules at 16 wide by 32 tall. One w
 render pixel; Box2D uses 32 world units per meter through `PixelsPerMeter` in
 `EngineUtils::RenderUtils`.
 
+`ChainCollider` stores ordered local points and creates a one-sided Box2D chain. It can be
+open or closed, and reversing its point order flips the collision side. Open paths add
+internal ghost points so the authored end edges collide. If the collider creates its own
+RigidBody, that body defaults to static; an existing RigidBody retains its type. Chains
+have no solid interior or sensor mode. `GenerateFromSprite()` traces the outer alpha
+boundary of the attached SpriteRenderer's sprite, accounting for UV crop, pivot, and flips.
+Its alpha threshold is an authoring property that is also serialized and copied. Sprite
+outline simplification measures deviation from the original boundary along two arcs;
+local repeated point deletion can erase every pixel corner and collapse detailed art.
+Point edits, path closure, and side direction survive scene serialization and play-mode copy.
+
 ## AppMode — editor process vs. shipped game
 
 `Engine::SetAppMode(AppMode::Editor | AppMode::Player)`, **called before `Init()`** (it decides

@@ -12,6 +12,7 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
+#include "engine/components/ChainCollider.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/Light.hpp"
 #include "engine/components/ParticleComponent.hpp"
@@ -59,6 +60,13 @@ std::unique_ptr<Command> MakeGizmoCommand(const GizmoEdit& edit) {
             edit.targetId, p, std::any_cast<glm::vec2>(edit.before),
             std::any_cast<glm::vec2>(edit.after),
             [](Collider* c, const glm::vec2& v){ c->SetCenter(v); }, "Move Collider");
+    }
+    if (p == "points") {
+        return std::make_unique<PropertyCommand<ChainCollider, std::vector<glm::vec2>>>(
+            edit.targetId, p, std::any_cast<std::vector<glm::vec2>>(edit.before),
+            std::any_cast<std::vector<glm::vec2>>(edit.after),
+            [](ChainCollider* collider, const std::vector<glm::vec2>& value) { collider->SetPoints(value); },
+            "Edit Collider Points");
     }
     if (p == "size") {
         return std::make_unique<PropertyCommand<BoxCollider, glm::vec2>>(
@@ -191,6 +199,7 @@ std::string DescribeGesture(const std::vector<GizmoEdit>& edits) {
         if      (p == "localPosition") verb = "Move";
         else if (p == "localRotation") verb = "Rotate";
         else if (p == "localScale")    verb = "Scale";
+        else if (p == "points")        verb = "Edit Collider Points";
         else if (p == "orthoSize")     verb = "Change Camera Size";
         else if (p == "range")         verb = "Change Light Range";
         else if (p == "innerRadius")   verb = "Change Light Falloff";

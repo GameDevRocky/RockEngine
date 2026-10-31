@@ -8,6 +8,7 @@
 #include "engine/rendering/core/GridSettings.hpp"
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
+#include "engine/components/ChainCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/SpriteRenderer.hpp"
@@ -99,6 +100,15 @@ namespace {
             float r = cc->GetRadius() * std::max(scale.x, scale.y);
             halfExtent = glm::max(halfExtent, glm::vec2(r));
             found = true;
+        }
+        for (ChainCollider* chain : obj->GetComponents<ChainCollider>()) {
+            for (const glm::vec2& point : chain->GetPoints()) {
+                const glm::vec2 worldPoint = glm::vec2(t->GetWorldMatrix() *
+                    glm::vec4(point + chain->GetCenter(), 0.0f, 1.0f));
+                mn = glm::min(mn, worldPoint);
+                mx = glm::max(mx, worldPoint);
+                any = true;
+            }
         }
 
         if (found) {
@@ -212,6 +222,9 @@ void SceneViewGui::keyPressEvent(QKeyEvent* event) {
     Engine* engine = Engine::Get();
     auto* container = engine->GetActiveContainer();
     InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
+
+    if (event->key() == Qt::Key_Delete && GizmosManager::Get()->DeleteSelectedChainPoint())
+        return;
 
     if (event->key() == Qt::Key_Delete) {
         auto* selMgr = container->FindSystem<SelectionManager>();
@@ -843,6 +856,8 @@ void SceneViewGui::DrawGizmos(){
     GizmosManager::Get()->SetSnapRequested(mods.testFlag(Qt::ControlModifier)
                                            || GridSettings::Get().IsSnapEnabled());
     GizmosManager::Get()->SetUniformScaleRequested(mods.testFlag(Qt::AltModifier));
+    GizmosManager::Get()->SetChainExtendRequested(mods.testFlag(Qt::ShiftModifier));
+    GizmosManager::Get()->SetChainInsertRequested(mods.testFlag(Qt::ControlModifier));
     GizmosManager::Get()->DrawGizmos(
         camera->GetViewMatrix(),
         camera->GetProjectionMatrix(),

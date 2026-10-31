@@ -10,6 +10,7 @@ class Transform;
 class BoxCollider;
 class CircleCollider;
 class CapsuleCollider;
+class ChainCollider;
 class SpriteRenderer;
 class TextRenderer;
 class Font;
@@ -54,6 +55,7 @@ public:
     virtual void Visit(BoxCollider* bc) {}
     virtual void Visit(CircleCollider* cc) {}
     virtual void Visit(CapsuleCollider* cac) {}
+    virtual void Visit(ChainCollider* chain) {}
     virtual void Visit(SpriteRenderer* sr) {}
     virtual void Visit(TextRenderer* tr) {}
     virtual void Visit(Font* f) {}

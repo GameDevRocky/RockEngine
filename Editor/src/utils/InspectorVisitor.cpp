@@ -10,6 +10,9 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
+#include "engine/components/ChainCollider.hpp"
+#include "engine/debug/Console.hpp"
+#include "engine/commands/MacroCommand.hpp"
 #include "engine/components/RigidBody.hpp"
 #include "engine/components/ScriptComponent.hpp"
 #include "engine/components/Camera.hpp"
@@ -452,9 +455,12 @@ void InspectorVisitor::Visit(Collider* collider){
     };
 
     BindProperty<glm::vec2>(collider, "Center: ", getCenter, setCenter, collider->CENTER_CHANGED_EVENT, PropDesc().Tag(Tags::VECTOR2));
-    BindProperty<float>(collider, "Density: ", getDensity, setDensity, collider->DENSITY_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
+    // Box2D chain segments have no area or sensor shape.
+    if (!dynamic_cast<ChainCollider*>(collider))
+        BindProperty<float>(collider, "Density: ", getDensity, setDensity, collider->DENSITY_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX));
     BindProperty<float>(collider, "Bounciness: ", getBounciness, setBounciness, collider->BOUNCINESS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 1));
-    BindProperty<bool>(collider, "IsSensor: ", getIsSensor, setIsSensor, collider->IS_SENSOR_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    if (!dynamic_cast<ChainCollider*>(collider))
+        BindProperty<bool>(collider, "IsSensor: ", getIsSensor, setIsSensor, collider->IS_SENSOR_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
     BindProperty<float>(collider, "Friction: ", getFriction, setFriction, collider->FRICTION_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 1));
     BindProperty<float>(collider, "Rolling Resistance: ", getRollingResistance, setRollingResistance, collider->ROLLING_RESISTANCE_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, 1));
 }
@@ -501,6 +507,54 @@ void InspectorVisitor::Visit(CapsuleCollider* capsuleCollider){
     
     BindProperty<float>(capsuleCollider, "Height: ", getHeight, setHeight, capsuleCollider->HEIGHT_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
     BindProperty<float>(capsuleCollider, "Radius: ", getRadius, setRadius, capsuleCollider->RADIUS_CHANGED_EVENT, PropDesc().Tag(Tags::FLOAT).Range(0, INT_MAX).Step(1));
+}
+
+void InspectorVisitor::Visit(ChainCollider* chainCollider) {
+    Visit(static_cast<Collider*>(chainCollider));
+    BindProperty<bool>(chainCollider, "Closed Path: ",
+        [=]() { return chainCollider->GetIsLoop(); },
+        [](ChainCollider* collider, const bool& value) { collider->SetIsLoop(value); },
+        chainCollider->LOOP_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<bool>(chainCollider, "Flip Collision Side: ",
+        [=]() { return chainCollider->GetReverseSide(); },
+        [](ChainCollider* collider, const bool& value) { collider->SetReverseSide(value); },
+        chainCollider->SIDE_CHANGED_EVENT, PropDesc().Tag(Tags::TOGGLE));
+    BindProperty<float>(chainCollider, "Alpha Threshold: ",
+        [=]() { return chainCollider->GetAlphaThreshold(); },
+        [](ChainCollider* collider, const float& value) { collider->SetAlphaThreshold(value); },
+        chainCollider->ALPHA_THRESHOLD_CHANGED_EVENT,
+        PropDesc().Tag(Tags::FLOAT).Range(0.0f, 1.0f).Step(0.01f));
+
+    auto* generateButton = new QPushButton("Generate Points from Sprite");
+    QObject::connect(generateButton, &QPushButton::clicked, generateButton, [chainCollider]() {
+        const auto beforePoints = chainCollider->GetPoints();
+        const bool beforeLoop = chainCollider->GetIsLoop();
+        const bool beforeSide = chainCollider->GetReverseSide();
+        if (!chainCollider->GenerateFromSprite()) {
+            Console::Comment("Unable to generate chain collider points from sprite.");
+            return;
+        }
+        auto* undoSystem = Engine::Get()->GetActiveContainer()->FindSystem<UndoSystem>();
+        if (!undoSystem) return;
+        std::vector<std::unique_ptr<Command>> edits;
+        const std::string id = chainCollider->GetID();
+        edits.push_back(std::make_unique<PropertyCommand<ChainCollider, std::vector<glm::vec2>>>(
+            id, "points", beforePoints, chainCollider->GetPoints(),
+            [](ChainCollider* collider, const std::vector<glm::vec2>& value) { collider->SetPoints(value); },
+            "Generate Collider Points"));
+        if (beforeLoop != chainCollider->GetIsLoop())
+            edits.push_back(std::make_unique<PropertyCommand<ChainCollider, bool>>(
+                id, "isLoop", beforeLoop, chainCollider->GetIsLoop(),
+                [](ChainCollider* collider, const bool& value) { collider->SetIsLoop(value); },
+                "Generate Collider Points"));
+        if (beforeSide != chainCollider->GetReverseSide())
+            edits.push_back(std::make_unique<PropertyCommand<ChainCollider, bool>>(
+                id, "reverseSide", beforeSide, chainCollider->GetReverseSide(),
+                [](ChainCollider* collider, const bool& value) { collider->SetReverseSide(value); },
+                "Generate Collider Points"));
+        undoSystem->Push(MacroCommand::Wrap(std::move(edits), "Generate Collider Points"));
+    });
+    AddFullRow(generateButton);
 }
 
 void InspectorVisitor::Visit(RigidBody* rb){

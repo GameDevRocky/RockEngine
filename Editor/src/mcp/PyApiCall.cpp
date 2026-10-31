@@ -109,6 +109,7 @@ constexpr HandlerClass kAllHandlers[] = {
     {"Domain.lib.api.components.box_collider_handler", "BoxCollider", "BoxCollider"},
     {"Domain.lib.api.components.circle_collider_handler", "CircleCollider", "CircleCollider"},
     {"Domain.lib.api.components.capsule_collider_handler", "CapsuleCollider", "CapsuleCollider"},
+    {"Domain.lib.api.components.chain_collider_handler", "ChainCollider", "ChainCollider"},
 };
 
 } // namespace

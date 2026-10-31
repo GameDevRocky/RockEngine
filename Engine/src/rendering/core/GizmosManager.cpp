@@ -6,6 +6,7 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
+#include "engine/components/ChainCollider.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/ParticleComponent.hpp"
 #include "engine/components/Light.hpp"
@@ -66,6 +67,13 @@ namespace {
         }
         return true;
     }
+
+    bool PointsDiffer(const std::vector<glm::vec2>& first, const std::vector<glm::vec2>& second) {
+        if (first.size() != second.size()) return true;
+        for (std::size_t index = 0; index < first.size(); ++index)
+            if (first[index].x != second[index].x || first[index].y != second[index].y) return true;
+        return false;
+    }
 }
 
 void GizmosManager::Init(){
@@ -88,6 +96,12 @@ void GizmosManager::SetOperation(ImGuizmo::OPERATION op) {
 
 void GizmosManager::SetEditMode(EditMode mode) {
     if (m_editMode == mode) return;
+    if (m_dragHandle >= 0 && !m_dragColliderId.empty()) CommitColliderDrag();
+    m_dragHandle = -1;
+    m_dragColliderId.clear();
+    m_chainSelectedColliderId.clear();
+    m_chainSelectedPoint = -1;
+    m_chainSelectedEdge = -1;
     m_editMode = mode;
     Notify(TOOL_CHANGED_EVENT);
 }
@@ -167,8 +181,12 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
         // Selection cleared mid-drag: the per-gizmo release handlers below never
         // run, so drop the drag state here or m_transformGizmoActive stays stuck
         // true and the next drag would diff against a stale start value.
+        if (m_dragHandle >= 0 && !m_dragColliderId.empty()) CommitColliderDrag();
         m_dragHandle = -1;
         m_dragColliderId.clear();
+        m_chainSelectedColliderId.clear();
+        m_chainSelectedPoint = -1;
+        m_chainSelectedEdge = -1;
         m_transformGizmoActive = false;
         m_dragRecords.clear();
         m_dragScaleHandle = -1;
@@ -739,9 +757,29 @@ void GizmosManager::CommitColliderDrag()
             edits.push_back({id, "radius", m_dragStartRadius, capsule->GetRadius()});
         if (capsule->GetHeight() != m_dragStartHeight)
             edits.push_back({id, "height", m_dragStartHeight, capsule->GetHeight()});
+    } else if (auto* chain = registry->Find<ChainCollider>(id)) {
+        if (PointsDiffer(m_chainDragUndoPoints, chain->GetPoints()))
+            edits.push_back({id, "points", m_chainDragUndoPoints, chain->GetPoints()});
     }
 
     if (!edits.empty()) Notify(EDIT_COMMITTED_EVENT, edits);
+}
+
+bool GizmosManager::DeleteSelectedChainPoint() {
+    if (m_editMode != EditMode::Collider || m_chainSelectedPoint < 0 ||
+        m_chainSelectedColliderId.empty() || m_dragHandle >= 0) return false;
+    Container* activeContainer = Engine::Get()->GetActiveContainer();
+    auto* registry = activeContainer ? activeContainer->FindSystem<Registry>() : nullptr;
+    auto* selection = activeContainer ? activeContainer->FindSystem<SelectionManager>() : nullptr;
+    auto* chain = registry ? registry->Find<ChainCollider>(m_chainSelectedColliderId) : nullptr;
+    GameObject* selectedObject = selection ? dynamic_cast<GameObject*>(selection->GetSerializable()) : nullptr;
+    if (!chain || !selectedObject || chain->GetGameObject() != selectedObject ||
+        static_cast<std::size_t>(m_chainSelectedPoint) >= chain->GetPoints().size()) return false;
+    const auto beforePoints = chain->GetPoints();
+    chain->RemovePoint(static_cast<std::size_t>(m_chainSelectedPoint));
+    m_chainSelectedPoint = -1;
+    Notify(EDIT_COMMITTED_EVENT, std::vector<GizmoEdit>{{chain->GetID(), "points", beforePoints, chain->GetPoints()}});
+    return true;
 }
 
 void GizmosManager::CommitCameraDrag()
@@ -782,6 +820,10 @@ void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& pr
     // colliders are all visible and independently editable. Drag ownership is
     // scoped by collider id inside each Draw*ColliderGizmo.
     bool anyCollider = false;
+    for (ChainCollider* chainCollider : selectedObj->GetComponents<ChainCollider>()) {
+        anyCollider = true;
+        DrawChainColliderGizmo(view, proj, viewWidth, viewHeight, transform, chainCollider);
+    }
     for (BoxCollider* boxCollider : selectedObj->GetComponents<BoxCollider>()) {
         anyCollider = true;
         DrawBoxColliderGizmo(view, proj, viewWidth, viewHeight, transform, boxCollider);
@@ -794,7 +836,6 @@ void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& pr
         anyCollider = true;
         DrawCapsuleColliderGizmo(view, proj, viewWidth, viewHeight, transform, capsuleCollider);
     }
-
     if (!anyCollider) DrawTransformGizmo(view, proj, viewWidth, viewHeight);
 }
 
@@ -2114,6 +2155,174 @@ ImVec2 GizmosManager::WorldToScreen(const glm::vec2& world, const glm::mat4& vp,
     float sx = (ndcX * 0.5f + 0.5f) * viewWidth;
     float sy = (1.0f - (ndcY * 0.5f + 0.5f)) * viewHeight;
     return ImVec2(sx, sy);
+}
+
+void GizmosManager::DrawChainColliderGizmo(const glm::mat4& view, const glm::mat4& proj,
+                                            float viewWidth, float viewHeight, Transform* transform,
+                                            ChainCollider* chainCollider) {
+    if (!transform || !chainCollider) return;
+    ImGuiIO& io = ImGui::GetIO();
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    const glm::mat4 vp = proj * view;
+    const glm::mat4 worldMatrix = transform->GetWorldMatrix();
+    const auto& points = chainCollider->GetPoints();
+    const bool isLoop = chainCollider->GetIsLoop();
+    const std::size_t pointCount = points.size();
+    if (pointCount == 0) return;
+
+    if (m_chainSelectedColliderId == chainCollider->GetID() &&
+        m_chainSelectedPoint >= static_cast<int>(pointCount)) m_chainSelectedPoint = -1;
+    const glm::vec2 center = chainCollider->GetCenter();
+    std::vector<ImVec2> screenPoints;
+    screenPoints.reserve(pointCount);
+    for (const glm::vec2& point : points) {
+        const glm::vec2 worldPoint = glm::vec2(worldMatrix * glm::vec4(point + center, 0.0f, 1.0f));
+        screenPoints.push_back(WorldToScreen(worldPoint, vp, viewWidth, viewHeight));
+    }
+
+    // Point grips take priority over edge grips at joints.
+    int hoveredPoint = -1;
+    int hoveredEdge = -1;
+    float bestPointDistance = 9.0f * 9.0f;
+    for (std::size_t index = 0; index < pointCount; ++index) {
+        const float dx = io.MousePos.x - screenPoints[index].x;
+        const float dy = io.MousePos.y - screenPoints[index].y;
+        const float distance = dx * dx + dy * dy;
+        if (distance < bestPointDistance) {
+            bestPointDistance = distance;
+            hoveredPoint = static_cast<int>(index);
+        }
+    }
+    if (hoveredPoint < 0 && pointCount >= 2) {
+        float bestEdgeDistance = 7.0f * 7.0f;
+        const std::size_t edgeCount = isLoop ? pointCount : pointCount - 1;
+        for (std::size_t index = 0; index < edgeCount; ++index) {
+            const ImVec2 a = screenPoints[index];
+            const ImVec2 b = screenPoints[(index + 1) % pointCount];
+            const float dx = b.x - a.x, dy = b.y - a.y;
+            const float lengthSquared = dx * dx + dy * dy;
+            if (lengthSquared < 1.0f) continue;
+            const float fraction = std::clamp(((io.MousePos.x - a.x) * dx +
+                (io.MousePos.y - a.y) * dy) / lengthSquared, 0.0f, 1.0f);
+            const float offsetX = io.MousePos.x - a.x - fraction * dx;
+            const float offsetY = io.MousePos.y - a.y - fraction * dy;
+            const float distance = offsetX * offsetX + offsetY * offsetY;
+            if (distance < bestEdgeDistance) {
+                bestEdgeDistance = distance;
+                hoveredEdge = static_cast<int>(index);
+            }
+        }
+    }
+    if (hoveredPoint >= 0 || hoveredEdge >= 0) m_hoveredHandle = 1;
+
+    const bool ownsDrag = m_dragHandle >= 0 && m_dragColliderId == chainCollider->GetID();
+    if (io.MouseClicked[0] && !ImGuizmo::IsUsing() && m_dragHandle < 0 &&
+        m_dragAudioHandle < 0 && m_dragCameraCorner < 0 && m_dragLightHandle < 0 &&
+        m_dragScaleHandle < 0 && (hoveredPoint >= 0 || hoveredEdge >= 0)) {
+        m_chainSelectedColliderId = chainCollider->GetID();
+        m_chainSelectedPoint = hoveredPoint;
+        m_chainSelectedEdge = hoveredEdge;
+        m_chainDragIndex = hoveredPoint >= 0 ? hoveredPoint : hoveredEdge;
+        m_chainDragUndoPoints = points;
+        m_chainDragStartPoints = points;
+        m_chainDragInverseWorld = glm::inverse(worldMatrix);
+        m_dragStartMouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+        m_dragColliderId = chainCollider->GetID();
+        m_dragHandle = hoveredPoint >= 0 ? 0 : 1;
+
+        if (hoveredPoint >= 0 && m_chainExtendRequested && !isLoop && pointCount >= 2 &&
+            (hoveredPoint == 0 || hoveredPoint == static_cast<int>(pointCount - 1))) {
+            const bool atHead = hoveredPoint == 0;
+            const glm::vec2 endpoint = atHead ? points.front() : points.back();
+            const glm::vec2 neighbor = atHead ? points[1] : points[pointCount - 2];
+            if (atHead) chainCollider->PrependPoint(endpoint * 2.0f - neighbor);
+            else chainCollider->AppendPoint(endpoint * 2.0f - neighbor);
+            m_chainDragStartPoints = chainCollider->GetPoints();
+            m_chainDragIndex = atHead ? 0 : static_cast<int>(pointCount);
+            m_chainSelectedPoint = m_chainDragIndex;
+            // Start the new point under the cursor, so extending feels like a single drag.
+            const glm::vec2 newWorld = glm::vec2(worldMatrix *
+                glm::vec4(m_chainDragStartPoints[m_chainDragIndex] + center, 0.0f, 1.0f));
+            m_dragStartMouseWorld = newWorld;
+        } else if (hoveredEdge >= 0 && m_chainInsertRequested) {
+            // Ctrl+click inserts a point at the cursor; subsequent movement drags it.
+            const glm::vec2 mouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+            const glm::vec2 localMouse = glm::vec2(m_chainDragInverseWorld *
+                glm::vec4(mouseWorld, 0.0f, 1.0f)) - center;
+            const glm::vec2 edgeStart = points[hoveredEdge];
+            const glm::vec2 edgeEnd = points[(hoveredEdge + 1) % pointCount];
+            const glm::vec2 edgeVector = edgeEnd - edgeStart;
+            const float edgeLengthSquared = glm::dot(edgeVector, edgeVector);
+            const float fraction = edgeLengthSquared > 0.0f ?
+                std::clamp(glm::dot(localMouse - edgeStart, edgeVector) / edgeLengthSquared,
+                           0.0f, 1.0f) : 0.0f;
+            const glm::vec2 insertedPoint = edgeStart + fraction * edgeVector;
+            const int insertIndex = hoveredEdge + 1;
+            chainCollider->InsertPoint(static_cast<std::size_t>(insertIndex), insertedPoint);
+            m_chainDragStartPoints = chainCollider->GetPoints();
+            m_chainDragIndex = insertIndex;
+            m_chainSelectedPoint = insertIndex;
+            m_chainSelectedEdge = -1;
+            m_dragHandle = 0;
+            m_dragStartMouseWorld = glm::vec2(worldMatrix *
+                glm::vec4(insertedPoint + center, 0.0f, 1.0f));
+        }
+    }
+
+    if (ownsDrag && io.MouseDown[0] && m_chainDragIndex >= 0) {
+        const glm::vec2 mouseWorld = ScreenToWorld(io.MousePos, vp, viewWidth, viewHeight);
+        const glm::vec2 localMouse = glm::vec2(m_chainDragInverseWorld *
+            glm::vec4(mouseWorld, 0.0f, 1.0f));
+        const glm::vec2 startMouse = glm::vec2(m_chainDragInverseWorld *
+            glm::vec4(m_dragStartMouseWorld, 0.0f, 1.0f));
+        glm::vec2 delta = localMouse - startMouse;
+        if (m_snapRequested) {
+            const glm::vec2 target = m_chainDragStartPoints[m_chainDragIndex] + delta;
+            delta = SnapTo(target, MoveSnapStep()) - m_chainDragStartPoints[m_chainDragIndex];
+        }
+        auto edited = m_chainDragStartPoints;
+        const std::size_t index = static_cast<std::size_t>(m_chainDragIndex);
+        if (m_dragHandle == 0) {
+            edited[index] += delta;
+        } else if (m_dragHandle == 1) {
+            edited[index] += delta;
+            edited[(index + 1) % edited.size()] += delta;
+        }
+        if (PointsDiffer(points, edited)) chainCollider->SetPoints(std::move(edited));
+    }
+
+    const bool valid = chainCollider->HasValidGeometry();
+    const ImU32 lineColor = valid ? IM_COL32(30, 235, 130, 230) : IM_COL32(255, 90, 90, 230);
+    const ImU32 selectedColor = IM_COL32(255, 205, 75, 255);
+    const std::size_t edgeCount = pointCount > 1 ? (isLoop ? pointCount : pointCount - 1) : 0;
+    for (std::size_t index = 0; index < edgeCount; ++index) {
+        const ImVec2 a = screenPoints[index];
+        const ImVec2 b = screenPoints[(index + 1) % pointCount];
+        const bool selected = m_chainSelectedColliderId == chainCollider->GetID() &&
+            m_chainSelectedEdge == static_cast<int>(index);
+        drawList->AddLine(a, b, selected ? selectedColor : lineColor, selected ? 3.0f : 2.0f);
+        // Show which side can collide. Reversing point order reverses this normal.
+        if (valid && index % 2 == 0) {
+            const float dx = b.x - a.x, dy = b.y - a.y;
+            const float length = std::sqrt(dx * dx + dy * dy);
+            if (length > 24.0f) {
+                const float direction = chainCollider->GetReverseSide() ? -1.0f : 1.0f;
+                const ImVec2 middle((a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f);
+                const ImVec2 tip(middle.x - direction * dy * 10.0f / length,
+                                 middle.y - direction * dx * 10.0f / length);
+                drawList->AddLine(middle, tip, lineColor, 1.5f);
+            }
+        }
+    }
+    for (std::size_t index = 0; index < pointCount; ++index) {
+        const bool selected = m_chainSelectedColliderId == chainCollider->GetID() &&
+            m_chainSelectedPoint == static_cast<int>(index);
+        const bool hovered = hoveredPoint == static_cast<int>(index);
+        drawList->AddCircleFilled(screenPoints[index], selected ? 6.0f : 4.5f,
+                                  selected || hovered ? selectedColor : lineColor);
+        drawList->AddCircle(screenPoints[index], selected ? 6.0f : 4.5f,
+                            IM_COL32(12, 25, 20, 230));
+    }
 }
 
 glm::vec2 GizmosManager::ScreenToWorld(const ImVec2& screen, const glm::mat4& vp, float viewWidth, float viewHeight) {

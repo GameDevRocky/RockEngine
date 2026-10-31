@@ -62,6 +62,14 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
     an object's reflected fields (the bridge from Engine reflection to Qt widgets).
   - `GizmoUndoBridge` — converts completed Engine gizmo gestures into editor undo commands,
     including `AudioSource` minimum/maximum distance handle drags.
+    ChainCollider point and edge drags, edge insertion, endpoint extension, and point
+    deletion also commit a single points edit per gesture.
+    In the Scene collider tool, drag a point to move it or an edge to move both
+    endpoints. Ctrl+click an edge to insert a point, Shift+drag a head or tail
+    point on an open chain to extend it, and Delete to remove the selected point.
+    Closed Path and Flip Collision Side are Inspector toggles.
+    The Inspector also saves a ChainCollider alpha threshold (0 to 1) and uses it
+    when Generate Points from Sprite is clicked.
   - `AssetThumbnails` / `AssetPreviewDelegate` — asset-browser previews. The Folder grid's
     delegate bypasses Qt's item-style painter, so it paints the default stylesheet's rounded
     hover/selection bubbles itself rather than relying on `QListView::item` rules.

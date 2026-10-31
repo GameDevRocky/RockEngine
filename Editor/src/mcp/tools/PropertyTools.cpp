@@ -13,6 +13,7 @@
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/CapsuleCollider.hpp"
+#include "engine/components/ChainCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/DistanceJoint.hpp"
 #include "engine/components/Light.hpp"
@@ -379,6 +380,15 @@ PropertyBag BuildComponentBag(Component* component) {
         AddColliderProperties(b, c); b.Float("radius", [c]{ return c->GetRadius(); }, [c](float v){ c->SetRadius(v); }, 0.0);
     } else if (auto* c = dynamic_cast<CapsuleCollider*>(component)) {
         AddColliderProperties(b, c); b.Float("height", [c]{ return c->GetHeight(); }, [c](float v){ c->SetHeight(v); }, 0.0); b.Float("radius", [c]{ return c->GetRadius(); }, [c](float v){ c->SetRadius(v); }, 0.0);
+    } else if (auto* c = dynamic_cast<ChainCollider*>(component)) {
+        b.Vec2("center", [c]{ return c->GetCenter(); }, [c](glm::vec2 v){ c->SetCenter(v); });
+        b.Float("bounciness", [c]{ return c->GetBounciness(); }, [c](float v){ c->SetBounciness(v); }, 0.0, 1.0);
+        b.Float("friction", [c]{ return c->GetFriction(); }, [c](float v){ c->SetFriction(v); }, 0.0);
+        b.Float("rolling_resistance", [c]{ return c->GetRollingResistance(); }, [c](float v){ c->SetRollingResistance(v); }, 0.0);
+        b.Bool("is_loop", [c]{ return c->GetIsLoop(); }, [c](bool v){ c->SetIsLoop(v); });
+        b.Bool("reverse_side", [c]{ return c->GetReverseSide(); }, [c](bool v){ c->SetReverseSide(v); });
+        b.Float("alpha_threshold", [c]{ return c->GetAlphaThreshold(); },
+                [c](float v){ c->SetAlphaThreshold(v); }, 0.0, 1.0);
     } else if (auto* j = dynamic_cast<DistanceJoint*>(component)) {
         AddJointProperties(b,j); b.Float("length",[j]{return j->GetLength();},[j](float v){j->SetLength(v);},0.0); b.Bool("enable_spring",[j]{return j->GetEnableSpring();},[j](bool v){j->SetEnableSpring(v);}); b.Float("hertz",[j]{return j->GetHertz();},[j](float v){j->SetHertz(v);},0.0); b.Float("damping_ratio",[j]{return j->GetDampingRatio();},[j](float v){j->SetDampingRatio(v);},0.0,1.0); b.Float("lower_spring_force",[j]{return j->GetLowerSpringForce();},[j](float v){j->SetLowerSpringForce(v);}); b.Float("upper_spring_force",[j]{return j->GetUpperSpringForce();},[j](float v){j->SetUpperSpringForce(v);}); b.Bool("enable_limit",[j]{return j->GetEnableLimit();},[j](bool v){j->SetEnableLimit(v);}); b.Float("min_length",[j]{return j->GetMinLength();},[j](float v){j->SetMinLength(v);},0.0); b.Float("max_length",[j]{return j->GetMaxLength();},[j](float v){j->SetMaxLength(v);},0.0); b.Bool("enable_motor",[j]{return j->GetEnableMotor();},[j](bool v){j->SetEnableMotor(v);}); b.Float("motor_speed",[j]{return j->GetMotorSpeed();},[j](float v){j->SetMotorSpeed(v);}); b.Float("max_motor_force",[j]{return j->GetMaxMotorForce();},[j](float v){j->SetMaxMotorForce(v);},0.0); b.Float("current_length",[j]{return j->GetCurrentLength();});
     } else if (auto* j = dynamic_cast<RevoluteJoint*>(component)) {

@@ -9,50 +9,53 @@ class Collider(Component):
     def __init__(self, obj_id=None):
         super().__init__(obj_id)
 
+    def _collider_key(self):
+        return self._resolve_component_id() or self._gameobject_id
+
     @property
     def center(self) -> Vector2:
-        return Vector2._bound(collider_module.get_center, collider_module.set_center, self._gameobject_id)
+        return Vector2._bound(collider_module.get_center, collider_module.set_center, self._collider_key())
 
     @center.setter
     def center(self, value: Vector2):
-        collider_module.set_center(self._gameobject_id, value.x, value.y)
+        collider_module.set_center(self._collider_key(), value.x, value.y)
 
     @property
     def density(self) -> float:
-        return collider_module.get_density(self._gameobject_id)
+        return collider_module.get_density(self._collider_key())
 
     @density.setter
     def density(self, value: float):
-        collider_module.set_density(self._gameobject_id, float(value))
+        collider_module.set_density(self._collider_key(), float(value))
 
     @property
     def bounciness(self) -> float:
-        return collider_module.get_bounciness(self._gameobject_id)
+        return collider_module.get_bounciness(self._collider_key())
 
     @bounciness.setter
     def bounciness(self, value: float):
-        collider_module.set_bounciness(self._gameobject_id, float(value))
+        collider_module.set_bounciness(self._collider_key(), float(value))
 
     @property
     def friction(self) -> float:
-        return collider_module.get_friction(self._gameobject_id)
+        return collider_module.get_friction(self._collider_key())
 
     @friction.setter
     def friction(self, value: float):
-        collider_module.set_friction(self._gameobject_id, float(value))
+        collider_module.set_friction(self._collider_key(), float(value))
 
     @property
     def rolling_resistance(self) -> float:
-        return collider_module.get_rolling_resistance(self._gameobject_id)
+        return collider_module.get_rolling_resistance(self._collider_key())
 
     @rolling_resistance.setter
     def rolling_resistance(self, value: float):
-        collider_module.set_rolling_resistance(self._gameobject_id, float(value))
+        collider_module.set_rolling_resistance(self._collider_key(), float(value))
 
     @property
     def is_sensor(self) -> bool:
-        return collider_module.get_is_sensor(self._gameobject_id)
+        return collider_module.get_is_sensor(self._collider_key())
 
     @is_sensor.setter
     def is_sensor(self, value: bool):
-        collider_module.set_is_sensor(self._gameobject_id, bool(value))
+        collider_module.set_is_sensor(self._collider_key(), bool(value))

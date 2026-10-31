@@ -80,6 +80,9 @@ public:
     // Whether scaling (transform gizmo and collider resize) should stay uniform.
     // Set from the editor's Alt-key state, same rationale as SetSnapRequested.
     void SetUniformScaleRequested(bool v) { m_uniformScale = v; }
+    void SetChainExtendRequested(bool value) { m_chainExtendRequested = value; }
+    void SetChainInsertRequested(bool value) { m_chainInsertRequested = value; }
+    bool DeleteSelectedChainPoint();
 
     bool IsHandleHovered() const {
         return m_hoveredHandle >= 0 || m_hoveredCameraCorner >= 0 ||
@@ -189,6 +192,8 @@ private:
                                  class Transform* transform, class CircleCollider* circleCollider);
     void DrawCapsuleColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight,
                                   class Transform* transform, class CapsuleCollider* capsuleCollider);
+    void DrawChainColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight,
+                                class Transform* transform, class ChainCollider* chainCollider);
 
     ImVec2 WorldToScreen(const glm::vec2& world, const glm::mat4& vp, float viewWidth, float viewHeight);
     glm::vec2 ScreenToWorld(const ImVec2& screen, const glm::mat4& vp, float viewWidth, float viewHeight);
@@ -331,4 +336,13 @@ private:
     glm::vec2 m_dragStartSize{0};
     float m_dragStartRadius{0};
     float m_dragStartHeight{0};
+    std::string m_chainSelectedColliderId;
+    int m_chainSelectedPoint = -1;
+    int m_chainSelectedEdge = -1;
+    int m_chainDragIndex = -1;
+    std::vector<glm::vec2> m_chainDragStartPoints;
+    std::vector<glm::vec2> m_chainDragUndoPoints;
+    glm::mat4 m_chainDragInverseWorld{1.0f};
+    bool m_chainExtendRequested = false;
+    bool m_chainInsertRequested = false;
 };
