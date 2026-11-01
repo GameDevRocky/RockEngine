@@ -54,9 +54,4 @@ private:
     std::string tileSetId;
     std::string gridId;
     bool tileMapAcquired = false;
-    // Read only from scenes saved before TileMapRenderer became a component.
-    bool hasLegacyRenderSettings = false;
-    bool legacyFillCell = false;
-    std::string legacySortingLayer = "Default";
-    int legacySortingOrder = 0;
 };

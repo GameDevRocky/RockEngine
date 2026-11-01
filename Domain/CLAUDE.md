@@ -20,6 +20,10 @@ Loaded at runtime relative to `PROJECT_ROOT` (the source dir, baked in at build 
 - **`lib/configs/`** — scenes/configs, incl. `Sample_Scene.yaml` (the default scene).
 - **`sandbox/`** — an example game project: `scripts/`, scenes (`.scene`), sprites.
 
+Asset and scene display names come from filenames. Descriptor and scene YAML have no top-level
+`name` field; embedded sprites and TileSet tiles keep individual names. Rename authored files
+through FolderView so paired files and known project references move together.
+
 ## Scripting model
 
 The Python API wraps the embedded `rock_engine` C++ module. Each Python handler is a thin

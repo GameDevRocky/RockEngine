@@ -1,6 +1,5 @@
 type: Texture2D
 id: ac675f8a863ca37b30fd98330f997bd4
-name: brick_texture
 path: Domain/sandbox/brick_texture.jpg
 filtering: linear
 wrap: repeat

@@ -24,6 +24,7 @@ class SpriteHoverColumn;
 class AssetPreviewDelegate;
 class QTimer;
 class QVariantAnimation;
+class QLineEdit;
 
 class FolderViewGui : public QWidget {
     Q_OBJECT
@@ -54,6 +55,9 @@ private:
 
     // Right-click "New" menu: create asset files on disk in the current folder.
     void ShowContextMenu(const QPoint& pos);
+    void BeginRename(const QModelIndex& index);
+    void CommitRename();
+    void CancelRename();
     void CreateNewMaterial();
     void CreateNewTileMap();
     void CreateNewTileSet();
@@ -124,4 +128,6 @@ private:
     QString                 currentPath;
     QString                 projectDirectory;
     QStack<QString>         directoryHistory;
+    QLineEdit*              m_renameEditor = nullptr;
+    QString                 m_renamePath;
 };

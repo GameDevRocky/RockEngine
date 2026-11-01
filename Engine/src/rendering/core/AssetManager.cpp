@@ -323,12 +323,11 @@ void AssetManager::RemoveSprite(const std::string& id)
     delete sprite;
 }
 
-Material* AssetManager::CreateMaterial(const std::string& filePath, const std::string& name) {
+Material* AssetManager::CreateMaterial(const std::string& filePath) {
     Material* mat = new Material();
 
     YAML::Node node;
     node["type"] = "Material";
-    node["name"] = name;
     node["id"]   = GenerateUUID();
     // Default to the sprite shader when it exists so the material is usable and
     // Awake()→SetShader()→Validate() can seed its uniform defaults; otherwise it
@@ -343,6 +342,44 @@ Material* AssetManager::CreateMaterial(const std::string& filePath, const std::s
     SaveResource(mat);     // write the canonical, fully-seeded file to disk
     std::cout << "Created Material: " + filePath << std::endl;
     return mat;
+}
+
+void AssetManager::RelocatePaths(const std::string& oldPath, const std::string& newPath, bool directory) {
+    auto remap = [&](const std::string& path) -> std::string {
+        auto normalized = [](std::string value) {
+            std::replace(value.begin(), value.end(), '\\', '/');
+#ifdef _WIN32
+            std::transform(value.begin(), value.end(), value.begin(),
+                           [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+#endif
+            return value;
+        };
+        const std::string candidate = normalized(path);
+        const std::string prefix = normalized(oldPath);
+        if (candidate == prefix) return newPath;
+        if (directory && candidate.size() > prefix.size() &&
+            candidate.compare(0, prefix.size(), prefix) == 0 && candidate[prefix.size()] == '/')
+            return newPath + path.substr(oldPath.size());
+        return path;
+    };
+    const bool saveWasEnabled = m_autoSaveEnabled;
+    m_autoSaveEnabled = false;
+    auto update = [&](Resource* resource) {
+        if (!resource) return;
+        const std::string descriptor = resource->GetFilePath();
+        const std::string moved = remap(descriptor);
+        if (moved != descriptor) resource->SetFilePath(moved);
+        resource->RelocateSourcePath(oldPath, newPath, directory);
+    };
+    for (const auto& [_, resource] : textures) update(resource);
+    for (const auto& [_, resource] : shaders) update(resource);
+    for (const auto& [_, resource] : materials) update(resource);
+    for (const auto& [_, resource] : fonts) update(resource);
+    for (const auto& [_, resource] : audioClips) update(resource);
+    for (const auto& [_, resource] : tileMaps) update(resource);
+    for (const auto& [_, resource] : tileSets) update(resource);
+    for (const auto& [_, resource] : sprites) update(resource);
+    m_autoSaveEnabled = saveWasEnabled;
 }
 
 std::string AssetManager::ImportAsset(const std::string& sourceFile, const std::string& destDir) {

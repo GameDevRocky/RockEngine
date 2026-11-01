@@ -135,6 +135,8 @@ YAML (yaml-cpp) throughout.
 Scenes are `.scene` YAML. There is no default/sample scene wired up — scenes load only via
 drag-and-drop onto the hierarchy panel (`Editor/src/dock-widgets/HierarchyGui.cpp`). The only
 scene checked into the repo is `Domain/sandbox/default.scene`.
+Scene display names derive from the `.scene` filename. Scene YAML has no top-level `name`;
+`Scene::SetPath()` updates the display name and notifies path/name observers.
 
 `GameObject::active` is serialized per object and defaults to `true` when loading legacy scene
 files without the field. Deserialization assigns it directly rather than calling `SetActive()`,
@@ -179,6 +181,11 @@ a missing or malformed installation config fails conservatively.
 - **`AssetManager`** (singleton, `include/engine/rendering/core/AssetManager.hpp`) — maps of
   Shader / Texture2D / Material / Sprite keyed by id, plus by-name lookups.
   `LoadFromDirectory()` scans recursively for meta files and registers them.
+- File-backed `Resource::GetName()` derives from the descriptor filename. For a paired
+  source/meta such as `foo.png.texture` it yields `foo`; a single-file resource strips its
+  one extension. Asset YAML has no top-level `name`. Embedded sprites keep individual names
+  because they share one texture descriptor. Editor renames retain resource ids and update
+  loaded descriptor and source paths.
 - **`AssetMetaService`** — generates "meta" descriptor files next to source assets:
   - `foo.png` → `foo.png.texture` (Texture2D)
   - `foo.glsl` → `foo.glsl.shader` (Shader) — one combined file, split by
@@ -205,8 +212,9 @@ Grid YAML stores both `cellSize` and `gapSize`; an omitted `gapSize` defaults to
 TileSet edits through `SetTile()` and `RemoveTile()` use the standard editor asset auto-save path.
 `TileMapRenderer` is a serializable component beside `TileMapEditor`. It defaults to Native
 sprite pixel sizing, with FillCell as an alternative; its sorting layer/order follow sprite
-render sorting. Adding either component requires the other, and TileMapEditor migrates legacy
-render settings when it creates a missing renderer. ScenePass and PickingPass share cell
+render sorting. TileMapRenderer alone serializes sizing and sorting; TileMapEditor stores only
+TileMap and TileSet ids. Adding either component requires the other, with defaults when the
+companion is created. ScenePass and PickingPass share cell
 geometry: the authored sprite pivot is placed at the transformed Grid cell center, with Grid
 gap affecting cell stride. Exact eight-neighbor TileSet rules resolve before default sprites.
 TileMap cell edits are saved after editor strokes and undo/redo; `SaveResource` reports write

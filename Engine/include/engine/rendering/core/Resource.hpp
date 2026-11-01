@@ -15,13 +15,17 @@ public:
     virtual void Deserialize(const YAML::Node& node) override;
     virtual void Validate();
 
-    void SetName(std::string name);
-    std::string GetName() {return name;}
+    // File-backed resources take their display name from the descriptor filename.
+    // Sprites override this because several sprites share one texture descriptor.
+    virtual std::string GetName() const;
 
     void SetFilePath(const std::string& path);
     const std::string& GetFilePath() const { return m_filePath; }
+    virtual void RelocateSourcePath(const std::string& oldPath, const std::string& newPath,
+                                    bool directory) {}
 
 protected:
-    std::string name;
+    static std::string RemapPath(const std::string& path, const std::string& oldPath,
+                                 const std::string& newPath, bool directory);
     std::string m_filePath;
 };

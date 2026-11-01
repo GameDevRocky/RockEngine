@@ -19,6 +19,7 @@ public:
 
     static inline const Event HIERARCHY_CHANGED_EVENT = Scene::CreateEvent();
     static inline const Event NAME_CHANGED_EVENT = Scene::CreateEvent();
+    static inline const Event PATH_CHANGED_EVENT = Scene::CreateEvent();
     static inline const Event GAMEOBJECT_ADDED_EVENT = Scene::CreateEvent();
     // Fired after a sibling reorder (payload: the moved object's id).
     static inline const Event ORDER_CHANGED_EVENT = Scene::CreateEvent();
@@ -88,10 +89,9 @@ public:
     const std::vector<GameObject*>& GetAllGameObjects();
     
     const std::string& GetName() const { return name; }
-    void SetName(const std::string& newName);
 
     const std::string& GetPath() const { return path; }
-    void SetPath(const std::string& newPath) { path = newPath; }
+    void SetPath(const std::string& newPath);
     
     Scene* Copy() override;
     Scene* Copy(Container* container) override;

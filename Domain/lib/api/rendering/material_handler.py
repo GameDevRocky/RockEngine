@@ -10,10 +10,6 @@ class Material:
     def name(self) -> str:
         return material_module.get_name(self.id)
 
-    @name.setter
-    def name(self, value: str):
-        material_module.set_name(self.id, value)
-
     @property
     def shader_id(self) -> str:
         return material_module.get_shader_id(self.id)

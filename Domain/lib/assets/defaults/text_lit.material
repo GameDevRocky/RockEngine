@@ -1,5 +1,4 @@
 type: Material
-name: text_lit
 id: m_text_lit
 shader_id: s_msdf_text_lit
 uniforms:

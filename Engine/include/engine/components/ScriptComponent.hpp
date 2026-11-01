@@ -153,6 +153,8 @@ public:
     // instance, re-instantiates + re-introspects the new class, and fires
     // SCRIPT_RELOADED_EVENT so the inspector rebuilds.
     void SetScript(const std::string& module, const std::string& cls);
+    // Rename the backing Python module while retaining current authored fields.
+    void RelocateModule(const std::string& oldModule, const std::string& newModule);
 
     // Methods the script decorated with @action. Rebuilt on every (re)introspection,
     // so a hot-reload that adds or renames one is picked up like a field change.

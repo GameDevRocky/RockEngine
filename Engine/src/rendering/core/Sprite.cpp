@@ -24,11 +24,18 @@ YAML::Node Sprite::Serialize(){
 
 void Sprite::Deserialize(const YAML::Node& node){
     Resource::Deserialize(node);
+    name = node["name"].as<std::string>("");
     uvMin = {node["uvMin"][0].as<float>(), node["uvMin"][1].as<float>()};
     uvMax = {node["uvMax"][0].as<float>(), node["uvMax"][1].as<float>()};
     pivot = {node["pivot"][0].as<float>(), node["pivot"][1].as<float>()};
     if (node["texture_id"]) texture_id = node["texture_id"].as<std::string>();
     
+}
+
+void Sprite::SetName(const std::string& newName) {
+    if (name == newName) return;
+    name = newName;
+    Notify(NAME_CHANGED_EVENT);
 }
 
 Texture2D* Sprite::GetTexture(){

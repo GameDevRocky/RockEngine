@@ -10,6 +10,7 @@
 #include "engine/utils/IVisitor.hpp"
 #include <algorithm>
 #include <functional>
+#include <filesystem>
 #include <unordered_set>
 #include "Engine.hpp"
 
@@ -115,7 +116,6 @@ void Scene::EmitSubtree(GameObject* root, YAML::Node& gameobjects, YAML::Node& c
 YAML::Node Scene::Serialize()
 {
     YAML::Node node;
-    node["name"] = name;
     node["id"] = GetID();
 
     YAML::Node components(YAML::NodeType::Sequence);
@@ -182,7 +182,6 @@ void Scene::Deserialize(const YAML::Node &data)
         return;
 
     Serializable::Deserialize(data);
-    name = data["name"].as<std::string>();
     registry = container->FindSystem<Registry>();
 
     for (auto &goNode : data["gameobjects"])
@@ -549,9 +548,15 @@ const std::vector<GameObject*>& Scene::GetAllGameObjects()
     return cachedAll;
 }
 
-void Scene::SetName(const std::string& name){
-    this->name = name;
-    Notify(NAME_CHANGED_EVENT, name);
+void Scene::SetPath(const std::string& newPath){
+    if (path == newPath) return;
+    path = newPath;
+    Notify(PATH_CHANGED_EVENT, path);
+    const std::string newName = std::filesystem::path(path).stem().string();
+    if (name != newName) {
+        name = newName;
+        Notify(NAME_CHANGED_EVENT, name);
+    }
 }
 
 void Scene::Shutdown(){

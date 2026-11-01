@@ -27,7 +27,6 @@ YAML::Node Font::Serialize() {
     YAML::Node node;
     node["type"] = GetTypeName();
     node["id"]   = GetID();
-    node["name"] = GetName();
     node["path"] = ToAssetRelative(source_path);
 
     YAML::Node bake;
@@ -55,6 +54,11 @@ void Font::Deserialize(const YAML::Node& node) {
 
     dirty = true;
     bakeFailed = false;
+}
+
+void Font::RelocateSourcePath(const std::string& oldPath, const std::string& newPath,
+                              bool directory) {
+    source_path = RemapPath(source_path, oldPath, newPath, directory);
 }
 
 void Font::Awake() {

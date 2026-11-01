@@ -85,7 +85,10 @@ public:
     // and return it. Defaults to the "sprite" shader when present so it renders
     // (and its uniform defaults get seeded) out of the box. For the editor's
     // "New > Material".
-    Material* CreateMaterial(const std::string& filePath, const std::string& name);
+    Material* CreateMaterial(const std::string& filePath);
+    // Update loaded resource descriptor and source paths after an editor file move.
+    // This only changes memory; the caller has already committed the disk changes.
+    void RelocatePaths(const std::string& oldPath, const std::string& newPath, bool directory);
 
     // Import any external asset file into destDir: copy it in (unless it already
     // lives there), generate its meta, and register the result. Handles every

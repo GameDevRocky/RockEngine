@@ -20,7 +20,6 @@ YAML::Node Shader::Serialize() {
     YAML::Node node;
     node["type"] = GetTypeName();
     node["id"] = GetID();
-    node["name"] = GetName();
     node["source_path"] = ToAssetRelative(source_path);
     return node;
 }
@@ -38,6 +37,11 @@ void Shader::Deserialize(const YAML::Node& node) {
     glad_glDeleteShader(vertex);
     glad_glDeleteShader(fragment);
     ReflectUniforms();
+}
+
+void Shader::RelocateSourcePath(const std::string& oldPath, const std::string& newPath,
+                                bool directory) {
+    source_path = RemapPath(source_path, oldPath, newPath, directory);
 }
 
 

@@ -1,5 +1,4 @@
 type: Material
-name: default
 id: m1
 shader_id: s1
 uniforms:

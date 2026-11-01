@@ -1,5 +1,4 @@
 type: Material
-name: New Material 2
 id: d79f037ae851df2cbb2db311569480f0
 shader_id: s7
 uniforms:

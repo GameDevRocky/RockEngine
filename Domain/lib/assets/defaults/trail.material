@@ -1,5 +1,4 @@
 type: Material
-name: trail
 id: m_trail
 shader_id: s_trail
 uniforms:

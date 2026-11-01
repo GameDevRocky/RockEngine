@@ -45,6 +45,8 @@ public:
     static inline const Event DESTROYED_EVENT      = Texture2D::CreateEvent();
 
     YAML::Node Serialize() override;
+    void RelocateSourcePath(const std::string& oldPath, const std::string& newPath,
+                            bool directory) override;
     void Deserialize(const YAML::Node& node) override;
 
     // Records a sprite id in load order so re-saving keeps sprites stable/ordered.

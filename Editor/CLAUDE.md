@@ -44,6 +44,11 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   `BuildWindow` (File → Build Game…, a top-level window rather than a dock). The Sprite Editor
   is created lazily and tabbed into the central Scene/Game dock area. Once created, it follows
   texture asset selection and clears to an empty state if its texture is destroyed.
+  FolderView supports F2 and context-menu rename under `Domain/sandbox`. It preserves
+  extensions, moves paired source/meta files together, and updates known metadata paths,
+  loaded scene paths, the startup-scene config, and ScriptComponent module references.
+  The sandbox root, its `scripts` directory, and `project.build` are fixed paths; bundled
+  `Domain/lib` content is outside the rename area.
 - **`src/component-widgets/`** — per-component inspector UI pieces: `ComponentHeader`,
   `ObjectHeader`. Dragging a `ComponentHeader` label or non-interactive header surface starts
   the component MIME drag. A drop back in the Inspector commits through

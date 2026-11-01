@@ -38,6 +38,8 @@ public:
     ~Font();
 
     YAML::Node Serialize() override;
+    void RelocateSourcePath(const std::string& oldPath, const std::string& newPath,
+                            bool directory) override;
     void Deserialize(const YAML::Node& node) override;
     void Awake() override;
 

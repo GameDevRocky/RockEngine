@@ -1,6 +1,5 @@
 type: Texture2D
 id: c7a1cc80f893b43f8bec8b04961d019e
-name: ChatGPT-Logo
 path: Domain/sandbox/ChatGPT-Logo.png
 filtering: linear
 wrap: repeat

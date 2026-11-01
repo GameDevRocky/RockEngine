@@ -13,7 +13,6 @@ YAML::Node AudioClip::Serialize() {
     YAML::Node node;
     node["type"] = "AudioClip";
     node["id"] = GetID();
-    node["name"] = GetName();
     node["path"] = ToAssetRelative(path);
     return node;
 }
@@ -21,6 +20,11 @@ YAML::Node AudioClip::Serialize() {
 void AudioClip::Deserialize(const YAML::Node& node) {
     Resource::Deserialize(node);
     path = GetAssetPath(node["path"].as<std::string>());
+}
+
+void AudioClip::RelocateSourcePath(const std::string& oldPath, const std::string& newPath,
+                                   bool directory) {
+    path = RemapPath(path, oldPath, newPath, directory);
 }
 
 void AudioClip::Awake() {

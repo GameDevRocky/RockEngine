@@ -1,17 +1,9 @@
 #include "engine/tilemap/TileMap.hpp"
 
 #include <algorithm>
-#include <functional>
 #include <stdexcept>
 #include <utility>
 #include <vector>
-
-std::size_t TileCellHash::operator()(const glm::ivec2& cell) const noexcept
-{
-    std::size_t seed = std::hash<int>{}(cell.x);
-    seed ^= std::hash<int>{}(cell.y) + 0x9e3779b9U + (seed << 6U) + (seed >> 2U);
-    return seed;
-}
 
 YAML::Node TileMap::Serialize()
 {
@@ -22,7 +14,6 @@ YAML::Node TileMap::Serialize()
     YAML::Node node;
     node["type"] = GetTypeName();
     node["id"] = GetID();
-    node["name"] = GetName();
     YAML::Node serializedCells(YAML::NodeType::Sequence);
     if (cells)
     {
@@ -60,7 +51,6 @@ TileMap* TileMap::Copy()
 {
     auto* copy = new TileMap();
     copy->id = id;
-    copy->name = name;
     copy->m_filePath = m_filePath;
     if (cells) copy->cells = std::make_unique<CellData>(*cells);
     copy->dirty = dirty;

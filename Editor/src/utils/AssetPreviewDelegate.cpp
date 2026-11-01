@@ -118,13 +118,13 @@ void AssetPreviewDelegate::paint(QPainter* painter,
         // is a hash lookup.
         const std::string id = yamlField(filePath, "id");
         if (!id.empty()) px = AssetThumbnails::forTexture(id);
-        label = QFileInfo(filePath).fileName();
+        label = QFileInfo(QFileInfo(filePath).completeBaseName()).completeBaseName();
     } else if (ext == "mat" || ext == "material") {
         // Still renders on every paint (and re-parses the .material file to find
         // its id) -- it predates the thumbnail cache and duplicates
         // AssetThumbnails::forMaterial; folding the two together is worth doing.
         px = renderMaterialPreview(filePath);
-        label = QFileInfo(filePath).fileName();
+        label = QFileInfo(filePath).completeBaseName();
     } else {
         // Everything else shows the model's icon (folder, .scene, .py, ...),
         // scaled into the same thumbnail box the rendered cells use.
@@ -138,6 +138,8 @@ void AssetPreviewDelegate::paint(QPainter* painter,
             //   "Nunito.ttf.font"    → "Nunito.ttf"  → "Nunito"
             //   "jump.wav.audio"     → "jump.wav"    → "jump"
             label = QFileInfo(QFileInfo(filePath).completeBaseName()).completeBaseName();
+        } else if (ext == "scene" || ext == "tilemap" || ext == "tileset") {
+            label = QFileInfo(filePath).completeBaseName();
         } else {
             // The model's display text, not QFileInfo::fileName -- it is what
             // handles drives, "..", and any name the model chooses to present.

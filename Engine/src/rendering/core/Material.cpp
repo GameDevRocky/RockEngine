@@ -65,7 +65,6 @@ static const std::unordered_set<std::string>& TrailReservedUniforms()
 YAML::Node Material::Serialize() {
     YAML::Node node;
     node["type"] = GetTypeName();
-    node["name"] = GetName();
     node["id"] = GetID();
     node["shader_id"] = shader_id;
 

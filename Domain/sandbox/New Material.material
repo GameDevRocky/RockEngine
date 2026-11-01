@@ -1,5 +1,4 @@
 type: Material
-name: New Material
 id: 2f14494f6050458c46aa8b85f5a18230
 shader_id: s1
 uniforms:

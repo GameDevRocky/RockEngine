@@ -134,6 +134,11 @@ void Texture2D::Deserialize(const YAML::Node &node){
     normalDirty = applyNormal;
 }
 
+void Texture2D::RelocateSourcePath(const std::string& oldPath, const std::string& newPath,
+                                   bool directory) {
+    path = RemapPath(path, oldPath, newPath, directory);
+}
+
 void Texture2D::RegisterSprite(const std::string& spriteId){
     if (std::find(sprite_ids.begin(), sprite_ids.end(), spriteId) == sprite_ids.end())
         sprite_ids.push_back(spriteId);
@@ -147,7 +152,6 @@ YAML::Node Texture2D::Serialize(){
     YAML::Node node;
     node["type"] = GetTypeName();
     node["id"] = GetID();
-    node["name"] = GetName();
     node["path"] = ToAssetRelative(path);
     node["filtering"] = filter == TextureFilter::Linear ? "linear" : "nearest";
     node["wrap"] = wrap == TextureWrap::Clamp ? "clamp" : "repeat";

@@ -9,7 +9,6 @@ YAML::Node TileSet::Serialize()
     YAML::Node node;
     node["type"] = GetTypeName();
     node["id"] = GetID();
-    node["name"] = GetName();
 
     std::vector<TileId> ids;
     ids.reserve(tiles.size());

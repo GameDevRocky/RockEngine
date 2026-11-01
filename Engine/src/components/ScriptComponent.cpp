@@ -776,6 +776,31 @@ void ScriptComponent::SetScript(const std::string& module, const std::string& cl
     Notify(SCRIPT_RELOADED_EVENT);
 }
 
+void ScriptComponent::RelocateModule(const std::string& oldModule, const std::string& newModule)
+{
+    if (moduleName != oldModule || oldModule == newModule) return;
+    CaptureFieldsAsPending();
+    UnsubscribeFileWatch();
+    if (Py_IsInitialized() && m_pyData) {
+        py::gil_scoped_acquire gil;
+        m_pyData->scriptInstance = py::object();
+        RefreshMethodCache();
+    }
+    m_fields.clear();
+    m_actions.clear();
+    m_lastPolledValues.clear();
+    m_scriptFilePath.clear();
+    moduleName = newModule;
+    m_missing = false;
+    if (Py_IsInitialized()) {
+        py::gil_scoped_acquire gil;
+        py::module_::import("importlib").attr("invalidate_caches")();
+    }
+    RebuildInstance();
+    SubscribeFileWatch();
+    Notify(SCRIPT_RELOADED_EVENT);
+}
+
 void ScriptComponent::IntrospectFields()
 {
     auto& scriptInstance = m_pyData->scriptInstance;

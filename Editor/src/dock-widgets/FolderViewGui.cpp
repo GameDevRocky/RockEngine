@@ -9,10 +9,14 @@
 #include <QMessageBox>
 #include <QShortcut>
 #include <QFile>
+#include <QLineEdit>
+#include <QKeyEvent>
+#include <QItemSelectionModel>
 #include <fstream>
 #include "utils/EditorUtils.hpp"
 #include "utils/AssetPreviewDelegate.hpp"
 #include "utils/AssetThumbnails.hpp"
+#include "utils/ProjectFileRenamer.hpp"
 #include "utils/SpriteHoverColumn.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
@@ -154,7 +158,16 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     // to the grid so it only fires while the Folder view has focus.
     auto* deleteShortcut = new QShortcut(QKeySequence::Delete, gridView);
     deleteShortcut->setContext(Qt::WidgetWithChildrenShortcut);
-    connect(deleteShortcut, &QShortcut::activated, this, [this]() { DeleteSelectedAssets(); });
+    connect(deleteShortcut, &QShortcut::activated, this, [this]() {
+        if (!m_renameEditor) DeleteSelectedAssets();
+    });
+
+    auto* renameShortcut = new QShortcut(QKeySequence(Qt::Key_F2), gridView);
+    renameShortcut->setContext(Qt::WidgetWithChildrenShortcut);
+    connect(renameShortcut, &QShortcut::activated, this, [this]() {
+        if (gridView->selectionModel()->selectedIndexes().size() == 1)
+            BeginRename(gridView->currentIndex());
+    });
 
     // ── Sprite hover column ──────────────────────────────────────────────────
     gridView->setMouseTracking(true);
@@ -285,6 +298,7 @@ void FolderViewGui::GoBack() {
 
 void FolderViewGui::NavigateToPath(const QString& path, bool recordHistory) {
     if (path.isEmpty()) return;
+    CancelRename();
 
     QString normalizedPath = QDir(path).absolutePath();
     if (recordHistory && normalizedPath != currentPath && !currentPath.isEmpty()) {
@@ -510,6 +524,11 @@ void FolderViewGui::FadeTextureCellIn() {
 }
 
 bool FolderViewGui::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == m_renameEditor && event->type() == QEvent::KeyPress &&
+        static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
+        CancelRename();
+        return true;
+    }
     // Mouse left the grid entirely (e.g. onto the nav bar or another panel):
     // schedule the column's hide, which the timer cancels if it's over the column.
     if (obj == gridView->viewport() && event->type() == QEvent::Leave) {
@@ -562,7 +581,7 @@ void FolderViewGui::ShowContextMenu(const QPoint& pos) {
     // "Delete" acts on what the user clicked (matching typical file managers).
     const QModelIndex idx = gridView->indexAt(pos);
     if (idx.isValid() && !gridView->selectionModel()->isSelected(idx))
-        gridView->setCurrentIndex(idx);
+        gridView->selectionModel()->setCurrentIndex(idx, QItemSelectionModel::ClearAndSelect);
 
     QMenu menu(this);
     QMenu* newMenu = menu.addMenu("New");
@@ -573,6 +592,11 @@ void FolderViewGui::ShowContextMenu(const QPoint& pos) {
     newMenu->addAction("Script",   this, [this]() { CreateNewScript(); });
 
     const auto selected = GetSelectedFilePaths();
+    if (idx.isValid() && gridView->selectionModel()->selectedIndexes().size() == 1 &&
+        ProjectFileRenamer::CanRename(model->filePath(proxy->mapToSource(idx)))) {
+        menu.addSeparator();
+        menu.addAction("Rename", this, [this, idx]() { BeginRename(idx); });
+    }
     if (!selected.empty()) {
         menu.addSeparator();
         const QString label = selected.size() == 1
@@ -582,6 +606,52 @@ void FolderViewGui::ShowContextMenu(const QPoint& pos) {
     }
 
     menu.exec(gridView->viewport()->mapToGlobal(pos));
+}
+
+void FolderViewGui::BeginRename(const QModelIndex& index) {
+    if (!index.isValid()) return;
+    const QString path = model->filePath(proxy->mapToSource(index));
+    if (!ProjectFileRenamer::CanRename(path)) return;
+    CancelRename();
+    m_renamePath = path;
+    m_renameEditor = new QLineEdit(gridView->viewport());
+    m_renameEditor->setText(ProjectFileRenamer::EditableName(path));
+    const QRect cell = gridView->visualRect(index);
+    const int width = std::min(std::max(170, cell.width()),
+                               gridView->viewport()->width());
+    const int left = std::clamp(cell.left(), 0,
+        std::max(0, gridView->viewport()->width() - width));
+    m_renameEditor->setGeometry(left, cell.bottom() - AssetPreviewDelegate::kLabelHeight,
+                                width, AssetPreviewDelegate::kLabelHeight + 2);
+    m_renameEditor->installEventFilter(this);
+    connect(m_renameEditor, &QLineEdit::returnPressed, this, &FolderViewGui::CommitRename);
+    connect(m_renameEditor, &QLineEdit::editingFinished, this, &FolderViewGui::CommitRename);
+    m_renameEditor->show();
+    m_renameEditor->setFocus();
+    m_renameEditor->selectAll();
+}
+
+void FolderViewGui::CancelRename() {
+    if (!m_renameEditor) return;
+    QLineEdit* editor = m_renameEditor;
+    m_renameEditor = nullptr;
+    m_renamePath.clear();
+    editor->removeEventFilter(this);
+    editor->deleteLater();
+}
+
+void FolderViewGui::CommitRename() {
+    if (!m_renameEditor) return;
+    const QString path = m_renamePath;
+    const QString name = m_renameEditor->text();
+    CancelRename();
+    QString error;
+    if (!ProjectFileRenamer::Rename(path, name, &error)) {
+        auto* message = new QMessageBox(QMessageBox::Warning, "Rename Failed", error,
+                                        QMessageBox::Ok, this);
+        message->setAttribute(Qt::WA_DeleteOnClose);
+        message->open();
+    }
 }
 
 void FolderViewGui::DeleteSelectedAssets() {
@@ -680,8 +750,7 @@ QString FolderViewGui::UniqueAssetPath(const QString& baseName, const QString& e
 
 void FolderViewGui::CreateNewMaterial() {
     const QString path = UniqueAssetPath("New Material", ".material");
-    const std::string name = QFileInfo(path).completeBaseName().toStdString();
-    AssetManager::Get().CreateMaterial(path.toStdString(), name);
+    AssetManager::Get().CreateMaterial(path.toStdString());
     // QFileSystemModel watches the directory and shows the new file itself.
 }
 
@@ -691,7 +760,6 @@ void FolderViewGui::CreateNewTileMap() {
     YAML::Node node;
     node["type"]  = "TileMap";
     node["id"]    = EngineUtils::GenerateUUID();
-    node["name"]  = QFileInfo(path).completeBaseName().toStdString();
     node["cells"] = YAML::Node(YAML::NodeType::Sequence);
 
     std::ofstream out(path.toStdString());
@@ -712,7 +780,6 @@ void FolderViewGui::CreateNewTileSet() {
     YAML::Node node;
     node["type"]      = "TileSet";
     node["id"]        = EngineUtils::GenerateUUID();
-    node["name"]      = QFileInfo(path).completeBaseName().toStdString();
     node["tiles"] = YAML::Node(YAML::NodeType::Sequence);
 
     std::ofstream out(path.toStdString());
@@ -732,7 +799,6 @@ void FolderViewGui::CreateNewScene() {
 
     // A minimal, valid empty scene: name + id + empty object/component lists.
     YAML::Node node;
-    node["name"] = QFileInfo(path).completeBaseName().toStdString();
     node["id"]   = EngineUtils::GenerateUUID();
     node["gameobjects"] = YAML::Node(YAML::NodeType::Sequence);
     node["components"]  = YAML::Node(YAML::NodeType::Sequence);

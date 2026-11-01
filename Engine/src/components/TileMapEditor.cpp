@@ -24,18 +24,7 @@ void TileMapEditor::Init()
     }
     gridId = grid->GetID();
 
-    TileMapRenderer* renderer = GetComponent<TileMapRenderer>();
-    if (!renderer) {
-        renderer = RequireComponent<TileMapRenderer>();
-        if (hasLegacyRenderSettings) {
-            renderer->SetTileSizingMode(legacyFillCell
-                ? TileMapRenderer::TileSizingMode::FillCell
-                : TileMapRenderer::TileSizingMode::Native);
-            renderer->SetSortingLayer(legacySortingLayer);
-            renderer->SetSortingOrder(legacySortingOrder);
-        }
-    }
-    hasLegacyRenderSettings = false;
+    if (!GetComponent<TileMapRenderer>()) RequireComponent<TileMapRenderer>();
 
     const std::string id = GetID();
     grid->Subscribe([id]() {
@@ -85,10 +74,6 @@ void TileMapEditor::Deserialize(const YAML::Node& node)
     Component::Deserialize(node);
     tileMapId = node["tileMapId"].as<std::string>("");
     tileSetId = node["tileSetId"].as<std::string>("");
-    hasLegacyRenderSettings = node["tileSizingMode"] || node["sortingLayer"] || node["sortingOrder"];
-    legacyFillCell = node["tileSizingMode"].as<std::string>("Native") == "FillCell";
-    legacySortingLayer = node["sortingLayer"].as<std::string>("Default");
-    legacySortingOrder = node["sortingOrder"].as<int>(0);
     state = State::Loaded;
 }
 
@@ -100,10 +85,6 @@ TileMapEditor* TileMapEditor::Copy()
     copy->gameobject_id = gameobject_id;
     copy->tileMapId = tileMapId;
     copy->tileSetId = tileSetId;
-    copy->hasLegacyRenderSettings = hasLegacyRenderSettings;
-    copy->legacyFillCell = legacyFillCell;
-    copy->legacySortingLayer = legacySortingLayer;
-    copy->legacySortingOrder = legacySortingOrder;
     return copy;
 }
 

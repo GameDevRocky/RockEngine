@@ -38,13 +38,11 @@ void AssetMetaService::ProcessTexture(const fs::path& sourcePath) {
     if (fs::exists(metaPath)) return;  // already has meta
 
     std::string id       = EngineUtils::GenerateUUID();
-    std::string name     = sourcePath.stem().string();
     std::string relPath  = ToProjectRelative(sourcePath);
 
     YAML::Node node;
     node["type"]      = "Texture2D";
     node["id"]        = id;
-    node["name"]      = name;
     node["path"]      = relPath;
     node["filtering"] = "linear";
     node["wrap"]      = "repeat";
@@ -65,13 +63,11 @@ void AssetMetaService::ProcessShader(const fs::path& glslPath) {
     if (fs::exists(metaPath)) return;
 
     std::string id          = EngineUtils::GenerateUUID();
-    std::string name        = glslPath.stem().string();
     std::string relSource   = ToProjectRelative(glslPath);
 
     YAML::Node node;
     node["type"]        = "Shader";
     node["id"]          = id;
-    node["name"]        = name;
     node["source_path"] = relSource;
 
     std::ofstream out(metaPath);
@@ -89,13 +85,11 @@ void AssetMetaService::ProcessFont(const fs::path& fontPath) {
     if (fs::exists(metaPath)) return;
 
     std::string id      = EngineUtils::GenerateUUID();
-    std::string name    = fontPath.stem().string();
     std::string relPath = ToProjectRelative(fontPath);
 
     YAML::Node node;
     node["type"] = "Font";
     node["id"]   = id;
-    node["name"] = name;
     node["path"] = relPath;
 
     // The bake recipe. The atlas itself is never written to disk -- it is rebuilt
@@ -124,13 +118,11 @@ void AssetMetaService::ProcessAudio(const fs::path& audioPath) {
     if (fs::exists(metaPath)) return;  // already has meta
 
     std::string id       = EngineUtils::GenerateUUID();
-    std::string name     = audioPath.stem().string();
     std::string relPath  = ToProjectRelative(audioPath);
 
     YAML::Node node;
     node["type"] = "AudioClip";
     node["id"]   = id;
-    node["name"] = name;
     node["path"] = relPath;
 
     std::ofstream out(metaPath);

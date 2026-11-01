@@ -1,6 +1,5 @@
 type: Texture2D
 id: 84099d366fd297d288cff674dbc10107
-name: muzzle_flash
 path: Domain/sandbox/muzzle_flash.png
 filtering: linear
 wrap: repeat

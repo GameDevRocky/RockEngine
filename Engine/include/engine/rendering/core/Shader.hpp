@@ -14,6 +14,8 @@ struct UniformInfo {
 class Shader : public Resource{
 public:
     YAML::Node Serialize() override;
+    void RelocateSourcePath(const std::string& oldPath, const std::string& newPath,
+                            bool directory) override;
     void Deserialize(const YAML::Node& node) override;
 
     void Bind() const;
@@ -49,7 +51,6 @@ public:
     ~Shader();
 
 private:
-    std::string name;
     std::string source_path;
 
     std::string vert_src; 

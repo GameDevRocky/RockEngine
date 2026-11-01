@@ -1,4 +1,3 @@
-name: ParticleStress_OpenGLCompute
 id: 529eb68790676b8a55a8a8f3c474d6bd
 components:
   - id: 1c9f1fb5e4f0045ffaee00fef13d8926
@@ -32,6 +31,27 @@ components:
     tileSizingMode: FillCell
     sortingLayer: Default
     sortingOrder: 0
+  - id: 341234abc64caf1adc2b4828b4a61349
+    enabled: true
+    type: Transform
+    gameobject: f1ef6a681c1fa48222aee2c3b52e4dc2
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: b8400d44a8a243df66f9556fd7acfd9c
+    enabled: true
+    type: Camera
+    gameobject: f1ef6a681c1fa48222aee2c3b52e4dc2
+    projection: 0
+    orthoSize: 540
+    clearFlags: 0
+    clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
+    priority: 0
+    targetAspect: 1.7777778
+    viewportRect: [0, 0, 1, 1]
+    cullingLayers: []
+    targetTextureId: ""
 gameobjects:
   - id: 33cc18e908a7f0550b3b44bf1b234b2d
     type: GameObject
@@ -43,3 +63,11 @@ gameobjects:
       - 170064864749773350dd37ee579543b7
       - 7794bffbd022951bc1e97de1a24e9192
       - 03e0aa3f9de58b736d3e0c2a84cdc9eb
+  - id: f1ef6a681c1fa48222aee2c3b52e4dc2
+    type: GameObject
+    name: Camera
+    tag: Untagged
+    active: true
+    component_ids:
+      - 341234abc64caf1adc2b4828b4a61349
+      - b8400d44a8a243df66f9556fd7acfd9c

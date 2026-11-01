@@ -8,10 +8,7 @@
 
 #include "engine/rendering/core/Resource.hpp"
 #include "engine/tilemap/Tile.hpp"
-
-struct TileCellHash {
-    std::size_t operator()(const glm::ivec2& cell) const noexcept;
-};
+#include "engine/utils/Hash.hpp"
 
 class TileMap : public Resource {
 
@@ -36,7 +33,7 @@ public:
     bool SetTileId(const glm::ivec2& cell, TileId tileId);
     TileId GetTileId(const glm::ivec2& cell) const;
     bool HasTile(const glm::ivec2& cell) const;
-    using CellData = std::unordered_map<glm::ivec2, TileId, TileCellHash>;
+    using CellData = std::unordered_map<glm::ivec2, TileId, EngineUtils::IVec2Hash>;
     // Null while the file-backed cell data is unloaded.
     const CellData* GetCells() const { return cells.get(); }
 

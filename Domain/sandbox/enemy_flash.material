@@ -1,5 +1,4 @@
 type: Material
-name: enemy_flash
 id: m_enemy_flash
 shader_id: s_sprite_lit_flash
 uniforms:

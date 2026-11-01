@@ -12,11 +12,6 @@ void BindMaterial(pybind11::module_& m) {
         return mat->GetName();
     });
 
-    material_module.def("set_name", [](const std::string& id, std::string name) {
-        Material* mat = AssetManager::Get().GetMaterial(id);
-        if (mat) mat->SetName(name);
-    });
-
     material_module.def("get_shader_id", [](const std::string& id) -> std::string {
         Material* mat = AssetManager::Get().GetMaterial(id);
         if (!mat) return {};

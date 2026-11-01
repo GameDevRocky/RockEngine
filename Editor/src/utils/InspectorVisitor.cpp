@@ -2425,7 +2425,9 @@ void InspectorVisitor::Visit(AudioClip* clip) {
 
 void InspectorVisitor::Visit(Scene* scene) {
 
-    BindProperty<std::string>(scene, "Name:", [=](){return scene->GetName();}, [](Scene*s, const std::string& name){s->SetName(name);}, Scene::NAME_CHANGED_EVENT, PropDesc().RefType(Tags::STRING));
+    BindProperty<std::string>(scene, "Name:", [=](){return scene->GetName();},
+        [](Scene*, const std::string&){}, Scene::NAME_CHANGED_EVENT,
+        PropDesc().RefType(Tags::STRING).ReadOnly());
     
 
 }
