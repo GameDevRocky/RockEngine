@@ -4,6 +4,10 @@
 #include "engine/rendering/core/Font.hpp"
 #include "engine/text/TextLayout.hpp"
 #include "engine/components/Transform.hpp"
+#include "engine/components/TileMapEditor.hpp"
+#include "engine/components/TileMapRenderer.hpp"
+#include "engine/rendering/core/Sprite.hpp"
+#include "engine/rendering/core/Texture2D.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/Material.hpp"
@@ -13,6 +17,7 @@
 #include "engine/utils/EngineUtils.hpp"
 #include "Engine.hpp"
 #include "engine/debug/FrameProfiler.hpp"
+#include "engine/tilemap/TileDrawList.hpp"
 #include <algorithm>
 #include <vector>
 #include <unordered_set>
@@ -201,6 +206,8 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
         GameObject*     obj           = nullptr;
         SpriteRenderer* renderer      = nullptr;
         TextRenderer*   text          = nullptr;
+        TileMapEditor*  tileMap       = nullptr;
+        TileMapRenderer* tileRenderer = nullptr;
         Transform*      transform     = nullptr;
         int             layerPriority = 0;
         int             sortingOrder  = 0;
@@ -240,7 +247,28 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
                     d.transform     = transform;
                     d.layerPriority = layerManager ? layerManager->GetPriority(spr->GetSortingLayer()) : 0;
                     d.sortingOrder  = spr->GetSortingOrder();
-                    if (Material* mat = spr->GetMaterial())
+                    Material* mat = spr->GetMaterial();
+                    if (!mat) mat = AssetManager::Get().GetMaterialByName("default");
+                    if (mat)
+                        if (Shader* s = mat->GetShader()) d.shaderId = s->GetProgramID();
+                    draws.push_back(d);
+                }
+            }
+
+            if (TileMapRenderer* tileRenderer = obj->GetComponent<TileMapRenderer>()) {
+                TileMapEditor* tileMap = tileRenderer->GetTileMapEditor();
+                if (tileRenderer->GetEnabled() && tileMap && tileMap->GetEnabled()
+                    && tileMap->GetGrid() && tileMap->GetTileMap()
+                    && tileMap->GetTileMap()->GetCells() && tileMap->GetTileSet()
+                    && camera->PassesCullingMask(tileRenderer->GetSortingLayer())) {
+                    PickDraw d;
+                    d.obj = obj;
+                    d.tileMap = tileMap;
+                    d.tileRenderer = tileRenderer;
+                    d.transform = transform;
+                    d.layerPriority = layerManager ? layerManager->GetPriority(tileRenderer->GetSortingLayer()) : 0;
+                    d.sortingOrder = tileRenderer->GetSortingOrder();
+                    if (Material* mat = AssetManager::Get().GetMaterialByName("default"))
                         if (Shader* s = mat->GetShader()) d.shaderId = s->GetProgramID();
                     draws.push_back(d);
                 }
@@ -279,6 +307,9 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
         std::stable_sort(draws.begin(), draws.end(), [](const PickDraw& a, const PickDraw& b) {
             if (a.layerPriority != b.layerPriority) return a.layerPriority < b.layerPriority;
             if (a.sortingOrder  != b.sortingOrder)  return a.sortingOrder  < b.sortingOrder;
+            const int kindA = a.text ? 2 : 1;
+            const int kindB = b.text ? 2 : 1;
+            if (kindA != kindB) return kindA < kindB;
             return a.shaderId < b.shaderId;
         });
 
@@ -303,6 +334,24 @@ void PickingPass::RenderPickBuffer(RenderCamera* camera)
                 shader->SetVec2("uSize", d.quadSize);
                 shader->SetVec2("uPivot", d.quadPivot);
                 glad_glDrawArrays(GL_TRIANGLES, 0, 6);
+                pickId++;
+                continue;
+            }
+
+            if (d.tileMap) {
+                shader->SetFloat("uAlphaTest", 1.0f);
+                const glm::mat4 viewProjection = camera->GetProjectionMatrix() * camera->GetViewMatrix();
+                for (const VisibleTile& tile : TileDrawList::CollectVisible(d.tileMap, d.tileRenderer, viewProjection)) {
+                    shader->SetMat4("uModel", tile.model);
+                    glActiveTexture(GL_TEXTURE0);
+                    glad_glBindTexture(GL_TEXTURE_2D, tile.texture->GetTextureID());
+                    shader->SetInt("uTexture", 0);
+                    shader->SetVec2("uUVScale", tile.sprite->GetUVMax() - tile.sprite->GetUVMin());
+                    shader->SetVec2("uUVOffset", tile.sprite->GetUVMin());
+                    shader->SetVec2("uSize", tile.size);
+                    shader->SetVec2("uPivot", tile.sprite->GetPivot());
+                    glad_glDrawArrays(GL_TRIANGLES, 0, 6);
+                }
                 pickId++;
                 continue;
             }

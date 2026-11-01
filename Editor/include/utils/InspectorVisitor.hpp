@@ -25,6 +25,9 @@ class Shader;
 class Scene;
 class Grid;
 class TileMapEditor;
+class TileMapRenderer;
+class TileMap;
+class TileSet;
 
 class InspectorVisitor : public IVisitor{
 
@@ -65,6 +68,9 @@ class InspectorVisitor : public IVisitor{
         void Visit(Scene* scene) override;
         void Visit(Grid* grid) override;
         void Visit(TileMapEditor* tileMapEditor) override;
+        void Visit(TileMapRenderer* tileMapRenderer) override;
+        void Visit(TileMap* tileMap) override;
+        void Visit(TileSet* tileSet) override;
 
 
         QWidget* GetContent(){ return content;}

@@ -49,6 +49,9 @@ public:
     static constexpr int kThumbSize  = 72;
     static constexpr int kCellWidth  = kThumbSize + 18;
     static constexpr int kCellHeight = kThumbSize + 30;
+    static constexpr int kInlineThumbSize  = kThumbSize / 2;
+    static constexpr int kInlineCellWidth  = 64;
+    static constexpr int kInlineCellHeight = 68;
 
     // thumbnailGen:    optional GL/image render → QPixmap.
     // fallbackIconGen: optional — used when thumbnailGen returns null (e.g. shaders via CustomIconProvider).
@@ -217,9 +220,16 @@ public:
             setObjectName("InlineObjectRefPicker");
             setMinimumSize(0, 0);
             setMaximumWidth(QWIDGETSIZE_MAX);
-            setFixedHeight(kCellHeight * 2 + m_search->sizeHint().height() + 18);
+            m_list->setObjectName("InlineObjectRefPickerList");
+            m_list->setIconSize(QSize(kInlineThumbSize, kInlineThumbSize));
+            m_list->setGridSize(QSize(kInlineCellWidth, kInlineCellHeight));
+            m_list->setWordWrap(false);
+            m_list->setTextElideMode(Qt::ElideRight);
+            m_cellWidth = 0;
+            setFixedHeight(kInlineCellHeight * 2 + m_search->sizeHint().height() + 18);
             setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
             show();
+            updateGridColumns();
             applySelection();
         }
     }
@@ -382,6 +392,7 @@ private:
             auto* item = new QListWidgetItem(QString::fromStdString(name));
             item->setData(Qt::UserRole, QString::fromStdString(id));
             item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+            item->setToolTip(QString::fromStdString(name));
 
             QPixmap px;
             if (id.empty()) {
@@ -424,7 +435,7 @@ private:
             m_list->setCurrentRow(0);
     }
 
-    // CSS-grid-like `repeat(auto-fit, minmax(kCellWidth, 1fr))`: choose how
+    // CSS-grid-like `repeat(auto-fit, minmax(minCellWidth, 1fr))`: choose how
     // many minimum-width cells fit, then divide the whole viewport evenly among
     // them. Explicit item size hints make the painted hover/selection surfaces
     // expand with their grid cells instead of leaving a fixed-width tile inside.
@@ -433,14 +444,16 @@ private:
         const int available = m_list->viewport()->width();
         if (available <= 0) return;
 
-        const int columns = std::max(1, available / kCellWidth);
+        const int minCellWidth = m_inline ? kInlineCellWidth : kCellWidth;
+        const int cellHeight = m_inline ? kInlineCellHeight : kCellHeight;
+        const int columns = std::max(1, available / minCellWidth);
         const int cellWidth = std::max(1, available / columns);
         if (cellWidth == m_cellWidth) return;
         m_cellWidth = cellWidth;
 
-        m_list->setGridSize(QSize(cellWidth, kCellHeight));
+        m_list->setGridSize(QSize(cellWidth, cellHeight));
         for (int i = 0; i < m_list->count(); ++i)
-            m_list->item(i)->setSizeHint(QSize(cellWidth, kCellHeight));
+            m_list->item(i)->setSizeHint(QSize(cellWidth, cellHeight));
     }
 
     QWidget*     m_header  = nullptr;

@@ -1,11 +1,10 @@
 #include "dock-widgets/SceneViewGui.hpp"
 #include "dock-widgets/SceneToolbars.hpp"
+#include "utils/SceneEditController.hpp"
 #include "engine/core/InputManager.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include <glm/glm.hpp>
 #include "engine/rendering/Renderer.hpp"
-#include "engine/rendering/core/GizmosManager.hpp"
-#include "engine/rendering/core/GridSettings.hpp"
 #include "engine/components/BoxCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/ChainCollider.hpp"
@@ -28,6 +27,7 @@
 #include <QMimeData>
 #include <QUrl>
 #include <QFileInfo>
+#include <QFocusEvent>
 #include "imgui.h"
 #include "imgui_impl_opengl3.h"
 #include "engine/core/TimeManager.hpp"
@@ -131,7 +131,7 @@ namespace {
 
 
 SceneViewGui::SceneViewGui(QWidget* parent)
-    : ViewportWidget(parent)
+    : ViewportWidget(parent), editController(std::make_unique<SceneEditController>())
 {
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
@@ -142,6 +142,7 @@ SceneViewGui::SceneViewGui(QWidget* parent)
 
 SceneViewGui::~SceneViewGui()
 {
+    if (editController) editController->Finish(EditContext(Qt::NoModifier), imGuiInstance);
     if (!imGuiInstance) return;
     makeCurrent();
     imGuiInstance->Shutdown();
@@ -223,7 +224,7 @@ void SceneViewGui::keyPressEvent(QKeyEvent* event) {
     auto* container = engine->GetActiveContainer();
     InputManager* inputManager = engine->GetActiveContainer()->FindSystem<InputManager>();
 
-    if (event->key() == Qt::Key_Delete && GizmosManager::Get()->DeleteSelectedChainPoint())
+    if (editController->KeyPress(EditContext(event->modifiers()), event->key(), event->modifiers()))
         return;
 
     if (event->key() == Qt::Key_Delete) {
@@ -594,45 +595,7 @@ void SceneViewGui::wheelEvent(QWheelEvent* event)
 
 bool SceneViewGui::eventFilter(QObject *obj, QEvent *event) {
     if (!imGuiInstance) return QOpenGLWidget::eventFilter(obj, event);
-
-    // Two ImGui contexts are live (Scene + Game); make ours current before
-    // touching its IO. Without this, ImGui::GetIO() returns whichever context
-    // rendered last -- so with both viewports visible at once, a mouse event
-    // over the Scene view would write MousePos/MouseDown into the *Game* view's
-    // IO (input bleeding between the two panels). See GameViewGui::eventFilter.
-    imGuiInstance->MakeCurrent();
-    ImGuiIO& io = ImGui::GetIO();
-    if (event->type() == QEvent::MouseMove) {
-        auto* me = static_cast<QMouseEvent*>(event);
-        io.MousePos = ImVec2(me->pos().x(), me->pos().y());
-    }
-
-    switch (event->type()) {
-        case QEvent::MouseButtonPress: {
-            auto* me = static_cast<QMouseEvent*>(event);
-            io.MousePos = ImVec2(me->pos().x(), me->pos().y());
-            if (me->button() == Qt::LeftButton) io.MouseDown[0] = true;
-            if (me->button() == Qt::RightButton) io.MouseDown[1] = true;
-
-            if (io.WantCaptureMouse || GizmosManager::Get()->WantsCaptureMouse())
-                return true;
-            return false;
-        }
-        case QEvent::MouseButtonRelease: {
-            auto* me = static_cast<QMouseEvent*>(event);
-            io.MousePos = ImVec2(me->pos().x(), me->pos().y());
-            if (me->button() == Qt::LeftButton) io.MouseDown[0] = false;
-            if (me->button() == Qt::RightButton) io.MouseDown[1] = false;
-            return io.WantCaptureMouse;
-        }
-        case QEvent::Wheel: {
-            auto* we = static_cast<QWheelEvent*>(event);
-            io.MouseWheel += we->angleDelta().y() / 120.0f;
-            return false;
-        }
-        default:
-            break;
-    }
+    if (editController->FilterImGuiEvent(imGuiInstance, event)) return true;
     return QOpenGLWidget::eventFilter(obj, event);
 }
 
@@ -652,6 +615,19 @@ bool SceneViewGui::IsPanGesture(Qt::MouseButton button, Qt::KeyboardModifiers mo
     //  || (button == Qt::LeftButton && (modifiers & Qt::AltModifier));
 }
 
+SceneEditContext SceneViewGui::EditContext(Qt::KeyboardModifiers modifiers)
+{
+    SceneEditContext context;
+    context.view = editorView;
+    context.container = Engine::Get()->GetActiveContainer();
+    context.width = width();
+    context.height = height();
+    context.dpi = devicePixelRatioF();
+    context.modifiers = modifiers;
+    context.requestRepaint = [this]() { update(); };
+    return context;
+}
+
 void SceneViewGui::mousePressEvent(QMouseEvent* event)
 {
     if (IsPanGesture(event->button(), event->modifiers()))
@@ -661,6 +637,10 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
         setCursor(Qt::ClosedHandCursor);
         return;
     }
+
+    SceneEditPointerEvent input{event->pos(), event->button(), event->buttons(),
+                                event->modifiers(), rect().contains(event->pos())};
+    if (editController->PointerPress(EditContext(event->modifiers()), input)) return;
 
     if (event->button() == Qt::RightButton)
     {
@@ -674,10 +654,6 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
 
     if (event->button() == Qt::LeftButton)
     {
-        // Don't disturb the selection if GizmosManager is using a handle
-        if (GizmosManager::Get()->WantsCaptureMouse())
-            return;
-
         makeCurrent();  // Ensure OpenGL context is active for ReadPixel
 
         float dpi = devicePixelRatioF();
@@ -752,6 +728,11 @@ void SceneViewGui::mousePressEvent(QMouseEvent* event)
 
 void SceneViewGui::mouseReleaseEvent(QMouseEvent* event)
 {
+    SceneEditPointerEvent input{event->pos(), event->button(), event->buttons(),
+                                event->modifiers(), rect().contains(event->pos())};
+    if (editController->PointerRelease(EditContext(event->modifiers()), input)) {
+        return;
+    }
     if (IsPanGesture(event->button(), event->modifiers()))
     {
         isPanning = false;
@@ -786,6 +767,10 @@ void SceneViewGui::mouseMoveEvent(QMouseEvent* e)
 
     glm::vec2 fbPos(e->pos().x() * devicePixelRatioF(), e->pos().y() * devicePixelRatioF());
     inputManager->SetMouseScreenPosition(editorView, fbPos);
+
+    SceneEditPointerEvent input{e->pos(), e->button(), e->buttons(),
+                                e->modifiers(), rect().contains(e->pos())};
+    if (editController->PointerMove(EditContext(e->modifiers()), input)) return;
 
     if (m_boxSelectArmed) {
         if (!m_boxSelecting &&
@@ -846,22 +831,18 @@ void SceneViewGui::Init(){
 }
 
 void SceneViewGui::DrawGizmos(){
-    RenderCamera* camera = editorView->GetCamera();
-    // Feed the real keyboard state (ImGui's io.KeyCtrl is cleared every NewFrame
-    // because no ImGui keyboard backend is wired up). Ctrl held == snap to grid.
-    const Qt::KeyboardModifiers mods = QGuiApplication::queryKeyboardModifiers();
-    // Either source enables snapping: the toolbar toggle means "always", Ctrl
-    // means "just for this drag". OR rather than XOR so neither can lock the
-    // other out partway through a drag, which would change the step mid-gesture.
-    GizmosManager::Get()->SetSnapRequested(mods.testFlag(Qt::ControlModifier)
-                                           || GridSettings::Get().IsSnapEnabled());
-    GizmosManager::Get()->SetUniformScaleRequested(mods.testFlag(Qt::AltModifier));
-    GizmosManager::Get()->SetChainExtendRequested(mods.testFlag(Qt::ShiftModifier));
-    GizmosManager::Get()->SetChainInsertRequested(mods.testFlag(Qt::ControlModifier));
-    GizmosManager::Get()->DrawGizmos(
-        camera->GetViewMatrix(),
-        camera->GetProjectionMatrix(),
-        static_cast<float>(width()),
-        static_cast<float>(height()));
+    editController->Draw(EditContext(QGuiApplication::queryKeyboardModifiers()));
+}
+
+void SceneViewGui::focusOutEvent(QFocusEvent* event)
+{
+    editController->Finish(EditContext(QGuiApplication::queryKeyboardModifiers()), imGuiInstance);
+    ViewportWidget::focusOutEvent(event);
+}
+
+void SceneViewGui::leaveEvent(QEvent* event)
+{
+    editController->PointerLeave(EditContext(QGuiApplication::queryKeyboardModifiers()));
+    ViewportWidget::leaveEvent(event);
 }
 

@@ -203,6 +203,20 @@ callback. Grid coordinate conversion reads the current world transform.
 definition in a `TileSet`. TileSet YAML writes `tiles`, and TileMap cells write `tileId`.
 Grid YAML stores both `cellSize` and `gapSize`; an omitted `gapSize` defaults to zero.
 TileSet edits through `SetTile()` and `RemoveTile()` use the standard editor asset auto-save path.
+`TileMapRenderer` is a serializable component beside `TileMapEditor`. It defaults to Native
+sprite pixel sizing, with FillCell as an alternative; its sorting layer/order follow sprite
+render sorting. Adding either component requires the other, and TileMapEditor migrates legacy
+render settings when it creates a missing renderer. ScenePass and PickingPass share cell
+geometry: the authored sprite pivot is placed at the transformed Grid cell center, with Grid
+gap affecting cell stride. Exact eight-neighbor TileSet rules resolve before default sprites.
+TileMap cell edits are saved after editor strokes and undo/redo; `SaveResource` reports write
+success and only then clears TileMap dirty state. An auto-created Grid starts at 32 by 32;
+preexisting Grid sizes remain authored.
+`TileDrawList::CollectVisible` resolves sparse cells to textured quads in both ScenePass
+and PickingPass. It applies exact eight-neighbor rules with default sprite fallback, native
+or Fill Cell dimensions, sprite pivots, Grid transforms and gaps, then culls and sorts the
+visible cells. ScenePass reports missing TileSets, tile definitions, or sprite assets once
+per component so an authored map with unresolved IDs does not fail silently.
 
 ## Rendering
 

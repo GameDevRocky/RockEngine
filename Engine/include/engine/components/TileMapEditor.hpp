@@ -33,6 +33,8 @@ public:
     Grid* GetGrid() const;
     TileMap* GetTileMap() const;
     TileSet* GetTileSet() const;
+    const std::string& GetTileMapId() const { return tileMapId; }
+    const std::string& GetTileSetId() const { return tileSetId; }
 
     void SetTileMap(TileMap* map);
     void SetTileSet(TileSet* set);
@@ -52,4 +54,9 @@ private:
     std::string tileSetId;
     std::string gridId;
     bool tileMapAcquired = false;
+    // Read only from scenes saved before TileMapRenderer became a component.
+    bool hasLegacyRenderSettings = false;
+    bool legacyFillCell = false;
+    std::string legacySortingLayer = "Default";
+    int legacySortingOrder = 0;
 };

@@ -481,18 +481,18 @@ void AssetManager::SubscribeAutoSave(Resource* r) {
     });
 }
 
-void AssetManager::SaveResource(Resource* r) {
-    if (!r) return;
+bool AssetManager::SaveResource(Resource* r) {
+    if (!r) return false;
 
     // Sprites are embedded in their texture's file — persist the texture instead.
     if (Sprite* sprite = dynamic_cast<Sprite*>(r)) {
         if (Texture2D* tex = GetTexture(sprite->GetTextureID()))
-            SaveResource(tex);
-        return;
+            return SaveResource(tex);
+        return false;
     }
 
     const std::string& path = r->GetFilePath();
-    if (path.empty()) return;
+    if (path.empty()) return false;
 
     // TileMap::Serialize may read unloaded cells from this same file. Build the
     // complete node before opening the output stream, which truncates the file.
@@ -500,10 +500,17 @@ void AssetManager::SaveResource(Resource* r) {
     std::ofstream fout(path);
     if (!fout.is_open()) {
         Console::Alert("Failed to save asset to disk: " + path);
-        return;
+        return false;
     }
     fout << serialized;
+    fout.close();
+    if (fout.fail()) {
+        Console::Alert("Failed to write asset to disk: " + path);
+        return false;
+    }
+    if (auto* map = dynamic_cast<TileMap*>(r)) map->MarkSaved();
     std::cout << "Saved asset to: " + path << std::endl;
+    return true;
 }
 
 

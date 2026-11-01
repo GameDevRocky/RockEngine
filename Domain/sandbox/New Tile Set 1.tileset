@@ -1,0 +1,9 @@
+type: TileSet
+id: 284cb5126af71378b0f70e911f9f376a
+name: New Tile Set 1
+tiles:
+  - id: 1
+    name: Tile 1
+    defaultSpriteId: 0e152ac8ed0e77ae8039d5f3947bfad9
+    rules:
+      []

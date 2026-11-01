@@ -16,10 +16,18 @@ void SelectionManager::Init()
     registry = container->FindSystem<Registry>();
     m_selectedIds.clear();
     m_shutdownSubs.clear();
+    m_assetRemovedSub = AssetManager::Get().Subscribe([this](std::any data) {
+        RemoveFromSelection(std::any_cast<const std::string&>(data));
+        return true;
+    }, AssetManager::ASSET_REMOVED_EVENT);
 }
 
 void SelectionManager::Shutdown()
 {
+    if (m_assetRemovedSub >= 0) {
+        AssetManager::Get().Unsubscribe(m_assetRemovedSub);
+        m_assetRemovedSub = -1;
+    }
     // Deliberately not unsubscribing: during container teardown the objects these
     // ids refer to may already be gone.
     m_shutdownSubs.clear();
@@ -49,7 +57,9 @@ bool SelectionManager::Resolves(const std::string& id) const
 
     auto& assets = AssetManager::Get();
     return assets.GetSprite(id) || assets.GetMaterial(id)
-        || assets.GetTexture(id) || assets.GetShader(id);
+        || assets.GetTexture(id) || assets.GetShader(id)
+        || assets.GetFont(id) || assets.GetAudioClip(id)
+        || assets.GetTileMap(id) || assets.GetTileSet(id);
 }
 
 void SelectionManager::ClearShutdownSubs()
@@ -183,6 +193,10 @@ Serializable* SelectionManager::GetSerializable(const std::string& id) const
     if (auto* m  = assets.GetMaterial(id)) return m;
     if (auto* t  = assets.GetTexture(id))  return t;
     if (auto* sh = assets.GetShader(id))   return sh;
+    if (auto* f  = assets.GetFont(id))     return f;
+    if (auto* a  = assets.GetAudioClip(id)) return a;
+    if (auto* tm = assets.GetTileMap(id))  return tm;
+    if (auto* ts = assets.GetTileSet(id))  return ts;
 
     return nullptr;
 }

@@ -27,6 +27,8 @@ public:
 
     bool Load();
     void Unload();
+    void MarkSaved() { dirty = false; if (loadCount == 0) cells.reset(); }
+    bool IsDirty() const { return dirty; }
 
     bool ClearTile(const glm::ivec2& cell);
     bool Clear();

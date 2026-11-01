@@ -107,7 +107,7 @@ public:
 
     // Serialize a resource back to its source meta file. A Sprite has no file of its
     // own, so it re-saves the parent texture (which embeds all its sprites).
-    void SaveResource(Resource* r);
+    bool SaveResource(Resource* r);
     // Arm auto-save; called once after the initial LoadFromDirectory so bootstrap
     // notifications don't rewrite every asset file on startup.
     void EnableAutoSave() { m_autoSaveEnabled = true; }

@@ -67,6 +67,7 @@ private:
     void ClearShutdownSubs();
 
     Registry* registry = nullptr;
+    int m_assetRemovedSub = -1;
     std::vector<std::string> m_selectedIds;               // ordered; back() is primary
     std::unordered_map<std::string, int> m_shutdownSubs;  // id -> subscription id
 };

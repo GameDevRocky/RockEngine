@@ -3,6 +3,7 @@
 #include <array>
 
 #include "engine/components/Grid.hpp"
+#include "engine/components/TileMapRenderer.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/GameObjectImpl.hpp"
@@ -16,8 +17,25 @@ void TileMapEditor::Init()
     if (state >= State::Initialized) return;
 
     Component::Init();
-    Grid* grid = RequireComponent<Grid>();
+    Grid* grid = GetComponent<Grid>();
+    if (!grid) {
+        grid = RequireComponent<Grid>();
+        grid->SetSize({32.0f, 32.0f});
+    }
     gridId = grid->GetID();
+
+    TileMapRenderer* renderer = GetComponent<TileMapRenderer>();
+    if (!renderer) {
+        renderer = RequireComponent<TileMapRenderer>();
+        if (hasLegacyRenderSettings) {
+            renderer->SetTileSizingMode(legacyFillCell
+                ? TileMapRenderer::TileSizingMode::FillCell
+                : TileMapRenderer::TileSizingMode::Native);
+            renderer->SetSortingLayer(legacySortingLayer);
+            renderer->SetSortingOrder(legacySortingOrder);
+        }
+    }
+    hasLegacyRenderSettings = false;
 
     const std::string id = GetID();
     grid->Subscribe([id]() {
@@ -67,6 +85,11 @@ void TileMapEditor::Deserialize(const YAML::Node& node)
     Component::Deserialize(node);
     tileMapId = node["tileMapId"].as<std::string>("");
     tileSetId = node["tileSetId"].as<std::string>("");
+    hasLegacyRenderSettings = node["tileSizingMode"] || node["sortingLayer"] || node["sortingOrder"];
+    legacyFillCell = node["tileSizingMode"].as<std::string>("Native") == "FillCell";
+    legacySortingLayer = node["sortingLayer"].as<std::string>("Default");
+    legacySortingOrder = node["sortingOrder"].as<int>(0);
+    state = State::Loaded;
 }
 
 TileMapEditor* TileMapEditor::Copy()
@@ -77,6 +100,10 @@ TileMapEditor* TileMapEditor::Copy()
     copy->gameobject_id = gameobject_id;
     copy->tileMapId = tileMapId;
     copy->tileSetId = tileSetId;
+    copy->hasLegacyRenderSettings = hasLegacyRenderSettings;
+    copy->legacyFillCell = legacyFillCell;
+    copy->legacySortingLayer = legacySortingLayer;
+    copy->legacySortingOrder = legacySortingOrder;
     return copy;
 }
 

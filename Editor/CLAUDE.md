@@ -70,6 +70,11 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
     Closed Path and Flip Collision Side are Inspector toggles.
     The Inspector also saves a ChainCollider alpha threshold (0 to 1) and uses it
     when Generate Points from Sprite is clicked.
+  - `SceneEditController` receives normalized Scene view input and viewport context,
+    gives each press-to-release gesture to one registered editing tool, and draws tool
+    previews. Its gizmo adapter forwards modifier and ImGui input to `GizmosManager`;
+    the tilemap tool owns paint/erase strokes, previews, and TileMap undo/save.
+    SceneViewGui retains viewport navigation and selection fallback.
   - `AssetThumbnails` / `AssetPreviewDelegate` — asset-browser previews. The Folder grid's
     delegate bypasses Qt's item-style painter, so it paints the default stylesheet's rounded
     hover/selection bubbles itself rather than relying on `QListView::item` rules.
@@ -83,7 +88,10 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
     Inspector. `AssetPickerWidget::setInline()` reuses the popup picker's filtering and selection
     behavior without creating a floating window. Picker cells use an auto-fit grid: the viewport
     chooses the column count from the minimum cell width, then stretches those cells evenly across
-    each row. Reference pickers prepend a `None` tile whose empty ID clears the current reference.
+    each row. Inline reference picker thumbnails are half the popup picker's size; their 64x68
+    minimum cells reserve room for a single elided label and inset selection surface while
+    retaining the same responsive column calculation. Reference pickers prepend a
+    `None` tile whose empty ID clears the current reference.
     Expanded asset/GameObject pickers subscribe to engine Observable events rather than polling:
     asset add/remove/resource changes, scene/object add, GameObject name/component changes, and
     RuntimeObject shutdown all update the open grid. Subscriptions exist only while expanded and
@@ -200,3 +208,16 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 - Provider CLIs are found on `PATH` plus common install locations. `ROCKENGINE_CODEX_CLI` and
   `ROCKENGINE_CLAUDE_CLI` or `ROCKENGINE_GEMINI_CLI` can point to explicit executables. Sign out
   clears the selected provider's resumable session ID and removes its isolated credentials.
+
+## Tilemap authoring
+
+Folder asset selection resolves TileMaps and TileSets through SelectionManager and AssetManager.
+The TileSet asset Inspector edits tile IDs, names, and default sprite references. The
+TileMapEditor component Inspector chooses a tile palette with Select, Paint, and Erase modes.
+The companion TileMapRenderer component Inspector chooses Native or Fill Cell sizing and
+sorting layer/order. `SceneEditController` owns each
+drag stroke: its tilemap tool samples Grid cells, fills gaps between mouse samples,
+previews the hovered cell, and pushes one `TileStrokeCommand` containing before/after IDs.
+The command saves the TileMap after undo/redo; the tool saves after completing the stroke.
+Painting is available only in the editor container when the selected component has a
+loaded TileMap and TileSet.

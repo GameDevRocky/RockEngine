@@ -4,11 +4,15 @@
 #include "engine/rendering/core/FontManager.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
+#include "engine/components/TileMapEditor.hpp"
+#include "engine/components/TileMapRenderer.hpp"
+#include "engine/tilemap/TileMap.hpp"
 #include "engine/components/ParticleComponent.hpp"
 #include "engine/components/TextRenderer.hpp"
 #include "engine/components/TrailRenderer.hpp"
 #include "engine/rendering/core/TrailManager.hpp"
 #include "engine/rendering/TrailMesh.hpp"
+#include "engine/tilemap/TileDrawList.hpp"
 #include "engine/core/TimeManager.hpp"
 #include "engine/debug/FrameProfiler.hpp"
 #include <algorithm>
@@ -111,6 +115,8 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
         TextRenderer*      text           = nullptr;   // text path
         Font*              font           = nullptr;
         TrailRenderer*     trail          = nullptr;   // trail path
+        TileMapEditor*     tileMap        = nullptr;
+        TileMapRenderer*   tileRenderer   = nullptr;
         int                layerPriority  = 0;
         int                sortingOrder   = 0;
     };
@@ -156,6 +162,38 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                     dc.layerPriority = layerManager ? layerManager->GetPriority(renderer->GetSortingLayer()) : 0;
                     dc.sortingOrder  = renderer->GetSortingOrder();
                     drawCalls.push_back(dc);
+                }
+            }
+        }
+
+        if (TileMapRenderer* tileRenderer = obj->GetComponent<TileMapRenderer>())
+        {
+            TileMapEditor* tileMap = tileRenderer->GetTileMapEditor();
+            if (tileRenderer->GetEnabled() && tileMap && tileMap->GetEnabled()
+                && tileMap->GetGrid() && tileMap->GetTileMap()
+                && tileMap->GetTileMap()->GetCells()
+                && (!camera || camera->PassesCullingMask(tileRenderer->GetSortingLayer())))
+            {
+                if (!tileMap->GetTileSet()) {
+                    if (!tileMap->GetTileMap()->GetCells()->empty()
+                        && warnedObjects.insert(tileRenderer).second)
+                        Console::Warn("TileMap '" + tileMap->GetTileMap()->GetName()
+                            + "' has cells but TileSet '" + tileMap->GetTileSetId()
+                            + "' is missing. Assign a TileSet with tile definitions and sprites.");
+                } else {
+                    if (!defaultMaterial)
+                        defaultMaterial = AssetManager::Get().GetMaterialByName("default");
+                    if (defaultMaterial && defaultMaterial->GetShader()) {
+                        DrawCall dc;
+                        dc.transform = transform;
+                        dc.tileMap = tileMap;
+                        dc.tileRenderer = tileRenderer;
+                        dc.mat = defaultMaterial;
+                        dc.shader = defaultMaterial->GetShader();
+                        dc.layerPriority = layerManager ? layerManager->GetPriority(tileRenderer->GetSortingLayer()) : 0;
+                        dc.sortingOrder = tileRenderer->GetSortingOrder();
+                        drawCalls.push_back(dc);
+                    }
                 }
             }
         }
@@ -429,6 +467,32 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                 // Hand the sprite quad's VAO back, since the loop's other branch
                 // assumes it is still bound.
                 glad_glBindVertexArray(vao);
+            }
+            continue;
+        }
+
+        if (dc.tileMap)
+        {
+            const glm::mat4 viewProjection = projMatrix * viewMatrix;
+            std::string firstIssue;
+            const bool inspectIssues = !warnedObjects.contains(dc.tileRenderer);
+            const auto visible = TileDrawList::CollectVisible(
+                dc.tileMap, dc.tileRenderer, viewProjection, inspectIssues ? &firstIssue : nullptr);
+            if (!firstIssue.empty() && warnedObjects.insert(dc.tileRenderer).second)
+                Console::Warn(firstIssue);
+            for (const VisibleTile& tile : visible) {
+                dc.shader->SetMat4("uModel", tile.model);
+                dc.mat->ApplyUniforms();
+                tile.texture->Bind(0);
+                dc.shader->SetInt("uTexture", 0);
+                dc.shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
+                dc.shader->SetFloat("uHasNormalMap", 0.0f);
+                dc.shader->SetVec2("uUVScale", tile.sprite->GetUVMax() - tile.sprite->GetUVMin());
+                dc.shader->SetVec2("uUVOffset", tile.sprite->GetUVMin());
+                dc.shader->SetVec2("uSize", tile.size);
+                dc.shader->SetVec2("uPivot", tile.sprite->GetPivot());
+                dc.shader->SetVec4("uColor", glm::vec4(1.0f));
+                glad_glDrawArrays(GL_TRIANGLES, 0, 6);
             }
             continue;
         }

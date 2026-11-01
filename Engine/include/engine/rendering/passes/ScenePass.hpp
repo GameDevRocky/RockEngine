@@ -16,8 +16,8 @@
 
 using namespace EngineUtils;
 
-// Draws every 2D renderable in the scene -- SpriteRenderers, ParticleComponents,
-// TextRenderers *and* TrailRenderers -- in ONE list sorted by (sorting layer
+// Draws every 2D renderable in the scene -- SpriteRenderers, TileMapRenderers,
+// ParticleComponents, TextRenderers and TrailRenderers -- in ONE list sorted by (sorting layer
 // priority, order in layer). Every kind shares the sprite sorting model rather
 // than compositing on top as separate passes, which is the only way an emitter,
 // a label or a trail can sit behind or between sprite layers. Particle

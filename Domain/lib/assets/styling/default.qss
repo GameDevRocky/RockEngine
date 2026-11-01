@@ -820,6 +820,15 @@ QWidget#InlineObjectRefPicker {
     background: transparent;
 }
 
+/* Compact reference tiles keep a clear gap between the thumbnail, its single
+ * label line, and the next row. Inset the hover/selection surface within each
+ * auto-fit grid cell so adjacent tiles do not read as one block. */
+QListWidget#InlineObjectRefPickerList::item {
+    margin: 3px 4px;
+    padding: 2px 3px;
+    border-radius: 5px;
+}
+
 /* An unassigned reference reads "None" and sits on the same dark ground the
  * QLineEdit rule gives a hovered field. Empty is the state a ref field spends
  * most of its life in, so it gets a surface instead of dissolving into the panel

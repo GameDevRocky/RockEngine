@@ -7,11 +7,15 @@
 #include <QRubberBand>
 #include <glm/glm.hpp>
 #include <string>
+#include <memory>
 #include "engine/rendering/views/EditorRenderView.hpp"
 #include "utils/ImGuiInstance.hpp"
 
 class SceneToolsToolbar;
 class SceneViewOptionsToolbar;
+class SceneEditController;
+struct SceneEditContext;
+class QFocusEvent;
 
 class SceneViewGui : public ViewportWidget {
     Q_OBJECT
@@ -63,6 +67,8 @@ protected:
     void mouseMoveEvent(QMouseEvent* event) override;
     void mousePressEvent(QMouseEvent* event) override;
     void mouseReleaseEvent(QMouseEvent* event) override;
+    void focusOutEvent(QFocusEvent* event) override;
+    void leaveEvent(QEvent* event) override;
 
     // Alt+Left or middle-mouse. Ctrl is reserved for additive selection so it means
     // the same thing here as in the hierarchy tree.
@@ -72,6 +78,7 @@ protected:
 private:
     explicit SceneViewGui(QWidget* parent = nullptr);
     ~SceneViewGui() override;
+    SceneEditContext EditContext(Qt::KeyboardModifiers modifiers);
 
     // Spawn a GameObject with a SpriteRenderer (set to spriteId) in the first loaded
     // scene at the given view position. Returns false if no scene is loaded.
@@ -91,6 +98,7 @@ private:
 
     EditorRenderView* editorView = nullptr;   // borrowed; same object as ViewportWidget::view
     ImGuiInstance* imGuiInstance = nullptr;
+    std::unique_ptr<SceneEditController> editController;
 
     // Floating overlays parented to this widget (see SceneToolbars.hpp). They
     // are not in any layout, so they need constructing here and re-clamping on
