@@ -52,6 +52,7 @@ public:
 class SceneEditController {
 public:
     SceneEditController();
+    explicit SceneEditController(std::vector<std::unique_ptr<SceneEditTool>> initialTools);
     ~SceneEditController();
     void RegisterTool(std::unique_ptr<SceneEditTool> tool);
 

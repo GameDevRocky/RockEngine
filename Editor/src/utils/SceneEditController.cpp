@@ -6,6 +6,7 @@
 #include <QMouseEvent>
 #include <QWheelEvent>
 #include <algorithm>
+#include <utility>
 #include "imgui.h"
 
 glm::vec2 SceneEditContext::ScreenToWorld(const QPoint& point) const {
@@ -17,6 +18,9 @@ SceneEditController::SceneEditController() {
     RegisterTool(CreateGizmoEditTool());
     RegisterTool(CreateTilemapPaintTool());
 }
+
+SceneEditController::SceneEditController(std::vector<std::unique_ptr<SceneEditTool>> initialTools)
+    : tools(std::move(initialTools)) {}
 
 SceneEditController::~SceneEditController() = default;
 

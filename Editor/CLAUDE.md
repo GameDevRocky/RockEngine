@@ -4,6 +4,16 @@ The Qt6 editor UI. Depends on Engine (`RockEngineCore`); links Qt6 Core/Gui/Widg
 OpenGLWidgets. CMake `AUTOMOC`/`AUTOUIC`/`AUTORCC` are on — Qt classes with `Q_OBJECT` are
 mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
 
+## Tests
+
+`RockEngineEditorTests` uses GoogleTest with Qt Test helpers. Its process creates one
+`QApplication`, then initializes Engine in Editor mode without calling `Editor::Init()`;
+the tests exercise widgets and controllers without starting the main window or frame
+driver. `SceneEditController` has a constructor accepting explicit tools so its input
+routing can be tested without constructing its production gizmo and tilemap tools.
+CTest runs the editor suite with Qt's offscreen platform; tests requiring a real GL
+viewport belong in a separate integration suite.
+
 ## Startup & frame loop
 
 - **`Editor`** singleton (`src/Editor.cpp`) sets up `QApplication`, Fusion style +

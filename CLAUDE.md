@@ -53,14 +53,18 @@ The chosen compiler is cached per build directory.
 
 ## Tests
 
-Configure the local build with `ROCKENGINE_BUILD_TESTS=ON` once. CMake discovers
-`Tests/**/*.test.cpp` files when the test target is built, so new test source files
-do not need to be listed in `Tests/CMakeLists.txt`.
+Configure the local build with `ROCKENGINE_BUILD_TESTS=ON` once. Tests under
+`Tests/engine/` build into `RockEngineTests`; tests under `Tests/editor/` build
+into `RockEngineEditorTests` when `ROCKENGINE_BUILD_EDITOR=ON`. Each target
+discovers new `*.test.cpp` files automatically. Both are registered with CTest.
+Shared scene and tilemap fixtures live in `Tests/mocks/`.
 
 From the repository root, run `./run-tests.ps1` on Windows or `./run-tests.sh` in
-Bash to build and run all tests. Pass a selector such as `GameObject.test`,
-`GameObjectTest`, or `GameObjectTest.RenameObject` to run one suite or test. A file
-selector uses the convention `GameObject.test.cpp` → `GameObjectTest`.
+Bash to build and run both available suites. Pass `engine` or `editor` to run one
+whole suite, or a suite followed by a selector such as `editor SceneTree.test`,
+`editor SceneTreeTest`, or `editor SceneTreeTest.ReparentingObjectMovesItsTreeRow`.
+An unqualified selector such as `GameObject.test` still selects an engine test.
+File selectors use `GameObject.test.cpp` → `GameObjectTest` naming.
 
 ## How the layers fit together
 
