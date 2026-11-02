@@ -8,7 +8,7 @@ namespace ai {
 namespace {
 
 py::module_ CredentialModule() {
-    return py::module_::import("tools.ai.credential_store");
+    return py::module_::import("Editor.src.ai.credential_store");
 }
 
 QString PythonError(const py::error_already_set& error) {

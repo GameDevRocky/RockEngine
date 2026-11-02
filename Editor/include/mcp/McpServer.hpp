@@ -12,7 +12,7 @@ namespace mcp {
 class McpConnection;
 
 // Local IPC endpoint that lets an external process drive this editor: the engine half
-// of the MCP bridge. An external stdio MCP server (tools/mcp-server/) connects here
+// of the MCP bridge. The stdio MCP server (Editor/src/ai/mcp_server/) connects here
 // and forwards each tool call as one line of JSON-RPC 2.0.
 //
 // QLocalServer, not a TCP socket: a named pipe on Windows / Unix domain socket

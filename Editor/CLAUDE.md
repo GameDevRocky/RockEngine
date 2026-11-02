@@ -172,9 +172,9 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   existing GameObject and sprite MIME contracts. Attachment drops must always finish as a copy so
   the Hierarchy's internal-move model never removes the dragged row.
 - The assistant uses the providers' coding-agent CLIs rather than duplicating RockEngine's MCP
-  schemas. Every run injects the existing `tools/mcp-server/server.py` as the `rockengine` stdio
+  schemas. Every run injects `Editor/src/ai/mcp_server/server.py` as the `rockengine` stdio
   server, so live scene changes follow the same bridge and main-thread guarantees as an external
-  MCP client. The MCP venv under `tools/mcp-server/.venv/` must be installed.
+  MCP client. The MCP venv under `Editor/src/ai/mcp_server/.venv/` must be installed.
 - New MCP integrations use `component.describe` / `asset.describe` and exact component or resource
   IDs. Property schemas are discoverable and must remain synchronized with Inspector-accessible
   component/resource setters, including enum choices and dynamic ScriptComponent fields or
@@ -200,7 +200,7 @@ mocced automatically. Headers in `Editor/include/`, sources in `Editor/src/`.
   home does not inherit the user's Codex configuration; turns remain scoped to workspace-write.
 - Claude runs through Claude Code in non-interactive JSONL mode. Third-party Claude.ai OAuth is
   intentionally not exposed: Anthropic requires this integration to use a Console API key. The
-  key is stored by `tools/ai/credential_store.py` in Windows Credential Manager, macOS Keychain,
+  key is stored by `Editor/src/ai/credential_store.py` in Windows Credential Manager, macOS Keychain,
   or Linux Secret Service, called through `SecureCredentialStore`'s pybind11 bridge. Claude reads
   it through its documented `apiKeyHelper` pipe, not an inherited environment variable. There is
   no `.env`/QSettings/plaintext fallback and this editor-only Python package is not shipped in games.

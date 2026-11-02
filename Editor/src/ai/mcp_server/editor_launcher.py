@@ -13,8 +13,8 @@ EXE_NAME = "RockEngineLauncher.exe" if sys.platform == "win32" else "RockEngineL
 def repo_root() -> Path:
     if override := os.environ.get("ROCKENGINE_ROOT"):
         return Path(override)
-    # tools/mcp-server/editor_launcher.py -> repo root
-    return Path(__file__).resolve().parents[2]
+    # Editor/src/ai/mcp_server/editor_launcher.py -> repo root
+    return Path(__file__).resolve().parents[4]
 
 
 def editor_exe() -> Path:

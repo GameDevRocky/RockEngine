@@ -8,12 +8,11 @@ OpenGL 4.6 rendering, Box2D physics, YAML-based serialization, pybind11 scriptin
 | Path        | What it is | Details |
 |-------------|------------|---------|
 | `Engine/`   | Runtime core (`RockEngineCore` lib). No Qt. | `Engine/CLAUDE.md` |
-| `Editor/`   | Qt6 editor UI (`RockEngineEditor` lib). Depends on Engine. | `Editor/CLAUDE.md` |
+| `Editor/`   | Qt6 editor UI (`RockEngineEditor` lib) and editor-only AI helpers. Depends on Engine. | `Editor/CLAUDE.md` |
 | `Player/`   | `RockEnginePlayer` — the standalone game exe. SDL3 window, no Qt. | `Player/CLAUDE.md` |
 | `Domain/`   | Game-side content: Python scripting API + assets + sandbox. Not compiled. | `Domain/CLAUDE.md` |
 | `src/`      | `main.cpp` — the launcher executable `RockEngineLauncher`. | — |
 | `External/` | Git submodules (glm, yaml-cpp, box2d, pybind11, imgui, imguizmo, SDL) + vendored glad/stb. | `.gitmodules` |
-| `tools/`    | Misc tooling. | — |
 
 Each major layer has its own `CLAUDE.md` (loaded when you work in that subtree) with the
 detail. This root file is cross-cutting only.
@@ -51,6 +50,17 @@ toolkits are installed, select one at the first configure with `CMAKE_CUDA_COMPI
 for example, `cmake --preset local -DROCKENGINE_ENABLE_CUDA=ON
 -DCMAKE_CUDA_COMPILER="C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v13.3/bin/nvcc.exe"`.
 The chosen compiler is cached per build directory.
+
+## Tests
+
+Configure the local build with `ROCKENGINE_BUILD_TESTS=ON` once. CMake discovers
+`Tests/**/*.test.cpp` files when the test target is built, so new test source files
+do not need to be listed in `Tests/CMakeLists.txt`.
+
+From the repository root, run `./run-tests.ps1` on Windows or `./run-tests.sh` in
+Bash to build and run all tests. Pass a selector such as `GameObject.test`,
+`GameObjectTest`, or `GameObjectTest.RenameObject` to run one suite or test. A file
+selector uses the convention `GameObject.test.cpp` → `GameObjectTest`.
 
 ## How the layers fit together
 

@@ -151,10 +151,6 @@ void SceneManager::LoadScene(const std::string& file_path){
     }
 
     const std::string sceneName = std::filesystem::path(finalPath).stem().string();
-
-    // Parsed by the worker, consumed by the main step. Written on one thread and
-    // read on the other with the job system's mutex providing the happens-before
-    // edge, and never touched by both at once.
     auto parsed = std::make_shared<YAML::Node>();
 
     JobDesc desc;
@@ -163,19 +159,10 @@ void SceneManager::LoadScene(const std::string& file_path){
 
     desc.worker = [parsed, finalPath](JobProgressSink& sink) {
         sink.Report(-1.0f, "Reading " + std::filesystem::path(finalPath).filename().string());
-        // The only genuinely threadable part of a scene load. Everything after
-        // this builds engine objects, which cannot leave the main thread.
         *parsed = YAML::LoadFile(finalPath);
     };
 
     desc.mainStep = [parsed, finalPath](JobProgressSink& sink) -> bool {
-        // Re-resolved rather than captured: SceneManager is a System owned by a
-        // Container, and a container can be replaced (play mode) between submit
-        // and install, which would leave a captured `this` dangling. Resolving
-        // through the ACTIVE container is the same idiom Registry's shutdown
-        // subscription uses. Consequence worth knowing: entering play mode in
-        // the frame between drop and install would land the scene in the runtime
-        // world instead of the editor one.
         Container* active = Engine::Get()->GetActiveContainer();
         auto* sm = active ? active->FindSystem<SceneManager>() : nullptr;
         if (!sm) { sink.Fail("no active SceneManager"); return false; }

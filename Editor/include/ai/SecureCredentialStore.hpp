@@ -5,7 +5,7 @@
 
 namespace ai {
 
-// Pybind11 bridge to tools/ai/credential_store.py. Python owns all native vault
+// Pybind11 bridge to Editor/src/ai/credential_store.py. Python owns all native vault
 // behavior; Qt only passes byte strings in and out while the GIL is held.
 // Secrets never enter QSettings, the repository, command-line arguments, or a
 // .env file, and the Python implementation deliberately has no plaintext fallback.

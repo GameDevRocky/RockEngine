@@ -31,8 +31,8 @@ python -m venv .venv
 # .venv/bin/python -m pip install -r requirements.txt          # macOS / Linux
 ```
 
-`../../.mcp.json` registers the server for Claude Code and already points at
-`tools/mcp-server/.venv/Scripts/python.exe`, so the venv above is not optional — the
+`../../../../.mcp.json` registers the server for Claude Code and already points at
+`Editor/src/ai/mcp_server/.venv/Scripts/python.exe`, so the venv above is not optional — the
 system interpreter will not have `mcp`. On macOS/Linux change that path to
 `.venv/bin/python`. The venv itself is gitignored; recreate it per machine.
 
@@ -50,7 +50,7 @@ Environment overrides:
 | Variable | Purpose |
 |---|---|
 | `ROCKENGINE_EDITOR_EXE` | Full path to the editor exe, for a non-default build location |
-| `ROCKENGINE_ROOT` | Repo root, if this tree is not at `<root>/tools/mcp-server` |
+| `ROCKENGINE_ROOT` | Repo root, if this tree is not at `<root>/Editor/src/ai/mcp_server` |
 
 Default exe path is `<repo>/build/local/bin/RockEngineLauncher.exe`.
 

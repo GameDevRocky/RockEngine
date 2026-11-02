@@ -220,15 +220,15 @@ QProcessEnvironment AiAgentService::ProcessEnvironment(Provider provider) const 
 QString AiAgentService::McpPythonPath() const {
 #ifdef Q_OS_WIN
     return QDir(ProjectRoot()).filePath(
-        QStringLiteral("tools/mcp-server/.venv/Scripts/python.exe"));
+        QStringLiteral("Editor/src/ai/mcp_server/.venv/Scripts/python.exe"));
 #else
     return QDir(ProjectRoot()).filePath(
-        QStringLiteral("tools/mcp-server/.venv/bin/python"));
+        QStringLiteral("Editor/src/ai/mcp_server/.venv/bin/python"));
 #endif
 }
 
 QString AiAgentService::McpServerPath() const {
-    return QDir(ProjectRoot()).filePath(QStringLiteral("tools/mcp-server/server.py"));
+    return QDir(ProjectRoot()).filePath(QStringLiteral("Editor/src/ai/mcp_server/server.py"));
 }
 
 QString AiAgentService::McpConfigurationJson() const {
@@ -283,7 +283,7 @@ QString AiAgentService::ClaudeCredentialHelperCommand() const {
             python = QStandardPaths::findExecutable(QStringLiteral("python"));
     }
     const QString sourceHelper = QDir(ProjectRoot()).filePath(
-        QStringLiteral("tools/ai/credential_store.py"));
+        QStringLiteral("Editor/src/ai/credential_store.py"));
     const QString helper = QDir(ProviderDataDirectory(Provider::Claude)).filePath(
         QStringLiteral("credential_store_v1.py"));
     if (!QFileInfo::exists(helper)) {

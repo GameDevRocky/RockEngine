@@ -154,7 +154,7 @@ can edit project files and control the running scene through RockEngine's local 
 - Gemini uses a validated Google AI Studio API key in the same native credential vault and runs
   through Gemini CLI with isolated settings and RockEngine MCP access.
 - Install the provider CLI (`codex`, `claude`, and/or `gemini`) and prepare the MCP environment using
-  [`tools/mcp-server/README.md`](tools/mcp-server/README.md). Override CLI discovery with
+  [`Editor/src/ai/mcp_server/README.md`](Editor/src/ai/mcp_server/README.md). Override CLI discovery with
   `ROCKENGINE_CODEX_CLI`, `ROCKENGINE_CLAUDE_CLI`, or `ROCKENGINE_GEMINI_CLI` when needed.
 
 Signing out removes the selected provider's RockEngine-scoped credentials and conversation ID.
