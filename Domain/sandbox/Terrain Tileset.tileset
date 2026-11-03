@@ -1,0 +1,16 @@
+type: TileSet
+id: 284cb5126af71378b0f70e911f9f376a
+tiles:
+  - id: 1
+    name: Tile 1
+    defaultSpriteId: 70e369acf30ddca691c356076b59757c
+    rules:
+      - neighbors: [0, 0, 0, 0, 0, 0, 0, 0]
+        spriteId: ""
+      - neighbors: [1, 0, 0, 0, 0, 0, 0, 0]
+        spriteId: ""
+  - id: 2
+    name: Tile 2
+    defaultSpriteId: ""
+    rules:
+      []

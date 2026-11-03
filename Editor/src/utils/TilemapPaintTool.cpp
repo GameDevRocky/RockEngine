@@ -10,6 +10,7 @@
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/UndoSystem.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
+#include "engine/rendering/core/GizmosManager.hpp"
 #include "engine/rendering/views/EditorRenderView.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/tilemap/TileMap.hpp"
@@ -51,14 +52,15 @@ private:
 class TilemapPaintTool final : public SceneEditTool {
 public:
     bool PointerPress(const SceneEditContext& context, const SceneEditPointerEvent& event) override {
-        if (event.button != Qt::LeftButton || TilePaintState::Get().tool == TilePaintState::Tool::Select)
+        if (event.button != Qt::LeftButton ||
+            GizmosManager::Get()->GetEditMode() != GizmosManager::EditMode::Tilemap)
             return false;
         TileMapEditor* editor = ActiveEditor(context);
         if (!editor) return false;
         strokeMapId = editor->GetTileMap()->GetID();
         strokeContainer = context.container;
-        strokeTileId = TilePaintState::Get().tool == TilePaintState::Tool::Paint
-            ? TilePaintState::Get().selectedTileId : EMPTY_TILE_ID;
+        strokeTileId = TilePaintState::Get().selectedTileId;
+        strokeBrushSize = TilePaintState::Get().brushSize;
         lastCell = CellAt(context, editor, event.position);
         changes.clear();
         active = true;
@@ -103,17 +105,23 @@ public:
         strokeContainer = nullptr;
     }
     void Draw(const SceneEditContext& context) override {
-        if (!hoverValid || !context.view || TilePaintState::Get().tool == TilePaintState::Tool::Select)
+        if (!hoverValid || !context.view ||
+            GizmosManager::Get()->GetEditMode() != GizmosManager::EditMode::Tilemap)
             return;
         TileMapEditor* editor = ActiveEditor(context);
         if (!editor) return;
         const glm::ivec2 cell = CellAt(context, editor, hoverPoint);
         Grid* grid = editor->GetGrid();
-        const glm::vec2 origin = glm::vec2(cell) * (grid->GetSize() + grid->GetGap());
+        const int brushSize = std::max(1, TilePaintState::Get().brushSize);
+        const int start = -(brushSize - 1) / 2;
+        const glm::ivec2 first = cell + glm::ivec2(start);
+        const glm::ivec2 last = first + glm::ivec2(brushSize - 1);
+        const glm::vec2 stride = grid->GetSize() + grid->GetGap();
+        const glm::vec2 origin = glm::vec2(first) * stride;
         const glm::mat4 world = editor->GetTransform()->GetWorldMatrix();
         auto* camera = context.view->GetCamera();
         const glm::mat4 vp = camera->GetProjectionMatrix() * camera->GetViewMatrix();
-        const glm::vec2 size = grid->GetSize();
+        const glm::vec2 size = glm::vec2(last - first) * stride + grid->GetSize();
         ImVec2 points[4];
         for (int i = 0; i < 4; ++i) {
             const glm::vec2 corner = origin + glm::vec2((i == 1 || i == 2) ? size.x : 0.0f,
@@ -124,7 +132,7 @@ public:
                                (0.5f - clip.y / clip.w * 0.5f) * context.height);
         }
         ImDrawList* draw = ImGui::GetForegroundDrawList();
-        const ImU32 color = TilePaintState::Get().tool == TilePaintState::Tool::Erase
+        const ImU32 color = TilePaintState::Get().selectedTileId == EMPTY_TILE_ID
             ? IM_COL32(255, 105, 90, 220) : IM_COL32(60, 225, 150, 220);
         for (int i = 0; i < 4; ++i) draw->AddLine(points[i], points[(i + 1) % 4], color, 2.0f);
     }
@@ -137,10 +145,11 @@ private:
         GameObject* object = registry->Find<GameObject>(selection->GetPrimaryId());
         TileMapEditor* editor = object ? object->GetComponent<TileMapEditor>() : nullptr;
         if (!editor || editor->GetID() != TilePaintState::Get().componentId || !editor->GetEnabled()
-            || !editor->GetGrid() || !editor->GetTileSet() || !editor->GetTileMap()
+            || !editor->GetGrid() || !editor->GetTileMap()
             || !editor->GetTileMap()->GetCells()) return nullptr;
-        if (!active && TilePaintState::Get().tool == TilePaintState::Tool::Paint
-            && !editor->GetTileSet()->GetTile(TilePaintState::Get().selectedTileId)) return nullptr;
+        if (!active && TilePaintState::Get().selectedTileId != EMPTY_TILE_ID &&
+            (!editor->GetTileSet() || !editor->GetTileSet()->GetTile(TilePaintState::Get().selectedTileId)))
+            return nullptr;
         return editor;
     }
     glm::ivec2 CellAt(const SceneEditContext& context, TileMapEditor* editor,
@@ -156,13 +165,18 @@ private:
         const int sx = x < end.x ? 1 : -1, sy = y < end.y ? 1 : -1;
         int error = dx - dy;
         for (;;) {
-            const glm::ivec2 cell{x, y};
-            const TileId before = editor->GetTileId(cell);
-            if (before != strokeTileId) {
-                auto [it, inserted] = changes.try_emplace({x, y}, before, strokeTileId);
-                if (!inserted) it->second.second = strokeTileId;
-                if (strokeTileId == EMPTY_TILE_ID) editor->ClearTile(cell);
-                else editor->SetTileId(cell, strokeTileId);
+            const int start = -(strokeBrushSize - 1) / 2;
+            for (int row = 0; row < strokeBrushSize; ++row) {
+                for (int column = 0; column < strokeBrushSize; ++column) {
+                    const glm::ivec2 cell{x + start + column, y + start + row};
+                    const TileId before = editor->GetTileId(cell);
+                    if (before == strokeTileId) continue;
+                    auto [it, inserted] = changes.try_emplace(
+                        std::pair{cell.x, cell.y}, before, strokeTileId);
+                    if (!inserted) it->second.second = strokeTileId;
+                    if (strokeTileId == EMPTY_TILE_ID) editor->ClearTile(cell);
+                    else editor->SetTileId(cell, strokeTileId);
+                }
             }
             if (x == end.x && y == end.y) break;
             const int twiceError = 2 * error;
@@ -177,6 +191,7 @@ private:
     QPoint hoverPoint;
     glm::ivec2 lastCell{0};
     TileId strokeTileId = EMPTY_TILE_ID;
+    int strokeBrushSize = 1;
     std::string strokeMapId;
     Container* strokeContainer = nullptr;
     TileStrokeCommand::Changes changes;

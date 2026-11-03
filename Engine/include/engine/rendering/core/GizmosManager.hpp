@@ -37,7 +37,7 @@ public:
     // handles resize it and dragging the body moves it -- exactly like the box
     // collider gizmo. It writes Transform scale/position, since a sprite's world
     // size IS its pixel size times the transform's scale.
-    enum class EditMode { Transform, Collider, SpriteBox };
+    enum class EditMode { Transform, Collider, SpriteBox, Tilemap };
 
     // Payload: std::vector<GizmoEdit>. Emitted on drag release, never per frame.
     // GizmosManager deliberately does not touch the UndoSystem itself — it only

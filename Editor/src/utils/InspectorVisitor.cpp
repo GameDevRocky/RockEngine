@@ -35,11 +35,12 @@
 #include "engine/components/TileMapRenderer.hpp"
 #include "engine/tilemap/TileMap.hpp"
 #include "engine/tilemap/TileSet.hpp"
-#include "utils/TilePaintState.hpp"
+#include "utils/TileSetInspectorWidget.hpp"
 #include <QComboBox>
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QPointer>
 #include <QSignalBlocker>
 #include <QStringList>
 
@@ -1785,11 +1786,29 @@ void InspectorVisitor::Visit(TileMapEditor* tileMapEditor)
     tileStatus->setWordWrap(true);
     tileStatus->setStyleSheet("color: #d8a766;");
     AddFullRow(tileStatus);
-    m_refreshers.emplace_back([tileMapEditor, tileStatus]() {
+    const std::string componentId = tileMapEditor->GetID();
+    const std::string containerId = tileMapEditor->GetContainer()->GetID();
+    auto resolveEditor = [componentId, containerId]() -> TileMapEditor* {
+        for (auto* container : {Engine::Get()->GetEditorContainer(), Engine::Get()->GetRuntimeContainer()}) {
+            if (!container || container->GetID() != containerId) continue;
+            auto* registry = container->FindSystem<Registry>();
+            return registry ? registry->Find<TileMapEditor>(componentId) : nullptr;
+        }
+        return nullptr;
+    };
+    auto refreshStatus = [resolveEditor, tileStatus = QPointer<QLabel>(tileStatus)]() {
+        if (!tileStatus) return;
+        auto* tileMapEditor = resolveEditor();
+        if (!tileMapEditor) {
+            tileStatus->hide();
+            return;
+        }
         QString message;
         TileMap* map = tileMapEditor->GetTileMap();
         TileSet* set = tileMapEditor->GetTileSet();
-        if (!map) {
+        if (!tileMapEditor->GetGrid()) {
+            message = "Place this object under a GameObject with a Grid component to render and paint tiles.";
+        } else if (!map) {
             message = tileMapEditor->GetTileMapId().empty()
                 ? "Assign a TileMap to render cells."
                 : QString("TileMap %1 is missing.").arg(QString::fromStdString(tileMapEditor->GetTileMapId()));
@@ -1827,65 +1846,27 @@ void InspectorVisitor::Visit(TileMapEditor* tileMapEditor)
         }
         tileStatus->setText(message);
         tileStatus->setVisible(!message.isEmpty());
+    };
+    int subId = tileMapEditor->Subscribe([refreshStatus]() {
+        refreshStatus();
+        return true;
+    }, TileMapEditor::GRID_CHANGED_EVENT);
+    QObject::connect(tileStatus, &QObject::destroyed, [resolveEditor, subId]() {
+        if (auto* tileMapEditor = resolveEditor()) tileMapEditor->Unsubscribe(subId);
     });
-    m_refreshers.back()();
+    m_refreshers.emplace_back(refreshStatus);
+    refreshStatus();
 
-    auto& paintState = TilePaintState::Get();
-    if (paintState.componentId != tileMapEditor->GetID()) {
-        paintState.componentId = tileMapEditor->GetID();
-        paintState.tool = TilePaintState::Tool::Select;
-        paintState.selectedTileId = EMPTY_TILE_ID;
-    }
-    auto* tools = new QComboBox();
-    tools->addItems({"Select", "Paint", "Erase"});
-    tools->setCurrentIndex(static_cast<int>(paintState.tool));
-    QObject::connect(tools, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                     [](int index) { TilePaintState::Get().tool = static_cast<TilePaintState::Tool>(index); });
-    AddRow("Tile Tool", tools);
-
-    auto* palette = new QComboBox();
-    palette->addItem("Choose tile", 0);
-    if (TileSet* set = tileMapEditor->GetTileSet()) {
-        std::vector<TileId> ids;
-        for (const auto& [id, tile] : set->GetTiles()) ids.push_back(id);
-        std::sort(ids.begin(), ids.end());
-        for (TileId id : ids) {
-            const Tile* tile = set->GetTile(id);
-            palette->addItem(QString("%1 - %2").arg(id).arg(QString::fromStdString(tile->name)), id);
-            if (id == paintState.selectedTileId) palette->setCurrentIndex(palette->count() - 1);
-        }
-    }
-    QObject::connect(palette, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                     [palette](int index) { TilePaintState::Get().selectedTileId =
-                         static_cast<TileId>(palette->itemData(index).toUInt()); });
-    AddRow("Tile Palette", palette);
-    auto paletteSignature = std::make_shared<std::vector<std::pair<TileId, std::string>>>();
-    auto paletteSetId = std::make_shared<std::string>();
-    m_refreshers.emplace_back([tileMapEditor, palette, paletteSignature, paletteSetId]() {
-        TileSet* set = tileMapEditor->GetTileSet();
-        const std::string id = set ? set->GetID() : std::string{};
-        std::vector<std::pair<TileId, std::string>> signature;
-        if (set) for (const auto& [tileId, tile] : set->GetTiles())
-            signature.emplace_back(tileId, tile.name);
-        std::sort(signature.begin(), signature.end());
-        if (id == *paletteSetId && signature == *paletteSignature) return;
-        *paletteSetId = id;
-        *paletteSignature = signature;
-        QSignalBlocker block(palette);
-        palette->clear();
-        palette->addItem("Choose tile", 0);
-        int selectedIndex = 0;
-        for (const auto& [tileId, name] : signature) {
-            palette->addItem(QString("%1 - %2").arg(tileId).arg(QString::fromStdString(name)), tileId);
-            if (tileId == TilePaintState::Get().selectedTileId) selectedIndex = palette->count() - 1;
-        }
-        palette->setCurrentIndex(selectedIndex);
-        if (selectedIndex == 0) TilePaintState::Get().selectedTileId = EMPTY_TILE_ID;
-    });
 }
 
 void InspectorVisitor::Visit(TileMapRenderer* tileMapRenderer)
 {
+    BindProperty<std::string>(tileMapRenderer, "Material: ",
+        [=]() { return tileMapRenderer->GetMaterialId(); },
+        [](TileMapRenderer* renderer, const std::string& id) { renderer->SetMaterial(id); },
+        tileMapRenderer->RENDER_CHANGED_EVENT,
+        PropDesc().Tag(Tags::MATERIAL).RefType(Tags::OBJECT_REF));
+
     auto* sizing = new QComboBox();
     sizing->addItems({"Native", "Fill Cell"});
     sizing->setCurrentIndex(tileMapRenderer->GetTileSizingMode() == TileMapRenderer::TileSizingMode::Native ? 0 : 1);
@@ -1916,103 +1897,20 @@ void InspectorVisitor::Visit(TileMap* tileMap)
 
 void InspectorVisitor::Visit(TileSet* tileSet)
 {
-    auto* list = new QListWidget();
-    list->setMaximumHeight(150);
-    std::vector<TileId> ids;
-    for (const auto& [id, tile] : tileSet->GetTiles()) ids.push_back(id);
-    std::sort(ids.begin(), ids.end());
-    for (TileId id : ids) {
-        const Tile* tile = tileSet->GetTile(id);
-        auto* item = new QListWidgetItem(QString("%1 - %2").arg(id).arg(QString::fromStdString(tile->name)));
-        item->setData(Qt::UserRole, id);
-        list->addItem(item);
-    }
-    AddLabeledFullRow("Tiles", list);
+    auto* editor = new TileSetInspectorWidget(tileSet);
+    AddFullRow(editor);
 
-    auto* idField = new QSpinBox();
-    idField->setRange(1, 65535);
-    AddRow("Tile ID", idField);
-    auto* nameField = new QLineEdit();
-    AddRow("Name", nameField);
-    auto* spriteField = new QComboBox();
-    spriteField->addItem("None", QString());
-    std::vector<Sprite*> sprites;
-    for (const auto& [id, sprite] : AssetManager::Get().GetAllSprites()) sprites.push_back(sprite);
-    std::sort(sprites.begin(), sprites.end(), [](Sprite* a, Sprite* b) { return a->GetName() < b->GetName(); });
-    for (Sprite* sprite : sprites)
-        spriteField->addItem(QString::fromStdString(sprite->GetName()), QString::fromStdString(sprite->GetID()));
-    AddRow("Default Sprite", spriteField);
-
-    auto refresh = [=]() {
-        const bool hasSelection = list->currentItem() != nullptr;
-        TileId id = hasSelection ? static_cast<TileId>(list->currentItem()->data(Qt::UserRole).toUInt()) : EMPTY_TILE_ID;
-        const Tile* tile = tileSet->GetTile(id);
-        idField->setEnabled(tile != nullptr);
-        nameField->setEnabled(tile != nullptr);
-        spriteField->setEnabled(tile != nullptr);
-        if (!tile) return;
-        QSignalBlocker idBlock(idField), nameBlock(nameField), spriteBlock(spriteField);
-        idField->setValue(id);
-        nameField->setText(QString::fromStdString(tile->name));
-        spriteField->setCurrentIndex(std::max(0, spriteField->findData(QString::fromStdString(tile->defaultSpriteId))));
-    };
-    QObject::connect(list, &QListWidget::currentRowChanged, [refresh](int) { refresh(); });
-    QObject::connect(idField, QOverload<int>::of(&QSpinBox::valueChanged), [=](int newId) {
-        auto* item = list->currentItem();
-        if (!item) return;
-        TileId oldId = static_cast<TileId>(item->data(Qt::UserRole).toUInt());
-        if (newId == oldId || tileSet->GetTile(static_cast<TileId>(newId))) return;
-        Tile tile = *tileSet->GetTile(oldId);
-        tileSet->RemoveTile(oldId);
-        tileSet->SetTile(static_cast<TileId>(newId), tile);
-        item->setData(Qt::UserRole, newId);
-        item->setText(QString("%1 - %2").arg(newId).arg(QString::fromStdString(tile.name)));
+    auto dirty = std::make_shared<bool>(false);
+    const int subId = tileSet->Subscribe([dirty]() {
+        *dirty = true;
+        return true;
+    }, TileSet::CHANGED_EVENT);
+    m_subscriptions.emplace_back(tileSet, subId);
+    m_refreshers.emplace_back([editor, dirty]() {
+        if (!*dirty) return;
+        *dirty = false;
+        editor->Refresh();
     });
-    QObject::connect(nameField, &QLineEdit::editingFinished, [=]() {
-        auto* item = list->currentItem();
-        if (!item) return;
-        TileId id = static_cast<TileId>(item->data(Qt::UserRole).toUInt());
-        Tile tile = *tileSet->GetTile(id);
-        tile.name = nameField->text().toStdString();
-        tileSet->SetTile(id, tile);
-        item->setText(QString("%1 - %2").arg(id).arg(nameField->text()));
-    });
-    QObject::connect(spriteField, QOverload<int>::of(&QComboBox::currentIndexChanged), [=](int index) {
-        auto* item = list->currentItem();
-        if (!item) return;
-        TileId id = static_cast<TileId>(item->data(Qt::UserRole).toUInt());
-        Tile tile = *tileSet->GetTile(id);
-        tile.defaultSpriteId = spriteField->itemData(index).toString().toStdString();
-        tileSet->SetTile(id, tile);
-    });
-    auto* buttons = new QWidget();
-    auto* row = new QHBoxLayout(buttons);
-    row->setContentsMargins(0, 0, 0, 0);
-    auto* add = new QPushButton("Add Tile");
-    auto* remove = new QPushButton("Remove Tile");
-    row->addWidget(add);
-    row->addWidget(remove);
-    AddFullRow(buttons);
-    QObject::connect(add, &QPushButton::clicked, [=]() {
-        TileId id = 1;
-        while (id < 65535 && tileSet->GetTile(id)) ++id;
-        if (tileSet->GetTile(id)) return;
-        Tile tile;
-        tile.name = "Tile " + std::to_string(id);
-        tileSet->SetTile(id, tile);
-        auto* item = new QListWidgetItem(QString("%1 - %2").arg(id).arg(QString::fromStdString(tile.name)));
-        item->setData(Qt::UserRole, id);
-        list->addItem(item);
-        list->setCurrentItem(item);
-    });
-    QObject::connect(remove, &QPushButton::clicked, [=]() {
-        auto* item = list->currentItem();
-        if (!item) return;
-        tileSet->RemoveTile(static_cast<TileId>(item->data(Qt::UserRole).toUInt()));
-        delete list->takeItem(list->row(item));
-    });
-    if (list->count()) list->setCurrentRow(0);
-    else refresh();
 }
 
 void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){

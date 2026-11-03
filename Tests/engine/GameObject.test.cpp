@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <memory>
 
 #include <gtest/gtest.h>
 #include "RuntimeFixture.hpp"
@@ -55,6 +56,22 @@ TEST_F(GameObjectTest, AddedObjectHasTransform) {
 TEST_F(GameObjectTest, RenameObject) {
     object->SetName("Test Object");
     EXPECT_EQ(object->GetName(), "Test Object");
+}
+
+TEST_F(GameObjectTest, CopyDoesNotCarrySourceEventSubscriptions) {
+    int sourceNotifications = 0;
+    const int subscriptionId = object->Subscribe([&sourceNotifications]() {
+        ++sourceNotifications;
+        return true;
+    }, GameObject::NAME_CHANGED_EVENT);
+
+    std::unique_ptr<GameObject> copy(object->Copy());
+    copy->SetName("Copied Object");
+    EXPECT_EQ(sourceNotifications, 0);
+
+    object->SetName("Original Object");
+    EXPECT_EQ(sourceNotifications, 1);
+    object->Unsubscribe(subscriptionId);
 }
 
 TEST_F(GameObjectTest, ActiveStateControlsComponents) {

@@ -181,6 +181,11 @@ void SceneViewGui::OnViewInitialized()
         m_optionsToolbar->RestorePlacement();
         m_optionsToolbar->show();
     }
+    if (!m_tilePalette) {
+        m_tilePalette = new SceneTilePalette(this);
+        m_tilePalette->move(std::max(0, width() - m_tilePalette->width() - 16), 80);
+        m_tilePalette->RestorePlacement();
+    }
     if (!m_toolsToolbar) {
         m_toolsToolbar = new SceneToolsToolbar(this);
         m_toolsToolbar->move(100, 80);
@@ -208,6 +213,12 @@ void SceneViewGui::OnResized(int w, int h)
     if (imGuiInstance) imGuiInstance->Resize(w, h, devicePixelRatioF());
     if (m_toolsToolbar)   m_toolsToolbar->ClampToParent();
     if (m_optionsToolbar) m_optionsToolbar->ClampToParent();
+    if (m_tilePalette) m_tilePalette->ClampToParent();
+}
+
+void SceneViewGui::SetTilePaletteEditor(const std::string& componentId)
+{
+    if (m_tilePalette) m_tilePalette->SetEditor(componentId);
 }
 
 void SceneViewGui::OnAfterPresent()

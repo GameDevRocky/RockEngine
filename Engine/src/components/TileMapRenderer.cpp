@@ -4,6 +4,7 @@
 #include "engine/core/Container.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/GameObjectImpl.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
 #include "engine/utils/IVisitor.hpp"
 
 void TileMapRenderer::Init()
@@ -16,6 +17,7 @@ void TileMapRenderer::Init()
 YAML::Node TileMapRenderer::Serialize()
 {
     YAML::Node node = Component::Serialize();
+    node["materialId"] = materialId;
     node["tileSizingMode"] = tileSizingMode == TileSizingMode::FillCell ? "FillCell" : "Native";
     node["sortingLayer"] = sortingLayer;
     node["sortingOrder"] = sortingOrder;
@@ -25,6 +27,7 @@ YAML::Node TileMapRenderer::Serialize()
 void TileMapRenderer::Deserialize(const YAML::Node& node)
 {
     Component::Deserialize(node);
+    materialId = node["materialId"].as<std::string>("m1");
     tileSizingMode = node["tileSizingMode"].as<std::string>("Native") == "FillCell"
         ? TileSizingMode::FillCell : TileSizingMode::Native;
     sortingLayer = node["sortingLayer"].as<std::string>("Default");
@@ -38,6 +41,7 @@ TileMapRenderer* TileMapRenderer::Copy()
     copy->id = id;
     copy->enabled = enabled;
     copy->gameobject_id = gameobject_id;
+    copy->materialId = materialId;
     copy->tileSizingMode = tileSizingMode;
     copy->sortingLayer = sortingLayer;
     copy->sortingOrder = sortingOrder;
@@ -58,7 +62,26 @@ void TileMapRenderer::Accept(IVisitor* visitor)
 
 TileMapEditor* TileMapRenderer::GetTileMapEditor()
 {
-    return GetGameObject()->GetComponent<TileMapEditor>();
+    GameObject* owner = GetGameObject();
+    return owner ? owner->GetComponent<TileMapEditor>() : nullptr;
+}
+
+Grid* TileMapRenderer::GetGrid()
+{
+    TileMapEditor* editor = GetTileMapEditor();
+    return editor ? editor->GetGrid() : nullptr;
+}
+
+Material* TileMapRenderer::GetMaterial() const
+{
+    return AssetManager::Get().GetMaterial(materialId);
+}
+
+void TileMapRenderer::SetMaterial(const std::string& id)
+{
+    if (materialId == id) return;
+    materialId = id;
+    Notify(RENDER_CHANGED_EVENT);
 }
 
 void TileMapRenderer::SetTileSizingMode(TileSizingMode value)

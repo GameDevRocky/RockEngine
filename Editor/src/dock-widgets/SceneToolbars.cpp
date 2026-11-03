@@ -6,6 +6,10 @@
 #include <QSettings>
 #include <QComboBox>
 #include <QListView>
+#include <QListWidget>
+#include <QSpinBox>
+#include <QPainter>
+#include <QSignalBlocker>
 #include "dock-widgets/SceneViewGui.hpp"
 
 #include "engine/commands/EditorSettingCommand.hpp"
@@ -14,11 +18,17 @@
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/ChainCollider.hpp"
 #include "engine/components/SpriteRenderer.hpp"
+#include "engine/components/TileMapEditor.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/UndoSystem.hpp"
 #include "engine/rendering/core/GizmoSettings.hpp"
 #include "engine/rendering/core/GizmosManager.hpp"
 #include "engine/rendering/core/GridSettings.hpp"
+#include "engine/rendering/core/AssetManager.hpp"
+#include "engine/serialization/Registry.hpp"
+#include "engine/tilemap/TileSet.hpp"
+#include "utils/AssetThumbnails.hpp"
+#include "utils/TilePaintState.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "utils/IconMaps.h"
 
@@ -29,6 +39,7 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QToolButton>
+#include <QTimer>
 #include <algorithm>
 
 namespace {
@@ -302,6 +313,12 @@ QComboBox* SceneOverlayToolbar::AddComboBox(const char* tooltip, int width)
     return combo;
 }
 
+void SceneOverlayToolbar::AddControl(QWidget* widget)
+{
+    m_controlsLayout->addWidget(widget, 0,
+        IsHorizontal() ? Qt::AlignVCenter : Qt::AlignHCenter);
+}
+
 void SceneOverlayToolbar::AddSeparator()
 {
     auto* line = new QFrame(this);
@@ -527,6 +544,14 @@ SceneToolsToolbar::SceneToolsToolbar(QWidget* parent)
                                    : GizmosManager::EditMode::Collider);
     });
 
+    m_tilemap = AddButton(ICON_FA_PAINTBRUSH, "Paint tile map");
+    connect(m_tilemap, &QToolButton::clicked, this, [] {
+        auto* gizmos = GizmosManager::Get();
+        const bool active = gizmos->GetEditMode() == GizmosManager::EditMode::Tilemap;
+        gizmos->SetEditMode(active ? GizmosManager::EditMode::Transform
+                                   : GizmosManager::EditMode::Tilemap);
+    });
+
     // The active tool. GizmosManager is process-global (it extends System but is
     // never registered in a Container), so this subscription outlives play mode.
     SubscribeTo(GizmosManager::Get(), GizmosManager::TOOL_CHANGED_EVENT,
@@ -645,6 +670,11 @@ void SceneToolsToolbar::Refresh()
                                         object->GetComponent<CircleCollider>() ||
                                         object->GetComponent<CapsuleCollider>() ||
                                         object->GetComponent<ChainCollider>());
+    auto* tileEditor = object ? object->GetComponent<TileMapEditor>() : nullptr;
+    const bool hasTilemap = tileEditor &&
+        Engine::Get()->GetActiveContainer()->GetMode() == Container::Mode::Editor;
+    if (!hasTilemap && gizmos->GetEditMode() == GizmosManager::EditMode::Tilemap)
+        gizmos->SetEditMode(GizmosManager::EditMode::Transform);
 
     // isVisibleTo(this), not isHidden(): Refresh runs once from the constructor,
     // before this widget is ever shown, and isHidden() is true for every
@@ -654,16 +684,161 @@ void SceneToolsToolbar::Refresh()
     // setVisible itself stays unconditional (it is idempotent); only the
     // relayout is gated.
     const bool sizeChanged = m_spriteBox->isVisibleTo(this) != hasSprite ||
-                             m_collider->isVisibleTo(this)  != hasCollider;
+                             m_collider->isVisibleTo(this)  != hasCollider ||
+                             m_tilemap->isVisibleTo(this)   != hasTilemap;
     m_spriteBox->setVisible(hasSprite);
     m_collider->setVisible(hasCollider);
+    m_tilemap->setVisible(hasTilemap);
     SetChecked(m_spriteBox, gizmos->GetEditMode() == GizmosManager::EditMode::SpriteBox);
     SetChecked(m_collider,  gizmos->GetEditMode() == GizmosManager::EditMode::Collider);
+    SetChecked(m_tilemap,   gizmos->GetEditMode() == GizmosManager::EditMode::Tilemap);
+
+    if (auto* sceneView = qobject_cast<SceneViewGui*>(parentWidget()))
+        sceneView->SetTilePaletteEditor(
+            hasTilemap && gizmos->GetEditMode() == GizmosManager::EditMode::Tilemap
+                ? tileEditor->GetID() : std::string{});
 
     if (sizeChanged) {
         adjustSize();
         ClampToParent();
     }
+}
+
+SceneTilePalette::SceneTilePalette(QWidget* parent)
+    : SceneOverlayToolbar(parent, Qt::Vertical, QStringLiteral("tilePalette"))
+{
+    setObjectName("SceneTilePalette");
+    setStyleSheet(QString::fromUtf8(kToolbarStyle)
+        .replace("#SceneNativeToolbar", "#SceneTilePalette") +
+        "#SceneTilePalette { background: rgb(42,42,42); border: 1px solid rgb(78,78,78); border-radius: 5px; }"
+        "#SceneTilePalette QLabel { color: white; border: none; }"
+        "#SceneTilePalette QListWidget { background: rgb(35,35,35); color: white; border: 1px solid rgb(72,72,72); }"
+        "#SceneTilePalette QListWidget::item:selected { background: rgb(66,148,66); }");
+
+    auto* title = new QLabel("Tile Palette", this);
+    title->setAlignment(Qt::AlignCenter);
+    AddControl(title);
+
+    m_list = new QListWidget(this);
+    m_list->setObjectName("SceneTilePaletteList");
+    m_list->setViewMode(QListView::IconMode);
+    m_list->setIconSize(QSize(42, 42));
+    m_list->setGridSize(QSize(70, 70));
+    m_list->setResizeMode(QListView::Adjust);
+    m_list->setMovement(QListView::Static);
+    m_list->setWrapping(true);
+    m_list->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_list->setFixedSize(228, 160);
+    AddControl(m_list);
+    connect(m_list, &QListWidget::itemSelectionChanged, this, [this] {
+        if (auto* item = m_list->currentItem()) {
+            m_userSelectedTile = true;
+            TilePaintState::Get().selectedTileId = static_cast<TileId>(item->data(Qt::UserRole).toUInt());
+        }
+    });
+
+    auto* brushRow = new QWidget(this);
+    auto* brushLayout = new QHBoxLayout(brushRow);
+    brushLayout->setContentsMargins(0, 0, 0, 0);
+    brushLayout->addWidget(new QLabel("Paint size", brushRow));
+    m_brushSize.reset(PropertyFactory::Create<float>(
+        Properties::PropDesc().Tag(Properties::Tags::INT).Range(1.0f, 16.0f).Step(1.0f)));
+    QWidget* brushEditor = m_brushSize->GetWidget();
+    brushEditor->setObjectName("SceneTileBrushSize");
+    brushEditor->setFixedWidth(76);
+    brushEditor->setToolTip("Square brush width in cells");
+    m_brushSize->SetValue(static_cast<float>(TilePaintState::Get().brushSize));
+    m_brushSize->onChanged = [](float size) {
+        TilePaintState::Get().brushSize = static_cast<int>(size);
+    };
+    brushLayout->addWidget(brushEditor);
+    AddControl(brushRow);
+
+    m_refreshTimer = new QTimer(this);
+    m_refreshTimer->setInterval(250);
+    connect(m_refreshTimer, &QTimer::timeout, this, [this] { Refresh(); });
+    hide();
+}
+
+void SceneTilePalette::SetEditor(const std::string& componentId)
+{
+    if (m_componentId != componentId) {
+        m_componentId = componentId;
+        m_tileSetId.clear();
+        m_tiles.clear();
+        m_built = false;
+        m_userSelectedTile = false;
+        TilePaintState::Get().componentId = componentId;
+        TilePaintState::Get().selectedTileId = EMPTY_TILE_ID;
+    }
+    setVisible(!componentId.empty());
+    if (componentId.empty()) {
+        m_refreshTimer->stop();
+    } else {
+        Refresh();
+        m_refreshTimer->start();
+        raise();
+    }
+}
+
+void SceneTilePalette::Refresh()
+{
+    if (m_componentId.empty()) return;
+    auto* container = Engine::Get()->GetActiveContainer();
+    auto* registry = container ? container->FindSystem<Registry>() : nullptr;
+    auto* editor = registry ? registry->Find<TileMapEditor>(m_componentId) : nullptr;
+    TileSet* set = editor ? editor->GetTileSet() : nullptr;
+    const std::string setId = set ? set->GetID() : std::string{};
+    std::vector<std::tuple<TileId, std::string, std::string>> tiles;
+    if (set) {
+        for (const auto& [id, tile] : set->GetTiles()) {
+            const std::string previewSprite = !tile.defaultSpriteId.empty()
+                ? tile.defaultSpriteId
+                : (tile.autoTileRules.empty() ? std::string{} : tile.autoTileRules.front().spriteId);
+            tiles.emplace_back(id, tile.name, previewSprite);
+        }
+        std::sort(tiles.begin(), tiles.end());
+    }
+    if (m_built && m_tileSetId == setId && m_tiles == tiles) return;
+    m_built = true;
+    m_tileSetId = setId;
+    m_tiles = std::move(tiles);
+
+    TileId selected = TilePaintState::Get().selectedTileId;
+    if (selected != EMPTY_TILE_ID &&
+        std::none_of(m_tiles.begin(), m_tiles.end(), [selected](const auto& tile) {
+            return std::get<0>(tile) == selected;
+        }))
+        selected = EMPTY_TILE_ID;
+    if (selected == EMPTY_TILE_ID && !m_userSelectedTile && !m_tiles.empty())
+        selected = std::get<0>(m_tiles.front());
+
+    QSignalBlocker blocker(m_list);
+    m_list->clear();
+    auto* none = new QListWidgetItem("None", m_list);
+    none->setData(Qt::UserRole, static_cast<uint>(EMPTY_TILE_ID));
+    none->setToolTip("Erase tiles");
+    QPixmap eraseIcon(42, 42);
+    eraseIcon.fill(QColor(55, 55, 55));
+    QPainter painter(&eraseIcon);
+    painter.setPen(QPen(QColor(240, 110, 95), 3));
+    painter.drawLine(8, 8, 34, 34);
+    painter.end();
+    none->setIcon(QIcon(eraseIcon));
+
+    for (const auto& [id, name, spriteId] : m_tiles) {
+        auto* item = new QListWidgetItem(QString::fromStdString(name), m_list);
+        item->setData(Qt::UserRole, static_cast<uint>(id));
+        item->setToolTip(QString("%1 (ID %2)").arg(QString::fromStdString(name)).arg(id));
+        if (!spriteId.empty()) item->setIcon(QIcon(AssetThumbnails::forSprite(spriteId)));
+    }
+    for (int i = 0; i < m_list->count(); ++i) {
+        if (m_list->item(i)->data(Qt::UserRole).toUInt() == selected) {
+            m_list->setCurrentRow(i);
+            break;
+        }
+    }
+    TilePaintState::Get().selectedTileId = selected;
 }
 
 // ═════════════════════════════════════════════════════════════════════════════

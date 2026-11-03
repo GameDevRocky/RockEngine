@@ -20,8 +20,15 @@ void Registry::Register(RuntimeObject* obj) {
     std::string id = obj->GetID();
     auto result = runtimeObjects.insert({id, obj});
     BumpGeneration();
-    obj->Subscribe([id](std::any data){
-        auto* registry = Engine::Get()->GetActiveContainer()->FindSystem<Registry>();
+    obj->Subscribe([id, registryId = GetID()](std::any data){
+        Registry* registry = nullptr;
+        for (Container* world : {Engine::Get()->GetEditorContainer(), Engine::Get()->GetRuntimeContainer()}) {
+            Registry* candidate = world ? world->FindSystem<Registry>() : nullptr;
+            if (candidate && candidate->GetID() == registryId) {
+                registry = candidate;
+                break;
+            }
+        }
         if (!registry) return true;
         auto it = registry->runtimeObjects.find(id);
         if (it == registry->runtimeObjects.end()) return true;
@@ -62,7 +69,8 @@ void Registry::FlushPendingShutdowns() {
     std::vector<RuntimeObject*> toProcess;
     std::swap(toProcess, pendingShutdowns);
     for (auto* obj : toProcess) {
-        if (runtimeObjects.find(obj->GetID()) == runtimeObjects.end()) continue;
+        // Undo can restore the same ID before this old instance reaches the flush.
+        if (Find<RuntimeObject>(obj->GetID()) != obj) continue;
         obj->Shutdown();
         // obj itself is now in pendingDeletes (from its SHUTDOWN_EVENT); remove it
         // so we can delete it inline rather than double-freeing in the drain below.

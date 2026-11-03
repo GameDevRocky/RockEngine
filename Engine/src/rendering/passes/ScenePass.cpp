@@ -181,15 +181,19 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                             + "' has cells but TileSet '" + tileMap->GetTileSetId()
                             + "' is missing. Assign a TileSet with tile definitions and sprites.");
                 } else {
-                    if (!defaultMaterial)
-                        defaultMaterial = AssetManager::Get().GetMaterialByName("default");
-                    if (defaultMaterial && defaultMaterial->GetShader()) {
+                    Material* material = tileRenderer->GetMaterial();
+                    if (!material) {
+                        if (!defaultMaterial)
+                            defaultMaterial = AssetManager::Get().GetMaterialByName("default");
+                        material = defaultMaterial;
+                    }
+                    if (material && material->GetShader()) {
                         DrawCall dc;
                         dc.transform = transform;
                         dc.tileMap = tileMap;
                         dc.tileRenderer = tileRenderer;
-                        dc.mat = defaultMaterial;
-                        dc.shader = defaultMaterial->GetShader();
+                        dc.mat = material;
+                        dc.shader = material->GetShader();
                         dc.layerPriority = layerManager ? layerManager->GetPriority(tileRenderer->GetSortingLayer()) : 0;
                         dc.sortingOrder = tileRenderer->GetSortingOrder();
                         drawCalls.push_back(dc);
@@ -482,9 +486,9 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                 Console::Warn(firstIssue);
             for (const VisibleTile& tile : visible) {
                 dc.shader->SetMat4("uModel", tile.model);
-                dc.mat->ApplyUniforms();
-                tile.texture->Bind(0);
-                dc.shader->SetInt("uTexture", 0);
+                const int tileTextureSlot = dc.mat->ApplyUniforms();
+                tile.texture->Bind(tileTextureSlot);
+                dc.shader->SetTexture("uTexture", tileTextureSlot);
                 dc.shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
                 dc.shader->SetFloat("uHasNormalMap", 0.0f);
                 dc.shader->SetVec2("uUVScale", tile.sprite->GetUVMax() - tile.sprite->GetUVMin());

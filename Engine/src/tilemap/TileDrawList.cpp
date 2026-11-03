@@ -14,7 +14,8 @@ std::vector<VisibleTile> TileDrawList::CollectVisible(TileMapEditor* editor,
                                                          std::string* firstIssue) {
     std::vector<VisibleTile> visible;
     if (firstIssue) firstIssue->clear();
-    if (!editor || !renderer || !editor->GetGrid()) return visible;
+    Grid* grid = renderer ? renderer->GetGrid() : nullptr;
+    if (!grid || !editor) return visible;
     TileMap* map = editor->GetTileMap();
     TileSet* set = editor->GetTileSet();
     if (!map || !map->GetCells() || !set) return visible;
@@ -42,9 +43,9 @@ std::vector<VisibleTile> TileDrawList::CollectVisible(TileMapEditor* editor,
                     + std::to_string(tileId) + " has no loaded texture";
             continue;
         }
-        const glm::vec2 size = TileRender::Size(editor, renderer, sprite);
+        const glm::vec2 size = TileRender::Size(grid, renderer, sprite);
         if (size.x <= 0.0f || size.y <= 0.0f) continue;
-        const glm::mat4 model = TileRender::Model(editor, cell, size);
+        const glm::mat4 model = TileRender::Model(grid, renderer, cell, size);
         if (!TileRender::Visible(model, size, sprite->GetPivot(), viewProjection)) continue;
         visible.push_back({cell, tileId, sprite, texture, size, model});
     }

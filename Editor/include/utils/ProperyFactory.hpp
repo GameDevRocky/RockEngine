@@ -113,9 +113,15 @@ inline PropertyWidget<int>* PropertyFactory::Create<int>(const Properties::PropD
 template<typename T>
 class ListPropertyWidget : public PropertyWidget<std::vector<T>> {
 public:
-    explicit ListPropertyWidget(const Properties::PropDesc& desc)
+    // Custom element editors can reuse this list's add/remove/collapse controls.
+    // Maps and other key-based collections can disable dragging when order has no meaning.
+    explicit ListPropertyWidget(const Properties::PropDesc& desc,
+                                std::function<PropertyWidget<T>*()> childFactory = {},
+                                bool reorderable = true)
         : m_elementDesc(desc.elementDesc ? *desc.elementDesc : Properties::PropDesc()),
-          m_readOnly(desc.readOnly)
+          m_readOnly(desc.readOnly),
+          m_childFactory(std::move(childFactory)),
+          m_reorderable(reorderable)
     {
         QWidget* container = new QWidget();
         m_container = container;
@@ -154,7 +160,9 @@ public:
 
         if (!m_readOnly) {
             auto* addButton = new QPushButton();
-            addButton->setIcon(QIcon("Domain/lib/assets/icons/plus_icon.png"));
+            addButton->setObjectName("ListAddButton");
+            addButton->setIcon(QIcon(QString::fromStdString(
+                EngineUtils::GetAssetPath("Domain/lib/assets/icons/plus_icon.png"))));
             addButton->setContentsMargins(0,0,0,0);
             addButton->setFixedSize(24, 24);
             addButton->setToolTip("Add");
@@ -246,7 +254,8 @@ private:
             m_toggle->setText(QString("%1 item%2").arg(n).arg(n == 1 ? "" : "s"));
         }
         for (std::size_t i = 0; i < m_data.size(); ++i) {
-            PropertyWidget<T>* child = PropertyFactory::Create<T>(m_elementDesc);
+            PropertyWidget<T>* child = m_childFactory
+                ? m_childFactory() : PropertyFactory::Create<T>(m_elementDesc);
             child->SetValue(m_data[i]);
 
             child->onChanged = [this, i](T val) {
@@ -268,7 +277,7 @@ private:
             // handle for the row as a whole, so it reads as belonging to the row
             // rather than to the field inside it.
             ListRow::DragHandle* handle = nullptr;
-            if (!m_readOnly) {
+            if (!m_readOnly && m_reorderable) {
                 handle = new ListRow::DragHandle(compactRow);
                 rl->addWidget(handle);
             }
@@ -311,6 +320,8 @@ private:
 
     Properties::PropDesc m_elementDesc;
     bool m_readOnly = false;
+    std::function<PropertyWidget<T>*()> m_childFactory;
+    bool m_reorderable = true;
     std::vector<T> m_data;
     std::vector<PropertyWidget<T>*> m_children;
     QPointer<QWidget> m_container;

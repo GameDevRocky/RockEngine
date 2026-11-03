@@ -1,0 +1,5 @@
+type: Texture2D
+id: 36d65aed34af4abe8c5afa7ad3c49b56
+path: Domain/lib/assets/icons/tileset_icon.png
+filtering: linear
+wrap: repeat

@@ -227,12 +227,24 @@ viewport belong in a separate integration suite.
 ## Tilemap authoring
 
 Folder asset selection resolves TileMaps and TileSets through SelectionManager and AssetManager.
-The TileSet asset Inspector edits tile IDs, names, and default sprite references. The
-TileMapEditor component Inspector chooses a tile palette with Select, Paint, and Erase modes.
-The companion TileMapRenderer component Inspector chooses Native or Fill Cell sizing and
-sorting layer/order. `SceneEditController` owns each
-drag stroke: its tilemap tool samples Grid cells, fills gaps between mouse samples,
-previews the hovered cell, and pushes one `TileStrokeCommand` containing before/after IDs.
+The TileSet asset Inspector uses the shared list property widget for tiles and rules. Tile rows
+show the name on the left and default sprite on the right; selecting one exposes its ID, name,
+and default sprite asset picker below. The rules list spans the Inspector width, and its entries
+show a 3x3 neighborhood grid beside a sprite preview that accepts sprite drops and can be cleared
+from its context menu. The list's own controls add, remove, and reorder rules. Each neighbor cell offers Any, Empty (ID 0), or a specific
+TileSet tile ID. The TileMapEditor Inspector assigns the TileMap and TileSet. Selecting an
+object with TileMapEditor shows a Paint button in the Scene view tool palette. That mode opens
+the draggable, collapsible Tile Palette with sprite previews, a None tile for erasing, and a
+square paint size in cells using a property widget.
+The companion TileMapRenderer Inspector chooses a material, Native or Fill Cell sizing, and
+sorting layer/order. `SceneEditController` owns each drag stroke: its tilemap tool samples Grid
+cells, fills gaps between mouse samples, previews the brush footprint, and pushes one
+`TileStrokeCommand` containing before/after IDs.
 The command saves the TileMap after undo/redo; the tool saves after completing the stroke.
-Painting is available only in the editor container when the selected component has a
-loaded TileMap and TileSet.
+Tilemap objects must sit below a GameObject with a Grid component. The nearest ancestor Grid
+supplies cell size and gap; Grids on the tilemap itself or its descendants are ignored. The
+tilemap child's world transform controls its placement, so painting, brush previews, rendering,
+and picking all follow that same child transform. The Inspector explains a missing ancestor Grid
+and refreshes that status when the Grid association changes; the Paint button remains discoverable.
+Painting is available only in the editor container when the selected component has an ancestor
+Grid, a loaded TileMap and, for nonempty tiles, a TileSet containing the selected ID.

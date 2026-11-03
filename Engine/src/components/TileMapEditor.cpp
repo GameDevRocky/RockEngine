@@ -1,9 +1,13 @@
 #include "engine/components/TileMapEditor.hpp"
 
 #include <array>
+#include <cmath>
+
+#include "Engine.hpp"
 
 #include "engine/components/Grid.hpp"
 #include "engine/components/TileMapRenderer.hpp"
+#include "engine/components/Transform.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/core/GameObject.hpp"
 #include "engine/core/GameObjectImpl.hpp"
@@ -17,35 +21,23 @@ void TileMapEditor::Init()
     if (state >= State::Initialized) return;
 
     Component::Init();
-    Grid* grid = GetComponent<Grid>();
-    if (!grid) {
-        grid = RequireComponent<Grid>();
-        grid->SetSize({32.0f, 32.0f});
-    }
-    gridId = grid->GetID();
-
+    registry = container->FindSystem<Registry>();
     if (!GetComponent<TileMapRenderer>()) RequireComponent<TileMapRenderer>();
-
-    const std::string id = GetID();
-    grid->Subscribe([id]() {
-        TileMapEditor* editor = Registry::FindInRuntime<TileMapEditor>(id);
-        if (!editor) return false;
-        if (GameObject* owner = editor->GetGameObject())
-            owner->RemoveComponent(editor);
-        return false;
-    }, RuntimeObject::SHUTDOWN_EVENT);
 }
 
 void TileMapEditor::PostInit()
 {
+    if (state >= State::PostInitialized) return;
     Component::PostInit();
+    RefreshGrid();
     if (enabled) AcquireTileMap();
 }
 
 void TileMapEditor::Shutdown()
 {
-    ReleaseTileMap();
+    ClearGridSubscriptions();
     gridId.clear();
+    ReleaseTileMap();
     Component::Shutdown();
 }
 
@@ -102,7 +94,73 @@ void TileMapEditor::Accept(IVisitor* visitor)
 
 Grid* TileMapEditor::GetGrid() const
 {
-    return registry->Find<Grid>(gridId);
+    Grid* grid = registry ? registry->Find<Grid>(gridId) : nullptr;
+    return grid && !grid->IsMarkedForDestroy() ? grid : nullptr;
+}
+
+void TileMapEditor::RefreshGrid(const std::string& removedGridId)
+{
+    ClearGridSubscriptions();
+    if (!registry || IsMarkedForDestroy()) return;
+
+    std::string nextGridId;
+    GameObject* owner = registry->Find<GameObject>(gameobject_id);
+    Transform* transform = owner ? owner->GetTransform() : nullptr;
+    if (transform) {
+        SubscribeToGridHierarchy(transform, Transform::PARENT_CHANGED_EVENT);
+        for (Transform* parent = transform->GetParent(); parent; parent = parent->GetParent()) {
+            // An intermediate parent can move without changing this object's direct parent.
+            SubscribeToGridHierarchy(parent, Transform::PARENT_CHANGED_EVENT);
+            GameObject* parentObject = parent->GetGameObject();
+            if (!parentObject || parentObject->IsMarkedForDestroy()) continue;
+            SubscribeToGridHierarchy(parentObject, GameObject::ADD_COMPONENT_EVENT);
+            SubscribeToGridHierarchy(parentObject, GameObject::REMOVE_COMPONENT_EVENT);
+            Grid* grid = parentObject->GetComponent<Grid>();
+            if (nextGridId.empty() && grid && !grid->IsMarkedForDestroy()
+                && grid->GetID() != removedGridId) {
+                nextGridId = grid->GetID();
+                SubscribeToGridHierarchy(grid, RuntimeObject::SHUTDOWN_EVENT);
+            }
+        }
+    }
+
+    if (gridId == nextGridId) return;
+    gridId = nextGridId;
+    Notify(GRID_CHANGED_EVENT, gridId);
+    if (GameObject* object = registry->Find<GameObject>(gameobject_id)) {
+        if (TileMapRenderer* renderer = object->GetComponent<TileMapRenderer>())
+            renderer->Notify(TileMapRenderer::RENDER_CHANGED_EVENT);
+    }
+}
+
+void TileMapEditor::SubscribeToGridHierarchy(RuntimeObject* source, Event event)
+{
+    const std::string sourceId = source->GetID();
+    const int subscriptionId = source->Subscribe(
+        [componentId = GetID(), containerId = container->GetID(), sourceId, event]() {
+            // The editor and play-world copies share component IDs, but not container IDs.
+            for (Container* world : {Engine::Get()->GetEditorContainer(), Engine::Get()->GetRuntimeContainer()}) {
+                if (!world || world->GetID() != containerId) continue;
+                Registry* registry = world->FindSystem<Registry>();
+                TileMapEditor* editor = registry ? registry->Find<TileMapEditor>(componentId) : nullptr;
+                if (!editor || editor->IsMarkedForDestroy()) return false;
+                editor->RefreshGrid(event == RuntimeObject::SHUTDOWN_EVENT ? sourceId : std::string{});
+                return event != RuntimeObject::SHUTDOWN_EVENT;
+            }
+            return false;
+        }, event);
+    gridSubscriptions.push_back({sourceId, subscriptionId});
+}
+
+void TileMapEditor::ClearGridSubscriptions()
+{
+    if (registry) {
+        for (const GridSubscription& subscription : gridSubscriptions) {
+            if (RuntimeObject* source = registry->Find<RuntimeObject>(subscription.sourceId))
+                source->Unsubscribe(subscription.subscriptionId);
+        }
+    }
+    gridSubscriptions.clear();
 }
 
 TileMap* TileMapEditor::GetTileMap() const
@@ -169,12 +227,31 @@ NeighborMask TileMapEditor::GetNeighbors(const glm::ivec2& cell) const
 
 glm::ivec2 TileMapEditor::WorldToCell(const glm::vec2& world) const
 {
-    return GetGrid()->WorldToCell(world);
+    Grid* grid = GetGrid();
+    GameObject* owner = registry ? registry->Find<GameObject>(gameobject_id) : nullptr;
+    Transform* transform = owner ? owner->GetTransform() : nullptr;
+    if (!grid || !transform) return {0, 0};
+
+    const glm::mat4 worldMatrix = transform->GetWorldMatrix();
+    const glm::vec2 stride = grid->GetSize() + grid->GetGap();
+    if (std::abs(glm::determinant(worldMatrix)) <= 1.0e-6f
+        || std::abs(stride.x) <= 1.0e-6f || std::abs(stride.y) <= 1.0e-6f)
+        return {0, 0};
+
+    const glm::vec2 local = glm::vec2(glm::inverse(worldMatrix) * glm::vec4(world, 0.0f, 1.0f));
+    return {static_cast<int>(std::floor(local.x / stride.x)),
+            static_cast<int>(std::floor(local.y / stride.y))};
 }
 
 glm::vec2 TileMapEditor::CellToWorld(const glm::ivec2& cell) const
 {
-    return GetGrid()->CellToWorld(cell);
+    Grid* grid = GetGrid();
+    GameObject* owner = registry ? registry->Find<GameObject>(gameobject_id) : nullptr;
+    Transform* transform = owner ? owner->GetTransform() : nullptr;
+    if (!grid || !transform) return {0.0f, 0.0f};
+
+    const glm::vec2 local = glm::vec2(cell) * (grid->GetSize() + grid->GetGap());
+    return glm::vec2(transform->GetWorldMatrix() * glm::vec4(local, 0.0f, 1.0f));
 }
 
 void TileMapEditor::AcquireTileMap()

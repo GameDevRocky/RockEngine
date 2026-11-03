@@ -343,7 +343,6 @@ GameObject* GameObject::Copy(){
     GameObject* copy = new GameObject();
     copy->id = id;
     copy->name = name;
-    copy->subscribers = subscribers;
     copy->active = active;
     copy->tag = tag;
     copy->component_ids = component_ids;

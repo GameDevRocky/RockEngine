@@ -147,6 +147,10 @@ serialized, copied into play mode, displayed by the Inspector, and used by compo
 iteration. Authoring reorder operations must go through `GameObject::MoveComponent` so its
 resolved-component cache is invalidated and `COMPONENT_ORDER_CHANGED_EVENT` is emitted.
 
+GameObject and Scene copies do not copy event subscribers. Registration and component initialization
+install fresh subscriptions in the destination world. Registry shutdown handlers resolve their
+own registry ID rather than the active world, since editor and runtime objects share IDs.
+
 ### Project globals
 
 `Globals` is a process-wide `System` singleton reached through `Globals::Get()`. It deliberately
@@ -203,26 +207,40 @@ lightweight shell at startup: its single YAML document contains metadata and cel
 deserializes only metadata; cells load when a `TileMapEditor` acquires it. TileMaps contain
 no TileSet reference. `TileMapEditor` stores independent TileMap and TileSet resource ids, resolves
 both through `AssetManager`, and balances TileMap `Load()`/`Unload()` across its lifecycle. It
-requires a Grid on the same GameObject during `Init()`, stores only its id, and uses it for
-coordinate conversion. Removing the Grid removes the TileMapEditor through a one-shot shutdown
-callback. Grid coordinate conversion reads the current world transform.
+binds to the nearest Grid strictly above its GameObject: direct parent, grandparent, up to the
+root. Grids on the same object, descendants, and siblings are excluded. Author a Grid parent
+with TileMapEditor/TileMapRenderer children; neither component automatically creates a Grid.
+`PostInit()` establishes the association after scene hierarchy initialization. It retains only
+the Grid ID and subscription source IDs/tokens, with no Grid pointer or generation cache.
+Ancestor component additions/removals, Grid shutdown, and parent changes anywhere along the
+branch rebuild the association. `GRID_CHANGED_EVENT` carries the new Grid ID (empty when missing)
+and the companion renderer receives `RENDER_CHANGED_EVENT`. The renderer resolves the editor's
+association instead of maintaining a second binding. Subscriptions are rebuilt for play copies
+and resolve the owning container ID, even when that world is inactive.
+Removing a Grid falls back to the next ancestor, or suspends rendering/painting without removing
+components or tile data. Adding a Grid or reparenting restores the association. Grid size/gap
+define the layout; coordinate conversion, rendering, picking, and brush previews use the tilemap
+child's world transform, including the inherited parent transform.
 `TileId` is the compact value stored in a map cell (`0` is empty); `Tile` is the named sprite/rule
 definition in a `TileSet`. TileSet YAML writes `tiles`, and TileMap cells write `tileId`.
 Grid YAML stores both `cellSize` and `gapSize`; an omitted `gapSize` defaults to zero.
 TileSet edits through `SetTile()` and `RemoveTile()` use the standard editor asset auto-save path.
 `TileMapRenderer` is a serializable component beside `TileMapEditor`. It defaults to Native
 sprite pixel sizing, with FillCell as an alternative; its sorting layer/order follow sprite
-render sorting. TileMapRenderer alone serializes sizing and sorting; TileMapEditor stores only
+render sorting. It stores a material ID (default `m1` for older scenes), and ScenePass uses
+that material's shader and uniforms for each tile with the tile sprite bound after the
+material's own texture slots. TileMapRenderer serializes material, sizing, and sorting; TileMapEditor stores only
 TileMap and TileSet ids. Adding either component requires the other, with defaults when the
 companion is created. ScenePass and PickingPass share cell
 geometry: the authored sprite pivot is placed at the transformed Grid cell center, with Grid
-gap affecting cell stride. Exact eight-neighbor TileSet rules resolve before default sprites.
+gap affecting cell stride. Eight-neighbor TileSet rules can ignore individual cells with `any`;
+the most specific matching rule resolves before the default sprite. Rules are stored in an
+ordered vector; equally specific matches use the first rule, and YAML preserves that order.
 TileMap cell edits are saved after editor strokes and undo/redo; `SaveResource` reports write
-success and only then clears TileMap dirty state. An auto-created Grid starts at 32 by 32;
-preexisting Grid sizes remain authored.
+success and only then clears TileMap dirty state. Grid sizes remain authored.
 `TileDrawList::CollectVisible` resolves sparse cells to textured quads in both ScenePass
-and PickingPass. It applies exact eight-neighbor rules with default sprite fallback, native
-or Fill Cell dimensions, sprite pivots, Grid transforms and gaps, then culls and sorts the
+and PickingPass. It applies eight-neighbor rules with optional `any` cells and default sprite fallback, native
+or Fill Cell dimensions, sprite pivots, tilemap transforms and Grid gaps, then culls and sorts the
 visible cells. ScenePass reports missing TileSets, tile definitions, or sprite assets once
 per component so an authored map with unresolved IDs does not fail silently.
 

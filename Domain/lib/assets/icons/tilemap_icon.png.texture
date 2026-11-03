@@ -1,0 +1,5 @@
+type: Texture2D
+id: cbafe116e27a4848b9416e9979eb8648
+path: Domain/lib/assets/icons/tilemap_icon.png
+filtering: linear
+wrap: repeat

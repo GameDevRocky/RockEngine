@@ -4,6 +4,8 @@
 #include <QPoint>
 #include <functional>
 #include <memory>
+#include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -11,6 +13,7 @@
 #include "engine/core/Observable.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/utils/Properties.hpp"
+#include "engine/tilemap/Tile.hpp"
 #include "utils/ProperyFactory.hpp"          // PropertyWidget<float>
 
 class QBoxLayout;
@@ -19,6 +22,9 @@ class QComboBox;
 class QMouseEvent;
 class QEnterEvent;
 class QGraphicsOpacityEffect;
+class QListWidget;
+class QSpinBox;
+class QTimer;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Floating toolbars overlaid on the Scene view.
@@ -87,6 +93,7 @@ protected:
     // ── Control construction (call from a subclass constructor) ──────────────
     QToolButton* AddButton(const char* icon, const char* tooltip);
     QComboBox* AddComboBox(const char* tooltip, int width);
+    void AddControl(QWidget* widget);
     void AddSeparator();
     void BindFloatProperty(std::function<float()> getter,
                            std::function<void(float)> setter,
@@ -173,6 +180,7 @@ private:
     QToolButton* m_scale     = nullptr;
     QToolButton* m_spriteBox = nullptr;
     QToolButton* m_collider  = nullptr;
+    QToolButton* m_tilemap   = nullptr;
 
     EngineUtils::Proxy<SelectionManager> m_selection;
     // Subscriptions on the SELECTED GAMEOBJECT, not on long-lived singletons --
@@ -180,6 +188,24 @@ private:
     // they point at changes with the selection and dies with the play-mode
     // container. See RewireSelectionSubs.
     std::vector<std::pair<Observable*, int>> m_objectSubs;
+};
+
+// Compact tile selector shown inside the Scene view while the tile paint tool is active.
+class SceneTilePalette final : public SceneOverlayToolbar {
+public:
+    explicit SceneTilePalette(QWidget* parent);
+    void SetEditor(const std::string& componentId);
+    void Refresh();
+
+private:
+    std::string m_componentId;
+    std::string m_tileSetId;
+    std::vector<std::tuple<TileId, std::string, std::string>> m_tiles;
+    QListWidget* m_list = nullptr;
+    std::unique_ptr<PropertyWidget<float>> m_brushSize;
+    QTimer* m_refreshTimer = nullptr;
+    bool m_built = false;
+    bool m_userSelectedTile = false;
 };
 
 // ── Horizontal: what the Scene view shows ────────────────────────────────────

@@ -578,7 +578,6 @@ Scene *Scene::Copy()
     copy->path = path;
     copy->rootobject_ids = rootobject_ids;
     copy->gameobject_ids = gameobject_ids;
-    copy->subscribers = subscribers;
     copy->state = State::Loaded;
     return copy;
 }

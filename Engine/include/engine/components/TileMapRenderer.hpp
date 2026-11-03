@@ -5,7 +5,9 @@
 #include "engine/components/Component.hpp"
 
 class Container;
+class Grid;
 class TileMapEditor;
+class Material;
 
 class TileMapRenderer : public Component {
 public:
@@ -21,6 +23,10 @@ public:
     std::string GetTypeName() const override { return "TileMapRenderer"; }
 
     TileMapEditor* GetTileMapEditor();
+    Grid* GetGrid();
+    Material* GetMaterial() const;
+    const std::string& GetMaterialId() const { return materialId; }
+    void SetMaterial(const std::string& id);
     TileSizingMode GetTileSizingMode() const { return tileSizingMode; }
     void SetTileSizingMode(TileSizingMode value);
     const std::string& GetSortingLayer() const { return sortingLayer; }
@@ -29,6 +35,7 @@ public:
     void SetSortingOrder(int value);
 
 private:
+    std::string materialId = "m1";
     TileSizingMode tileSizingMode = TileSizingMode::Native;
     std::string sortingLayer = "Default";
     int sortingOrder = 0;

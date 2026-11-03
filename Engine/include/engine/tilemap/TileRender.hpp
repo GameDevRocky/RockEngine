@@ -10,18 +10,17 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace TileRender {
-inline glm::vec2 Size(TileMapEditor* editor, TileMapRenderer* renderer, Sprite* sprite) {
+inline glm::vec2 Size(Grid* grid, TileMapRenderer* renderer, Sprite* sprite) {
     return renderer->GetTileSizingMode() == TileMapRenderer::TileSizingMode::FillCell
-        ? editor->GetGrid()->GetSize() : sprite->GetPixelSize();
+        ? grid->GetSize() : sprite->GetPixelSize();
 }
 
 // Sprite shaders use a centered quad and subtract uSize*uPivot. The extra half
 // size places the sprite's authored pivot at the center of the Grid cell.
-inline glm::mat4 Model(TileMapEditor* editor, const glm::ivec2& cell,
+inline glm::mat4 Model(Grid* grid, TileMapRenderer* renderer, const glm::ivec2& cell,
                        const glm::vec2& size) {
-    Grid* grid = editor->GetGrid();
     const glm::vec2 origin = glm::vec2(cell) * (grid->GetSize() + grid->GetGap());
-    return glm::translate(editor->GetTransform()->GetWorldMatrix(),
+    return glm::translate(renderer->GetTransform()->GetWorldMatrix(),
                           glm::vec3(origin + grid->GetSize() * 0.5f + size * 0.5f, 0.0f));
 }
 

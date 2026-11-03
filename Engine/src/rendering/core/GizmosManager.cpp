@@ -212,7 +212,7 @@ void GizmosManager::DrawGizmos(const glm::mat4& view, const glm::mat4& proj, flo
         DrawColliderGizmo(view, proj, viewWidth, viewHeight);
     } else if (m_editMode == EditMode::SpriteBox) {
         DrawSpriteBoxGizmo(view, proj, viewWidth, viewHeight);
-    } else {
+    } else if (m_editMode == EditMode::Transform) {
         DrawTransformGizmo(view, proj, viewWidth, viewHeight);
     }
 }

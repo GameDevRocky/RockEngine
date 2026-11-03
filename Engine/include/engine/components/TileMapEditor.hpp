@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include <glm/glm.hpp>
 
@@ -16,6 +17,7 @@ class TileMapEditor : public Component {
 public:
     static inline const Event TILEMAP_CHANGED_EVENT = TileMapEditor::CreateEvent();
     static inline const Event TILESET_CHANGED_EVENT = TileMapEditor::CreateEvent();
+    static inline const Event GRID_CHANGED_EVENT = TileMapEditor::CreateEvent();
 
     void Init() override;
     void PostInit() override;
@@ -31,6 +33,7 @@ public:
     std::string GetTypeName() const override { return "TileMapEditor"; }
 
     Grid* GetGrid() const;
+    const std::string& GetGridId() const { return gridId; }
     TileMap* GetTileMap() const;
     TileSet* GetTileSet() const;
     const std::string& GetTileMapId() const { return tileMapId; }
@@ -48,10 +51,19 @@ public:
     glm::vec2 CellToWorld(const glm::ivec2& cell) const;
 
 private:
+    struct GridSubscription {
+        std::string sourceId;
+        int subscriptionId;
+    };
+
+    void RefreshGrid(const std::string& removedGridId = {});
+    void SubscribeToGridHierarchy(RuntimeObject* source, Event event);
+    void ClearGridSubscriptions();
     void AcquireTileMap();
     void ReleaseTileMap();
+    std::string gridId;
+    std::vector<GridSubscription> gridSubscriptions;
     std::string tileMapId;
     std::string tileSetId;
-    std::string gridId;
     bool tileMapAcquired = false;
 };

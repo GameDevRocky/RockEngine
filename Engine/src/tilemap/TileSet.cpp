@@ -25,14 +25,17 @@ YAML::Node TileSet::Serialize()
         tileNode["defaultSpriteId"] = tile.defaultSpriteId;
 
         YAML::Node rules(YAML::NodeType::Sequence);
-        for (const auto& [neighbors, spriteId] : tile.autoTileRules)
+        for (const AutoTileRule& tileRule : tile.autoTileRules)
         {
             YAML::Node rule;
             YAML::Node neighborNode(YAML::NodeType::Sequence);
-            for (TileId neighbor : neighbors) neighborNode.push_back(neighbor);
+            for (const auto& neighbor : tileRule.neighbors) {
+                if (neighbor) neighborNode.push_back(*neighbor);
+                else neighborNode.push_back("any");
+            }
             neighborNode.SetStyle(YAML::EmitterStyle::Flow);
             rule["neighbors"] = neighborNode;
-            rule["spriteId"] = spriteId;
+            rule["spriteId"] = tileRule.spriteId;
             rules.push_back(rule);
         }
         tileNode["rules"] = rules;
@@ -69,12 +72,23 @@ void TileSet::Deserialize(const YAML::Node& node)
                 if (!neighborNode || !neighborNode.IsSequence() || neighborNode.size() != 8)
                     continue;
 
-                NeighborMask neighbors{};
+                NeighborPattern neighbors{};
                 for (std::size_t i = 0; i < neighbors.size(); ++i)
-                    neighbors[i] = neighborNode[i].as<TileId>(EMPTY_TILE_ID);
+                {
+                    const YAML::Node value = neighborNode[i];
+                    if (value.IsScalar() && value.Scalar() == "any")
+                        neighbors[i] = std::nullopt;
+                    else
+                        neighbors[i] = value.as<TileId>(EMPTY_TILE_ID);
+                }
 
                 const std::string spriteId = rule["spriteId"].as<std::string>("");
-                tile.autoTileRules[neighbors] = spriteId;
+                auto existing = std::find_if(tile.autoTileRules.begin(), tile.autoTileRules.end(),
+                    [&](const AutoTileRule& candidate) { return candidate.neighbors == neighbors; });
+                if (existing == tile.autoTileRules.end())
+                    tile.autoTileRules.push_back({neighbors, spriteId});
+                else
+                    existing->spriteId = spriteId;
             }
         }
 
@@ -113,6 +127,25 @@ std::string TileSet::ResolveSprite(TileId id, const NeighborMask& neighbors) con
     const Tile* tile = GetTile(id);
     if (!tile) return {};
 
-    const auto rule = tile->autoTileRules.find(neighbors);
-    return rule == tile->autoTileRules.end() ? tile->defaultSpriteId : rule->second;
+    const std::string* bestSprite = nullptr;
+    int bestSpecificity = -1;
+    for (const AutoTileRule& rule : tile->autoTileRules)
+    {
+        bool matches = true;
+        int specificity = 0;
+        for (std::size_t i = 0; i < neighbors.size(); ++i)
+        {
+            if (!rule.neighbors[i]) continue;
+            if (*rule.neighbors[i] != neighbors[i]) {
+                matches = false;
+                break;
+            }
+            ++specificity;
+        }
+        if (matches && specificity > bestSpecificity) {
+            bestSprite = &rule.spriteId;
+            bestSpecificity = specificity;
+        }
+    }
+    return bestSprite ? *bestSprite : tile->defaultSpriteId;
 }

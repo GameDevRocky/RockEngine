@@ -14,6 +14,7 @@
 class SceneToolsToolbar;
 class SceneViewOptionsToolbar;
 class SceneEditController;
+class SceneTilePalette;
 struct SceneEditContext;
 class QFocusEvent;
 
@@ -44,6 +45,7 @@ public:
     // the view. Public so other panels (e.g. the Hierarchy) can trigger "frame
     // selected" via SceneViewGui::Get()->FrameSelection().
     void FrameSelection();
+    void SetTilePaletteEditor(const std::string& componentId);
 
 protected:
     void DrawGizmos();
@@ -105,6 +107,7 @@ private:
     // resize -- but nothing per frame: both follow engine events.
     SceneToolsToolbar* m_toolsToolbar = nullptr;
     SceneViewOptionsToolbar* m_optionsToolbar = nullptr;
+    SceneTilePalette* m_tilePalette = nullptr;
 
     QPoint lastMousePos;
     bool isPanning = false;

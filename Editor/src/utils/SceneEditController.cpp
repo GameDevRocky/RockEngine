@@ -2,6 +2,7 @@
 #include "utils/SceneEditTools.hpp"
 #include "utils/ImGuiInstance.hpp"
 #include "engine/rendering/views/EditorRenderView.hpp"
+#include "engine/rendering/core/GizmosManager.hpp"
 #include <QEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
@@ -43,6 +44,8 @@ bool SceneEditController::FilterImGuiEvent(ImGuiInstance* imgui, QEvent* event) 
         if (mouse->button() == Qt::MiddleButton) return false;
         if (mouse->button() == Qt::LeftButton) io.MouseDown[0] = true;
         if (mouse->button() == Qt::RightButton) io.MouseDown[1] = true;
+        if (GizmosManager::Get()->GetEditMode() == GizmosManager::EditMode::Tilemap)
+            return false;
         return io.WantCaptureMouse || std::any_of(tools.begin(), tools.end(),
             [](const auto& tool) { return tool->WantsCaptureMouse(); });
     }
@@ -52,7 +55,8 @@ bool SceneEditController::FilterImGuiEvent(ImGuiInstance* imgui, QEvent* event) 
         if (mouse->button() == Qt::MiddleButton) return false;
         if (mouse->button() == Qt::LeftButton) io.MouseDown[0] = false;
         if (mouse->button() == Qt::RightButton) io.MouseDown[1] = false;
-        return !captured && io.WantCaptureMouse;
+        return !captured && io.WantCaptureMouse &&
+            GizmosManager::Get()->GetEditMode() != GizmosManager::EditMode::Tilemap;
     }
     if (event->type() == QEvent::Wheel) {
         auto* wheel = static_cast<QWheelEvent*>(event);

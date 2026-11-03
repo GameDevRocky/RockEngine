@@ -83,6 +83,8 @@ QIcon CustomIconProvider::componentIcon(const std::string& typeName) {
         return AssetIcon("audio_source_icon.png");
     if (typeName == "AudioListener")
         return AssetIcon("audio_listener_icon.png");
+    if (typeName == "TileMapEditor" || typeName == "TileMapRenderer")
+        return AssetIcon("tilemap_icon.png");
     if (typeName == "Joint" || typeName.ends_with("Joint"))
         return AssetIcon("joint_icon.png");
     return {};
@@ -101,6 +103,10 @@ QIcon CustomIconProvider::assetIcon(const std::string& typeName) {
         return AssetIcon("shader_icon.png");
     if (typeName == "Scene")
         return AssetIcon("scene_icon.png");
+    if (typeName == "TileMap")
+        return AssetIcon("tilemap_icon.png");
+    if (typeName == "TileSet")
+        return AssetIcon("tileset_icon.png");
     if (typeName == "PythonScript" || typeName == "Script")
         return AssetIcon("python_script_icon.png");
     return {};
@@ -153,6 +159,12 @@ QIcon CustomIconProvider::icon(const QFileInfo &info) const {
     }
     else if (suffix == "texture"){
         return AssetIcon("texture_icon.png");
+    }
+    else if (suffix == "tilemap") {
+        return AssetIcon("tilemap_icon.png");
+    }
+    else if (suffix == "tileset") {
+        return AssetIcon("tileset_icon.png");
     }
     else if (name.startsWith("Cmake",  Qt::CaseInsensitive)){
         return AssetIcon("cmake_icon.png");

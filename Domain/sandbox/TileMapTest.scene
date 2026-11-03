@@ -1,9 +1,9 @@
 id: 529eb68790676b8a55a8a8f3c474d6bd
 components:
-  - id: 1c9f1fb5e4f0045ffaee00fef13d8926
+  - id: 5c67b44c187142b4a2ab02a90b54b065
     enabled: true
     type: Transform
-    gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
+    gameobject: a3c474b4b9ad48be936fc739b1d34eb6
     localPosition: [0, 0]
     localRotation: 0
     localScale: [1, 1]
@@ -11,24 +11,55 @@ components:
   - id: 170064864749773350dd37ee579543b7
     enabled: true
     type: Grid
-    gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
+    gameobject: a3c474b4b9ad48be936fc739b1d34eb6
     cellSize:
-      - 32
-      - 32
+      - 8
+      - 8
     gapSize:
       - 0
       - 0
+  - id: 1c9f1fb5e4f0045ffaee00fef13d8926
+    enabled: true
+    type: Transform
+    gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: 5c67b44c187142b4a2ab02a90b54b065
   - id: 7794bffbd022951bc1e97de1a24e9192
     enabled: true
     type: TileMapEditor
     gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
-    tileMapId: c9118e17ad20ea8fbb0f927bc4c556d6
+    tileMapId: 660eb8f53d400cb140112606ec6f0b73
     tileSetId: 284cb5126af71378b0f70e911f9f376a
   - id: 03e0aa3f9de58b736d3e0c2a84cdc9eb
     enabled: true
     type: TileMapRenderer
     gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
-    tileSizingMode: FillCell
+    materialId: m1
+    tileSizingMode: Native
+    sortingLayer: Default
+    sortingOrder: 0
+  - id: 31c3e580d85ab3fdc5ca3ac477067516
+    enabled: true
+    type: Transform
+    gameobject: c5f6ee159bef1d1fda140403f5f051d0
+    localPosition: [384, 32]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: 5c67b44c187142b4a2ab02a90b54b065
+  - id: f8417ffe03ccdd71f88d25ee11dcaff3
+    enabled: true
+    type: TileMapEditor
+    gameobject: c5f6ee159bef1d1fda140403f5f051d0
+    tileMapId: 660eb8f53d400cb140112606ec6f0b73
+    tileSetId: 284cb5126af71378b0f70e911f9f376a
+  - id: 36a4329cd342ba9348cdf5912dbb42e6
+    enabled: true
+    type: TileMapRenderer
+    gameobject: c5f6ee159bef1d1fda140403f5f051d0
+    materialId: m1
+    tileSizingMode: Native
     sortingLayer: Default
     sortingOrder: 0
   - id: 341234abc64caf1adc2b4828b4a61349
@@ -53,6 +84,14 @@ components:
     cullingLayers: []
     targetTextureId: ""
 gameobjects:
+  - id: a3c474b4b9ad48be936fc739b1d34eb6
+    type: GameObject
+    name: Grid
+    tag: Untagged
+    active: true
+    component_ids:
+      - 5c67b44c187142b4a2ab02a90b54b065
+      - 170064864749773350dd37ee579543b7
   - id: 33cc18e908a7f0550b3b44bf1b234b2d
     type: GameObject
     name: GameObject
@@ -60,9 +99,17 @@ gameobjects:
     active: true
     component_ids:
       - 1c9f1fb5e4f0045ffaee00fef13d8926
-      - 170064864749773350dd37ee579543b7
       - 7794bffbd022951bc1e97de1a24e9192
       - 03e0aa3f9de58b736d3e0c2a84cdc9eb
+  - id: c5f6ee159bef1d1fda140403f5f051d0
+    type: GameObject
+    name: GameObject (1)
+    tag: Untagged
+    active: true
+    component_ids:
+      - 31c3e580d85ab3fdc5ca3ac477067516
+      - f8417ffe03ccdd71f88d25ee11dcaff3
+      - 36a4329cd342ba9348cdf5912dbb42e6
   - id: f1ef6a681c1fa48222aee2c3b52e4dc2
     type: GameObject
     name: Camera

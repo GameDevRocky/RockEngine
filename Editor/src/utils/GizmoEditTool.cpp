@@ -10,7 +10,7 @@ namespace {
 class GizmoEditTool final : public SceneEditTool {
 public:
     bool WantsCaptureMouse() const override {
-        return TilePaintState::Get().tool == TilePaintState::Tool::Select
+        return GizmosManager::Get()->GetEditMode() != GizmosManager::EditMode::Tilemap
             && GizmosManager::Get()->WantsCaptureMouse();
     }
     bool PointerPress(const SceneEditContext&, const SceneEditPointerEvent& event) override {
@@ -20,7 +20,7 @@ public:
         return true;
     }
     bool KeyPress(const SceneEditContext&, int key, Qt::KeyboardModifiers) override {
-        return TilePaintState::Get().tool == TilePaintState::Tool::Select
+        return GizmosManager::Get()->GetEditMode() != GizmosManager::EditMode::Tilemap
             && key == Qt::Key_Delete && GizmosManager::Get()->DeleteSelectedChainPoint();
     }
     void Draw(const SceneEditContext& context) override {
@@ -37,7 +37,7 @@ public:
         // transform/collider drag cannot start underneath a tile stroke.
         ImGuiIO& io = ImGui::GetIO();
         const bool savedMouseDown = io.MouseDown[0];
-        if (TilePaintState::Get().tool != TilePaintState::Tool::Select)
+        if (gizmos->GetEditMode() == GizmosManager::EditMode::Tilemap)
             io.MouseDown[0] = false;
         gizmos->DrawGizmos(camera->GetViewMatrix(), camera->GetProjectionMatrix(),
                            static_cast<float>(context.width), static_cast<float>(context.height));
