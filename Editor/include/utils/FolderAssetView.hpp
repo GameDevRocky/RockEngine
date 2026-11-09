@@ -12,6 +12,7 @@ class FolderAssetView final : public QListView {
 public:
     explicit FolderAssetView(QWidget* parent = nullptr) : QListView(parent) {}
     void SetAssetModel(FolderAssetModel* assets);
+    void RefreshToggleButtons();
 
 protected:
     void keyPressEvent(QKeyEvent* event) override;

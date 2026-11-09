@@ -11,8 +11,18 @@
 AssetPreviewDelegate::AssetPreviewDelegate(QListView* view, QObject* parent)
     : QStyledItemDelegate(parent), m_view(view) {}
 
+void AssetPreviewDelegate::setThumbnailSize(int size) {
+    if (m_thumbnailSize == size) return;
+    m_thumbnailSize = size;
+}
+
+QSize AssetPreviewDelegate::cellSize() const {
+    return {m_thumbnailSize + (kCellWidth - kThumbSize),
+            kThumbTopPad + m_thumbnailSize + kLabelGap + kLabelHeight};
+}
+
 QSize AssetPreviewDelegate::sizeHint(const QStyleOptionViewItem&, const QModelIndex&) const {
-    return {kCellWidth, kCellHeight};
+    return cellSize();
 }
 
 void AssetPreviewDelegate::DrawSpriteGroup(QPainter* painter, const QRect& cell,
@@ -70,10 +80,10 @@ void AssetPreviewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& 
     else if (!asset.isEmpty()) pixmap = AssetThumbnails::forMaterial(asset.toStdString());
     if (pixmap.isNull() && !isSprite)
         pixmap = qvariant_cast<QIcon>(index.data(Qt::DecorationRole)).pixmap(
-            QSize(kThumbSize, kThumbSize), painter->device()->devicePixelRatioF());
+            QSize(m_thumbnailSize, m_thumbnailSize), painter->device()->devicePixelRatioF());
 
-    const QRect imageArea(option.rect.left() + (option.rect.width() - kThumbSize) / 2,
-                          option.rect.top() + kThumbTopPad, kThumbSize, kThumbSize);
+    const QRect imageArea(option.rect.left() + (option.rect.width() - m_thumbnailSize) / 2,
+                          option.rect.top() + kThumbTopPad, m_thumbnailSize, m_thumbnailSize);
     if (!pixmap.isNull()) {
         // QIcon pixmaps can carry a device-pixel ratio (e.g. 2 on a 200% display).
         // Fit and center in logical coordinates, then draw into an explicit

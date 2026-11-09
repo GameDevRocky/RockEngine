@@ -6,22 +6,22 @@ tiles:
     defaultSpriteId: 94d0676634b53caf4b201c3f31feec9b
     rules:
       - neighbors: [1, any, 0, any, 0, any, 1, 1]
-        spriteId: ""
+        spriteId: 81e37aaf41879725e667232d91084e83
       - neighbors: [any, any, any, any, 0, 0, 0, any]
-        spriteId: ""
+        spriteId: 602d2a8e037d30e9d15ed9e4136d3f18
       - neighbors: [0, any, 1, any, 1, 1, 1, any]
-        spriteId: ""
+        spriteId: 91a6f9db6f97ac4a10bacec4cbd65e07
       - neighbors: [1, 1, 1, 1, 1, any, 0, any]
-        spriteId: ""
+        spriteId: 0476af05cef36ea957413b03a128756b
       - neighbors: [1, any, 0, any, 1, 1, 1, 1]
-        spriteId: ""
+        spriteId: e17984f9d64f226ae1684b61ccf1647a
       - neighbors: [0, 0, 0, any, 1, 1, 1, any]
-        spriteId: ""
+        spriteId: 313d1c826ddb0bf57461a8a782411112
       - neighbors: [0, any, 1, 1, 1, any, 0, 0]
-        spriteId: ""
+        spriteId: 5a0729b443a6dcb079445b7f14416d77
       - neighbors: [1, 0, 1, 1, 1, 1, 1, 1]
-        spriteId: ""
+        spriteId: 6920bf0fd1db9260fa725eacb262d954
       - neighbors: [1, 1, 1, 1, 1, 1, 1, 0]
-        spriteId: ""
+        spriteId: 2965bba414d1da196a86b4e3472dce06
       - neighbors: [1, 1, 1, any, 0, any, 1, 1]
-        spriteId: ""
+        spriteId: fdb2f3fba63f3d5677f35fad24f21e71

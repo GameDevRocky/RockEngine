@@ -10,6 +10,7 @@
 #include <QShortcut>
 #include <QFile>
 #include <QLineEdit>
+#include <QSlider>
 #include <QKeyEvent>
 #include <QItemSelectionModel>
 #include <fstream>
@@ -119,7 +120,30 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
 
     static_cast<FolderAssetView*>(gridView)->SetAssetModel(m_entries);
 
-    mainLayout->addWidget(gridView);
+    mainLayout->addWidget(gridView, 1);
+
+    auto* footer = new QWidget(this);
+    auto* footerLayout = new QHBoxLayout(footer);
+    footerLayout->setContentsMargins(8, 2, 8, 2);
+    footerLayout->setSpacing(6);
+    footerLayout->addStretch();
+    footerLayout->addWidget(new QLabel("Size", footer));
+    auto* cellSizeSlider = new QSlider(Qt::Horizontal, footer);
+    cellSizeSlider->setObjectName("FolderCellSizeSlider");
+    cellSizeSlider->setRange(24, 128);
+    cellSizeSlider->setValue(AssetPreviewDelegate::kThumbSize);
+    cellSizeSlider->setFixedWidth(120);
+    cellSizeSlider->setToolTip("Adjust Folder View cell size");
+    cellSizeSlider->setAccessibleName("Folder View cell size");
+    footerLayout->addWidget(cellSizeSlider);
+    mainLayout->addWidget(footer);
+    connect(cellSizeSlider, &QSlider::valueChanged, this, [this](int size) {
+        m_delegate->setThumbnailSize(size);
+        gridView->setIconSize(QSize(size, size));
+        gridView->setGridSize(m_delegate->cellSize());
+        static_cast<FolderAssetView*>(gridView)->RefreshToggleButtons();
+        gridView->viewport()->update();
+    });
     setLayout(mainLayout);
     setAcceptDrops(true);
 

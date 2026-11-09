@@ -14,10 +14,13 @@ public:
     static constexpr int kCellHeight = kThumbTopPad + kThumbSize + kLabelGap + kLabelHeight;
 
     explicit AssetPreviewDelegate(QListView* view, QObject* parent = nullptr);
+    void setThumbnailSize(int size);
+    QSize cellSize() const;
     void paint(QPainter* painter, const QStyleOptionViewItem& option,
                const QModelIndex& index) const override;
     QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override;
 private:
     void DrawSpriteGroup(QPainter* painter, const QRect& cell, const QModelIndex& index) const;
     QListView* m_view;
+    int m_thumbnailSize = kThumbSize;
 };

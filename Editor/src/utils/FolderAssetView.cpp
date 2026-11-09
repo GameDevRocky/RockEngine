@@ -42,6 +42,10 @@ void FolderAssetView::QueueToggleSync() {
     });
 }
 
+void FolderAssetView::RefreshToggleButtons() {
+    QueueToggleSync();
+}
+
 void FolderAssetView::ClearToggleButtons() {
     for (QPushButton* button : m_toggleButtons) {
         button->hide();

@@ -65,8 +65,10 @@ viewport belong in a separate integration suite.
   expansion by texture ID. `FolderAssetModel` inserts sprite sub-assets after each expanded
   texture in the same wrapping grid. `FolderAssetView` also handles copy-only sprite drags.
   Expanded groups have a shared gray backing.
-  All entries use the same fixed cell size. Sprite previews fit the shared thumbnail bounds
-  while preserving aspect ratio and omitting scene pivot offsets. Source image dimensions
+  All entries use one cell size controlled by the Folder View's bottom-right Size slider
+  (24–128 pixel thumbnail bounds). Cell width and height derive from that single value,
+  with fixed room for labels. Sprite previews fit the shared thumbnail bounds while
+  preserving aspect ratio and omitting scene pivot offsets. Source image dimensions
   never enlarge the grid cells. Expansion is remembered per texture for the session.
   Sprite rows select the sprite resource and emit the single/list sprite MIME formats, never
   filesystem URLs. Delete and the context menu remove selected sprite IDs through
