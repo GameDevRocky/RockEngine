@@ -33,10 +33,26 @@
 #include <QEvent>
 #include <QToolTip>
 #include <QVariantAnimation>
+#include <array>
 #include <yaml-cpp/yaml.h>
 #include "engine/rendering/core/AssetMetaService.hpp"
 
 namespace {
+// The starter masks mirror Terrain Tileset's neighbor patterns. -1 means Any;
+// 0 means empty and 1 means the starter tile itself.
+constexpr std::array<std::array<int, 8>, 10> kDefaultTileSetNeighborMasks = {{
+    {{ 1, -1,  0, -1,  0, -1,  1,  1}},
+    {{-1, -1, -1, -1,  0,  0,  0, -1}},
+    {{ 0, -1,  1, -1,  1,  1,  1, -1}},
+    {{ 1,  1,  1,  1,  1, -1,  0, -1}},
+    {{ 1, -1,  0, -1,  1,  1,  1,  1}},
+    {{ 0,  0,  0, -1,  1,  1,  1, -1}},
+    {{ 0, -1,  1,  1,  1, -1,  0,  0}},
+    {{ 1,  0,  1,  1,  1,  1,  1,  1}},
+    {{ 1,  1,  1,  1,  1,  1,  1,  0}},
+    {{ 1,  1,  1, -1,  0, -1,  1,  1}}
+}};
+
 // Can this file be imported (copied in + auto-serialized) by dropping it here?
 //
 // Asked of AssetMetaService rather than answered with a list of its own: that
@@ -780,7 +796,30 @@ void FolderViewGui::CreateNewTileSet() {
     YAML::Node node;
     node["type"]      = "TileSet";
     node["id"]        = EngineUtils::GenerateUUID();
-    node["tiles"] = YAML::Node(YAML::NodeType::Sequence);
+
+    // Start with the Terrain TileSet's neighbor masks, without sprite bindings.
+    YAML::Node tiles(YAML::NodeType::Sequence);
+    YAML::Node tile;
+    tile["id"] = 1;
+    tile["name"] = "Tile 1";
+    tile["defaultSpriteId"] = "";
+
+    YAML::Node rules(YAML::NodeType::Sequence);
+    for (const auto& pattern : kDefaultTileSetNeighborMasks) {
+        YAML::Node rule;
+        YAML::Node neighborIds(YAML::NodeType::Sequence);
+        for (int neighbor : pattern) {
+            if (neighbor < 0) neighborIds.push_back("any");
+            else neighborIds.push_back(neighbor);
+        }
+        neighborIds.SetStyle(YAML::EmitterStyle::Flow);
+        rule["neighbors"] = neighborIds;
+        rule["spriteId"] = "";
+        rules.push_back(rule);
+    }
+    tile["rules"] = rules;
+    tiles.push_back(tile);
+    node["tiles"] = tiles;
 
     std::ofstream out(path.toStdString());
     if (!out.is_open()) {

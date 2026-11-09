@@ -3,14 +3,25 @@ id: 284cb5126af71378b0f70e911f9f376a
 tiles:
   - id: 1
     name: Tile 1
-    defaultSpriteId: 70e369acf30ddca691c356076b59757c
+    defaultSpriteId: 8403587f699a362c1d309fc48bd5b6a9
     rules:
-      - neighbors: [0, 0, 0, 0, 0, 0, 0, 0]
-        spriteId: ""
-      - neighbors: [1, 0, 0, 0, 0, 0, 0, 0]
-        spriteId: ""
-  - id: 2
-    name: Tile 2
-    defaultSpriteId: ""
-    rules:
-      []
+      - neighbors: [1, any, 0, any, 0, any, 1, 1]
+        spriteId: 4f677ede9fa77af696c713e9ce7c5dd6
+      - neighbors: [any, any, any, any, 0, 0, 0, any]
+        spriteId: 69ebf4845c79e5600dae5a6c8b824bf1
+      - neighbors: [0, any, 1, any, 1, 1, 1, any]
+        spriteId: d298a1436821ac2bd1846d82f5b1764a
+      - neighbors: [1, 1, 1, 1, 1, any, 0, any]
+        spriteId: 9e3959500b66515cebcd4ff69d97f546
+      - neighbors: [1, any, 0, any, 1, 1, 1, 1]
+        spriteId: dd3e25293d81c092ba8f213481c8fd23
+      - neighbors: [0, 0, 0, any, 1, 1, 1, any]
+        spriteId: 37251ac55cb7f72c0cb0ecc3b0151498
+      - neighbors: [0, any, 1, 1, 1, any, 0, 0]
+        spriteId: 660899fdb7db66e70bb9edf28ff39b42
+      - neighbors: [1, 0, 1, 1, 1, 1, 1, 1]
+        spriteId: b3c5fd454a9e2abd5cf01eaaa5aca6cf
+      - neighbors: [1, 1, 1, 1, 1, 1, 1, 0]
+        spriteId: ccd6383224765b4f2859c70d461cf10f
+      - neighbors: [1, 1, 1, any, 0, any, 1, 1]
+        spriteId: fddd6207b11c61fc13af7dfd69704e9c

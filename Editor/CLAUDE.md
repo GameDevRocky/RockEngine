@@ -227,6 +227,9 @@ viewport belong in a separate integration suite.
 ## Tilemap authoring
 
 Folder asset selection resolves TileMaps and TileSets through SelectionManager and AssetManager.
+Creating a new TileSet seeds it with tile ID 1 and the 10 default neighbor masks used by the
+Terrain TileSet, including its Any wildcards. The tile's default sprite and every rule sprite
+start empty so they can be assigned in the Inspector.
 The TileSet asset Inspector uses the shared list property widget for tiles and rules. Tile rows
 show the name on the left and default sprite on the right; selecting one exposes its ID, name,
 and default sprite asset picker below. The rules list spans the Inspector width, and its entries

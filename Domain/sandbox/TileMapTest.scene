@@ -13,8 +13,8 @@ components:
     type: Grid
     gameobject: a3c474b4b9ad48be936fc739b1d34eb6
     cellSize:
-      - 8
-      - 8
+      - 1
+      - 1
     gapSize:
       - 0
       - 0
@@ -37,36 +37,14 @@ components:
     type: TileMapRenderer
     gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
     materialId: m1
-    tileSizingMode: Native
-    sortingLayer: Default
-    sortingOrder: 0
-  - id: 31c3e580d85ab3fdc5ca3ac477067516
-    enabled: true
-    type: Transform
-    gameobject: c5f6ee159bef1d1fda140403f5f051d0
-    localPosition: [384, 32]
-    localRotation: 0
-    localScale: [1, 1]
-    parent_id: 5c67b44c187142b4a2ab02a90b54b065
-  - id: f8417ffe03ccdd71f88d25ee11dcaff3
-    enabled: true
-    type: TileMapEditor
-    gameobject: c5f6ee159bef1d1fda140403f5f051d0
-    tileMapId: 660eb8f53d400cb140112606ec6f0b73
-    tileSetId: 284cb5126af71378b0f70e911f9f376a
-  - id: 36a4329cd342ba9348cdf5912dbb42e6
-    enabled: true
-    type: TileMapRenderer
-    gameobject: c5f6ee159bef1d1fda140403f5f051d0
-    materialId: m1
-    tileSizingMode: Native
+    tileSizingMode: FillCell
     sortingLayer: Default
     sortingOrder: 0
   - id: 341234abc64caf1adc2b4828b4a61349
     enabled: true
     type: Transform
     gameobject: f1ef6a681c1fa48222aee2c3b52e4dc2
-    localPosition: [0, 0]
+    localPosition: [-11.081557, 7.0043793]
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
@@ -75,7 +53,7 @@ components:
     type: Camera
     gameobject: f1ef6a681c1fa48222aee2c3b52e4dc2
     projection: 0
-    orthoSize: 540
+    orthoSize: 15.86203
     clearFlags: 0
     clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
     priority: 0
@@ -83,6 +61,30 @@ components:
     viewportRect: [0, 0, 1, 1]
     cullingLayers: []
     targetTextureId: ""
+  - id: 69e015340067cd57049d780b1b84b1f8
+    enabled: false
+    type: Transform
+    gameobject: 3f6228f928b86a9c8215c413adcf5acb
+    localPosition: [-9.117845, 21.424746]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 3e2b88d19291050f0e221b0894ebec7e
+    enabled: false
+    type: Light
+    gameobject: 3f6228f928b86a9c8215c413adcf5acb
+    lightType: 0
+    color: [1, 1, 1, 1]
+    intensity: 1
+    range: 13.58196
+    innerRadius: 0
+    falloff: 1
+    innerAngle: 25
+    outerAngle: 45
+    height: 50
+    normalInfluence: 1
+    castShadows: false
+    shadowStrength: 1
 gameobjects:
   - id: a3c474b4b9ad48be936fc739b1d34eb6
     type: GameObject
@@ -94,22 +96,13 @@ gameobjects:
       - 170064864749773350dd37ee579543b7
   - id: 33cc18e908a7f0550b3b44bf1b234b2d
     type: GameObject
-    name: GameObject
+    name: Layer 1
     tag: Untagged
     active: true
     component_ids:
       - 1c9f1fb5e4f0045ffaee00fef13d8926
       - 7794bffbd022951bc1e97de1a24e9192
       - 03e0aa3f9de58b736d3e0c2a84cdc9eb
-  - id: c5f6ee159bef1d1fda140403f5f051d0
-    type: GameObject
-    name: GameObject (1)
-    tag: Untagged
-    active: true
-    component_ids:
-      - 31c3e580d85ab3fdc5ca3ac477067516
-      - f8417ffe03ccdd71f88d25ee11dcaff3
-      - 36a4329cd342ba9348cdf5912dbb42e6
   - id: f1ef6a681c1fa48222aee2c3b52e4dc2
     type: GameObject
     name: Camera
@@ -118,3 +111,11 @@ gameobjects:
     component_ids:
       - 341234abc64caf1adc2b4828b4a61349
       - b8400d44a8a243df66f9556fd7acfd9c
+  - id: 3f6228f928b86a9c8215c413adcf5acb
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    active: false
+    component_ids:
+      - 69e015340067cd57049d780b1b84b1f8
+      - 3e2b88d19291050f0e221b0894ebec7e
