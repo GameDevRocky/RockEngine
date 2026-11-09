@@ -59,6 +59,20 @@ viewport belong in a separate integration suite.
   loaded scene paths, the startup-scene config, and ScriptComponent module references.
   The sandbox root, its `scripts` directory, and `project.build` are fixed paths; bundled
   `Domain/lib` content is outside the rename area.
+  Textures with sprites expose a disclosure toggle overlaid at the cell's right-center edge,
+  without shifting or reserving space in the preview. `FolderAssetModel` inserts
+  sprite sub-assets after each expanded texture in the same wrapping grid; `FolderAssetView`
+  handles disclosure and copy-only sprite drags. Expanded groups have a shared gray backing.
+  All entries use the same fixed cell size. Sprite previews fit the shared thumbnail bounds
+  while preserving aspect ratio and omitting scene pivot offsets. Source image dimensions
+  never enlarge the grid cells. Expansion is remembered per texture for the session.
+  Sprite rows select the sprite resource and emit the single/list sprite MIME formats, never
+  filesystem URLs. Delete and the context menu remove selected sprite IDs through
+  `AssetManager::RemoveSprite`, which updates their texture descriptor without deleting the
+  texture file. Mixed sprite/file selections use one asynchronous confirmation, then remove
+  files before sprites so a selected texture's children are not removed twice.
+  Sprite labels use `GetName()` when nonempty, otherwise `GetID()`.
+  Observable subscriptions refresh membership, names, dimensions and previews after asset edits.
 - **`src/component-widgets/`** — per-component inspector UI pieces: `ComponentHeader`,
   `ObjectHeader`. Dragging a `ComponentHeader` label or non-interactive header surface starts
   the component MIME drag. A drop back in the Inspector commits through
@@ -93,6 +107,12 @@ viewport belong in a separate integration suite.
   - `AssetThumbnails` / `AssetPreviewDelegate` — asset-browser previews. The Folder grid's
     delegate bypasses Qt's item-style painter, so it paints the default stylesheet's rounded
     hover/selection bubbles itself rather than relying on `QListView::item` rules.
+    Icons are requested at the display's device-pixel ratio and painted into an explicit
+    centered rectangle in logical coordinates, so high-DPI icons fill the same preview area
+    as texture thumbnails without shrinking or shifting toward a corner.
+    Folder sprites use a separate cache of unpadded previews bounded by the thumbnail size;
+    other pickers retain their square previews. Both caches invalidate on sprite and texture
+    resource changes.
   - `InlineColorPicker` — the Inspector's collapsible, in-place color editor. It keeps the
     current-color swatch in the value column and expands a full-width row beneath it with
     saturation/value, hue, alpha, RGBA, and hex controls, without creating a dialog or another

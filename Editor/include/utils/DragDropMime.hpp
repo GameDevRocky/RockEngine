@@ -21,14 +21,14 @@ inline constexpr const char* kGameObjectListMimeType = "application/x-rockengine
 inline constexpr const char* kComponentMimeType = "application/x-rockengine-component-id";
 
 // Custom MIME type used when dragging a Sprite out of the Folder view's texture
-// hover column. The payload is the Sprite's id (UTF-8). A Sprite is a sub-asset of
+// expanded inline grid. The payload is the Sprite's id (UTF-8). A Sprite is a sub-asset of
 // a texture with no file of its own, so it can't ride "text/uri-list" like other
 // assets — SPRITE reference fields accept this type instead (see RefDropFilter).
 inline constexpr const char* kSpriteMimeType = "application/x-rockengine-sprite-id";
 
 // Several sprites at once: newline-separated ids (UTF-8). Emitted by a
-// multi-selection drag out of the asset picker, and by any future multi-select
-// sprite source. A drag that carries this ALSO carries kSpriteMimeType holding
+// multi-selection drag out of the asset picker or Folder view. A drag that
+// carries this ALSO carries kSpriteMimeType holding
 // the first id, so single-value fields keep working untouched — only targets
 // that can take a list (the Animator's frame strip) read this one.
 inline constexpr const char* kSpriteListMimeType = "application/x-rockengine-sprite-id-list";

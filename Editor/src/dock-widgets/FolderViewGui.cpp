@@ -15,13 +15,11 @@
 #include <fstream>
 #include "utils/EditorUtils.hpp"
 #include "utils/AssetPreviewDelegate.hpp"
-#include "utils/AssetThumbnails.hpp"
 #include "utils/ProjectFileRenamer.hpp"
-#include "utils/SpriteHoverColumn.hpp"
+#include "utils/FolderAssetModel.hpp"
+#include "utils/FolderAssetView.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
-#include "engine/rendering/core/Sprite.hpp"
-#include "engine/rendering/core/Resource.hpp"
 #include "engine/core/SelectionManager.hpp"
 #include "engine/core/SceneManager.hpp"
 #include "engine/core/Container.hpp"
@@ -29,10 +27,7 @@
 #include "iostream"
 #include <algorithm>
 #include <QTimer>
-#include <QCursor>
 #include <QEvent>
-#include <QToolTip>
-#include <QVariantAnimation>
 #include <array>
 #include <yaml-cpp/yaml.h>
 #include "engine/rendering/core/AssetMetaService.hpp"
@@ -97,20 +92,18 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     proxy = new AssetFilterProxyModel(model, this);
     proxy->setSourceModel(model);
 
-    gridView = new QListView(this);
+    m_entries = new FolderAssetModel(proxy, this);
+    gridView = new FolderAssetView(this);
     gridView->setViewMode(QListView::IconMode);
     gridView->setMovement(QListView::Static);
     gridView->setResizeMode(QListView::Adjust);
-    gridView->setSpacing(8);
-    // Taken from the delegate rather than restated: it owns the cell layout, and
-    // when these were separate literals, changing the thumbnail size left the
-    // grid still reserving room for the old one.
-    gridView->setIconSize(QSize(AssetPreviewDelegate::kThumbSize,
-                                AssetPreviewDelegate::kThumbSize));
+    gridView->setSpacing(4);
+    gridView->setIconSize(QSize(AssetPreviewDelegate::kThumbSize, AssetPreviewDelegate::kThumbSize));
     gridView->setWrapping(true);
     gridView->setUniformItemSizes(true);
     gridView->setGridSize(QSize(AssetPreviewDelegate::kCellWidth,
-                                AssetPreviewDelegate::kCellHeight));
+                               AssetPreviewDelegate::kCellHeight));
+    gridView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     gridView->setTextElideMode(Qt::ElideRight);  // Add "..." to long filenames
     this->setAcceptDrops(true);
     gridView->setDragEnabled(true);
@@ -121,20 +114,24 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     gridView->setDropIndicatorShown(false);
     gridView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     gridView->setSelectionMode(QAbstractItemView::ExtendedSelection);
-    m_delegate = new AssetPreviewDelegate(model, gridView, this);
+    m_delegate = new AssetPreviewDelegate(gridView, this);
     gridView->setItemDelegate(m_delegate);
 
-    gridView->setModel(proxy);
+    gridView->setModel(m_entries);
 
     mainLayout->addWidget(gridView);
     setLayout(mainLayout);
     setAcceptDrops(true);
 
     connect(gridView, &QListView::clicked, this, [this](const QModelIndex& proxyIndex) {
-        QModelIndex sourceIndex = proxy->mapToSource(proxyIndex);
-        if (model->isDir(sourceIndex)) return;
-
-        const QString filePath = model->filePath(sourceIndex);
+        const QString spriteId = proxyIndex.data(FolderAssetModel::SpriteIdRole).toString();
+        if (!spriteId.isEmpty()) {
+            auto* selection = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
+            if (selection) selection->Select(spriteId.toStdString());
+            return;
+        }
+        if (proxyIndex.data(FolderAssetModel::IsDirectoryRole).toBool()) return;
+        const QString filePath = proxyIndex.data(FolderAssetModel::FilePathRole).toString();
         const QString ext = QFileInfo(filePath).suffix().toLower();
 
         // Every file-backed type AssetManager can load, so clicking one selects
@@ -156,12 +153,12 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     });
 
     connect(gridView, &QListView::doubleClicked, this, [this](const QModelIndex& proxyIndex) {
-        QModelIndex sourceIndex = proxy->mapToSource(proxyIndex);
-        if (model->isDir(sourceIndex)) {
-            Navigate(model->filePath(sourceIndex).toStdString());
-        } else {
-            EditorUtils::OpenInVSCode(model->filePath(sourceIndex).toStdString());
-        }
+        if (!proxyIndex.data(FolderAssetModel::SpriteIdRole).toString().isEmpty()) return;
+        const QString path = proxyIndex.data(FolderAssetModel::FilePathRole).toString();
+        if (proxyIndex.data(FolderAssetModel::IsDirectoryRole).toBool())
+            Navigate(path.toStdString());
+        else
+            EditorUtils::OpenInVSCode(path.toStdString());
     });
 
     // Right-click anywhere in the grid opens the "New" asset menu.
@@ -185,102 +182,11 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
             BeginRename(gridView->currentIndex());
     });
 
-    // ── Sprite hover column ──────────────────────────────────────────────────
     gridView->setMouseTracking(true);
     gridView->viewport()->setMouseTracking(true);
-    gridView->viewport()->installEventFilter(this);
-    connect(gridView, &QAbstractItemView::entered, this, &FolderViewGui::UpdateSpriteHover);
-
-    m_hideTimer = new QTimer(this);
-    m_hideTimer->setSingleShot(true);
-    m_hideTimer->setInterval(140);
-    connect(m_hideTimer, &QTimer::timeout, this, [this]() {
-        // Keep it up while the cursor is actually over the column.
-        if (m_spriteColumn && !m_spriteColumn->geometry().contains(QCursor::pos()))
-            m_spriteColumn->FadeOut();
-    });
-
-    // Tooltip-style delay before the column first appears.
-    m_showTimer = new QTimer(this);
-    m_showTimer->setSingleShot(true);
-    m_showTimer->setInterval(450);
-    connect(m_showTimer, &QTimer::timeout, this, [this]() {
-        // Only appear if the cursor is still over the cell we queued.
-        const QPoint vpPos = gridView->viewport()->mapFromGlobal(QCursor::pos());
-        const QModelIndex idx = gridView->indexAt(vpPos);
-        std::string hoveredId;
-        if (idx.isValid()) {
-            try {
-                YAML::Node node = YAML::LoadFile(
-                    model->filePath(proxy->mapToSource(idx)).toStdString());
-                if (node["id"]) hoveredId = node["id"].as<std::string>();
-            } catch (...) {}
-        }
-        if (hoveredId != m_pendingTextureId) return;   // moved away during the delay
-
-        if (!SpritesForTexture(m_pendingTextureId).thumbs.empty()) {
-            ShowSpriteColumnNow();
-        } else {
-            // A texture with no sprites gets a plain "No Sprites" tooltip. The rect
-            // arg keeps it shown while the cursor stays over the cell.
-            const QRect vr = gridView->visualRect(idx);
-            QToolTip::showText(gridView->viewport()->mapToGlobal(vr.center()),
-                               "No Sprites", gridView->viewport(), vr);
-        }
-    });
-
-    // Animates the hovered texture cell's opacity as its column appears/disappears.
-    m_cellFadeAnim = new QVariantAnimation(this);
-    m_cellFadeAnim->setDuration(180);
-    connect(m_cellFadeAnim, &QVariantAnimation::valueChanged, this,
-            [this](const QVariant& v) {
-                m_fadeOpacityNow = v.toDouble();
-                if (m_delegate) m_delegate->SetCellFade(m_fadedFilePath, m_fadeOpacityNow);
-                RepaintCell(m_fadedFilePath);
-            });
-    connect(m_cellFadeAnim, &QVariantAnimation::finished, this, [this]() {
-        // When a fade-in completes, drop the fade so the cell paints normally again.
-        if (m_fadeOpacityNow >= 0.999) {
-            const QString cleared = m_fadedFilePath;
-            m_fadedFilePath.clear();
-            if (m_delegate) m_delegate->ClearCellFade();
-            RepaintCell(cleared);
-        }
-    });
-
-    // Keep the sprite hover-column in sync with in-memory sprite changes: adding or
-    // removing a sprite invalidates its texture's cached previews.
-    m_assetAddedSub = AssetManager::Get().Subscribe([this](std::any data) -> bool {
-        if (data.has_value()) {
-            try {
-                if (auto* sprite = dynamic_cast<Sprite*>(std::any_cast<Resource*>(data)))
-                    InvalidateSpriteCache(sprite->GetTextureID());
-            } catch (const std::bad_any_cast&) {}
-        }
-        return true;
-    }, AssetManager::ASSET_ADDED_EVENT);
-
-    // A removed asset id can't be mapped back to its texture (the sprite is gone),
-    // so clear everything; the next hover rebuilds what it needs.
-    m_assetRemovedSub = AssetManager::Get().Subscribe([this](std::any) -> bool {
-        m_spriteCache.clear();
-        return true;
-    }, AssetManager::ASSET_REMOVED_EVENT);
 }
 
-FolderViewGui::~FolderViewGui() {
-    if (m_assetAddedSub   >= 0) AssetManager::Get().Unsubscribe(m_assetAddedSub);
-    if (m_assetRemovedSub >= 0) AssetManager::Get().Unsubscribe(m_assetRemovedSub);
-}
-
-void FolderViewGui::InvalidateSpriteCache(const std::string& textureId) {
-    m_spriteCache.erase(textureId);
-    // If the column is currently showing this texture, refresh its contents in place.
-    if (m_spriteColumn && m_spriteColumn->isVisible() && m_pendingTextureId == textureId) {
-        const TextureSprites& e = SpritesForTexture(textureId);   // rebuilds the cache
-        m_spriteColumn->SetSprites(e.thumbs, e.names, e.ids);
-    }
-}
+FolderViewGui::~FolderViewGui() = default;
 
 void FolderViewGui::Init() {
     std::cout << "FolderViewGui Initialized" << std::endl;
@@ -323,19 +229,9 @@ void FolderViewGui::NavigateToPath(const QString& path, bool recordHistory) {
 
     currentPath = normalizedPath;
     QModelIndex sourceRoot = model->index(currentPath);
-    gridView->setRootIndex(proxy->mapFromSource(sourceRoot));
+    m_entries->SetDirectory(proxy->mapFromSource(sourceRoot));
+    gridView->scrollToTop();
     RefreshBreadcrumbs();
-
-    // A new folder invalidates cached sprite previews and any open column.
-    m_spriteCache.clear();
-    if (m_showTimer) m_showTimer->stop();
-    QToolTip::hideText();
-    // Drop any in-progress cell fade before the column's hide() fires columnHidden.
-    if (m_cellFadeAnim) m_cellFadeAnim->stop();
-    m_fadedFilePath.clear();
-    m_fadeOpacityNow = 1.0;
-    if (m_delegate) m_delegate->ClearCellFade();
-    if (m_spriteColumn) m_spriteColumn->hide();
 }
 
 QString FolderViewGui::RelativePathForBreadcrumb(const QString& path) const {
@@ -395,148 +291,12 @@ void FolderViewGui::RefreshBreadcrumbs() {
 
 std::vector<std::string> FolderViewGui::GetSelectedFilePaths() const {
     std::vector<std::string> paths;
-    const auto indexes = gridView->selectionModel()->selectedIndexes();
-    for (const QModelIndex& proxyIndex : indexes) {
-        QModelIndex sourceIndex = proxy->mapToSource(proxyIndex);
-        if (!model->isDir(sourceIndex))
-            paths.push_back(model->filePath(sourceIndex).toStdString());
+    for (const QModelIndex& index : gridView->selectionModel()->selectedIndexes()) {
+        const QString path = index.data(FolderAssetModel::FilePathRole).toString();
+        if (!path.isEmpty() && !index.data(FolderAssetModel::IsDirectoryRole).toBool())
+            paths.push_back(path.toStdString());
     }
     return paths;
-}
-
-// ── Sprite hover column ──────────────────────────────────────────────────────
-void FolderViewGui::EnsureSpriteColumn() {
-    if (m_spriteColumn) return;
-    m_spriteColumn = new SpriteHoverColumn(this);
-    // Cursor on the column cancels the pending hide; leaving it schedules one.
-    connect(m_spriteColumn, &SpriteHoverColumn::hovered, this, [this]() {
-        if (m_hideTimer) m_hideTimer->stop();
-    });
-    connect(m_spriteColumn, &SpriteHoverColumn::unhovered,
-            this, &FolderViewGui::ScheduleHideSpriteColumn);
-    // When the column disappears, the hovered texture fades back in.
-    connect(m_spriteColumn, &SpriteHoverColumn::columnHidden,
-            this, &FolderViewGui::FadeTextureCellIn);
-}
-
-void FolderViewGui::ScheduleHideSpriteColumn() {
-    if (m_hideTimer) m_hideTimer->start();
-}
-
-const FolderViewGui::TextureSprites&
-FolderViewGui::SpritesForTexture(const std::string& textureId) {
-    auto it = m_spriteCache.find(textureId);
-    if (it != m_spriteCache.end()) return it->second;
-
-    // Gather sprites bound to this texture, sorted by name for a stable order.
-    std::vector<std::pair<std::string, std::string>> matches;  // (name, id)
-    for (const auto& [id, sprite] : AssetManager::Get().GetAllSprites())
-        if (sprite && sprite->GetTextureID() == textureId)
-            matches.emplace_back(sprite->GetName(), id);
-    std::sort(matches.begin(), matches.end());
-
-    TextureSprites entry;
-    entry.thumbs.reserve(matches.size());
-    entry.names.reserve(matches.size());
-    entry.ids.reserve(matches.size());
-    for (const auto& [name, id] : matches) {
-        entry.thumbs.push_back(AssetThumbnails::forSprite(id));
-        entry.names.push_back(QString::fromStdString(name));
-        entry.ids.push_back(id);
-    }
-
-    return m_spriteCache.emplace(textureId, std::move(entry)).first->second;
-}
-
-void FolderViewGui::UpdateSpriteHover(const QModelIndex& proxyIndex) {
-    const QModelIndex sourceIndex = proxy->mapToSource(proxyIndex);
-    const QString filePath = model->filePath(sourceIndex);
-    if (QFileInfo(filePath).suffix().toLower() != "texture") {
-        if (m_showTimer) m_showTimer->stop();
-        QToolTip::hideText();
-        ScheduleHideSpriteColumn();
-        return;
-    }
-
-    std::string textureId;
-    try {
-        YAML::Node node = YAML::LoadFile(filePath.toStdString());
-        if (node["id"]) textureId = node["id"].as<std::string>();
-    } catch (...) {}
-    if (textureId.empty()) {
-        if (m_showTimer) m_showTimer->stop();
-        QToolTip::hideText();
-        ScheduleHideSpriteColumn();
-        return;
-    }
-
-    const bool hasSprites = !SpritesForTexture(textureId).thumbs.empty();
-
-    // Queue this cell. First appearance (column, or the "No Sprites" tooltip) waits
-    // for the delay; once the column is already up, switching between textures with
-    // sprites updates it immediately (tooltip-style).
-    const QRect vr = gridView->visualRect(proxyIndex);
-    m_pendingTextureId = textureId;
-    m_pendingFilePath = filePath;
-    m_pendingCellRect = QRect(gridView->viewport()->mapToGlobal(vr.topLeft()), vr.size());
-    if (m_hideTimer) m_hideTimer->stop();
-
-    if (hasSprites && m_spriteColumn && m_spriteColumn->isVisible()) {
-        QToolTip::hideText();
-        ShowSpriteColumnNow();
-    } else {
-        // Moving from a sprite column onto a spriteless texture: drop the column,
-        // then the timer brings up the "No Sprites" tooltip.
-        if (!hasSprites && m_spriteColumn && m_spriteColumn->isVisible())
-            m_spriteColumn->FadeOut();
-        m_showTimer->start();
-    }
-}
-
-void FolderViewGui::ShowSpriteColumnNow() {
-    const TextureSprites& e = SpritesForTexture(m_pendingTextureId);
-    if (e.thumbs.empty()) return;
-    QToolTip::hideText();   // a column supersedes any "No Sprites" tooltip
-    EnsureSpriteColumn();
-    m_spriteColumn->SetSprites(e.thumbs, e.names, e.ids);
-    m_spriteColumn->ShowOverCell(m_pendingCellRect);
-    FadeTextureCellOut(m_pendingFilePath);
-    if (m_hideTimer) m_hideTimer->stop();
-}
-
-void FolderViewGui::RepaintCell(const QString& filePath) {
-    if (filePath.isEmpty()) return;
-    const QModelIndex src = model->index(filePath);
-    if (!src.isValid()) return;
-    const QModelIndex proxyIdx = proxy->mapFromSource(src);
-    if (proxyIdx.isValid()) gridView->update(proxyIdx);
-}
-
-void FolderViewGui::FadeTextureCellOut(const QString& filePath) {
-    // Already fully faded onto this exact cell: nothing to do.
-    if (m_fadedFilePath == filePath && m_fadeOpacityNow < 0.001 &&
-        m_cellFadeAnim->state() != QAbstractAnimation::Running)
-        return;
-
-    // Move the fade to this cell (switching from a previous one restores that one:
-    // once the delegate's key is this cell, the previous repaints at full opacity).
-    const QString prev = (m_fadedFilePath != filePath) ? m_fadedFilePath : QString();
-    m_fadedFilePath = filePath;
-    if (m_delegate) m_delegate->SetCellFade(m_fadedFilePath, m_fadeOpacityNow);
-    if (!prev.isEmpty()) RepaintCell(prev);
-
-    m_cellFadeAnim->stop();
-    m_cellFadeAnim->setStartValue(m_fadeOpacityNow);
-    m_cellFadeAnim->setEndValue(0.0);
-    m_cellFadeAnim->start();
-}
-
-void FolderViewGui::FadeTextureCellIn() {
-    if (m_fadedFilePath.isEmpty()) return;
-    m_cellFadeAnim->stop();
-    m_cellFadeAnim->setStartValue(m_fadeOpacityNow);
-    m_cellFadeAnim->setEndValue(1.0);
-    m_cellFadeAnim->start();
 }
 
 bool FolderViewGui::eventFilter(QObject* obj, QEvent* event) {
@@ -544,13 +304,6 @@ bool FolderViewGui::eventFilter(QObject* obj, QEvent* event) {
         static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
         CancelRename();
         return true;
-    }
-    // Mouse left the grid entirely (e.g. onto the nav bar or another panel):
-    // schedule the column's hide, which the timer cancels if it's over the column.
-    if (obj == gridView->viewport() && event->type() == QEvent::Leave) {
-        if (m_showTimer) m_showTimer->stop();   // cancel a queued appear
-        QToolTip::hideText();
-        ScheduleHideSpriteColumn();
     }
     return QWidget::eventFilter(obj, event);
 }
@@ -608,16 +361,24 @@ void FolderViewGui::ShowContextMenu(const QPoint& pos) {
     newMenu->addAction("Script",   this, [this]() { CreateNewScript(); });
 
     const auto selected = GetSelectedFilePaths();
+    QStringList selectedSprites;
+    for (const QModelIndex& selectedIndex : gridView->selectionModel()->selectedIndexes()) {
+        if (!selectedIndex.data(FolderAssetModel::SpriteIdRole).toString().isEmpty())
+            selectedSprites.push_back(selectedIndex.data(Qt::DisplayRole).toString());
+    }
     if (idx.isValid() && gridView->selectionModel()->selectedIndexes().size() == 1 &&
-        ProjectFileRenamer::CanRename(model->filePath(proxy->mapToSource(idx)))) {
+        ProjectFileRenamer::CanRename(idx.data(FolderAssetModel::FilePathRole).toString())) {
         menu.addSeparator();
         menu.addAction("Rename", this, [this, idx]() { BeginRename(idx); });
     }
-    if (!selected.empty()) {
+    const int deleteCount = static_cast<int>(selected.size()) + selectedSprites.size();
+    if (deleteCount > 0) {
         menu.addSeparator();
-        const QString label = selected.size() == 1
-            ? QString("Delete \"%1\"").arg(QFileInfo(QString::fromStdString(selected.front())).fileName())
-            : QString("Delete %1 Items").arg(selected.size());
+        const QString label = deleteCount == 1
+            ? QString("Delete \"%1\"").arg(selectedSprites.isEmpty()
+                ? QFileInfo(QString::fromStdString(selected.front())).fileName()
+                : selectedSprites.front())
+            : QString("Delete %1 Items").arg(deleteCount);
         menu.addAction(label, this, [this]() { DeleteSelectedAssets(); });
     }
 
@@ -626,8 +387,8 @@ void FolderViewGui::ShowContextMenu(const QPoint& pos) {
 
 void FolderViewGui::BeginRename(const QModelIndex& index) {
     if (!index.isValid()) return;
-    const QString path = model->filePath(proxy->mapToSource(index));
-    if (!ProjectFileRenamer::CanRename(path)) return;
+    const QString path = index.data(FolderAssetModel::FilePathRole).toString();
+    if (path.isEmpty() || !ProjectFileRenamer::CanRename(path)) return;
     CancelRename();
     m_renamePath = path;
     m_renameEditor = new QLineEdit(gridView->viewport());
@@ -672,25 +433,41 @@ void FolderViewGui::CommitRename() {
 
 void FolderViewGui::DeleteSelectedAssets() {
     const auto paths = GetSelectedFilePaths();
-    if (paths.empty()) return;
+    std::vector<std::string> spriteIds;
+    QStringList spriteNames;
+    for (const QModelIndex& index : gridView->selectionModel()->selectedIndexes()) {
+        const QString spriteId = index.data(FolderAssetModel::SpriteIdRole).toString();
+        if (spriteId.isEmpty()) continue;
+        spriteIds.push_back(spriteId.toStdString());
+        spriteNames.push_back(index.data(Qt::DisplayRole).toString());
+    }
+    const int deleteCount = static_cast<int>(paths.size()) + static_cast<int>(spriteIds.size());
+    if (deleteCount == 0) return;
 
-    const QString message = (paths.size() == 1)
+    const QString singleName = spriteNames.isEmpty()
+        ? QFileInfo(QString::fromStdString(paths.front())).fileName()
+        : spriteNames.front();
+    const QString message = (deleteCount == 1)
         ? QString("Are you sure you want to delete \"%1\"?\n\nThis action cannot be undone.")
-              .arg(QFileInfo(QString::fromStdString(paths.front())).fileName())
+              .arg(singleName)
         : QString("Are you sure you want to delete these %1 items?\n\nThis action cannot be undone.")
-              .arg(paths.size());
+              .arg(deleteCount);
 
-    QMessageBox box(this);
-    box.setIcon(QMessageBox::Warning);
-    box.setWindowTitle("Delete Asset");
-    box.setText(message);
-    box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-    box.setDefaultButton(QMessageBox::No);
-    if (box.exec() != QMessageBox::Yes) return;
-
-    for (const std::string& p : paths)
-        DeleteOneAsset(QString::fromStdString(p));
-    // QFileSystemModel watches the directory and drops the removed rows itself.
+    auto* box = new QMessageBox(QMessageBox::Warning, "Delete Asset", message,
+                                QMessageBox::Yes | QMessageBox::No, this);
+    box->setDefaultButton(QMessageBox::No);
+    box->setAttribute(Qt::WA_DeleteOnClose);
+    connect(box, &QMessageBox::finished, this,
+            [this, paths, spriteIds](int result) {
+        if (result != QMessageBox::Yes) return;
+        // Deleting a selected texture also removes its sprites. Resolve each ID
+        // after file deletion so a selected child is never removed twice.
+        for (const std::string& path : paths)
+            DeleteOneAsset(QString::fromStdString(path));
+        for (const std::string& id : spriteIds)
+            if (AssetManager::Get().GetSprite(id)) AssetManager::Get().RemoveSprite(id);
+    });
+    box->open();
 }
 
 void FolderViewGui::DeleteOneAsset(const QString& filePath) {

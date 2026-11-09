@@ -1,428 +1,132 @@
 #include "utils/AssetPreviewDelegate.hpp"
-#include "utils/AssetThumbnails.hpp"
-#include "dock-widgets/SceneViewGui.hpp"
-#include "engine/rendering/core/AssetManager.hpp"
-#include "engine/rendering/core/Material.hpp"
-#include "engine/rendering/core/Shader.hpp"
-#include "engine/rendering/core/Texture2D.hpp"
-#include "engine/rendering/core/Resource.hpp"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include <QPainter>
+#include <QHelpEvent>
 #include <QIcon>
-#include <QFileInfo>
-#include <QSortFilterProxyModel>
-#include <QStyleOptionViewItem>
-#include <QMetaObject>
-#include <QApplication>
-#include <QStyle>
+#include <QListView>
+#include <QPainter>
+#include <QPainterPath>
+#include <QToolTip>
 
-#include <yaml-cpp/yaml.h>
-#include <iostream>
-#include <any>
+#include "utils/AssetThumbnails.hpp"
+#include "utils/FolderAssetModel.hpp"
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Internal helper: read a string field from a YAML file, return "" on error.
-static std::string yamlField(const QString& filePath, const char* key) {
-    try {
-        YAML::Node n = YAML::LoadFile(filePath.toStdString());
-        if (n[key]) return n[key].as<std::string>();
-    } catch (...) {}
-    return {};
+AssetPreviewDelegate::AssetPreviewDelegate(QListView* view, QObject* parent)
+    : QStyledItemDelegate(parent), m_view(view) {}
+
+QSize AssetPreviewDelegate::sizeHint(const QStyleOptionViewItem&, const QModelIndex&) const {
+    return {kCellWidth, kCellHeight};
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-AssetPreviewDelegate::AssetPreviewDelegate(QFileSystemModel* fsModel,
-                                            QAbstractItemView* view,
-                                            QObject* parent)
-    : QStyledItemDelegate(parent), m_fsModel(fsModel), m_view(view)
-{
-    refreshSubscriptions();
-
-    m_managerSubId = AssetManager::Get().Subscribe(
-        [this](std::any data) -> bool {
-            if (data.has_value())
-                try { subscribeToAsset(std::any_cast<Resource*>(data)); }
-                catch (const std::bad_any_cast&) {}
-            return true;
-        }, AssetManager::ASSET_ADDED_EVENT);
+QRect AssetPreviewDelegate::ToggleRect(const QRect& cell) {
+    // An overlay anchored to the cell, independent of the preview's shape.
+    constexpr int size = 16;
+    return QRect(cell.right() - size + 1, cell.top() + (cell.height() - size) / 2, size, size);
 }
 
-AssetPreviewDelegate::~AssetPreviewDelegate() {
-    if (m_managerSubId >= 0)
-        AssetManager::Get().Unsubscribe(m_managerSubId);
-
-    for (auto& [asset, ids] : m_subscriptions)
-        for (int id : ids)
-            asset->Unsubscribe(id);
-
-    // GL resources were created inside SceneView's context; only clean up if
-    // the context is still valid and current.
-    if (m_quadVAO) {
-        SceneViewGui* sv = SceneViewGui::Get();
-        if (sv && sv->context() && sv->context()->isValid()) {
-            sv->makeCurrent();
-            glad_glDeleteVertexArrays(1, &m_quadVAO);
-            glad_glDeleteBuffers(1, &m_quadVBO);
-            sv->doneCurrent();
-        }
+void AssetPreviewDelegate::DrawSpriteGroup(QPainter* painter, const QRect& cell,
+                                          const QModelIndex& index) const {
+    const QString texture = index.data(FolderAssetModel::TextureIdRole).toString();
+    auto sameRow = [&](int row) {
+        const QModelIndex other = index.model()->index(row, 0);
+        return other.isValid() && !other.data(FolderAssetModel::SpriteIdRole).toString().isEmpty() &&
+               other.data(FolderAssetModel::TextureIdRole).toString() == texture &&
+               m_view->visualRect(other).top() == cell.top();
+    };
+    const bool joinsLeft = sameRow(index.row() - 1);
+    const bool joinsRight = sameRow(index.row() + 1);
+    QRectF band = QRectF(cell).adjusted(0, 3, 0, -kLabelHeight - kLabelGap / 2);
+    if (joinsRight) band.setRight(m_view->visualRect(index.model()->index(index.row() + 1, 0)).left());
+    QPainterPath background;
+    background.addRoundedRect(band, 6, 6);
+    if (joinsLeft) background.addRect(QRectF(band.left(), band.top(), 6, band.height()));
+    if (joinsRight) background.addRect(QRectF(band.right() - 6, band.top(), 6, band.height()));
+    background.setFillRule(Qt::WindingFill);
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(QColor(73, 73, 73));
+    painter->drawPath(background);
+    if (!joinsLeft) {
+        const qreal y = band.center().y();
+        painter->drawPolygon(QPolygonF{QPointF(band.left(), y - 5),
+                                      QPointF(band.left() - 5, y),
+                                      QPointF(band.left(), y + 5)});
     }
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-QString AssetPreviewDelegate::filePathForIndex(const QModelIndex& index) const {
-    if (!index.isValid()) return {};
-    // The view may be using a proxy model — map to source before asking fsModel.
-    if (auto* proxy = qobject_cast<const QSortFilterProxyModel*>(index.model())) {
-        return m_fsModel->filePath(proxy->mapToSource(index));
-    }
-    return m_fsModel->filePath(index);
-}
+void AssetPreviewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
+                                const QModelIndex& index) const {
+    if (!index.isValid()) return;
+    const QString sprite = index.data(FolderAssetModel::SpriteIdRole).toString();
+    const QString texture = index.data(FolderAssetModel::TextureIdRole).toString();
+    const QString asset = index.data(FolderAssetModel::AssetIdRole).toString();
+    const bool isSprite = !sprite.isEmpty();
+    const bool selected = option.state.testFlag(QStyle::State_Selected);
+    const bool hovered = option.state.testFlag(QStyle::State_MouseOver);
 
-// ──────────────────────────────────────────────────────────────────────────────
-QSize AssetPreviewDelegate::sizeHint(const QStyleOptionViewItem& option,
-                                      const QModelIndex& index) const {
-    Q_UNUSED(option); Q_UNUSED(index);
-    return QSize(kCellWidth, kCellHeight);
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-void AssetPreviewDelegate::paint(QPainter* painter,
-                                  const QStyleOptionViewItem& option,
-                                  const QModelIndex& index) const {
-    if (!index.isValid()) { QStyledItemDelegate::paint(painter, option, index); return; }
-
-    const QString filePath = filePathForIndex(index);
-    const QString ext      = QFileInfo(filePath).suffix().toLower();
-
-    // ── One paint path for every cell ─────────────────────────────────────────
-    // Rendered cells (textures/materials) and icon cells (folders, scenes,
-    // shaders, fonts) used to be drawn two different ways: the former by
-    // drawCell, the latter by handing off to QStyledItemDelegate::paint /
-    // QStyle::CE_ItemViewItem. That is where the blue selection block behind the
-    // label came from -- the style draws the palette's Highlight brush behind
-    // item text, and clearing State_Selected first did not reliably suppress it.
-    // drawCell never consults the style at all, so routing everything through it
-    // removes the highlight by construction and makes both kinds of cell lay out
-    // identically. It reproduces the default stylesheet's rounded hover and
-    // selection bubbles itself.
-    QPixmap px;
-    QString label;
-
-    if (ext == "texture") {
-        // Render the engine's uploaded GPU texture rather than re-decoding the
-        // source image off disk. Cached by id in AssetThumbnails, so a repaint
-        // is a hash lookup.
-        const std::string id = yamlField(filePath, "id");
-        if (!id.empty()) px = AssetThumbnails::forTexture(id);
-        label = QFileInfo(QFileInfo(filePath).completeBaseName()).completeBaseName();
-    } else if (ext == "mat" || ext == "material") {
-        // Still renders on every paint (and re-parses the .material file to find
-        // its id) -- it predates the thumbnail cache and duplicates
-        // AssetThumbnails::forMaterial; folding the two together is worth doing.
-        px = renderMaterialPreview(filePath);
-        label = QFileInfo(filePath).completeBaseName();
-    } else {
-        // Everything else shows the model's icon (folder, .scene, .py, ...),
-        // scaled into the same thumbnail box the rendered cells use.
-        px = qvariant_cast<QIcon>(index.data(Qt::DecorationRole))
-                 .pixmap(kThumbSize, kThumbSize);
-
-        if (ext == "shader" || ext == "font" || ext == "audio") {
-            // These metas are named after a source file, so they carry a double
-            // extension that would otherwise be shown in full:
-            //   "sprite.glsl.shader" → "sprite.glsl" → "sprite"
-            //   "Nunito.ttf.font"    → "Nunito.ttf"  → "Nunito"
-            //   "jump.wav.audio"     → "jump.wav"    → "jump"
-            label = QFileInfo(QFileInfo(filePath).completeBaseName()).completeBaseName();
-        } else if (ext == "scene" || ext == "tilemap" || ext == "tileset") {
-            label = QFileInfo(filePath).completeBaseName();
-        } else {
-            // The model's display text, not QFileInfo::fileName -- it is what
-            // handles drives, "..", and any name the model chooses to present.
-            label = index.data(Qt::DisplayRole).toString();
-        }
-    }
-
-    if (px.isNull()) {
-        px = QPixmap(kThumbSize, kThumbSize);
-        px.fill(QColor(80, 80, 80));
-    }
-
-    // Fade this cell out while its sprite hover-column is shown (Folder view).
-    const bool faded = !m_fadeFilePath.isEmpty() && filePath == m_fadeFilePath
-                       && m_fadeOpacity < 1.0;
-    if (faded) {
-        painter->save();
-        painter->setOpacity(m_fadeOpacity);
-        drawCell(painter, option, px, label);
-        painter->restore();
-    } else {
-        drawCell(painter, option, px, label);
-    }
-}
-
-void AssetPreviewDelegate::SetCellFade(const QString& filePath, double opacity) {
-    m_fadeFilePath = filePath;
-    m_fadeOpacity  = opacity;
-}
-
-void AssetPreviewDelegate::ClearCellFade() {
-    m_fadeFilePath.clear();
-    m_fadeOpacity = 1.0;
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-void AssetPreviewDelegate::drawCell(QPainter* p,
-                                     const QStyleOptionViewItem& opt,
-                                     const QPixmap& thumb,
-                                     const QString& label) const {
-    p->save();
-
-    // This delegate owns all cell painting, so QListView::item rules cannot draw
-    // its hover/selection states. Mirror default.qss here: a slightly lighter
-    // rounded bubble on hover and a stronger one on selection, with transparent
-    // resting cells and the grid spacing left visible around every item.
-    const bool selected = opt.state.testFlag(QStyle::State_Selected);
-    const bool hovered = opt.state.testFlag(QStyle::State_MouseOver);
+    painter->save();
+    painter->setRenderHint(QPainter::Antialiasing);
+    if (isSprite) DrawSpriteGroup(painter, option.rect, index);
     if (selected || hovered) {
-        p->setRenderHint(QPainter::Antialiasing, true);
-        p->setPen(Qt::NoPen);
-        p->setBrush(selected ? QColor(59, 59, 61) : QColor(49, 49, 51));
-        const QRectF bubble = QRectF(opt.rect).adjusted(1.0, 1.0, -1.0, -1.0);
-        p->drawRoundedRect(bubble, 7.0, 7.0);
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(selected ? QColor(65, 88, 114, 220) : QColor(95, 95, 98, 160));
+        painter->drawRoundedRect(QRectF(option.rect).adjusted(1, 1, -1, -1), 6, 6);
     }
 
-    // Thumbnail centred in top portion of cell
-    QRect iconArea(opt.rect.left() + (opt.rect.width() - kThumbSize) / 2,
-                   opt.rect.top() + kThumbTopPad,
-                   kThumbSize, kThumbSize);
-    if (!thumb.isNull()) {
-        QPixmap scaled = thumb.scaled(kThumbSize, kThumbSize,
-                                      Qt::KeepAspectRatio,
-                                      Qt::SmoothTransformation);
-        QRect dst(iconArea.left() + (iconArea.width()  - scaled.width())  / 2,
-                  iconArea.top()  + (iconArea.height() - scaled.height()) / 2,
-                  scaled.width(), scaled.height());
-        p->drawPixmap(dst, scaled);
+    QPixmap pixmap;
+    if (isSprite) pixmap = AssetThumbnails::forSpritePreview(sprite.toStdString());
+    else if (!texture.isEmpty()) pixmap = AssetThumbnails::forTexture(texture.toStdString());
+    else if (!asset.isEmpty()) pixmap = AssetThumbnails::forMaterial(asset.toStdString());
+    if (pixmap.isNull() && !isSprite)
+        pixmap = qvariant_cast<QIcon>(index.data(Qt::DecorationRole)).pixmap(
+            QSize(kThumbSize, kThumbSize), painter->device()->devicePixelRatioF());
+
+    const QRect imageArea(option.rect.left() + (option.rect.width() - kThumbSize) / 2,
+                          option.rect.top() + kThumbTopPad, kThumbSize, kThumbSize);
+    if (!pixmap.isNull()) {
+        // QIcon pixmaps can carry a device-pixel ratio (e.g. 2 on a 200% display).
+        // Fit and center in logical coordinates, then draw into an explicit
+        // target so physical image pixels never shrink or offset the preview.
+        const QSizeF previewSize = pixmap.deviceIndependentSize().scaled(
+            QSizeF(imageArea.size()), Qt::KeepAspectRatio);
+        QRectF target(QPointF(0, 0), previewSize);
+        target.moveCenter(QRectF(imageArea).center());
+        painter->save();
+        painter->setClipRect(imageArea, Qt::IntersectClip);
+        painter->setRenderHint(QPainter::SmoothPixmapTransform, !isSprite);
+        painter->drawPixmap(target, pixmap, QRectF(pixmap.rect()));
+        painter->restore();
     }
 
-    // Label below the icon — single line, elided with "…" if too long
-    QRect textArea(opt.rect.left() + 2,
-                   opt.rect.top() + kThumbSize + kLabelGap,
-                   opt.rect.width() - 4,
-                   opt.rect.height() - kThumbSize - kLabelGap);
-    p->setPen(QPen(selected ? QColor(Qt::white) : opt.palette.text().color()));
-    const QString elided = p->fontMetrics().elidedText(label, Qt::ElideRight, textArea.width());
-    p->drawText(textArea, Qt::AlignHCenter | Qt::AlignTop, elided);
-
-    p->restore();
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-void AssetPreviewDelegate::ensureQuadGeometry() const {
-    if (m_quadVAO) return;
-
-    // Matches the vertex layout used by ScenePass:
-    // location 0: vec2 pos  (range [-0.5, 0.5])
-    // location 1: vec2 uv   (range [0, 1])
-    float verts[] = {
-        -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f, -0.5f,  1.0f, 0.0f,
-         0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f, -0.5f,  0.0f, 0.0f,
-         0.5f,  0.5f,  1.0f, 1.0f,
-        -0.5f,  0.5f,  0.0f, 1.0f
-    };
-
-    glad_glGenVertexArrays(1, &m_quadVAO);
-    glad_glGenBuffers(1, &m_quadVBO);
-
-    glad_glBindVertexArray(m_quadVAO);
-    glad_glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
-    glad_glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-
-    glad_glEnableVertexAttribArray(0);
-    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-
-    glad_glEnableVertexAttribArray(1);
-    glad_glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                               (void*)(2 * sizeof(float)));
-
-    glad_glBindVertexArray(0);
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Shared FBO render logic used by both sprite and material previews.
-// Caller is responsible for binding the shader, setting all uniforms, and
-// binding/unbinding the quad VAO around the draw call.
-static bool beginFBO(int size, GLuint& fbo, GLuint& colorTex,
-                     GLint& prevFBO, GLint prevViewport[4]) {
-    glad_glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
-    glad_glGetIntegerv(GL_VIEWPORT, prevViewport);
-
-    glad_glGenFramebuffers(1, &fbo);
-    glad_glGenTextures(1, &colorTex);
-
-    glad_glBindTexture(GL_TEXTURE_2D, colorTex);
-    glad_glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size, size, 0,
-                      GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-    glad_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glad_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glad_glBindTexture(GL_TEXTURE_2D, 0);
-
-    glad_glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glad_glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                                GL_TEXTURE_2D, colorTex, 0);
-
-    if (glad_glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        glad_glDeleteFramebuffers(1, &fbo);
-        glad_glDeleteTextures(1, &colorTex);
-        glad_glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
-        return false;
+    if (index.data(FolderAssetModel::HasSpritesRole).toBool()) {
+        const QRect toggle = ToggleRect(option.rect);
+        painter->setPen(QColor(115, 115, 115));
+        painter->setBrush(QColor(61, 61, 61));
+        painter->drawEllipse(toggle.adjusted(1, 1, -1, -1));
+        const QPointF center = QRectF(toggle).center();
+        const int direction = index.data(FolderAssetModel::ExpandedRole).toBool() ? -1 : 1;
+        painter->setPen(Qt::NoPen);
+        painter->setBrush(QColor(210, 210, 210));
+        painter->drawPolygon(QPolygonF{center + QPointF(-2 * direction, -4),
+                                      center + QPointF(3 * direction, 0),
+                                      center + QPointF(-2 * direction, 4)});
     }
 
-    glad_glViewport(0, 0, size, size);
-    glad_glEnable(GL_BLEND);
-    glad_glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glad_glClearColor(0.f, 0.f, 0.f, 0.f);
-    glad_glClear(GL_COLOR_BUFFER_BIT);
-    return true;
+    const QRect labelArea(option.rect.left() + 2, option.rect.bottom() - kLabelHeight + 1,
+                          option.rect.width() - 4, kLabelHeight);
+    painter->setFont(option.font);
+    painter->setPen(selected ? Qt::white : option.palette.text().color());
+    const QString label = painter->fontMetrics().elidedText(index.data().toString(),
+                                                           Qt::ElideRight, labelArea.width());
+    painter->drawText(labelArea, Qt::AlignHCenter | Qt::AlignTop, label);
+    painter->restore();
 }
 
-static QPixmap readFBO(int size, GLuint fbo, GLuint colorTex,
-                        GLint prevFBO, const GLint prevViewport[4]) {
-    QImage img(size, size, QImage::Format_RGBA8888);
-    glad_glReadPixels(0, 0, size, size, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
-    img = img.mirrored(false, true);
-
-    glad_glDeleteFramebuffers(1, &fbo);
-    glad_glDeleteTextures(1, &colorTex);
-    glad_glBindFramebuffer(GL_FRAMEBUFFER, (GLuint)prevFBO);
-    glad_glViewport(prevViewport[0], prevViewport[1],
-                    prevViewport[2], prevViewport[3]);
-
-    return QPixmap::fromImage(img);
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-void AssetPreviewDelegate::subscribeToAsset(Resource* asset) {
-    if (!asset || m_subscriptions.count(asset)) return;
-
-    auto trigger = [this, asset](std::any) -> bool {
-        repaintAsset(asset);
+bool AssetPreviewDelegate::helpEvent(QHelpEvent* event, QAbstractItemView* view,
+                                     const QStyleOptionViewItem& option, const QModelIndex& index) {
+    if (event && index.data(FolderAssetModel::HasSpritesRole).toBool() &&
+        ToggleRect(option.rect).contains(event->pos())) {
+        QToolTip::showText(event->globalPos(), index.data(FolderAssetModel::ExpandedRole).toBool()
+            ? "Hide sprites" : "Show sprites", view->viewport(), ToggleRect(option.rect));
         return true;
-    };
-
-    std::vector<int> ids;
-    if (auto* mat = dynamic_cast<Material*>(asset)) {
-        ids.push_back(mat->Subscribe(trigger, Material::SHADER_CHANGED_EVENT));
-        ids.push_back(mat->Subscribe(trigger, Material::UNIFORM_CHANGED_EVENT));
     }
-
-    if (!ids.empty())
-        m_subscriptions[asset] = std::move(ids);
-}
-
-void AssetPreviewDelegate::refreshSubscriptions() {
-    for (auto& [id, mat] : AssetManager::Get().GetAllMaterials())
-        subscribeToAsset(mat);
-}
-
-void AssetPreviewDelegate::repaintAsset(Resource* asset) {
-    const std::string& fp = asset->GetFilePath();
-    if (fp.empty()) return;
-    QModelIndex src = m_fsModel->index(QString::fromStdString(fp));
-    if (!src.isValid()) return;
-    auto* proxy = qobject_cast<QSortFilterProxyModel*>(m_view->model());
-    QModelIndex proxyIdx = proxy ? proxy->mapFromSource(src) : src;
-    if (proxyIdx.isValid())
-        m_view->update(proxyIdx);
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-QPixmap AssetPreviewDelegate::renderMaterialPreview(const QString& matPath) const {
-    // Resolve the material from AssetManager (it must already be loaded).
-    Material* mat = nullptr;
-    try {
-        YAML::Node node = YAML::LoadFile(matPath.toStdString());
-        if (node["id"]) {
-            std::string id = node["id"].as<std::string>();
-            mat = AssetManager::Get().GetMaterial(id);
-        }
-        // Fallback: try by name
-        if (!mat && node["name"]) {
-            mat = AssetManager::Get().GetMaterialByName(node["name"].as<std::string>());
-        }
-    } catch (const std::exception& e) {
-        std::cerr << "AssetPreviewDelegate: failed to parse " << matPath.toStdString()
-                  << " – " << e.what() << std::endl;
-        return {};
-    }
-
-    if (!mat) return {};
-
-    Shader* shader = mat->GetShader();
-    if (!shader) return {};
-
-    // ── Acquire the shared GL context ─────────────────────────────────────────
-    SceneViewGui* sv = SceneViewGui::Get();
-    if (!sv || !sv->context() || !sv->context()->isValid()) return {};
-
-    sv->makeCurrent();
-
-    // ── Lazy-init shared quad geometry ────────────────────────────────────────
-    ensureQuadGeometry();
-
-    GLuint fbo = 0, colorTex = 0;
-    GLint  prevFBO = 0, prevViewport[4] = {};
-    if (!beginFBO(kThumbSize, fbo, colorTex, prevFBO, prevViewport)) {
-        sv->doneCurrent();
-        return {};
-    }
-
-    // Compute aspect ratio from the material's first texture uniform so the
-    // preview isn't stretched when the texture isn't square.
-    float aspect = 1.f;
-    for (const auto& [uname, texId] : mat->GetTexUniforms()) {
-        Texture2D* t = AssetManager::Get().GetTexture(texId);
-        if (t && t->GetWidth() > 0 && t->GetHeight() > 0) {
-            aspect = static_cast<float>(t->GetWidth()) / static_cast<float>(t->GetHeight());
-            break;
-        }
-    }
-    float sx = (aspect >= 1.f) ? 2.f : 2.f * aspect;
-    float sy = (aspect >= 1.f) ? 2.f / aspect : 2.f;
-
-    shader->Bind();
-
-    const glm::mat4 model = glm::scale(glm::mat4(1.f), glm::vec3(sx, sy, 1.f));
-    const glm::mat4 ident = glm::mat4(1.f);
-
-    const auto& activeUniforms = shader->GetActiveUniforms();
-    auto hasUniform = [&](const char* name) {
-        return activeUniforms.find(name) != activeUniforms.end();
-    };
-
-    // Apply material uniforms first (colors, textures, user values), then
-    // override the render-system uniforms so they can't be stomped.
-    mat->ApplyUniforms();
-
-    if (hasUniform("uModel"))  shader->SetMat4("uModel",  model);
-    if (hasUniform("uView"))   shader->SetMat4("uView",   ident);
-    if (hasUniform("uProj"))   shader->SetMat4("uProj",   ident);
-    if (hasUniform("uSize"))   shader->SetVec2("uSize",   glm::vec2(1.f, 1.f));
-    if (hasUniform("uPivot"))  shader->SetVec2("uPivot",  glm::vec2(0.f, 0.f));
-
-    glad_glBindVertexArray(m_quadVAO);
-    glad_glDrawArrays(GL_TRIANGLES, 0, 6);
-    glad_glBindVertexArray(0);
-    glad_glUseProgram(0);
-
-    QPixmap result = readFBO(kThumbSize, fbo, colorTex, prevFBO, prevViewport);
-    sv->doneCurrent();
-    return result;
+    return QStyledItemDelegate::helpEvent(event, view, option, index);
 }

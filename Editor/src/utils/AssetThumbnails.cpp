@@ -12,6 +12,8 @@
 #include <QImage>
 
 #include <any>
+#include <algorithm>
+#include <cmath>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -41,7 +43,7 @@ static void makeQuad(GLuint& vao, GLuint& vbo)
     glad_glBindVertexArray(0);
 }
 
-static bool beginFBO(int sz, GLuint& fbo, GLuint& colorTex,
+static bool beginFBO(QSize size, GLuint& fbo, GLuint& colorTex,
                      GLint& prevFBO, GLint prevVp[4])
 {
     glad_glGetIntegerv(GL_FRAMEBUFFER_BINDING, &prevFBO);
@@ -50,7 +52,7 @@ static bool beginFBO(int sz, GLuint& fbo, GLuint& colorTex,
     glad_glGenFramebuffers(1, &fbo);
     glad_glGenTextures(1, &colorTex);
     glad_glBindTexture(GL_TEXTURE_2D, colorTex);
-    glad_glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, sz, sz, 0,
+    glad_glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(), 0,
                       GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glad_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glad_glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -67,7 +69,7 @@ static bool beginFBO(int sz, GLuint& fbo, GLuint& colorTex,
         return false;
     }
 
-    glad_glViewport(0, 0, sz, sz);
+    glad_glViewport(0, 0, size.width(), size.height());
     glad_glEnable(GL_BLEND);
     glad_glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glad_glClearColor(0.f, 0.f, 0.f, 0.f);
@@ -75,11 +77,11 @@ static bool beginFBO(int sz, GLuint& fbo, GLuint& colorTex,
     return true;
 }
 
-static QPixmap endFBO(int sz, GLuint fbo, GLuint colorTex,
+static QPixmap endFBO(QSize size, GLuint fbo, GLuint colorTex,
                       GLint prevFBO, const GLint prevVp[4])
 {
-    QImage img(sz, sz, QImage::Format_RGBA8888);
-    glad_glReadPixels(0, 0, sz, sz, GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+    QImage img(size, QImage::Format_RGBA8888);
+    glad_glReadPixels(0, 0, size.width(), size.height(), GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
     img = img.mirrored(false, true);
     glad_glDeleteFramebuffers(1, &fbo);
     glad_glDeleteTextures(1, &colorTex);
@@ -91,7 +93,7 @@ static QPixmap endFBO(int sz, GLuint fbo, GLuint colorTex,
 // Renders a texture — or a sub-rect of one — into a square thumbnail using the
 // engine's sprite shader. Shared by forSprite and forTexture: a whole-texture
 // thumbnail is just the full [0,1] UV range with no pivot offset.
-static QPixmap renderTextureQuad(int sz, Texture2D* tex, glm::vec2 uvMin,
+static QPixmap renderTextureQuad(QSize size, Texture2D* tex, glm::vec2 uvMin,
                                  glm::vec2 uvMax, glm::vec2 pivot)
 {
     Shader* shader = AssetManager::Get().GetShader("s1");
@@ -106,14 +108,14 @@ static QPixmap renderTextureQuad(int sz, Texture2D* tex, glm::vec2 uvMin,
 
     GLuint fbo = 0, colorTex = 0;
     GLint prevFBO = 0, prevVp[4] = {};
-    if (!beginFBO(sz, fbo, colorTex, prevFBO, prevVp)) {
+    if (!beginFBO(size, fbo, colorTex, prevFBO, prevVp)) {
         glad_glDeleteVertexArrays(1, &vao);
         glad_glDeleteBuffers(1, &vbo);
         sv->doneCurrent();
         return {};
     }
 
-    // Letterbox into the square target so the source pixels keep their aspect.
+    // Letterbox to the target aspect; unpadded sprite previews fill their target.
     const glm::vec2 uvScale = uvMax - uvMin;
     float aspect = 1.f;
     if (tex->GetWidth() > 0 && tex->GetHeight() > 0) {
@@ -121,6 +123,7 @@ static QPixmap renderTextureQuad(int sz, Texture2D* tex, glm::vec2 uvMin,
         float ph = uvScale.y * static_cast<float>(tex->GetHeight());
         if (ph > 0.f) aspect = pw / ph;
     }
+    aspect /= static_cast<float>(size.width()) / static_cast<float>(size.height());
     float sx = (aspect >= 1.f) ? 2.f : 2.f * aspect;
     float sy = (aspect >= 1.f) ? 2.f / aspect : 2.f;
 
@@ -155,7 +158,7 @@ static QPixmap renderTextureQuad(int sz, Texture2D* tex, glm::vec2 uvMin,
     glad_glBindVertexArray(0);
     glad_glUseProgram(0);
 
-    QPixmap result = endFBO(sz, fbo, colorTex, prevFBO, prevVp);
+    QPixmap result = endFBO(size, fbo, colorTex, prevFBO, prevVp);
     glad_glDeleteVertexArrays(1, &vao);
     glad_glDeleteBuffers(1, &vbo);
     sv->doneCurrent();
@@ -171,6 +174,7 @@ namespace {
 // id -> rendered thumbnail. Every entry is a pure function of the asset's state
 // at render time, so the eviction wiring below is the whole correctness story.
 std::unordered_map<std::string, QPixmap> g_cache;
+std::unordered_map<std::string, QPixmap> g_spritePreviewCache;
 
 // Assets we already hold a change subscription on, so repeated cache misses for
 // the same id don't stack duplicate callbacks on it.
@@ -265,7 +269,7 @@ QPixmap forMaterial(const std::string& id)
 
     GLuint fbo = 0, colorTex = 0;
     GLint prevFBO = 0, prevVp[4] = {};
-    if (!beginFBO(kSize, fbo, colorTex, prevFBO, prevVp)) {
+    if (!beginFBO(QSize(kSize, kSize), fbo, colorTex, prevFBO, prevVp)) {
         glad_glDeleteVertexArrays(1, &vao);
         glad_glDeleteBuffers(1, &vbo);
         sv->doneCurrent();
@@ -302,7 +306,7 @@ QPixmap forMaterial(const std::string& id)
     glad_glBindVertexArray(0);
     glad_glUseProgram(0);
 
-    QPixmap result = endFBO(kSize, fbo, colorTex, prevFBO, prevVp);
+    QPixmap result = endFBO(QSize(kSize, kSize), fbo, colorTex, prevFBO, prevVp);
     glad_glDeleteVertexArrays(1, &vao);
     glad_glDeleteBuffers(1, &vbo);
     sv->doneCurrent();
@@ -324,7 +328,7 @@ QPixmap forSprite(const std::string& id)
 
     Sprite* sprite = AssetManager::Get().GetSprite(id);
     if (!sprite) return {};
-    QPixmap px = renderTextureQuad(kSize, sprite->GetTexture(), sprite->GetUVMin(),
+    QPixmap px = renderTextureQuad(QSize(kSize, kSize), sprite->GetTexture(), sprite->GetUVMin(),
                                    sprite->GetUVMax(), sprite->GetPivot());
     return Store(id, px, { sprite, sprite->GetTexture() });
 }
@@ -335,8 +339,32 @@ QPixmap forTexture(const std::string& id)
     if (auto it = g_cache.find(id); it != g_cache.end()) return it->second;
 
     Texture2D* tex = AssetManager::Get().GetTexture(id);
-    QPixmap px = renderTextureQuad(kSize, tex, glm::vec2(0.f), glm::vec2(1.f), glm::vec2(0.f));
+    QPixmap px = renderTextureQuad(QSize(kSize, kSize), tex, glm::vec2(0.f), glm::vec2(1.f), glm::vec2(0.f));
     return Store(id, px, { tex });
+}
+
+QPixmap forSpritePreview(const std::string& id)
+{
+    EnsureManagerSubscribed();
+    if (auto it = g_spritePreviewCache.find(id); it != g_spritePreviewCache.end()) return it->second;
+    Sprite* sprite = AssetManager::Get().GetSprite(id);
+    if (!sprite) return {};
+    const auto pixels = sprite->GetPixelSize();
+    if (pixels.x <= 0 || pixels.y <= 0) return {};
+    QSize size(std::max(1, qRound(pixels.x)), std::max(1, qRound(pixels.y)));
+    // A whole-image sprite can be thousands of pixels across. Its folder
+    // thumbnail needs a bounded render target, never a full-size framebuffer.
+    if (size.width() > kSize || size.height() > kSize) {
+        size.scale(kSize, kSize, Qt::KeepAspectRatio);
+        size = size.expandedTo(QSize(1, 1));
+    }
+    QPixmap result = renderTextureQuad(size, sprite->GetTexture(), sprite->GetUVMin(),
+                                       sprite->GetUVMax(), glm::vec2(0.f));
+    if (!result.isNull()) {
+        Watch({sprite, sprite->GetTexture()});
+        g_spritePreviewCache[id] = result;
+    }
+    return result;
 }
 
 // ─── Invalidation ────────────────────────────────────────────────────────────
@@ -344,6 +372,12 @@ QPixmap forTexture(const std::string& id)
 void Invalidate(const std::string& id)
 {
     g_cache.erase(id);
+    g_spritePreviewCache.erase(id);
+    for (auto it = g_spritePreviewCache.begin(); it != g_spritePreviewCache.end(); ) {
+        Sprite* sprite = AssetManager::Get().GetSprite(it->first);
+        if (!sprite || sprite->GetTextureID() == id) it = g_spritePreviewCache.erase(it);
+        else ++it;
+    }
     if (g_cache.empty()) return;
 
     // Thumbnails compose: a sprite's is drawn through its texture, a material's
@@ -375,6 +409,7 @@ void Invalidate(const std::string& id)
 void InvalidateAll()
 {
     g_cache.clear();
+    g_spritePreviewCache.clear();
     // Deliberately keeps g_watched: those subscriptions live on the assets and
     // are still valid, and re-adding them would double up on every asset the
     // cache refills with.
