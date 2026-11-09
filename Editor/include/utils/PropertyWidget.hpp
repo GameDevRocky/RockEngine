@@ -33,6 +33,7 @@
 #include "engine/utils/Properties.hpp"
 #include "engine/utils/AnimationCurve.hpp"
 #include "utils/AssetPickerWidget.hpp"
+#include "utils/VerticalResizeGrip.hpp"
 #include "utils/AssetThumbnails.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/core/GameObject.hpp"
@@ -991,68 +992,6 @@ private:
     QPointer<QLineEdit> edit;
 };
 
-// The drag handle in a ResizableTextEdit's bottom-right corner.
-//
-// A real child widget rather than something painted into the text area: once the
-// vertical scrollbar appears it owns that corner, and only a widget raised above
-// it keeps both the cursor shape and the drag alive. It also scopes the resize
-// cursor to the handle instead of the whole field.
-class TextBoxResizeGrip : public QWidget {
-public:
-    static constexpr int kSize = 14;
-
-    TextBoxResizeGrip(QWidget* target, int minHeight, int maxHeight)
-        : QWidget(target), m_target(target), m_minH(minHeight), m_maxH(maxHeight)
-    {
-        setFixedSize(kSize, kSize);
-        setCursor(Qt::SizeVerCursor);
-        setToolTip("Drag to resize");
-    }
-
-protected:
-    void paintEvent(QPaintEvent*) override {
-        // The three diagonal ticks a browser draws on a <textarea>, so the
-        // gesture is recognisable without having to find the tooltip first.
-        QPainter p(this);
-        p.setPen(QPen(QColor(120, 120, 120)));
-        for (int i = 0; i < 3; ++i) {
-            const int o = 3 + i * 4;
-            p.drawLine(width() - o, height() - 2, width() - 2, height() - o);
-        }
-    }
-
-    void mousePressEvent(QMouseEvent* e) override {
-        if (e->button() != Qt::LeftButton || !m_target) { QWidget::mousePressEvent(e); return; }
-        m_dragging     = true;
-        m_pressGlobalY = e->globalPosition().toPoint().y();
-        m_pressHeight  = m_target->height();
-        e->accept();
-    }
-
-    void mouseMoveEvent(QMouseEvent* e) override {
-        if (!m_dragging || !m_target) { QWidget::mouseMoveEvent(e); return; }
-        // Tracked against the press point in global coordinates, not against the
-        // last move: the grip moves with the widget it is resizing, so a delta
-        // read from local coordinates would chase itself.
-        const int dy = e->globalPosition().toPoint().y() - m_pressGlobalY;
-        m_target->setFixedHeight(std::clamp(m_pressHeight + dy, m_minH, m_maxH));
-        e->accept();
-    }
-
-    void mouseReleaseEvent(QMouseEvent* e) override {
-        m_dragging = false;
-        e->accept();
-    }
-
-private:
-    QWidget* m_target = nullptr;
-    int  m_minH = 0;
-    int  m_maxH = 0;
-    bool m_dragging = false;
-    int  m_pressGlobalY = 0;
-    int  m_pressHeight = 0;
-};
-
 // The multi-line editor behind TextBoxPropertyWidget.
 //
 // QPlainTextEdit rather than QTextEdit: the bound value is a plain std::string,
@@ -1080,7 +1019,7 @@ public:
         // character. Ctrl+Tab still inserts one.
         setTabChangesFocus(true);
 
-        m_grip = new TextBoxResizeGrip(this, HeightForRows(kMinRows), HeightForRows(kMaxRows));
+        m_grip = new VerticalResizeGrip(this, HeightForRows(kMinRows), HeightForRows(kMaxRows));
         setFixedHeight(HeightForRows(rows));
     }
 
@@ -1102,14 +1041,14 @@ protected:
     void resizeEvent(QResizeEvent* e) override {
         QPlainTextEdit::resizeEvent(e);
         if (m_grip) {
-            m_grip->move(width()  - TextBoxResizeGrip::kSize - 1,
-                         height() - TextBoxResizeGrip::kSize - 1);
+            m_grip->move(width()  - VerticalResizeGrip::kSize - 1,
+                         height() - VerticalResizeGrip::kSize - 1);
             m_grip->raise();
         }
     }
 
 private:
-    TextBoxResizeGrip* m_grip = nullptr;
+    VerticalResizeGrip* m_grip = nullptr;
 };
 
 // Paragraph-friendly string property — what Tags::MULTILINE maps to. Same
@@ -1641,7 +1580,11 @@ private:
     }
 
     void rebuildPicker() {
-        if (!m_picker.isNull()) delete m_picker;
+        if (!m_picker.isNull()) {
+            m_pickerCellSize = m_picker->cellSize();
+            m_pickerHeight = m_picker->height();
+            delete m_picker;
+        }
         auto items = buildItems();
 
         std::function<QPixmap(const std::string&)> thumbGen;
@@ -1738,6 +1681,8 @@ private:
         m_picker = new AssetPickerWidget(
             std::move(items), std::move(thumbGen), std::move(fallbackIconGen), m_detail);
         m_picker->setInline(true);
+        m_picker->setCellSize(m_pickerCellSize);
+        if (m_pickerHeight > 0) m_picker->setFixedHeight(m_pickerHeight);
         m_picker->onSelected = [this](const std::string& id) {
             SetValue(id);
             if (onChanged) onChanged(id);
@@ -1895,6 +1840,8 @@ private:
     QPointer<AssetPickerWidget> m_picker;
     ObjectRefPickerObserver* m_pickerObserver = nullptr;
     bool m_pickerExpanded = false;
+    int m_pickerCellSize = AssetPickerWidget::kInlineThumbSize;
+    int m_pickerHeight = 0;
     AssetPreviewPopup* m_previewPopup = nullptr;   // hover preview (asset tags only)
 };
 

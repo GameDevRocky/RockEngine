@@ -1,11 +1,9 @@
 #include "utils/AssetPreviewDelegate.hpp"
 
-#include <QHelpEvent>
 #include <QIcon>
 #include <QListView>
 #include <QPainter>
 #include <QPainterPath>
-#include <QToolTip>
 
 #include "utils/AssetThumbnails.hpp"
 #include "utils/FolderAssetModel.hpp"
@@ -15,12 +13,6 @@ AssetPreviewDelegate::AssetPreviewDelegate(QListView* view, QObject* parent)
 
 QSize AssetPreviewDelegate::sizeHint(const QStyleOptionViewItem&, const QModelIndex&) const {
     return {kCellWidth, kCellHeight};
-}
-
-QRect AssetPreviewDelegate::ToggleRect(const QRect& cell) {
-    // An overlay anchored to the cell, independent of the preview's shape.
-    constexpr int size = 16;
-    return QRect(cell.right() - size + 1, cell.top() + (cell.height() - size) / 2, size, size);
 }
 
 void AssetPreviewDelegate::DrawSpriteGroup(QPainter* painter, const QRect& cell,
@@ -34,7 +26,8 @@ void AssetPreviewDelegate::DrawSpriteGroup(QPainter* painter, const QRect& cell,
     };
     const bool joinsLeft = sameRow(index.row() - 1);
     const bool joinsRight = sameRow(index.row() + 1);
-    QRectF band = QRectF(cell).adjusted(0, 3, 0, -kLabelHeight - kLabelGap / 2);
+    // Cover the thumbnail and its label with one shared sprite-group surface.
+    QRectF band(cell);
     if (joinsRight) band.setRight(m_view->visualRect(index.model()->index(index.row() + 1, 0)).left());
     QPainterPath background;
     background.addRoundedRect(band, 6, 6);
@@ -42,7 +35,7 @@ void AssetPreviewDelegate::DrawSpriteGroup(QPainter* painter, const QRect& cell,
     if (joinsRight) background.addRect(QRectF(band.right() - 6, band.top(), 6, band.height()));
     background.setFillRule(Qt::WindingFill);
     painter->setPen(Qt::NoPen);
-    painter->setBrush(QColor(73, 73, 73));
+    painter->setBrush(QColor(63, 63, 63));
     painter->drawPath(background);
     if (!joinsLeft) {
         const qreal y = band.center().y();
@@ -96,20 +89,6 @@ void AssetPreviewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& 
         painter->restore();
     }
 
-    if (index.data(FolderAssetModel::HasSpritesRole).toBool()) {
-        const QRect toggle = ToggleRect(option.rect);
-        painter->setPen(QColor(115, 115, 115));
-        painter->setBrush(QColor(61, 61, 61));
-        painter->drawEllipse(toggle.adjusted(1, 1, -1, -1));
-        const QPointF center = QRectF(toggle).center();
-        const int direction = index.data(FolderAssetModel::ExpandedRole).toBool() ? -1 : 1;
-        painter->setPen(Qt::NoPen);
-        painter->setBrush(QColor(210, 210, 210));
-        painter->drawPolygon(QPolygonF{center + QPointF(-2 * direction, -4),
-                                      center + QPointF(3 * direction, 0),
-                                      center + QPointF(-2 * direction, 4)});
-    }
-
     const QRect labelArea(option.rect.left() + 2, option.rect.bottom() - kLabelHeight + 1,
                           option.rect.width() - 4, kLabelHeight);
     painter->setFont(option.font);
@@ -118,15 +97,4 @@ void AssetPreviewDelegate::paint(QPainter* painter, const QStyleOptionViewItem& 
                                                            Qt::ElideRight, labelArea.width());
     painter->drawText(labelArea, Qt::AlignHCenter | Qt::AlignTop, label);
     painter->restore();
-}
-
-bool AssetPreviewDelegate::helpEvent(QHelpEvent* event, QAbstractItemView* view,
-                                     const QStyleOptionViewItem& option, const QModelIndex& index) {
-    if (event && index.data(FolderAssetModel::HasSpritesRole).toBool() &&
-        ToggleRect(option.rect).contains(event->pos())) {
-        QToolTip::showText(event->globalPos(), index.data(FolderAssetModel::ExpandedRole).toBool()
-            ? "Hide sprites" : "Show sprites", view->viewport(), ToggleRect(option.rect));
-        return true;
-    }
-    return QStyledItemDelegate::helpEvent(event, view, option, index);
 }

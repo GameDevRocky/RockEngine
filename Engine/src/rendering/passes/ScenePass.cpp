@@ -18,6 +18,30 @@
 #include <algorithm>
 #include <vector>
 
+namespace {
+struct TileVertex {
+    glm::vec2 position;
+    glm::vec2 uv;
+};
+static_assert(sizeof(TileVertex) == 4 * sizeof(float));
+
+struct TileRun {
+    Texture2D* texture;
+    GLint first;
+    GLsizei count;
+};
+
+// The same triangle order as ScenePass's ordinary sprite quad.
+constexpr float kTileQuad[6][4] = {
+    {-0.5f, -0.5f, 0.0f, 0.0f},
+    { 0.5f, -0.5f, 1.0f, 0.0f},
+    { 0.5f,  0.5f, 1.0f, 1.0f},
+    {-0.5f, -0.5f, 0.0f, 0.0f},
+    { 0.5f,  0.5f, 1.0f, 1.0f},
+    {-0.5f,  0.5f, 0.0f, 1.0f}
+};
+}
+
 void ScenePass::Init(){
     float quadVerts[] =
     {
@@ -93,6 +117,21 @@ void ScenePass::Init(){
     glad_glVertexAttribFormat(2, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float));
     glad_glVertexAttribBinding(2, 0);
     glad_glBindVertexArray(0);
+
+    // One dynamic vertex buffer per pass, filled once per tilemap draw. The
+    // existing sprite shader reads these baked world positions and atlas UVs.
+    glad_glGenVertexArrays(1, &tileVao);
+    glad_glGenBuffers(1, &tileVbo);
+    glad_glBindVertexArray(tileVao);
+    glad_glBindBuffer(GL_ARRAY_BUFFER, tileVbo);
+    glad_glBufferData(GL_ARRAY_BUFFER, 0, nullptr, GL_STREAM_DRAW);
+    glad_glEnableVertexAttribArray(0);
+    glad_glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(TileVertex), nullptr);
+    glad_glEnableVertexAttribArray(1);
+    glad_glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TileVertex),
+                               reinterpret_cast<void*>(2 * sizeof(float)));
+    glad_glBindVertexArray(0);
+    glad_glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void ScenePass::Execute(RenderCamera* camera, Scene* scene)
@@ -484,19 +523,65 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                 dc.tileMap, dc.tileRenderer, viewProjection, inspectIssues ? &firstIssue : nullptr);
             if (!firstIssue.empty() && warnedObjects.insert(dc.tileRenderer).second)
                 Console::Warn(firstIssue);
-            for (const VisibleTile& tile : visible) {
-                dc.shader->SetMat4("uModel", tile.model);
+            if (dc.shader->GetID() == "s1" && !visible.empty()) {
+                // The built-in sprite shader transforms aPos/aUV with these
+                // uniforms. Bake those transforms per tile into one stream, then
+                // use identity uniforms for the entire tilemap. Keep consecutive
+                // texture runs separate so transparent tile order is unchanged.
+                std::vector<TileVertex> vertices;
+                vertices.reserve(visible.size() * 6);
+                std::vector<TileRun> runs;
+                for (const VisibleTile& tile : visible) {
+                    if (runs.empty() || runs.back().texture != tile.texture)
+                        runs.push_back({tile.texture, static_cast<GLint>(vertices.size()), 0});
+                    const glm::vec2 pivot = tile.sprite->GetPivot();
+                    const glm::vec2 uvMin = tile.sprite->GetUVMin();
+                    const glm::vec2 uvScale = tile.sprite->GetUVMax() - uvMin;
+                    for (const auto& vertex : kTileQuad) {
+                        const glm::vec2 local = (glm::vec2(vertex[0], vertex[1]) - pivot) * tile.size;
+                        const glm::vec4 world = tile.model * glm::vec4(local, 0.0f, 1.0f);
+                        vertices.push_back({glm::vec2(world),
+                                            uvMin + glm::vec2(vertex[2], vertex[3]) * uvScale});
+                    }
+                    runs.back().count += 6;
+                }
+
+                glad_glBindVertexArray(tileVao);
+                glad_glBindBuffer(GL_ARRAY_BUFFER, tileVbo);
+                glad_glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TileVertex),
+                                  vertices.data(), GL_STREAM_DRAW);
                 const int tileTextureSlot = dc.mat->ApplyUniforms();
-                tile.texture->Bind(tileTextureSlot);
-                dc.shader->SetTexture("uTexture", tileTextureSlot);
-                dc.shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
-                dc.shader->SetFloat("uHasNormalMap", 0.0f);
-                dc.shader->SetVec2("uUVScale", tile.sprite->GetUVMax() - tile.sprite->GetUVMin());
-                dc.shader->SetVec2("uUVOffset", tile.sprite->GetUVMin());
-                dc.shader->SetVec2("uSize", tile.size);
-                dc.shader->SetVec2("uPivot", tile.sprite->GetPivot());
+                dc.shader->SetMat4("uModel", glm::mat4(1.0f));
+                dc.shader->SetVec2("uUVScale", glm::vec2(1.0f));
+                dc.shader->SetVec2("uUVOffset", glm::vec2(0.0f));
+                dc.shader->SetVec2("uSize", glm::vec2(1.0f));
+                dc.shader->SetVec2("uPivot", glm::vec2(0.0f));
                 dc.shader->SetVec4("uColor", glm::vec4(1.0f));
-                glad_glDrawArrays(GL_TRIANGLES, 0, 6);
+                dc.shader->SetFloat("uHasNormalMap", 0.0f);
+                dc.shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
+                dc.shader->SetTexture("uTexture", tileTextureSlot);
+                for (const TileRun& run : runs) {
+                    run.texture->Bind(tileTextureSlot);
+                    glad_glDrawArrays(GL_TRIANGLES, run.first, run.count);
+                }
+                glad_glBindVertexArray(vao);
+            } else {
+                // Custom shaders may use local aPos or per-tile uModel values
+                // for effects, so retain their original draw path.
+                for (const VisibleTile& tile : visible) {
+                    dc.shader->SetMat4("uModel", tile.model);
+                    const int tileTextureSlot = dc.mat->ApplyUniforms();
+                    tile.texture->Bind(tileTextureSlot);
+                    dc.shader->SetTexture("uTexture", tileTextureSlot);
+                    dc.shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
+                    dc.shader->SetFloat("uHasNormalMap", 0.0f);
+                    dc.shader->SetVec2("uUVScale", tile.sprite->GetUVMax() - tile.sprite->GetUVMin());
+                    dc.shader->SetVec2("uUVOffset", tile.sprite->GetUVMin());
+                    dc.shader->SetVec2("uSize", tile.size);
+                    dc.shader->SetVec2("uPivot", tile.sprite->GetPivot());
+                    dc.shader->SetVec4("uColor", glm::vec4(1.0f));
+                    glad_glDrawArrays(GL_TRIANGLES, 0, 6);
+                }
             }
             continue;
         }
@@ -537,5 +622,7 @@ void ScenePass::Shutdown()
     if (particleVao) glad_glDeleteVertexArrays(1, &particleVao);
     if (textVao) glad_glDeleteVertexArrays(1, &textVao);
     if (trailVao) glad_glDeleteVertexArrays(1, &trailVao);
-    vao = vbo = particleVao = textVao = trailVao = 0;
+    if (tileVbo) glad_glDeleteBuffers(1, &tileVbo);
+    if (tileVao) glad_glDeleteVertexArrays(1, &tileVao);
+    vao = vbo = particleVao = textVao = trailVao = tileVao = tileVbo = 0;
 }

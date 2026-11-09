@@ -59,10 +59,12 @@ viewport belong in a separate integration suite.
   loaded scene paths, the startup-scene config, and ScriptComponent module references.
   The sandbox root, its `scripts` directory, and `project.build` are fixed paths; bundled
   `Domain/lib` content is outside the rename area.
-  Textures with sprites expose a disclosure toggle overlaid at the cell's right-center edge,
-  without shifting or reserving space in the preview. `FolderAssetModel` inserts
-  sprite sub-assets after each expanded texture in the same wrapping grid; `FolderAssetView`
-  handles disclosure and copy-only sprite drags. Expanded groups have a shared gray backing.
+  Textures with sprites expose a focusable `QPushButton` centered on the cell's right edge,
+  without shifting or reserving space in the preview. `FolderAssetView` keeps buttons
+  aligned with visible texture cells on scroll, resize, and model changes; their clicks toggle
+  expansion by texture ID. `FolderAssetModel` inserts sprite sub-assets after each expanded
+  texture in the same wrapping grid. `FolderAssetView` also handles copy-only sprite drags.
+  Expanded groups have a shared gray backing.
   All entries use the same fixed cell size. Sprite previews fit the shared thumbnail bounds
   while preserving aspect ratio and omitting scene pivot offsets. Source image dimensions
   never enlarge the grid cells. Expansion is remembered per texture for the session.
@@ -135,6 +137,11 @@ viewport belong in a separate integration suite.
     and imports under the GIL.
     Script selectors and nested list/event references must forward `GetFullRowWidget()` so their
     detail grids receive the same full-width row as ordinary reflected references.
+    The inline reference picker has the same bottom-right vertical resize grip as the
+    multiline text editor. Its bottom-right cell-size slider scales thumbnail cells;
+    at the small end it switches to full-width name rows, falling back to IDs for
+    unnamed assets or objects. Cell size and picker height survive collapsing and
+    reopening the same Inspector row.
   - `SceneTree` / `SceneTreeItemDelegate` — hierarchy tree model/rendering.
   - `ImGuiInstance` — ImGui + ImGuizmo for in-viewport gizmos, rendered over the Qt GL widget.
   - `CollapsableWidget`, `EditorUtils`, `MessageGui`.

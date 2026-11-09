@@ -315,6 +315,11 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
   buffer), DebugPass — composed by a `RenderPipeline`. A pass may **borrow** shaders/textures
   from `AssetManager` but must never delete them in `Shutdown()` — see the ownership comment on
   `RenderPass`.
+  `ScenePass` streams visible tilemap quads for the built-in sprite shader into one vertex
+  buffer upload, then draws consecutive texture runs in tile order. It bakes the tile model,
+  size, pivot, and atlas UVs into vertices; normal maps remain disabled for tiles. Custom
+  shaders keep the per-tile path because they may depend on local vertex positions or model
+  uniforms. Picking remains an on-demand per-tile draw path.
 - OpenGL 4.6 core profile.
 
 ### Particle simulation backends

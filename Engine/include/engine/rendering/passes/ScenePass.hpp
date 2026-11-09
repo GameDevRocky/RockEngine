@@ -60,6 +60,11 @@ private:
     // attribute is why trails cannot reuse textVao or the sprite quad.
     unsigned int trailVao = 0;
 
+    // Streaming tile vertices for the built-in sprite shader. Consecutive
+    // texture runs share one upload while retaining the tilemap's draw order.
+    unsigned int tileVao = 0;
+    unsigned int tileVbo = 0;
+
     // Resolved once on first use; the material map only grows via asset loads,
     // so the pointer stays valid for the pass's lifetime (borrowed, not owned).
     Material* defaultMaterial = nullptr;

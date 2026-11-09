@@ -16,7 +16,7 @@ RockEngine is a cross-platform 2D game engine: a C++20/OpenGL/Box2D runtime, a Q
 - Normal incremental build: `cmake --build --preset local` after a configured checkout.
 - Build output is under `build/local/bin/`.
 - For editor or engine changes with a visible runtime surface, use the repo-local `$verify` skill in `.agents/skills/verify`.
-- Prefer focused validation first, then build the affected targets. Report anything not run and why.
+- Prefer focused validation first, then build the affected targets and run the relevant unit-test suite (`./run-tests.ps1` on Windows or `./run-tests.sh` on macOS/Linux). A locked launcher does not prevent building and running test targets. Report anything not run and why.
 
 ## Cross-layer invariants
 

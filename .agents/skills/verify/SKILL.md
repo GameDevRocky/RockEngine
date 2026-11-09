@@ -1,11 +1,11 @@
 ---
 name: verify
-description: Build RockEngine with its local MSVC/CMake preset to confirm editor or engine changes compile. Use when verifying RockEngine code changes. This is build-only verification; never launch, run, wait for, or drive the editor or player.
+description: Build RockEngine and run its unit tests with the local preset. Use when verifying RockEngine code changes. Never launch, run, wait for, or drive the editor or player.
 ---
 
 # Verify RockEngine
 
-Perform build-only verification. Do not launch `RockEngineLauncher.exe`, `RockEnginePlayer.exe`, or any other engine executable. Do not wait for, automate, or capture screenshots of the editor.
+Build the changed targets and run the relevant unit tests. Do not launch `RockEngineLauncher.exe` or `RockEnginePlayer.exe`. Do not wait for, automate, or capture screenshots of the editor.
 
 ## Build
 
@@ -20,6 +20,18 @@ cmake --build --preset local
 
 `Editor/CMakeLists.txt` globs `src/**` with `CONFIGURE_DEPENDS`. A new file can cause a normal `GLOB mismatch!` message and reconfiguration. Do not pipe the build through `Select-String`; use `Select-Object -Last 40` when output must be shortened.
 
+## Unit tests
+
+After building, run the affected suite from the same developer shell:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File ./run-tests.ps1 engine   # Engine changes
+powershell -NoProfile -ExecutionPolicy Bypass -File ./run-tests.ps1 editor   # Editor changes
+powershell -NoProfile -ExecutionPolicy Bypass -File ./run-tests.ps1          # Changes spanning both suites
+```
+
+The process-scoped execution-policy flag is needed on Windows machines that block local PowerShell scripts. On macOS/Linux use the corresponding `./run-tests.sh` commands. The scripts build their test targets before executing them. If the full build cannot relink a running launcher, still run the relevant test command; test targets build independently. Use a focused test selector first when it helps diagnose a failure, then run the affected suite.
+
 ## Finish
 
-Report whether the build succeeded. If it failed, report the failing target and the relevant compiler or linker errors. Do not perform runtime verification.
+Report build and unit-test results separately. For failures, report the target or test and relevant error. Do not run the editor or player for verification.

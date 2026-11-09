@@ -19,8 +19,10 @@
 #include <QGuiApplication>
 #include <QTimer>
 #include <QPushButton>
+#include <QSlider>
 #include <QMimeData>
 #include <QAbstractItemView>
+#include "utils/VerticalResizeGrip.hpp"
 
 // A QListWidget that hands drag payload construction back to its owner, so the
 // picker can emit whatever MIME type the assets it is showing call for (sprite
@@ -52,6 +54,7 @@ public:
     static constexpr int kInlineThumbSize  = kThumbSize / 2;
     static constexpr int kInlineCellWidth  = 64;
     static constexpr int kInlineCellHeight = 68;
+    static constexpr int kListThreshold = 28;
 
     // thumbnailGen:    optional GL/image render → QPixmap.
     // fallbackIconGen: optional — used when thumbnailGen returns null (e.g. shaders via CustomIconProvider).
@@ -121,6 +124,21 @@ public:
         root->addWidget(m_confirmBar);
         m_confirmBar->hide();
 
+        m_footer = new QWidget(this);
+        auto* footerLayout = new QHBoxLayout(m_footer);
+        footerLayout->setContentsMargins(0, 0, 0, 0);
+        footerLayout->setSpacing(4);
+        footerLayout->addStretch();
+        footerLayout->addWidget(new QLabel("Size", m_footer));
+        m_cellSizeSlider = new QSlider(Qt::Horizontal, m_footer);
+        m_cellSizeSlider->setRange(16, 128);
+        m_cellSizeSlider->setValue(kThumbSize);
+        m_cellSizeSlider->setFixedWidth(100);
+        m_cellSizeSlider->setToolTip("Cell size; drag left for list view");
+        m_cellSizeSlider->setAccessibleName("Reference cell size");
+        footerLayout->addWidget(m_cellSizeSlider);
+        root->addWidget(m_footer);
+
         buildAllItems();
 
         // Show ~3 rows by default; let the popup resize vertically.
@@ -132,6 +150,8 @@ public:
                 this, &AssetPickerWidget::commitSelection);
         connect(m_list, &QListWidget::itemSelectionChanged,
                 this, [this]() { updateConfirmText(); });
+        connect(m_cellSizeSlider, &QSlider::valueChanged,
+                this, [this] { updateCellLayout(); });
 
         m_search->setFocus();
     }
@@ -145,6 +165,8 @@ public:
     std::function<void()> onDismissed;
 
     void setTitle(const QString& t) { if (m_title) m_title->setText(t); }
+    int cellSize() const { return m_cellSizeSlider->value(); }
+    void setCellSize(int size) { m_cellSizeSlider->setValue(size); }
 
     // Replace the model after an engine Observable reports a structural or name
     // change. Preserves the search text and current selection, so an event-driven
@@ -226,10 +248,19 @@ public:
             m_list->setWordWrap(false);
             m_list->setTextElideMode(Qt::ElideRight);
             m_cellWidth = 0;
-            setFixedHeight(kInlineCellHeight * 2 + m_search->sizeHint().height() + 18);
+            m_cellHeight = 0;
+            m_footer->layout()->setContentsMargins(0, 0, VerticalResizeGrip::kSize + 3, 0);
+            const int footerHeight = m_footer->sizeHint().height();
+            const int minHeight = kInlineCellHeight + m_search->sizeHint().height()
+                                + footerHeight + 18;
+            const int maxHeight = 650;
+            m_resizeGrip = new VerticalResizeGrip(this, minHeight, maxHeight);
+            setFixedHeight(kInlineCellHeight * 2 + m_search->sizeHint().height()
+                           + footerHeight + 18);
             setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+            m_cellSizeSlider->setValue(kInlineThumbSize);
             show();
-            updateGridColumns();
+            updateCellLayout();
             applySelection();
         }
     }
@@ -263,8 +294,17 @@ public:
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override {
         if (watched == m_list->viewport() && event->type() == QEvent::Resize)
-            updateGridColumns();
+            updateCellLayout();
         return QWidget::eventFilter(watched, event);
+    }
+
+    void resizeEvent(QResizeEvent* event) override {
+        QWidget::resizeEvent(event);
+        if (m_resizeGrip) {
+            m_resizeGrip->move(width() - VerticalResizeGrip::kSize - 1,
+                               height() - VerticalResizeGrip::kSize - 1);
+            m_resizeGrip->raise();
+        }
     }
 
     void keyPressEvent(QKeyEvent* e) override {
@@ -388,11 +428,13 @@ private:
     void buildAllItems() {
         m_list->clear();
         m_cellWidth = 0;
+        m_cellHeight = 0;
         for (const auto& [name, id] : m_allItems) {
-            auto* item = new QListWidgetItem(QString::fromStdString(name));
+            const QString display = QString::fromStdString(name.empty() ? id : name);
+            auto* item = new QListWidgetItem(display);
             item->setData(Qt::UserRole, QString::fromStdString(id));
             item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
-            item->setToolTip(QString::fromStdString(name));
+            item->setToolTip(display);
 
             QPixmap px;
             if (id.empty()) {
@@ -412,8 +454,7 @@ private:
             }
 
             if (!px.isNull()) {
-                item->setIcon(QIcon(px.scaled(kThumbSize, kThumbSize,
-                    Qt::KeepAspectRatio, Qt::SmoothTransformation)));
+                item->setIcon(QIcon(px));
             } else if (m_fallbackIconGen) {
                 QIcon icon = m_fallbackIconGen(id);
                 if (!icon.isNull()) {
@@ -430,30 +471,61 @@ private:
             }
             m_list->addItem(item);
         }
-        updateGridColumns();
+        updateCellLayout();
         if (m_list->count() > 0)
             m_list->setCurrentRow(0);
     }
 
-    // CSS-grid-like `repeat(auto-fit, minmax(minCellWidth, 1fr))`: choose how
-    // many minimum-width cells fit, then divide the whole viewport evenly among
-    // them. Explicit item size hints make the painted hover/selection surfaces
-    // expand with their grid cells instead of leaving a fixed-width tile inside.
-    void updateGridColumns() {
+    // At the slider's small end, use full-width rows with names. Otherwise fit
+    // as many thumbnail cells as the viewport allows and stretch them evenly.
+    void updateCellLayout() {
         if (!m_list || !m_list->viewport()) return;
         const int available = m_list->viewport()->width();
         if (available <= 0) return;
 
-        const int minCellWidth = m_inline ? kInlineCellWidth : kCellWidth;
-        const int cellHeight = m_inline ? kInlineCellHeight : kCellHeight;
+        const int thumb = m_cellSizeSlider ? m_cellSizeSlider->value() : kThumbSize;
+        const bool listMode = thumb <= kListThreshold;
+        if (listMode != m_listMode) {
+            m_listMode = listMode;
+            m_cellWidth = 0;
+            m_cellHeight = 0;
+            m_list->setViewMode(listMode ? QListView::ListMode : QListView::IconMode);
+            m_list->setFlow(listMode ? QListView::TopToBottom : QListView::LeftToRight);
+            m_list->setWrapping(!listMode);
+            m_list->setMovement(QListView::Static);
+            m_list->setResizeMode(QListView::Adjust);
+            m_list->setSpacing(0);
+            m_list->setGridSize(QSize());
+        }
+        if (listMode) {
+            constexpr int rowHeight = 36;
+            m_list->setIconSize(QSize(20, 20));
+            if (m_cellWidth == available && m_cellHeight == rowHeight) return;
+            m_cellWidth = available;
+            m_cellHeight = rowHeight;
+            for (int i = 0; i < m_list->count(); ++i) {
+                auto* item = m_list->item(i);
+                item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+                item->setSizeHint(QSize(available, rowHeight));
+            }
+            return;
+        }
+
+        m_list->setIconSize(QSize(thumb, thumb));
+        const int minCellWidth = thumb + (m_inline ? 28 : 18);
+        const int cellHeight = thumb + (m_inline ? 32 : 30);
         const int columns = std::max(1, available / minCellWidth);
         const int cellWidth = std::max(1, available / columns);
-        if (cellWidth == m_cellWidth) return;
+        if (cellWidth == m_cellWidth && cellHeight == m_cellHeight) return;
         m_cellWidth = cellWidth;
+        m_cellHeight = cellHeight;
 
         m_list->setGridSize(QSize(cellWidth, cellHeight));
-        for (int i = 0; i < m_list->count(); ++i)
-            m_list->item(i)->setSizeHint(QSize(cellWidth, cellHeight));
+        for (int i = 0; i < m_list->count(); ++i) {
+            auto* item = m_list->item(i);
+            item->setTextAlignment(Qt::AlignHCenter | Qt::AlignBottom);
+            item->setSizeHint(QSize(cellWidth, cellHeight));
+        }
     }
 
     QWidget*     m_header  = nullptr;
@@ -463,14 +535,19 @@ private:
     PickerListWidget* m_list = nullptr;
     QWidget*     m_confirmBar = nullptr;
     QPushButton* m_confirmBtn = nullptr;
+    QWidget*     m_footer = nullptr;
+    QSlider*     m_cellSizeSlider = nullptr;
+    VerticalResizeGrip* m_resizeGrip = nullptr;
     std::vector<std::pair<std::string, std::string>> m_allItems;
     std::function<QPixmap(const std::string& id)>    m_thumbnailGen;
     std::function<QIcon(const std::string& id)>      m_fallbackIconGen;
     std::string m_selectedId;
     int    m_cellWidth   = 0;
+    int    m_cellHeight  = 0;
     bool   m_multiSelect = false;
     bool   m_persistent  = false;
     bool   m_inline      = false;
+    bool   m_listMode    = false;
     bool   m_dragging    = false;
     QPoint m_dragOffset;
 };

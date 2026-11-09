@@ -117,7 +117,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     m_delegate = new AssetPreviewDelegate(gridView, this);
     gridView->setItemDelegate(m_delegate);
 
-    gridView->setModel(m_entries);
+    static_cast<FolderAssetView*>(gridView)->SetAssetModel(m_entries);
 
     mainLayout->addWidget(gridView);
     setLayout(mainLayout);

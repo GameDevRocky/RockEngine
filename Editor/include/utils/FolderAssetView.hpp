@@ -1,23 +1,31 @@
 #pragma once
 
+#include <QHash>
 #include <QListView>
-#include <QPersistentModelIndex>
 
-// Handles texture disclosure independently from selection and sprite dragging.
+class FolderAssetModel;
+class QPushButton;
+class QResizeEvent;
+
+// Places real disclosure buttons over texture cells without changing cell layout.
 class FolderAssetView final : public QListView {
 public:
     explicit FolderAssetView(QWidget* parent = nullptr) : QListView(parent) {}
+    void SetAssetModel(FolderAssetModel* assets);
 
 protected:
-    void mousePressEvent(QMouseEvent* event) override;
-    void mouseMoveEvent(QMouseEvent* event) override;
-    void mouseReleaseEvent(QMouseEvent* event) override;
-    void mouseDoubleClickEvent(QMouseEvent* event) override;
     void keyPressEvent(QKeyEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
+    void scrollContentsBy(int dx, int dy) override;
     void startDrag(Qt::DropActions supportedActions) override;
 
 private:
-    bool IsToggle(const QModelIndex& index, const QPoint& position) const;
     void Toggle(const QModelIndex& index);
-    QPersistentModelIndex m_pressedToggle;
+    void QueueToggleSync();
+    void SyncToggleButtons();
+    void ClearToggleButtons();
+    static QRect ToggleRect(const QRect& cell);
+
+    QHash<QString, QPushButton*> m_toggleButtons;
+    bool m_toggleSyncQueued = false;
 };

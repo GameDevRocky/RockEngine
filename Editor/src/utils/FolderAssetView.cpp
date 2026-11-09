@@ -3,16 +3,96 @@
 #include <QDrag>
 #include <QKeyEvent>
 #include <QMimeData>
-#include <QMouseEvent>
+#include <QPushButton>
+#include <QResizeEvent>
+#include <QSet>
+#include <QTimer>
 
-#include "utils/AssetPreviewDelegate.hpp"
 #include "utils/AssetThumbnails.hpp"
 #include "utils/DragDropMime.hpp"
 #include "utils/FolderAssetModel.hpp"
 
-bool FolderAssetView::IsToggle(const QModelIndex& index, const QPoint& position) const {
-    return index.data(FolderAssetModel::HasSpritesRole).toBool() &&
-           AssetPreviewDelegate::ToggleRect(visualRect(index)).contains(position);
+void FolderAssetView::SetAssetModel(FolderAssetModel* assets) {
+    ClearToggleButtons();
+    setModel(assets);
+    auto queueSync = [this] { QueueToggleSync(); };
+    connect(assets, &QAbstractItemModel::rowsInserted, this, queueSync);
+    connect(assets, &QAbstractItemModel::rowsRemoved, this, queueSync);
+    connect(assets, &QAbstractItemModel::dataChanged, this, queueSync);
+    connect(assets, &QAbstractItemModel::layoutChanged, this, queueSync);
+    connect(assets, &QAbstractItemModel::modelReset, this, queueSync);
+    connect(assets, &QAbstractItemModel::modelAboutToBeReset, this,
+            [this] { ClearToggleButtons(); });
+    QueueToggleSync();
+}
+
+QRect FolderAssetView::ToggleRect(const QRect& cell) {
+    constexpr int size = 24;
+    // Center the button on the cell's right boundary, so half sits outside it.
+    return QRect(cell.right() + 1 - size / 2, cell.top() + (cell.height() - size) / 2,
+                 size, size);
+}
+
+void FolderAssetView::QueueToggleSync() {
+    if (m_toggleSyncQueued) return;
+    m_toggleSyncQueued = true;
+    QTimer::singleShot(0, this, [this] {
+        m_toggleSyncQueued = false;
+        SyncToggleButtons();
+    });
+}
+
+void FolderAssetView::ClearToggleButtons() {
+    for (QPushButton* button : m_toggleButtons) {
+        button->hide();
+        button->deleteLater();
+    }
+    m_toggleButtons.clear();
+}
+
+void FolderAssetView::SyncToggleButtons() {
+    if (!model()) return;
+    QSet<QString> visibleTextures;
+    const QRect visible = viewport()->rect();
+    for (int row = 0; row < model()->rowCount(); ++row) {
+        const QModelIndex index = model()->index(row, 0);
+        if (!index.data(FolderAssetModel::HasSpritesRole).toBool()) continue;
+        const QRect buttonRect = ToggleRect(visualRect(index));
+        if (!buttonRect.intersects(visible)) continue;
+
+        const QString id = index.data(FolderAssetModel::TextureIdRole).toString();
+        visibleTextures.insert(id);
+        QPushButton* button = m_toggleButtons.value(id, nullptr);
+        if (!button) {
+            button = new QPushButton(viewport());
+            button->setObjectName("spriteDisclosureButton");
+            button->setFocusPolicy(Qt::StrongFocus);
+            button->setStyleSheet(
+                "QPushButton#spriteDisclosureButton { background: #3d3d3d; border: 1px solid #737373; "
+                "border-radius: 12px; color: #d2d2d2; font-size: 12px; padding: 0; }"
+                "QPushButton#spriteDisclosureButton:hover { background: #555; }"
+                "QPushButton#spriteDisclosureButton:focus { border-color: #ddd; }");
+            connect(button, &QPushButton::clicked, this, [this, id] {
+                auto* assets = static_cast<FolderAssetModel*>(model());
+                const QModelIndex texture = assets->TextureIndex(id);
+                if (texture.isValid()) Toggle(texture);
+            });
+            m_toggleButtons.insert(id, button);
+        }
+        const bool expanded = index.data(FolderAssetModel::ExpandedRole).toBool();
+        const QString action = expanded ? "Hide sprites" : "Show sprites";
+        button->setText(expanded ? QStringLiteral("◀") : QStringLiteral("▶"));
+        button->setToolTip(action);
+        button->setAccessibleName(action + " for " + index.data(Qt::DisplayRole).toString());
+        if (button->geometry() != buttonRect) button->setGeometry(buttonRect);
+        button->show();
+    }
+    for (auto it = m_toggleButtons.begin(); it != m_toggleButtons.end();) {
+        if (visibleTextures.contains(it.key())) { ++it; continue; }
+        it.value()->hide();
+        it.value()->deleteLater();
+        it = m_toggleButtons.erase(it);
+    }
 }
 
 void FolderAssetView::Toggle(const QModelIndex& index) {
@@ -25,40 +105,14 @@ void FolderAssetView::Toggle(const QModelIndex& index) {
     assets->ToggleExpanded(index);
 }
 
-void FolderAssetView::mousePressEvent(QMouseEvent* event) {
-    m_pressedToggle = QModelIndex();
-    const QModelIndex index = indexAt(event->position().toPoint());
-    if (event->button() == Qt::LeftButton && IsToggle(index, event->position().toPoint())) {
-        m_pressedToggle = index;
-        event->accept();
-        return;
-    }
-    QListView::mousePressEvent(event);
+void FolderAssetView::resizeEvent(QResizeEvent* event) {
+    QListView::resizeEvent(event);
+    QueueToggleSync();
 }
 
-void FolderAssetView::mouseMoveEvent(QMouseEvent* event) {
-    if (m_pressedToggle.isValid()) { event->accept(); return; }
-    QListView::mouseMoveEvent(event);
-}
-
-void FolderAssetView::mouseReleaseEvent(QMouseEvent* event) {
-    if (m_pressedToggle.isValid()) {
-        const QModelIndex index = m_pressedToggle;
-        m_pressedToggle = QModelIndex();
-        if (event->button() == Qt::LeftButton && IsToggle(index, event->position().toPoint()))
-            Toggle(index);
-        event->accept();
-        return;
-    }
-    QListView::mouseReleaseEvent(event);
-}
-
-void FolderAssetView::mouseDoubleClickEvent(QMouseEvent* event) {
-    if (IsToggle(indexAt(event->position().toPoint()), event->position().toPoint())) {
-        event->accept();
-        return;
-    }
-    QListView::mouseDoubleClickEvent(event);
+void FolderAssetView::scrollContentsBy(int dx, int dy) {
+    QListView::scrollContentsBy(dx, dy);
+    SyncToggleButtons();
 }
 
 void FolderAssetView::keyPressEvent(QKeyEvent* event) {
