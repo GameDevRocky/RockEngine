@@ -45,7 +45,7 @@ std::vector<VisibleTile> TileDrawList::CollectVisible(TileMapEditor* editor,
         }
         const glm::vec2 size = TileRender::Size(grid, renderer, sprite);
         if (size.x <= 0.0f || size.y <= 0.0f) continue;
-        const glm::mat4 model = TileRender::Model(grid, renderer, cell, size);
+        const glm::mat4 model = TileRender::Model(grid, renderer, cell);
         if (!TileRender::Visible(model, size, sprite->GetPivot(), viewProjection)) continue;
         visible.push_back({cell, tileId, sprite, texture, size, model});
     }

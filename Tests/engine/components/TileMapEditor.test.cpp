@@ -255,9 +255,9 @@ TEST_F(TileMapEditorTest, CellCoordinatesAndRenderedGeometryUseTileMapTransform)
     EXPECT_EQ(editor->CellToWorld({2, 1}), glm::vec2(70.0f, 41.0f));
     EXPECT_EQ(editor->WorldToCell({71.0f, 42.0f}), glm::ivec2(2, 1));
     EXPECT_EQ(editor->WorldToCell({49.0f, 24.0f}), glm::ivec2(-1, -1));
-    const glm::mat4 model = TileRender::Model(grid, renderer, {2, 1}, {8.0f, 12.0f});
-    EXPECT_FLOAT_EQ(model[3].x, 78.0f);
-    EXPECT_FLOAT_EQ(model[3].y, 53.0f);
+    const glm::mat4 model = TileRender::Model(grid, renderer, {2, 1});
+    EXPECT_FLOAT_EQ(model[3].x, 74.0f);
+    EXPECT_FLOAT_EQ(model[3].y, 47.0f);
 
     object->GetTransform()->SetScale({2.0f, 3.0f});
     object->GetTransform()->SetRotation(90.0f);

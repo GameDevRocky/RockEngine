@@ -277,7 +277,8 @@ square paint size in cells using a property widget.
 The companion TileMapRenderer Inspector chooses a material, Native or Fill Cell sizing, and
 sorting layer/order. `SceneEditController` owns each drag stroke: its tilemap tool samples Grid
 cells, fills gaps between mouse samples, previews the brush footprint, and pushes one
-`TileStrokeCommand` containing before/after IDs.
+`TileStrokeCommand` containing before/after IDs. Left-drag paints the selected palette tile;
+right-drag temporarily uses None to erase with the same brush size without changing that selection.
 The command saves the TileMap after undo/redo; the tool saves after completing the stroke.
 Tilemap objects must sit below a GameObject with a Grid component. The nearest ancestor Grid
 supplies cell size and gap; Grids on the tilemap itself or its descendants are ignored. The

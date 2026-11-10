@@ -13,8 +13,8 @@ components:
     type: Grid
     gameobject: a3c474b4b9ad48be936fc739b1d34eb6
     cellSize:
-      - 1
-      - 1
+      - 16
+      - 16
     gapSize:
       - 0
       - 0
@@ -37,14 +37,14 @@ components:
     type: TileMapRenderer
     gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
     materialId: m1
-    tileSizingMode: FillCell
+    tileSizingMode: Native
     sortingLayer: Default
     sortingOrder: 0
   - id: 341234abc64caf1adc2b4828b4a61349
     enabled: true
     type: Transform
     gameobject: f1ef6a681c1fa48222aee2c3b52e4dc2
-    localPosition: [-11.081557, 7.0043793]
+    localPosition: [-135.51144, 258.55676]
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
@@ -53,7 +53,7 @@ components:
     type: Camera
     gameobject: f1ef6a681c1fa48222aee2c3b52e4dc2
     projection: 0
-    orthoSize: 15.86203
+    orthoSize: 236.06456
     clearFlags: 0
     clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
     priority: 0

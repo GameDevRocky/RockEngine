@@ -15,13 +15,13 @@ inline glm::vec2 Size(Grid* grid, TileMapRenderer* renderer, Sprite* sprite) {
         ? grid->GetSize() : sprite->GetPixelSize();
 }
 
-// Sprite shaders use a centered quad and subtract uSize*uPivot. The extra half
-// size places the sprite's authored pivot at the center of the Grid cell.
-inline glm::mat4 Model(Grid* grid, TileMapRenderer* renderer, const glm::ivec2& cell,
-                       const glm::vec2& size) {
+// Sprite shaders use a centered quad and subtract uSize*uPivot. Translating to
+// the cell center places the sprite's authored pivot there; adding half the
+// sprite size again would shift Fill Cell tiles by half a cell.
+inline glm::mat4 Model(Grid* grid, TileMapRenderer* renderer, const glm::ivec2& cell) {
     const glm::vec2 origin = glm::vec2(cell) * (grid->GetSize() + grid->GetGap());
     return glm::translate(renderer->GetTransform()->GetWorldMatrix(),
-                          glm::vec3(origin + grid->GetSize() * 0.5f + size * 0.5f, 0.0f));
+                          glm::vec3(origin + grid->GetSize() * 0.5f, 0.0f));
 }
 
 inline Sprite* Resolve(TileMapEditor* editor, const glm::ivec2& cell, TileId id) {

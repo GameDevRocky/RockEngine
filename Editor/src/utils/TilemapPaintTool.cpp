@@ -52,15 +52,18 @@ private:
 class TilemapPaintTool final : public SceneEditTool {
 public:
     bool PointerPress(const SceneEditContext& context, const SceneEditPointerEvent& event) override {
-        if (event.button != Qt::LeftButton ||
+        if ((event.button != Qt::LeftButton && event.button != Qt::RightButton) ||
             GizmosManager::Get()->GetEditMode() != GizmosManager::EditMode::Tilemap)
             return false;
-        TileMapEditor* editor = ActiveEditor(context);
+        const TileId tileId = event.button == Qt::RightButton
+            ? EMPTY_TILE_ID : TilePaintState::Get().selectedTileId;
+        TileMapEditor* editor = ActiveEditor(context, tileId);
         if (!editor) return false;
         strokeMapId = editor->GetTileMap()->GetID();
         strokeContainer = context.container;
-        strokeTileId = TilePaintState::Get().selectedTileId;
+        strokeTileId = tileId;
         strokeBrushSize = TilePaintState::Get().brushSize;
+        strokeButton = event.button;
         lastCell = CellAt(context, editor, event.position);
         changes.clear();
         active = true;
@@ -70,7 +73,7 @@ public:
     bool PointerMove(const SceneEditContext& context, const SceneEditPointerEvent& event) override {
         hoverPoint = event.position;
         hoverValid = event.inside;
-        if (active && (event.buttons & Qt::LeftButton)) {
+        if (active && event.buttons.testFlag(strokeButton)) {
             PaintTo(context, event.position);
             return true;
         }
@@ -85,7 +88,7 @@ public:
         if (context.requestRepaint) context.requestRepaint();
     }
     bool PointerRelease(const SceneEditContext& context, const SceneEditPointerEvent& event) override {
-        if (!active || event.button != Qt::LeftButton) return false;
+        if (!active || event.button != strokeButton) return false;
         PaintTo(context, event.position);
         Finish(context);
         return true;
@@ -103,12 +106,15 @@ public:
         }
         strokeMapId.clear();
         strokeContainer = nullptr;
+        strokeButton = Qt::NoButton;
     }
     void Draw(const SceneEditContext& context) override {
         if (!hoverValid || !context.view ||
             GizmosManager::Get()->GetEditMode() != GizmosManager::EditMode::Tilemap)
             return;
-        TileMapEditor* editor = ActiveEditor(context);
+        const TileId previewTileId = active
+            ? strokeTileId : TilePaintState::Get().selectedTileId;
+        TileMapEditor* editor = ActiveEditor(context, previewTileId);
         if (!editor) return;
         const glm::ivec2 cell = CellAt(context, editor, hoverPoint);
         Grid* grid = editor->GetGrid();
@@ -132,12 +138,12 @@ public:
                                (0.5f - clip.y / clip.w * 0.5f) * context.height);
         }
         ImDrawList* draw = ImGui::GetForegroundDrawList();
-        const ImU32 color = TilePaintState::Get().selectedTileId == EMPTY_TILE_ID
+        const ImU32 color = previewTileId == EMPTY_TILE_ID
             ? IM_COL32(255, 105, 90, 220) : IM_COL32(60, 225, 150, 220);
         for (int i = 0; i < 4; ++i) draw->AddLine(points[i], points[(i + 1) % 4], color, 2.0f);
     }
 private:
-    TileMapEditor* ActiveEditor(const SceneEditContext& context) const {
+    TileMapEditor* ActiveEditor(const SceneEditContext& context, TileId tileId) const {
         if (!context.container || context.container->GetMode() != Container::Mode::Editor) return nullptr;
         auto* selection = context.container->FindSystem<SelectionManager>();
         auto* registry = context.container->FindSystem<Registry>();
@@ -147,8 +153,8 @@ private:
         if (!editor || editor->GetID() != TilePaintState::Get().componentId || !editor->GetEnabled()
             || !editor->GetGrid() || !editor->GetTileMap()
             || !editor->GetTileMap()->GetCells()) return nullptr;
-        if (!active && TilePaintState::Get().selectedTileId != EMPTY_TILE_ID &&
-            (!editor->GetTileSet() || !editor->GetTileSet()->GetTile(TilePaintState::Get().selectedTileId)))
+        if (tileId != EMPTY_TILE_ID &&
+            (!editor->GetTileSet() || !editor->GetTileSet()->GetTile(tileId)))
             return nullptr;
         return editor;
     }
@@ -157,7 +163,7 @@ private:
         return editor->WorldToCell(context.ScreenToWorld(point));
     }
     void PaintTo(const SceneEditContext& context, const QPoint& point) {
-        TileMapEditor* editor = ActiveEditor(context);
+        TileMapEditor* editor = ActiveEditor(context, strokeTileId);
         if (!active || !editor || editor->GetTileMap()->GetID() != strokeMapId) return;
         const glm::ivec2 end = CellAt(context, editor, point);
         int x = lastCell.x, y = lastCell.y;
@@ -192,6 +198,7 @@ private:
     glm::ivec2 lastCell{0};
     TileId strokeTileId = EMPTY_TILE_ID;
     int strokeBrushSize = 1;
+    Qt::MouseButton strokeButton = Qt::NoButton;
     std::string strokeMapId;
     Container* strokeContainer = nullptr;
     TileStrokeCommand::Changes changes;
