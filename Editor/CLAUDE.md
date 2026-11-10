@@ -84,9 +84,15 @@ viewport belong in a separate integration suite.
   undoable `ComponentOrderCommand`; a drop in AI chat attaches component context.
   Inspector section expansion is editor-only per-session view state keyed by stable object,
   component, and asset IDs, so destructive Inspector rebuilds and component reordering restore
-  the prior layout without adding UI fields to scene or asset serialization. Every collapsible
-  header reserves a fixed icon slot immediately before its enable toggle; `ObjectHeader` uses the
-  shared GameObject icon, while `ComponentHeader` resolves component and asset types through
+  the prior layout without adding UI fields to scene or asset serialization.
+  Inspector selection coalesces rebuild requests and uses deferred `InspectorVisitor` rows for
+  GameObjects, components, and assets. The Inspector creates those rows in short Qt event-loop
+  batches, and all long `ListPropertyWidget` values batch their child rows automatically.
+  Pending batches carry a generation and re-resolve component IDs against the active container
+  so a changed selection or removed component cannot populate stale UI. Selection notifications
+  detach property subscriptions synchronously before scene unload can free their objects.
+  Every collapsible header reserves a fixed icon slot immediately before its enable toggle;
+  `ObjectHeader` uses the shared GameObject icon, while `ComponentHeader` resolves component and asset types through
   `CustomIconProvider` and leaves the slot blank when no mapping exists. The provider also owns
   matching file-suffix mappings so Inspector headers, Folder/File Explorer views, AI references,
   and attachment cards share the same bundled component/asset icon vocabulary.

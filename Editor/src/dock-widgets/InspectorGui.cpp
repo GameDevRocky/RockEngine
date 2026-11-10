@@ -26,6 +26,7 @@
 #include "engine/commands/ComponentOrderCommand.hpp"
 #include "utils/DragDropMime.hpp"
 #include <algorithm>
+#include <chrono>
 #include <functional>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
@@ -338,12 +339,37 @@ void InspectorGui::RefreshDirtyValues(){
 
 void InspectorGui::RequestRebuild(){
     if (m_currentInspectedId.empty()) return;
-    // Queued, not immediate: callers reach this from inside a property widget's
-    // own signal handler, and OnObjectSelected destroys those widgets. Same
-    // rationale as the script-reload rebuild below.
-    QMetaObject::invokeMethod(this, [this]() {
-        OnObjectSelected(m_currentInspectedId);
-    }, Qt::QueuedConnection);
+    ScheduleRebuild();
+}
+
+void InspectorGui::ScheduleRebuild(){
+    // Selection and removal events fire while the old objects still exist, but
+    // the queued rebuild may run after Registry deletes them. Detach now rather
+    // than dereferencing their Observable pointers in that later callback.
+    DetachPropertySubscriptions();
+    // Invalidate any unfinished Inspector batches immediately. Repeated change
+    // events before the next turn need only one rebuild of the latest selection.
+    ++m_buildGeneration;
+    if (m_rebuildQueued) return;
+    m_rebuildQueued = true;
+    const std::uint64_t ticket = ++m_rebuildTicket;
+    QTimer::singleShot(0, this, [this, ticket]() {
+        if (ticket != m_rebuildTicket) return;
+        m_rebuildQueued = false;
+        auto* active = Engine::Get()->GetActiveContainer();
+        auto* selection = active ? active->FindSystem<SelectionManager>() : nullptr;
+        OnObjectSelected(selection ? selection->GetSelectedId() : std::string{});
+    });
+}
+
+void InspectorGui::DetachPropertySubscriptions(){
+    for (auto& [obs, subId] : m_inspectorSubs)
+        obs->Unsubscribe(subId);
+    m_inspectorSubs.clear();
+    // Refreshers capture widget and object pointers; neither should be used
+    // while the old content waits for its queued replacement.
+    m_valueRefreshers.clear();
+    m_polledScriptIds.clear();
 }
 
 void InspectorGui::PollScriptFields(){
@@ -358,12 +384,11 @@ void InspectorGui::PollScriptFields(){
 }
 
 void InspectorGui::SubscribeToSelector(){
-    selectionManager->Subscribe([this](std::any data){
-        const std::string& id = std::any_cast<std::string>(data);
-        OnObjectSelected(id);
+    selectionManager->Subscribe([this](std::any){
+        ScheduleRebuild();
         return true;
     }, SelectionManager::SELECTION_CHANGED_EVENT);
-    OnObjectSelected(selectionManager->GetSelectedId());
+    ScheduleRebuild();
 }
 
 void InspectorGui::TrackSectionExpansion(CollapsableWidget* section,
@@ -383,6 +408,18 @@ void InspectorGui::TrackSectionExpansion(CollapsableWidget* section,
 
 void InspectorGui::OnObjectSelected(const std::string& id)
 {
+    ++m_rebuildTicket;
+    m_rebuildQueued = false;
+    const std::uint64_t generation = ++m_buildGeneration;
+    m_pendingComponentIds.clear();
+    m_nextComponentIndex = 0;
+    m_pendingScroll = 0;
+    m_pendingSelectionId.clear();
+    m_pendingContainer = nullptr;
+    m_pendingLayout = nullptr;
+    m_pendingAddButton.clear();
+    m_registerComponentRow = {};
+    m_pendingVisitor.reset();
     // Preserve the scroll position across a rebuild of the SAME object (add/remove
     // component, script hot-reload) so the view doesn't snap back to the top. A
     // rebuild for a DIFFERENT selection intentionally resets to the top.
@@ -410,14 +447,9 @@ void InspectorGui::OnObjectSelected(const std::string& id)
             mat->Unsubscribe(subId);
     m_materialShaderSubs.clear();
 
-    // Tear down the per-rebuild property/header subscriptions from the previous
-    // selection. Without this they pile up on long-lived objects/assets, growing
-    // the cost of every notify and of SelectionManager's Unsubscribe scan.
-    for (auto& [obs, subId] : m_inspectorSubs)
-        obs->Unsubscribe(subId);
-    m_inspectorSubs.clear();
-    // Deferred value refreshers belong to the widgets we're about to destroy.
-    m_valueRefreshers.clear();
+    // Direct rebuilds (notably exit from play mode) also need to release any
+    // subscriptions that were not detached by a selection notification.
+    DetachPropertySubscriptions();
 
     if (contentWidget) {
         // Detach the old content from the scroll area before scheduling its deletion.
@@ -452,15 +484,15 @@ void InspectorGui::OnObjectSelected(const std::string& id)
 
     if (obj) {
         // ── GameObject path: header + per-component sections ─────────────────
-        InspectorVisitor visitor;
+        auto visitor = std::make_shared<InspectorVisitor>(true);
         ObjectHeader* objectHeader = new ObjectHeader();
-        obj->Accept(&visitor);
+        obj->Accept(visitor.get());
         objectHeader->Bind(obj->GetID());
-        for (auto& s : visitor.GetSubscriptions())       m_inspectorSubs.push_back(s);
+        CollectVisitorBindings(*visitor);
         for (auto& s : objectHeader->GetSubscriptions())  m_inspectorSubs.push_back(s);
-        for (auto& r : visitor.GetRefreshers())           m_valueRefreshers.push_back(r);
-        auto* content = visitor.GetContent();
+        auto* content = visitor->GetContent();
         if (content) objectHeader->AddWidget(content);
+        m_pendingVisitor = std::move(visitor);
         TrackSectionExpansion(objectHeader, "object:" + obj->GetID());
         contentLayout->addWidget(objectHeader);
 
@@ -469,13 +501,13 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         {
             std::string capturedId = id;
             int addSub = obj->Subscribe([this, capturedId](std::any) {
-                OnObjectSelected(capturedId);
+                if (m_currentInspectedId == capturedId) RequestRebuild();
                 return true;
             }, GameObject::ADD_COMPONENT_EVENT);
             m_inspectorSubs.emplace_back(obj, addSub);
 
             int removeSub = obj->Subscribe([this, capturedId](std::any) {
-                OnObjectSelected(capturedId);
+                if (m_currentInspectedId == capturedId) RequestRebuild();
                 return true;
             }, GameObject::REMOVE_COMPONENT_EVENT);
             m_inspectorSubs.emplace_back(obj, removeSub);
@@ -529,40 +561,20 @@ void InspectorGui::OnObjectSelected(const std::string& id)
             },
             contentWidget);
 
-        for (auto* comp : obj->GetAllComponents()) {
-            InspectorVisitor compVisitor;
-            comp->Accept(&compVisitor);
-            if (!compVisitor.HasContent()) continue;
-            content = compVisitor.GetContent();
-            ComponentHeader* compWidget = new ComponentHeader(comp->GetTypeName());
-            compWidget->Bind(comp->GetID());
-            for (auto& s : compVisitor.GetSubscriptions()) m_inspectorSubs.push_back(s);
-            for (auto& s : compWidget->GetSubscriptions())  m_inspectorSubs.push_back(s);
-            for (auto& r : compVisitor.GetRefreshers())     m_valueRefreshers.push_back(r);
-            compWidget->AddWidget(content);
-            TrackSectionExpansion(compWidget, "component:" + comp->GetID());
-            contentLayout->addWidget(compWidget);
-            componentReorder->RegisterRow(compWidget, comp->GetID());
-
-            if (auto* sc = dynamic_cast<ScriptComponent*>(comp)) {
-                std::string capturedId = id;
-                int subId = sc->Subscribe([this, capturedId](std::any) {
-                    // Queue the rebuild: SCRIPT_RELOADED_EVENT can fire from within a
-                    // widget callback (the script-selector's SetScript), so defer to
-                    // avoid deleting inspector widgets mid-callback.
-                    QMetaObject::invokeMethod(this, [this, capturedId]() {
-                        OnObjectSelected(capturedId);
-                    }, Qt::QueuedConnection);
-                    return true;
-                }, ScriptComponent::SCRIPT_RELOADED_EVENT);
-                m_scriptReloadSubs.emplace_back(sc->GetID(), subId);
-                m_polledScriptIds.push_back(sc->GetID());
-            }
-        }
+        m_pendingContainer = Engine::Get()->GetActiveContainer();
+        m_pendingSelectionId = obj->GetID();
+        m_pendingLayout = contentLayout;
+        m_registerComponentRow = [componentReorder](QWidget* row, const std::string& componentId) {
+            componentReorder->RegisterRow(row, componentId);
+        };
+        for (auto* comp : obj->GetAllComponents())
+            m_pendingComponentIds.push_back(comp->GetID());
+        m_pendingScroll = savedScroll;
 
         QPushButton* addComponentButton = new QPushButton("Add Component");
         addComponentButton->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
         contentLayout->addWidget(addComponentButton);
+        m_pendingAddButton = addComponentButton;
 
         // Popup a list of every registered component type the object doesn't already
         // have; picking one creates it via the factory, attaches it, and rebuilds the
@@ -605,25 +617,26 @@ void InspectorGui::OnObjectSelected(const std::string& id)
         
     } else {
         // ── Asset path: single section, no component loop ────────────────────
-        InspectorVisitor visitor;
-        selectable->Accept(&visitor);
-        for (auto& s : visitor.GetSubscriptions()) m_inspectorSubs.push_back(s);
-        for (auto& r : visitor.GetRefreshers())    m_valueRefreshers.push_back(r);
+        auto visitor = std::make_shared<InspectorVisitor>(true);
+        selectable->Accept(visitor.get());
+        CollectVisitorBindings(*visitor);
         ComponentHeader* header = new ComponentHeader(selectable->GetTypeName());
         // Do NOT call header->Bind() — it looks up a Component in the Registry and
         // self-destructs if not found. Assets live in AssetManager, not the Registry.
         header->SetIcon(EditorUtils::CustomIconProvider::assetIcon(
             selectable->GetTypeName()));
-        if (auto* content = visitor.GetContent())
+        if (auto* content = visitor->GetContent())
             header->AddWidget(content);
+        m_pendingVisitor = std::move(visitor);
+        m_pendingContainer = Engine::Get()->GetActiveContainer();
+        m_pendingSelectionId = id;
+        m_pendingScroll = savedScroll;
         TrackSectionExpansion(header, "asset:" + id);
         contentLayout->addWidget(header);
 
         if (auto* mat = dynamic_cast<Material*>(selectable)) {
             int subId = mat->Subscribe([this, id](std::any) {
-                QMetaObject::invokeMethod(this, [this, id]() {
-                    OnObjectSelected(id);
-                }, Qt::QueuedConnection);
+                if (m_currentInspectedId == id) RequestRebuild();
                 return true;
             }, Material::SHADER_CHANGED_EVENT);
             m_materialShaderSubs.emplace_back(id, subId);
@@ -632,12 +645,103 @@ void InspectorGui::OnObjectSelected(const std::string& id)
 
     scrollArea->setWidget(contentWidget);
 
+    if (m_pendingVisitor && (m_pendingVisitor->HasPendingRows() || !m_pendingComponentIds.empty()))
+        QTimer::singleShot(1, this, [this, generation]() {
+            ContinueInspectionBuild(generation);
+        });
+
     // Restore the scroll position after the new content lays out. The scrollbar's
     // range is 0 until the layout is computed, so setting it now would clamp to 0;
     // defer to the next event-loop turn when the range is valid.
-    if (sameObject && savedScroll > 0) {
+    if (sameObject && savedScroll > 0 &&
+        (!m_pendingVisitor || (!m_pendingVisitor->HasPendingRows() && m_pendingComponentIds.empty()))) {
         QTimer::singleShot(0, this, [this, savedScroll]() {
             if (scrollArea) scrollArea->verticalScrollBar()->setValue(savedScroll);
         });
+    }
+}
+
+void InspectorGui::CollectVisitorBindings(InspectorVisitor& visitor)
+{
+    for (auto& binding : visitor.TakeSubscriptions()) m_inspectorSubs.push_back(binding);
+    for (auto& refresh : visitor.TakeRefreshers()) m_valueRefreshers.push_back(std::move(refresh));
+}
+
+void InspectorGui::ContinueInspectionBuild(std::uint64_t generation)
+{
+    if (generation != m_buildGeneration) return;
+    Container* active = Engine::Get()->GetActiveContainer();
+    if (active != m_pendingContainer || m_currentInspectedId != m_pendingSelectionId)
+        return;
+    auto* selection = active->FindSystem<SelectionManager>();
+    if (!selection || selection->GetSelectedId() != m_pendingSelectionId) return;
+    auto* registry = active->FindSystem<Registry>();
+
+    // Every selectable uses the same row budget. Once a section's visitor has
+    // finished, start the next component on a GameObject, if there is one.
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(3);
+    do {
+        if (m_pendingVisitor) {
+            if (m_pendingVisitor->HasPendingRows()) {
+                m_pendingVisitor->BuildNextRow();
+                CollectVisitorBindings(*m_pendingVisitor);
+                if (generation != m_buildGeneration) {
+                    DetachPropertySubscriptions();
+                    return;
+                }
+                continue;
+            }
+            m_pendingVisitor.reset();
+        }
+        if (m_nextComponentIndex >= m_pendingComponentIds.size() || !registry) break;
+
+        const std::string componentId = m_pendingComponentIds[m_nextComponentIndex++];
+        auto* comp = registry->Find<Component>(componentId);
+        if (!comp) continue;
+        auto* owner = comp->GetGameObject();
+        if (!owner || owner->GetID() != m_pendingSelectionId) continue;
+
+        auto visitor = std::make_shared<InspectorVisitor>(true);
+        comp->Accept(visitor.get());
+        if (!visitor->HasContent()) continue;
+        auto* compWidget = new ComponentHeader(comp->GetTypeName());
+        compWidget->Bind(comp->GetID());
+        CollectVisitorBindings(*visitor);
+        for (auto& s : compWidget->GetSubscriptions()) m_inspectorSubs.push_back(s);
+        compWidget->AddWidget(visitor->GetContent());
+        TrackSectionExpansion(compWidget, "component:" + comp->GetID());
+        m_pendingLayout->insertWidget(m_pendingLayout->indexOf(m_pendingAddButton), compWidget);
+        m_registerComponentRow(compWidget, componentId);
+        m_pendingVisitor = std::move(visitor);
+
+        if (auto* sc = dynamic_cast<ScriptComponent*>(comp)) {
+            const int subId = sc->Subscribe([this, objectId = m_pendingSelectionId](std::any) {
+                if (m_currentInspectedId == objectId) RequestRebuild();
+                return true;
+            }, ScriptComponent::SCRIPT_RELOADED_EVENT);
+            m_scriptReloadSubs.emplace_back(componentId, subId);
+            m_polledScriptIds.push_back(componentId);
+        }
+    } while (std::chrono::steady_clock::now() < deadline);
+
+    if ((m_pendingVisitor && m_pendingVisitor->HasPendingRows()) ||
+        m_nextComponentIndex < m_pendingComponentIds.size()) {
+        QTimer::singleShot(1, this, [this, generation]() {
+            ContinueInspectionBuild(generation);
+        });
+    } else {
+        const int savedScroll = m_pendingScroll;
+        m_pendingVisitor.reset();
+        m_pendingComponentIds.clear();
+        m_pendingLayout = nullptr;
+        m_pendingAddButton.clear();
+        m_registerComponentRow = {};
+        m_pendingScroll = 0;
+        if (savedScroll > 0) {
+            QTimer::singleShot(0, this, [this, generation, savedScroll]() {
+                if (generation == m_buildGeneration && scrollArea)
+                    scrollArea->verticalScrollBar()->setValue(savedScroll);
+            });
+        }
     }
 }

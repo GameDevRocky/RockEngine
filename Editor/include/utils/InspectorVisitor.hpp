@@ -5,6 +5,7 @@
 #include <QLabel>
 #include <QString>
 #include <optional>
+#include <deque>
 #include <vector>
 #include <utility>
 #include <type_traits>
@@ -32,7 +33,7 @@ class TileSet;
 class InspectorVisitor : public IVisitor{
 
     public:
-        InspectorVisitor();
+        explicit InspectorVisitor(bool deferRows = false);
         void Visit(GameObject* obj) override;
         void Visit(Transform* transform) override;
         void Visit(SpriteRenderer* spriteRenderer) override;
@@ -75,6 +76,18 @@ class InspectorVisitor : public IVisitor{
 
         QWidget* GetContent(){ return content;}
         bool HasContent(){return content;}
+        bool HasPendingRows() const { return !m_pendingRows.empty(); }
+        void BuildNextRow();
+        std::vector<std::pair<Observable*, int>> TakeSubscriptions() {
+            auto result = std::move(m_subscriptions);
+            m_subscriptions.clear();
+            return result;
+        }
+        std::vector<std::function<void()>> TakeRefreshers() {
+            auto result = std::move(m_refreshers);
+            m_refreshers.clear();
+            return result;
+        }
 
         // Subscriptions this visitor registered on the inspected object(s) while
         // building property widgets. The owner (InspectorGui) must Unsubscribe these
@@ -119,6 +132,7 @@ class InspectorVisitor : public IVisitor{
     private:
         void AddRow(const std::string& text, QWidget* widget);
         void AddFullRow(QWidget* widget);
+        void AddFullRowFactory(std::function<QWidget*()> factory);
         // Label on its own full-width line, then the widget on the next one.
         // For PropDesc::FullRow editors, which need the whole panel width and so
         // cannot keep the label beside them.
@@ -133,6 +147,8 @@ class InspectorVisitor : public IVisitor{
         QWidget* content = nullptr;
         std::vector<std::pair<Observable*, int>> m_subscriptions;
         std::vector<std::function<void()>> m_refreshers;
+        bool m_deferRows = false;
+        std::deque<std::function<void(InspectorVisitor&)>> m_pendingRows;
 };
 
 template<typename T, typename TargetT>
@@ -143,6 +159,15 @@ void InspectorVisitor::BindProperty(TargetT* instance, const std::string& label,
                                     const Properties::PropDesc& desc,
                                     std::optional<T> initialValue)
 {
+    if (m_deferRows) {
+        m_pendingRows.emplace_back(
+            [instance, label, getter = std::move(getter), setter = std::move(setter),
+             event_id, desc, initialValue = std::move(initialValue)](InspectorVisitor& visitor) mutable {
+                visitor.BindProperty<T, TargetT>(instance, label, std::move(getter),
+                    std::move(setter), event_id, desc, std::move(initialValue));
+            });
+        return;
+    }
     auto* pw = PropertyFactory::Create<T>(desc);
 
     const std::string targetId = instance->GetID();

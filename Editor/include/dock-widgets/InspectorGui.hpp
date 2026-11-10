@@ -13,13 +13,17 @@
 #include <utility>
 #include <vector>
 #include <functional>
+#include <memory>
+#include <cstdint>
 #include <unordered_map>
+#include <QPointer>
 #include "component-widgets/ObjectHeader.hpp"
 #include "Engine.hpp"
 #include "engine/core/SelectionManager.hpp"
 
 class Observable;
 class CollapsableWidget;
+class InspectorVisitor;
 
 using namespace EngineUtils;
 
@@ -49,7 +53,11 @@ public:
 
 private:
     void SubscribeToSelector();
+    void ScheduleRebuild();
+    void DetachPropertySubscriptions();
     void OnObjectSelected(const std::string& id);
+    void ContinueInspectionBuild(std::uint64_t generation);
+    void CollectVisitorBindings(InspectorVisitor& visitor);
     // Associate a rebuilt section with stable editor-only view state. Component
     // ids survive reordering/rebuilds, so each section can restore independently.
     void TrackSectionExpansion(CollapsableWidget* section,
@@ -84,11 +92,9 @@ private:
     // would leave a dangling pointer. Re-resolve through AssetManager before
     // unsubscribing so a since-deleted material is simply skipped.
     std::vector<std::pair<std::string, int>> m_materialShaderSubs;
-    // Per-rebuild subscriptions from BindProperty and the header Bind() calls,
-    // torn down at the top of OnObjectSelected. Targets are alive at teardown:
-    // object deletion is deferred (Registry::FlushPendingShutdowns shuts down —
-    // firing the deselect that triggers teardown — then deletes), and assets live
-    // for the whole session.
+    // Per-rebuild subscriptions from BindProperty and the header Bind() calls.
+    // Selection/change notifications detach these synchronously, before a queued
+    // rebuild can outlive the selected object or asset.
     std::vector<std::pair<Observable*, int>> m_inspectorSubs;
     // Id currently shown in the inspector. When OnObjectSelected rebuilds for the
     // SAME id (add/remove component, script hot-reload), the scroll position is
@@ -102,4 +108,18 @@ private:
     // current selection, flushed by RefreshDirtyValues on the m_pollTimer tick.
     // Cleared/rebuilt in OnObjectSelected alongside m_inspectorSubs.
     std::vector<std::function<void()>> m_valueRefreshers;
+    // The latest selection owns the queued build. A generation invalidates
+    // earlier property and component batches before their next event-loop turn.
+    std::uint64_t m_buildGeneration = 0;
+    std::uint64_t m_rebuildTicket = 0;
+    bool m_rebuildQueued = false;
+    std::vector<std::string> m_pendingComponentIds;
+    std::size_t m_nextComponentIndex = 0;
+    int m_pendingScroll = 0;
+    std::string m_pendingSelectionId;
+    Container* m_pendingContainer = nullptr;
+    QVBoxLayout* m_pendingLayout = nullptr;
+    QPointer<QWidget> m_pendingAddButton;
+    std::function<void(QWidget*, const std::string&)> m_registerComponentRow;
+    std::shared_ptr<InspectorVisitor> m_pendingVisitor;
 };

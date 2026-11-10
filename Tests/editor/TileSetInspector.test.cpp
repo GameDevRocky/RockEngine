@@ -160,3 +160,44 @@ TEST(TileSetInspectorTest, EditingNeighborsKeepsRulePosition) {
     EXPECT_EQ(rules[1].spriteId, "second");
     EXPECT_EQ(rules[1].neighbors, second);
 }
+
+TEST(TileSetInspectorTest, BuildsLargeRuleListsAcrossEventLoopTurns) {
+    TileSet tileSet;
+    Tile tile;
+    for (int i = 0; i < 20; ++i) {
+        NeighborPattern pattern{};
+        pattern.fill(TileId{0});
+        pattern[0] = static_cast<TileId>(i + 1);
+        tile.autoTileRules.push_back({pattern, ""});
+    }
+    tileSet.SetTile(1, tile);
+
+    TileSetInspectorWidget inspector(&tileSet);
+    auto* ruleList = inspector.findChild<QWidget*>("TileSetRulesList");
+    ASSERT_NE(ruleList, nullptr);
+    EXPECT_LT(ruleList->findChildren<QFrame*>("TileSetRuleCard").size(), 20);
+    QTRY_COMPARE_WITH_TIMEOUT(ruleList->findChildren<QFrame*>("TileSetRuleCard").size(), 20, 1000);
+}
+
+TEST(TileSetInspectorTest, ChangingTilesStopsPendingRuleRows) {
+    TileSet tileSet;
+    Tile first;
+    for (int i = 0; i < 20; ++i) {
+        NeighborPattern pattern{};
+        pattern.fill(TileId{0});
+        pattern[0] = static_cast<TileId>(i + 1);
+        first.autoTileRules.push_back({pattern, ""});
+    }
+    tileSet.SetTile(1, first);
+    tileSet.SetTile(2, Tile{});
+
+    TileSetInspectorWidget inspector(&tileSet);
+    auto* tileList = inspector.findChild<QWidget*>("TileSetTileList");
+    auto* ruleList = inspector.findChild<QWidget*>("TileSetRulesList");
+    ASSERT_NE(tileList, nullptr);
+    ASSERT_NE(ruleList, nullptr);
+    const auto tiles = tileList->findChildren<QPushButton*>("TileSetTileSelect");
+    ASSERT_EQ(tiles.size(), 2);
+    tiles[1]->click();
+    QTRY_COMPARE_WITH_TIMEOUT(ruleList->findChildren<QFrame*>("TileSetRuleCard").size(), 0, 1000);
+}

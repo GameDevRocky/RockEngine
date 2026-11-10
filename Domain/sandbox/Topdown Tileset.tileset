@@ -1,0 +1,27 @@
+type: TileSet
+id: ba2e1836fa1134f88fc307fd87d23847
+tiles:
+  - id: 1
+    name: Tile 1
+    defaultSpriteId: ""
+    rules:
+      - neighbors: [1, any, 0, any, 0, any, 1, 1]
+        spriteId: ""
+      - neighbors: [any, any, any, any, 0, 0, 0, any]
+        spriteId: ""
+      - neighbors: [0, any, 1, any, 1, 1, 1, any]
+        spriteId: ""
+      - neighbors: [1, 1, 1, 1, 1, any, 0, any]
+        spriteId: ""
+      - neighbors: [1, any, 0, any, 1, 1, 1, 1]
+        spriteId: ""
+      - neighbors: [0, 0, 0, any, 1, 1, 1, any]
+        spriteId: ""
+      - neighbors: [0, any, 1, 1, 1, any, 0, 0]
+        spriteId: ""
+      - neighbors: [1, 0, 1, 1, 1, 1, 1, 1]
+        spriteId: ""
+      - neighbors: [1, 1, 1, 1, 1, 1, 1, 0]
+        spriteId: ""
+      - neighbors: [1, 1, 1, any, 0, any, 1, 1]
+        spriteId: ""

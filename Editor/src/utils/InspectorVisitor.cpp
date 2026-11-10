@@ -75,7 +75,7 @@
 
 using namespace Properties;
 
-InspectorVisitor::InspectorVisitor(){
+InspectorVisitor::InspectorVisitor(bool deferRows) : m_deferRows(deferRows){
     content = new QWidget();
     layout = new QGridLayout();
     layout->setContentsMargins(0,0,0,0);
@@ -85,6 +85,20 @@ InspectorVisitor::InspectorVisitor(){
     layout->setColumnStretch(0, 1);
     layout->setColumnStretch(1, 2);
     content->setLayout(layout);
+}
+
+void InspectorVisitor::BuildNextRow() {
+    if (m_pendingRows.empty()) return;
+    auto build = std::move(m_pendingRows.front());
+    m_pendingRows.pop_front();
+    m_deferRows = false;
+    try {
+        build(*this);
+    } catch (...) {
+        m_deferRows = true;
+        throw;
+    }
+    m_deferRows = true;
 }
 
 
@@ -1897,23 +1911,31 @@ void InspectorVisitor::Visit(TileMap* tileMap)
 
 void InspectorVisitor::Visit(TileSet* tileSet)
 {
-    auto* editor = new TileSetInspectorWidget(tileSet);
-    AddFullRow(editor);
-
-    auto dirty = std::make_shared<bool>(false);
-    const int subId = tileSet->Subscribe([dirty]() {
-        *dirty = true;
-        return true;
-    }, TileSet::CHANGED_EVENT);
-    m_subscriptions.emplace_back(tileSet, subId);
-    m_refreshers.emplace_back([editor, dirty]() {
-        if (!*dirty) return;
-        *dirty = false;
-        editor->Refresh();
+    AddFullRowFactory([this, tileSet] {
+        auto* editor = new TileSetInspectorWidget(tileSet);
+        auto dirty = std::make_shared<bool>(false);
+        const int subId = tileSet->Subscribe([dirty]() {
+            *dirty = true;
+            return true;
+        }, TileSet::CHANGED_EVENT);
+        m_subscriptions.emplace_back(tileSet, subId);
+        m_refreshers.emplace_back([editor, dirty]() {
+            if (!*dirty) return;
+            *dirty = false;
+            editor->Refresh();
+        });
+        return editor;
     });
 }
 
 void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
+    if (m_deferRows) {
+        widget->setParent(content);
+        m_pendingRows.emplace_back([text, widget](InspectorVisitor& visitor) {
+            visitor.AddRow(text, widget);
+        });
+        return;
+    }
     // Every property row's label is normalised here, so a call site can pass a
     // hand-written "Color: " or a raw field name like "startOffset" and both come out
     // as "Start Offset: ". The ": " is appended once here rather than repeated at every
@@ -1942,8 +1964,25 @@ void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
 }
 
 void InspectorVisitor::AddFullRow(QWidget* widget) {
+    if (m_deferRows) {
+        widget->setParent(content);
+        m_pendingRows.emplace_back([widget](InspectorVisitor& visitor) {
+            visitor.AddFullRow(widget);
+        });
+        return;
+    }
     layout->addWidget(widget, gridRow, 0, 1, 2);
     gridRow++;
+}
+
+void InspectorVisitor::AddFullRowFactory(std::function<QWidget*()> factory) {
+    if (m_deferRows) {
+        m_pendingRows.emplace_back([factory = std::move(factory)](InspectorVisitor& visitor) {
+            visitor.AddFullRow(factory());
+        });
+    } else {
+        AddFullRow(factory());
+    }
 }
 
 void InspectorVisitor::AddLabeledFullRow(const std::string& text, QWidget* widget) {

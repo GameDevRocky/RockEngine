@@ -11,9 +11,12 @@
 #include <QToolButton>
 #include <QStringList>
 #include <QMenu>
+#include <QTimer>
 #include <algorithm>
+#include <chrono>
 #include <cstdlib>
 #include <map>
+#include <memory>
 #include <vector>
 
 class PropertyFactory {
@@ -192,6 +195,10 @@ public:
         m_rowsLayout->setContentsMargins(0, 0, 0, 0);
         m_rowsLayout->setSpacing(2);
         bodyLayout->addWidget(rows);
+        m_buildTimer = std::make_unique<QTimer>();
+        m_buildTimer->setInterval(1);
+        QObject::connect(m_buildTimer.get(), &QTimer::timeout, m_container,
+                         [this] { appendBatch(); });
     }
 
     QWidget* GetWidget() override { return m_container; }
@@ -248,12 +255,34 @@ private:
     }
 
     void rebuild() {
+        if (m_buildTimer) m_buildTimer->stop();
         clearRows();
+        m_nextRow = 0;
         if (!m_toggle.isNull()) {
             int n = static_cast<int>(m_data.size());
             m_toggle->setText(QString("%1 item%2").arg(n).arg(n == 1 ? "" : "s"));
         }
-        for (std::size_t i = 0; i < m_data.size(); ++i) {
+        if (m_data.size() > m_immediateRows) {
+            while (m_nextRow < m_immediateRows) appendRow(m_nextRow++);
+            m_buildTimer->start();
+        } else {
+            while (m_nextRow < m_data.size()) appendRow(m_nextRow++);
+        }
+    }
+
+    void appendBatch() {
+        if (m_nextRow >= m_data.size()) {
+            m_buildTimer->stop();
+            return;
+        }
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(3);
+        do {
+            appendRow(m_nextRow++);
+        } while (m_nextRow < m_data.size() && std::chrono::steady_clock::now() < deadline);
+        if (m_nextRow == m_data.size()) m_buildTimer->stop();
+    }
+
+    void appendRow(std::size_t i) {
             PropertyWidget<T>* child = m_childFactory
                 ? m_childFactory() : PropertyFactory::Create<T>(m_elementDesc);
             child->SetValue(m_data[i]);
@@ -315,7 +344,6 @@ private:
                 m_reorder->RegisterRow(row, handle);
             }
             m_children.push_back(child);
-        }
     }
 
     Properties::PropDesc m_elementDesc;
@@ -324,6 +352,9 @@ private:
     bool m_reorderable = true;
     std::vector<T> m_data;
     std::vector<PropertyWidget<T>*> m_children;
+    static constexpr std::size_t m_immediateRows = 4;
+    std::size_t m_nextRow = 0;
+    std::unique_ptr<QTimer> m_buildTimer;
     QPointer<QWidget> m_container;
     QPointer<QToolButton> m_toggle;
     QPointer<QWidget> m_body;
