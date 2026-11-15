@@ -13,6 +13,7 @@
 #include "engine/rendering/core/TrailManager.hpp"
 #include "engine/rendering/TrailMesh.hpp"
 #include "engine/tilemap/TileDrawList.hpp"
+#include "engine/tilemap/TileRender.hpp"
 #include "engine/core/TimeManager.hpp"
 #include "engine/debug/FrameProfiler.hpp"
 #include <algorithm>
@@ -119,7 +120,7 @@ void ScenePass::Init(){
     glad_glBindVertexArray(0);
 
     // One dynamic vertex buffer per pass, filled once per tilemap draw. The
-    // existing sprite shader reads these baked world positions and atlas UVs.
+    // existing sprite shader reads these tilemap-local positions and atlas UVs.
     glad_glGenVertexArrays(1, &tileVao);
     glad_glGenBuffers(1, &tileVbo);
     glad_glBindVertexArray(tileVao);
@@ -525,22 +526,24 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                 Console::Warn(firstIssue);
             if (dc.shader->GetID() == "s1" && !visible.empty()) {
                 // The built-in sprite shader transforms aPos/aUV with these
-                // uniforms. Bake those transforms per tile into one stream, then
-                // use identity uniforms for the entire tilemap. Keep consecutive
-                // texture runs separate so transparent tile order is unchanged.
+                // uniforms. Bake cell placement, size and UVs into one stream,
+                // retaining uModel so tangent-space normals rotate with the map.
+                // Keep consecutive texture runs separate so transparent tile
+                // order is unchanged.
                 std::vector<TileVertex> vertices;
                 vertices.reserve(visible.size() * 6);
                 std::vector<TileRun> runs;
+                Grid* grid = dc.tileRenderer->GetGrid();
                 for (const VisibleTile& tile : visible) {
                     if (runs.empty() || runs.back().texture != tile.texture)
                         runs.push_back({tile.texture, static_cast<GLint>(vertices.size()), 0});
                     const glm::vec2 pivot = tile.sprite->GetPivot();
                     const glm::vec2 uvMin = tile.sprite->GetUVMin();
                     const glm::vec2 uvScale = tile.sprite->GetUVMax() - uvMin;
+                    const glm::vec2 center = TileRender::CellCenter(grid, tile.cell);
                     for (const auto& vertex : kTileQuad) {
                         const glm::vec2 local = (glm::vec2(vertex[0], vertex[1]) - pivot) * tile.size;
-                        const glm::vec4 world = tile.model * glm::vec4(local, 0.0f, 1.0f);
-                        vertices.push_back({glm::vec2(world),
+                        vertices.push_back({center + local,
                                             uvMin + glm::vec2(vertex[2], vertex[3]) * uvScale});
                     }
                     runs.back().count += 6;
@@ -551,17 +554,17 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                 glad_glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(TileVertex),
                                   vertices.data(), GL_STREAM_DRAW);
                 const int tileTextureSlot = dc.mat->ApplyUniforms();
-                dc.shader->SetMat4("uModel", glm::mat4(1.0f));
+                dc.shader->SetMat4("uModel", dc.transform->GetWorldMatrix());
                 dc.shader->SetVec2("uUVScale", glm::vec2(1.0f));
                 dc.shader->SetVec2("uUVOffset", glm::vec2(0.0f));
                 dc.shader->SetVec2("uSize", glm::vec2(1.0f));
                 dc.shader->SetVec2("uPivot", glm::vec2(0.0f));
-                dc.shader->SetVec4("uColor", glm::vec4(1.0f));
-                dc.shader->SetFloat("uHasNormalMap", 0.0f);
+                dc.shader->SetVec4("uColor", dc.tileRenderer->GetColor());
                 dc.shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
                 dc.shader->SetTexture("uTexture", tileTextureSlot);
                 for (const TileRun& run : runs) {
                     run.texture->Bind(tileTextureSlot);
+                    run.texture->BindNormalMap(*dc.shader);
                     glad_glDrawArrays(GL_TRIANGLES, run.first, run.count);
                 }
                 glad_glBindVertexArray(vao);
@@ -572,14 +575,14 @@ void ScenePass::Execute(RenderCamera* camera, Scene* scene)
                     dc.shader->SetMat4("uModel", tile.model);
                     const int tileTextureSlot = dc.mat->ApplyUniforms();
                     tile.texture->Bind(tileTextureSlot);
+                    tile.texture->BindNormalMap(*dc.shader);
                     dc.shader->SetTexture("uTexture", tileTextureSlot);
                     dc.shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);
-                    dc.shader->SetFloat("uHasNormalMap", 0.0f);
                     dc.shader->SetVec2("uUVScale", tile.sprite->GetUVMax() - tile.sprite->GetUVMin());
                     dc.shader->SetVec2("uUVOffset", tile.sprite->GetUVMin());
                     dc.shader->SetVec2("uSize", tile.size);
                     dc.shader->SetVec2("uPivot", tile.sprite->GetPivot());
-                    dc.shader->SetVec4("uColor", glm::vec4(1.0f));
+                    dc.shader->SetVec4("uColor", dc.tileRenderer->GetColor());
                     glad_glDrawArrays(GL_TRIANGLES, 0, 6);
                 }
             }

@@ -30,7 +30,7 @@ public:
     Qt::ItemFlags flags(const QModelIndex& index) const override;
     QStringList mimeTypes() const override;
     QMimeData* mimeData(const QModelIndexList& indexes) const override;
-    Qt::DropActions supportedDragActions() const override { return Qt::CopyAction; }
+    Qt::DropActions supportedDragActions() const override { return Qt::CopyAction | Qt::MoveAction; }
 
     void SetDirectory(const QModelIndex& sourceRoot);
     void ToggleExpanded(const QModelIndex& index);

@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <vector>
 
 #include <QCursor>
@@ -89,6 +90,22 @@ public:
         m_rows.push_back(row);
         handle->installEventFilter(this);
         m_handles.push_back(handle);
+    }
+
+    void UnregisterRow(QWidget* row) {
+        const auto it = std::find(m_rows.begin(), m_rows.end(), row);
+        if (it == m_rows.end()) return;
+        const auto index = static_cast<std::size_t>(std::distance(m_rows.begin(), it));
+        if (m_dragFrom == static_cast<int>(index)) {
+            m_handles[index]->releaseMouse();
+            m_handles[index]->setCursor(Qt::OpenHandCursor);
+        }
+        m_handles[index]->removeEventFilter(this);
+        m_rows.erase(it);
+        m_handles.erase(m_handles.begin() + index);
+        if (m_dragFrom == static_cast<int>(index)) m_dragFrom = -1;
+        else if (m_dragFrom > static_cast<int>(index)) --m_dragFrom;
+        hideIndicator();
     }
 
     // Rows are rebuilt wholesale, so the controller is reset alongside them.

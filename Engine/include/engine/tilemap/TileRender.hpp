@@ -6,6 +6,8 @@
 #include "engine/components/Transform.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
+#include "engine/core/Container.hpp"
+#include "engine/core/TimeManager.hpp"
 #include "engine/tilemap/TileSet.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -18,16 +20,24 @@ inline glm::vec2 Size(Grid* grid, TileMapRenderer* renderer, Sprite* sprite) {
 // Sprite shaders use a centered quad and subtract uSize*uPivot. Translating to
 // the cell center places the sprite's authored pivot there; adding half the
 // sprite size again would shift Fill Cell tiles by half a cell.
-inline glm::mat4 Model(Grid* grid, TileMapRenderer* renderer, const glm::ivec2& cell) {
+inline glm::vec2 CellCenter(Grid* grid, const glm::ivec2& cell) {
     const glm::vec2 origin = glm::vec2(cell) * (grid->GetSize() + grid->GetGap());
+    return origin + grid->GetSize() * 0.5f;
+}
+
+inline glm::mat4 Model(Grid* grid, TileMapRenderer* renderer, const glm::ivec2& cell) {
     return glm::translate(renderer->GetTransform()->GetWorldMatrix(),
-                          glm::vec3(origin + grid->GetSize() * 0.5f, 0.0f));
+                          glm::vec3(CellCenter(grid, cell), 0.0f));
 }
 
 inline Sprite* Resolve(TileMapEditor* editor, const glm::ivec2& cell, TileId id) {
     TileSet* set = editor->GetTileSet();
     if (!set) return nullptr;
-    const std::string spriteId = set->ResolveSprite(id, editor->GetNeighbors(cell));
+    float animationTime = 0.0f;
+    if (Container* container = editor->GetContainer())
+        if (TimeManager* time = container->FindSystem<TimeManager>()) animationTime = time->ElapsedTime();
+    const std::string spriteId = set->ResolveTile(
+        id, editor->GetNeighbors(cell), cell, animationTime).spriteId;
     return spriteId.empty() ? nullptr : AssetManager::Get().GetSprite(spriteId);
 }
 

@@ -140,8 +140,11 @@ void FolderAssetView::keyPressEvent(QKeyEvent* event) {
 void FolderAssetView::startDrag(Qt::DropActions supportedActions) {
     QMimeData* mime = model()->mimeData(selectionModel()->selectedIndexes());
     if (!mime->hasFormat(kSpriteMimeType)) {
-        delete mime;
-        QListView::startDrag(supportedActions & Qt::CopyAction);
+        // The destination performs the complete filesystem transaction. Using
+        // QDrag directly avoids QAbstractItemView's post-move row deletion.
+        QDrag drag(this);
+        drag.setMimeData(mime);
+        drag.exec(supportedActions & (Qt::CopyAction | Qt::MoveAction), Qt::CopyAction);
         return;
     }
     QDrag drag(this);

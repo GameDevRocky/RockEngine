@@ -101,6 +101,10 @@ QMimeData* FolderAssetModel::mimeData(const QModelIndexList& indexes) const {
 }
 
 void FolderAssetModel::SetDirectory(const QModelIndex& sourceRoot) {
+    if (m_root == sourceRoot && m_root.isValid()) {
+        Refresh();
+        return;
+    }
     beginResetModel();
     m_root = sourceRoot;
     m_entries.clear();

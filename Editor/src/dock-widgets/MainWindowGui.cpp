@@ -55,6 +55,8 @@ void MainWindow::Init()
     connect(file_explorer, &FileExplorerGui::RaiseFolderView, this, [this]() {
         folderViewDock->raise();
     });
+    connect(folder_view, &FolderViewGui::InspectFileRequested,
+            inspector, &InspectorGui::InspectFile);
 
     viewportArea = new QMainWindow(this);
     viewportArea->setWindowFlags(Qt::Widget);

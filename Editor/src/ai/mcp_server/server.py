@@ -281,7 +281,8 @@ async def set_scale(object_id: str, x: float, y: float, world: bool = False) -> 
 @mcp.tool()
 async def list_assets(asset_type: str = "", name_contains: str = "", limit: int = 50) -> Any:
     """List loaded assets with their ids, names and file paths. asset_type is one of
-    sprite, material, texture, font, audio, shader; omit for everything but shaders.
+    sprite, material, texture, font, audio, tilemap, tileset, shader;
+    omit for everything but shaders.
 
     Asset ids are not guessable from filenames, so call this before assigning one.
     Results are capped (a sliced tileset yields hundreds of sprites) and each category
@@ -323,6 +324,70 @@ async def save_asset(asset_id: str) -> Any:
     """Explicitly persist a loaded asset's current in-memory state. Property setters
     normally auto-save already; this is useful as a synchronization checkpoint."""
     return await call("asset.save", assetId=asset_id)
+
+
+@mcp.tool()
+async def list_tiles(asset_id: str) -> Any:
+    """List tile IDs, names and rule counts in a loaded TileSet."""
+    return await call("tileset.list_tiles", assetId=asset_id)
+
+
+@mcp.tool()
+async def get_tile(asset_id: str, tile_id: int) -> Any:
+    """Read one complete TileSet tile definition, including its auto-tile rules."""
+    return await call("tileset.get_tile", assetId=asset_id, tileId=tile_id)
+
+
+@mcp.tool()
+async def set_tile(asset_id: str, tile_id: int, tile: dict[str, Any]) -> Any:
+    """Create or replace a TileSet tile. Pass a complete definition with name,
+    defaultSpriteId, collisionType, customPolygon and rules; get_tile returns the
+    accepted shape. Sprite IDs must refer to loaded sprites. Saves the TileSet.
+    """
+    return await call("tileset.set_tile", assetId=asset_id, tileId=tile_id, tile=tile)
+
+
+@mcp.tool()
+async def remove_tile(asset_id: str, tile_id: int) -> Any:
+    """Remove a TileSet definition and save it. Existing map cells with that ID remain
+    painted but no longer resolve to a sprite until the definition is restored.
+    Requires the in-editor impact review and an explicit user choice.
+    """
+    started = await call("tileset.remove_tile", assetId=asset_id, tileId=tile_id)
+    impact = _editor_data(started)
+    if impact.get("status") != "clarification_required":
+        return started
+    request_id = impact.get("requestId", "")
+    answered = _editor_data(await _wait_for_clarification(request_id))
+    if answered.get("status") == "answered" and "remove" in answered.get("selectedIds", []):
+        return await call("tileset.remove_tile", assetId=asset_id, tileId=tile_id,
+                          clarificationId=request_id)
+    return {"status": "not_removed", "clarification": answered,
+            "affectedCells": impact.get("affectedCells", 0),
+            "affectedMaps": impact.get("affectedMaps", [])}
+
+
+@mcp.tool()
+async def get_tilemap_cells(asset_id: str, min_x: int | None = None,
+                            min_y: int | None = None, max_x: int | None = None,
+                            max_y: int | None = None, limit: int = 200) -> Any:
+    """Read a TileMap's sparse nonempty cells, optionally within inclusive cell bounds.
+    Returns at most limit cells (1-1000), plus total and truncated.
+    """
+    bounds = {key: value for key, value in {
+        "minX": min_x, "minY": min_y, "maxX": max_x, "maxY": max_y,
+    }.items() if value is not None}
+    return await call("tilemap.get_cells", assetId=asset_id, limit=limit, **bounds)
+
+
+@mcp.tool()
+async def set_tilemap_cells(component_id: str, cells: list[dict[str, int]]) -> Any:
+    """Paint or erase up to 1000 cells through an exact TileMapEditor component ID.
+    Each cell has x, y and tileId; 0 erases. Requires its assigned TileMap, TileSet
+    for nonempty IDs, and ancestor Grid. Validates the whole batch, saves the TileMap,
+    and creates one Undo entry in the editor world.
+    """
+    return await call("tilemap.set_cells", componentId=component_id, cells=cells)
 
 
 @mcp.tool()

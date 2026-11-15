@@ -22,6 +22,7 @@
 class FolderAssetModel;
 class AssetPreviewDelegate;
 class QLineEdit;
+class QSlider;
 
 class FolderViewGui : public QWidget {
     Q_OBJECT
@@ -39,6 +40,12 @@ public:
     void SetProjectDirectory(const std::string& projectDir);
     std::vector<std::string> GetSelectedFilePaths() const;
 
+Q_SIGNALS:
+    // A project file with no live Serializable representation should still have
+    // something useful to show in the Inspector. MainWindow routes this request
+    // there without coupling the Folder view directly to InspectorGui.
+    void InspectFileRequested(const QString& filePath);
+
 private:
     explicit FolderViewGui(QWidget* parent = nullptr);
     ~FolderViewGui() override;
@@ -46,15 +53,13 @@ private:
     void RefreshBreadcrumbs();
     void NavigateToPath(const QString& path, bool recordHistory = true);
     QString RelativePathForBreadcrumb(const QString& path) const;
-    void dragEnterEvent(QDragEnterEvent* event) override;
-    void dragMoveEvent(QDragMoveEvent* event) override;
-    void dropEvent(QDropEvent* event) override;
 
-    // Right-click "New" menu: create asset files on disk in the current folder.
+    // Right-click "New" menu: create folders and asset files on disk.
     void ShowContextMenu(const QPoint& pos);
     void BeginRename(const QModelIndex& index);
     void CommitRename();
     void CancelRename();
+    void CreateNewFolder();
     void CreateNewMaterial();
     void CreateNewTileMap();
     void CreateNewTileSet();
@@ -87,5 +92,6 @@ private:
     QString                 projectDirectory;
     QStack<QString>         directoryHistory;
     QLineEdit*              m_renameEditor = nullptr;
+    QSlider*                m_cellSizeSlider = nullptr;
     QString                 m_renamePath;
 };

@@ -16,6 +16,7 @@ from .box_collider_handler import BoxCollider
 from .capsule_collider_handler import CapsuleCollider
 from .circle_collider_handler import CircleCollider
 from .chain_collider_handler import ChainCollider
+from .tilemap_collider_handler import TileMapCollider
 from .joint_handler import Joint
 from .distance_joint_handler import DistanceJoint
 from .revolute_joint_handler import RevoluteJoint

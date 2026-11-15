@@ -3,6 +3,7 @@
 #include "dock-widgets/FolderViewGui.hpp"
 #include "engine/debug/Console.hpp"
 #include "utils/EditorUtils.hpp"
+#include "utils/ProjectFileDropTarget.hpp"
 
 
 FileExplorerGui::FileExplorerGui(QWidget *parent)
@@ -26,6 +27,15 @@ FileExplorerGui::FileExplorerGui(QWidget *parent)
     tree->setColumnHidden(1, true);  
     tree->setColumnHidden(2, true);  
     tree->setColumnHidden(3, true);
+    tree->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    tree->setAcceptDrops(true);
+    tree->setDropIndicatorShown(false);
+    new ProjectFileDropTarget(tree->viewport(), [this](const QPoint& pos) {
+        const QModelIndex index = tree->indexAt(pos);
+        const QModelIndex target = index.isValid() ? index : tree->rootIndex();
+        return ProjectFileDropTarget::Target{
+            model->filePath(target), index.isValid() ? tree->visualRect(index) : tree->viewport()->rect()};
+    });
     
     tree->viewport()->setAutoFillBackground(true);
     tree->viewport()->setPalette(this->palette());

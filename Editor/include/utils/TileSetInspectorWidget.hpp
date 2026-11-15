@@ -12,6 +12,8 @@
 class TileSet;
 class QLineEdit;
 class QSpinBox;
+class QComboBox;
+class TileCollisionShapeEditor;
 
 struct TileSetTileEntry {
     TileId id = EMPTY_TILE_ID;
@@ -35,6 +37,13 @@ struct TileSetRuleEntry {
         return pattern;
     }();
     std::string spriteId;
+    std::string fallbackSpriteId;
+    TileCollisionType collisionType = TileCollisionType::None;
+    TileCollisionPolygon customPolygon = DefaultTileCollisionPolygon();
+    TileOutputType outputType = TileOutputType::Fixed;
+    std::vector<std::string> spriteIds;
+    float minAnimationSpeed = 1.0f;
+    float maxAnimationSpeed = 1.0f;
     TileId ownerId = EMPTY_TILE_ID;
     std::vector<TileSetTileOption> options;
     bool newlyAdded = true;
@@ -62,6 +71,8 @@ private:
     QWidget* m_tileFields = nullptr;
     QSpinBox* m_idField = nullptr;
     QLineEdit* m_nameField = nullptr;
+    QComboBox* m_collisionType = nullptr;
+    TileCollisionShapeEditor* m_defaultCustomEditor = nullptr;
     std::unique_ptr<PropertyWidget<std::string>> m_defaultSprite;
     std::unique_ptr<PropertyWidget<std::vector<TileSetRuleEntry>>> m_rules;
     bool m_refreshQueued = false;

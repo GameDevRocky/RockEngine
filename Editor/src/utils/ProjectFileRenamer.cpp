@@ -19,13 +19,15 @@
 #include <QStringList>
 #include <yaml-cpp/yaml.h>
 #include <filesystem>
+#include <algorithm>
 #include <vector>
 
 namespace {
 namespace fs = std::filesystem;
 
-struct Move { QString before, after; bool directory = false; };
+struct PathMove { QString before, after; bool directory = false; };
 struct Edit { QString before, after; QByteArray original, replacement; };
+struct ModuleMove { QString before, after; };
 
 QString absolute(const QString& path) {
     return QDir::cleanPath(QFileInfo(path).absoluteFilePath());
@@ -46,16 +48,16 @@ bool inside(const QString& path, const QString& root) {
         (path[root.size()] == '/' || path[root.size()] == '\\');
 }
 
-QString remap(const QString& path, const Move& move) {
+QString remap(const QString& path, const PathMove& move) {
     if (samePath(path, move.before)) return move.after;
     if (move.directory && inside(path, move.before))
         return move.after + path.mid(move.before.size());
     return path;
 }
 
-QString remap(const QString& path, const std::vector<Move>& moves) {
+QString remap(const QString& path, const std::vector<PathMove>& moves) {
     QString result = path;
-    for (const Move& move : moves) result = remap(result, move);
+    for (const PathMove& move : moves) result = remap(result, move);
     return result;
 }
 
@@ -66,7 +68,7 @@ bool atomicWrite(const QString& path, const QByteArray& bytes) {
     return file.commit();
 }
 
-bool diskMove(const Move& move) {
+bool diskMove(const PathMove& move) {
     std::error_code ec;
 #ifdef Q_OS_WIN
     fs::rename(fs::path(move.before.toStdWString()), fs::path(move.after.toStdWString()), ec);
@@ -111,16 +113,14 @@ bool metaExtension(const QString& ext) {
     return ext == "texture" || ext == "shader" || ext == "font" || ext == "audio";
 }
 
-QString renamedModule(const QString& module, const QString& oldName,
-                      const QString& newName) {
-    if (module == oldName) return newName;
-    const QString prefix = "Domain.sandbox.scripts.";
-    if (module == prefix + oldName) return prefix + newName;
+QString renamedModule(const QString& module, const std::vector<ModuleMove>& modules) {
+    for (const auto& move : modules)
+        if (module == move.before) return move.after;
     return module;
 }
 
-bool stageYaml(const QString& path, const std::vector<Move>& moves,
-               const QString& oldModule, const QString& newModule,
+bool stageYaml(const QString& path, const std::vector<PathMove>& moves,
+               const std::vector<ModuleMove>& modules,
                std::vector<Edit>& edits, QString* error) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
@@ -156,8 +156,10 @@ bool stageYaml(const QString& path, const std::vector<Move>& moves,
             QString::fromStdString(EngineUtils::GetAssetPath(stored.toStdString())));
         const QString moved = remap(resolved, moves);
         if (samePath(moved, resolved) && moved == resolved) return;
-        const QString replacement = QString::fromStdString(
-            EngineUtils::ToAssetRelative(moved.toStdString()));
+        // The destination does not exist while edits are being staged. Use a
+        // lexical relative path; filesystem canonicalization may fail here.
+        const QString replacement = QDir(QString::fromStdString(
+            EngineUtils::GetAssetRoot())).relativeFilePath(moved);
         node[key] = replacement.toStdString();
         changed = true;
     };
@@ -166,7 +168,7 @@ bool stageYaml(const QString& path, const std::vector<Move>& moves,
         updateStoredPath("path");
         updateStoredPath("source_path");
     }
-    if (suffix == "scene" && !oldModule.isEmpty()) {
+    if (suffix == "scene" && !modules.empty()) {
         YAML::Node components = node["components"];
         if (components && components.IsSequence()) {
             for (YAML::Node component : components) {
@@ -174,7 +176,7 @@ bool stageYaml(const QString& path, const std::vector<Move>& moves,
                     component["type"].as<std::string>() == "ScriptComponent") {
                     const QString current = QString::fromStdString(
                         component["module"].as<std::string>());
-                    const QString renamed = renamedModule(current, oldModule, newModule);
+                    const QString renamed = renamedModule(current, modules);
                     if (renamed != current) {
                         component["module"] = renamed.toStdString();
                         changed = true;
@@ -196,9 +198,9 @@ bool stageYaml(const QString& path, const std::vector<Move>& moves,
     return true;
 }
 
-void updateLoaded(const std::vector<Move>& moves,
-                  const QString& oldModule, const QString& newModule) {
-    for (const Move& move : moves)
+void updateLoaded(const std::vector<PathMove>& moves,
+                  const std::vector<ModuleMove>& modules) {
+    for (const PathMove& move : moves)
         AssetManager::Get().RelocatePaths(move.before.toStdString(), move.after.toStdString(),
                                           move.directory);
     Engine* engine = Engine::Get();
@@ -212,20 +214,93 @@ void updateLoaded(const std::vector<Move>& moves,
             QString scenePath = absolute(QString::fromStdString(scene->GetPath()));
             const QString moved = remap(scenePath, moves);
             if (moved != scenePath) scene->SetPath(moved.toStdString());
-            if (!oldModule.isEmpty()) {
+            if (!modules.empty()) {
                 for (GameObject* object : scene->GetAllGameObjects()) {
                     if (!object) continue;
                     for (ScriptComponent* script : object->GetComponents<ScriptComponent>())
                         if (script) {
-                            script->RelocateModule(oldModule.toStdString(), newModule.toStdString());
-                            const std::string prefix = "Domain.sandbox.scripts.";
-                            script->RelocateModule(prefix + oldModule.toStdString(),
-                                                    prefix + newModule.toStdString());
+                            const QString current = QString::fromStdString(script->GetScriptModuleName());
+                            const QString moved = renamedModule(current, modules);
+                            if (moved != current)
+                                script->RelocateModule(current.toStdString(), moved.toStdString());
                         }
                 }
             }
         }
     }
+}
+
+// Shared transaction for rename and drag/drop moves. Stage reference edits
+// before touching disk; restore both file locations and bytes on failure.
+bool applyMoves(const std::vector<PathMove>& moves, QString* error);
+
+bool planMoves(const QStringList& paths, const QString& directory,
+               std::vector<PathMove>& moves, QString* error) {
+    auto fail = [&](const QString& message) {
+        if (error) *error = message;
+        return false;
+    };
+    const QString target = absolute(directory);
+    const QFileInfo destination(target);
+    const QString root = sandboxRoot();
+    if (!destination.isDir() || destination.isSymLink() || !inside(target, root) ||
+        !inside(absolute(destination.canonicalFilePath()),
+                absolute(QFileInfo(root).canonicalFilePath())))
+        return fail("Choose a folder inside project content.");
+    if (paths.isEmpty()) return fail("No files to move.");
+
+    QStringList selected;
+    for (const QString& path : paths) {
+        const QString source = absolute(path);
+        if (!ProjectFileRenamer::CanRename(source))
+            return fail("This item cannot be moved: " + source);
+        if (std::none_of(selected.begin(), selected.end(), [&](const QString& other) {
+                return samePath(source, other);
+            })) selected.push_back(source);
+    }
+    for (const QString& source : selected) {
+        // A folder selection already carries all selected descendants.
+        if (std::any_of(selected.begin(), selected.end(), [&](const QString& other) {
+                return !samePath(source, other) && QFileInfo(other).isDir() && inside(source, other);
+            })) continue;
+        const QFileInfo info(source);
+        if (info.isDir() && inside(target, source))
+            return fail("A folder cannot be moved into itself or one of its subfolders.");
+        if (samePath(info.absolutePath(), target)) continue;
+
+        auto add = [&](const QString& before) {
+            if (std::none_of(moves.begin(), moves.end(), [&](const PathMove& move) {
+                    return samePath(move.before, before);
+                })) moves.push_back({before, QDir(target).filePath(QFileInfo(before).fileName()),
+                                      QFileInfo(before).isDir()});
+        };
+        if (info.isDir()) { add(source); continue; }
+        const QString suffix = info.suffix().toLower();
+        const QString metaExt = metaExtension(suffix) ? "." + suffix :
+            QString::fromStdString(AssetMetaService::MetaExtensionFor(("." + suffix).toStdString()));
+        const QString sourcePath = metaExtension(suffix)
+            ? absolute(info.absolutePath() + "/" + info.completeBaseName()) : source;
+        const QString descriptor = metaExtension(suffix) ? source : source + metaExt;
+        if (metaExtension(suffix) && !QFileInfo::exists(sourcePath))
+            return fail("The asset descriptor has no matching source file.");
+        if (!metaExt.isEmpty() && QFileInfo::exists(descriptor)) {
+            if (!ProjectFileRenamer::CanRename(sourcePath) ||
+                !ProjectFileRenamer::CanRename(descriptor))
+                return fail("Paired assets cannot contain symbolic links.");
+            add(sourcePath);
+            add(descriptor);
+        } else add(source);
+    }
+    if (moves.empty()) return fail("The files are already in this folder.");
+    for (std::size_t i = 0; i < moves.size(); ++i) {
+        const PathMove& move = moves[i];
+        if (protectedPath(move.after) || QFileInfo::exists(move.after))
+            return fail("The destination already exists: " + move.after);
+        for (std::size_t j = 0; j < i; ++j)
+            if (samePath(move.after, moves[j].after))
+                return fail("Several files have the same destination: " + move.after);
+    }
+    return true;
 }
 } // namespace
 
@@ -265,8 +340,7 @@ bool ProjectFileRenamer::Rename(const QString& path, const QString& newName, QSt
     const QString root = sandboxRoot();
     const QString parent = info.absolutePath();
     const QString suffix = info.suffix().toLower();
-    std::vector<Move> moves;
-    QString oldModule, newModule;
+    std::vector<PathMove> moves;
     if (info.isDir()) {
         moves.push_back({oldPath, absolute(parent + "/" + newName), true});
     } else {
@@ -302,12 +376,10 @@ bool ProjectFileRenamer::Rename(const QString& path, const QString& newName, QSt
                 if (error) *error = "Script filenames must be valid Python module names.";
                 return false;
             }
-            oldModule = info.completeBaseName();
-            newModule = newName;
         }
     }
 
-    for (const Move& move : moves) {
+    for (const PathMove& move : moves) {
         if (!inside(move.after, root) || protectedPath(move.after) ||
             (QFileInfo::exists(move.after) && !samePath(move.after, move.before))) {
             if (error) *error = "The destination exists or is outside project content.";
@@ -315,7 +387,31 @@ bool ProjectFileRenamer::Rename(const QString& path, const QString& newName, QSt
         }
     }
 
+    return applyMoves(moves, error);
+}
+
+bool ProjectFileRenamer::CanMove(const QStringList& paths, const QString& directory, QString* error) {
+    std::vector<PathMove> moves;
+    return planMoves(paths, directory, moves, error);
+}
+
+bool ProjectFileRenamer::Move(const QStringList& paths, const QString& directory, QString* error) {
+    std::vector<PathMove> moves;
+    return planMoves(paths, directory, moves, error) && applyMoves(moves, error);
+}
+
+namespace {
+QString qualifiedModule(const QString& path, const QString& root) {
+    QString relative = QDir(root).relativeFilePath(path);
+    relative.chop(3); // .py
+    return relative.replace('/', '.');
+}
+
+bool applyMoves(const std::vector<PathMove>& moves, QString* error) {
     std::vector<Edit> edits;
+    std::vector<ModuleMove> modules;
+    QStringList yamlFiles;
+    const QString root = sandboxRoot();
     const QString domainRoot = absolute(QString::fromStdString(
         EngineUtils::GetAssetPath("Domain")));
     std::error_code scanError;
@@ -332,22 +428,43 @@ bool ProjectFileRenamer::Rename(const QString& path, const QString& newName, QSt
         const QString candidate = absolute(QString::fromStdString(it->path().string()));
 #endif
         const QString ext = QFileInfo(candidate).suffix().toLower();
-        if (metaExtension(ext) || ext == "scene" ||
-            QFileInfo(candidate).fileName() == "project.build") {
-            if (!stageYaml(candidate, moves, oldModule, newModule, edits, error)) return false;
+        const QString moved = remap(candidate, moves);
+        if (ext == "py" && moved != candidate && inside(candidate, root)) {
+            QString relative = QDir(root).relativeFilePath(moved);
+            relative.chop(3);
+            for (const QString& part : relative.split('/')) {
+                if (!validScriptModule(part)) {
+                    if (error) *error = "Script destinations must use valid Python module names.";
+                    return false;
+                }
+            }
+            const QString newModule = relative.replace('/', '.');
+            const QString fullNewModule = "Domain.sandbox." + newModule;
+            modules.push_back({"Domain.sandbox." + qualifiedModule(candidate, root), fullNewModule});
+            const QString scripts = root + "/scripts";
+            if (inside(candidate, scripts)) {
+                const QString replacement = inside(moved, scripts)
+                    ? qualifiedModule(moved, scripts) : fullNewModule;
+                modules.push_back({qualifiedModule(candidate, scripts), replacement});
+            }
         }
+        if (metaExtension(ext) || ext == "scene" ||
+            QFileInfo(candidate).fileName() == "project.build")
+            yamlFiles.push_back(candidate);
     }
     if (scanError) {
         if (error) *error = "Cannot scan project content: " +
             QString::fromStdString(scanError.message());
         return false;
     }
+    for (const QString& candidate : yamlFiles)
+        if (!stageYaml(candidate, moves, modules, edits, error)) return false;
 
-    std::vector<Move> completed;
+    std::vector<PathMove> completed;
     std::size_t written = 0;
-    for (const Move& move : moves) {
+    for (const PathMove& move : moves) {
         if (!diskMove(move)) {
-            if (error) *error = "Could not rename " + move.before;
+            if (error) *error = "Could not move " + move.before;
             goto rollback;
         }
         completed.push_back(move);
@@ -359,7 +476,7 @@ bool ProjectFileRenamer::Rename(const QString& path, const QString& newName, QSt
         }
         ++written;
     }
-    updateLoaded(moves, oldModule, newModule);
+    updateLoaded(moves, modules);
     return true;
 
 rollback:
@@ -374,3 +491,4 @@ rollback:
     }
     return false;
 }
+} // namespace

@@ -194,6 +194,8 @@ private:
                                   class Transform* transform, class CapsuleCollider* capsuleCollider);
     void DrawChainColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight,
                                 class Transform* transform, class ChainCollider* chainCollider);
+    void DrawTileMapColliderGizmo(const glm::mat4& view, const glm::mat4& proj, float viewWidth, float viewHeight,
+                                  class Transform* transform, class TileMapCollider* tileMapCollider);
 
     ImVec2 WorldToScreen(const glm::vec2& world, const glm::mat4& vp, float viewWidth, float viewHeight);
     glm::vec2 ScreenToWorld(const ImVec2& screen, const glm::mat4& vp, float viewWidth, float viewHeight);

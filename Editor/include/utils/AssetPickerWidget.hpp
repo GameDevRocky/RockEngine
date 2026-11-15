@@ -20,9 +20,11 @@
 #include <QTimer>
 #include <QPushButton>
 #include <QSlider>
+#include <QWheelEvent>
 #include <QMimeData>
 #include <QAbstractItemView>
 #include "utils/VerticalResizeGrip.hpp"
+#include "utils/WheelScale.hpp"
 
 // A QListWidget that hands drag payload construction back to its owner, so the
 // picker can emit whatever MIME type the assets it is showing call for (sprite
@@ -99,6 +101,7 @@ public:
         root->addWidget(m_search);
 
         m_list = new PickerListWidget(this);
+        m_list->setObjectName("AssetPickerList");
         m_list->setViewMode(QListView::IconMode);
         m_list->setIconSize(QSize(kThumbSize, kThumbSize));
         m_list->setGridSize(QSize(kCellWidth, kCellHeight));
@@ -131,10 +134,13 @@ public:
         footerLayout->addStretch();
         footerLayout->addWidget(new QLabel("Size", m_footer));
         m_cellSizeSlider = new QSlider(Qt::Horizontal, m_footer);
+        m_cellSizeSlider->setObjectName("AssetPickerCellSizeSlider");
         m_cellSizeSlider->setRange(16, 128);
+        m_cellSizeSlider->setSingleStep(8);
         m_cellSizeSlider->setValue(kThumbSize);
         m_cellSizeSlider->setFixedWidth(100);
-        m_cellSizeSlider->setToolTip("Cell size; drag left for list view");
+        m_cellSizeSlider->setToolTip(
+            "Cell size; drag left for list view or use Ctrl+mouse wheel");
         m_cellSizeSlider->setAccessibleName("Reference cell size");
         footerLayout->addWidget(m_cellSizeSlider);
         root->addWidget(m_footer);
@@ -293,8 +299,13 @@ public:
 
 protected:
     bool eventFilter(QObject* watched, QEvent* event) override {
-        if (watched == m_list->viewport() && event->type() == QEvent::Resize)
-            updateCellLayout();
+        if (watched == m_list->viewport()) {
+            if (event->type() == QEvent::Wheel &&
+                WheelScale::AdjustSlider(
+                    m_cellSizeSlider, static_cast<QWheelEvent*>(event)))
+                return true;
+            if (event->type() == QEvent::Resize) updateCellLayout();
+        }
         return QWidget::eventFilter(watched, event);
     }
 

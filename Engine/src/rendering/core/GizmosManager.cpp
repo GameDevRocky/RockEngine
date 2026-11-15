@@ -7,6 +7,7 @@
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/ChainCollider.hpp"
+#include "engine/components/TileMapCollider.hpp"
 #include "engine/components/Camera.hpp"
 #include "engine/components/ParticleComponent.hpp"
 #include "engine/components/Light.hpp"
@@ -835,6 +836,10 @@ void GizmosManager::DrawColliderGizmo(const glm::mat4& view, const glm::mat4& pr
     for (CapsuleCollider* capsuleCollider : selectedObj->GetComponents<CapsuleCollider>()) {
         anyCollider = true;
         DrawCapsuleColliderGizmo(view, proj, viewWidth, viewHeight, transform, capsuleCollider);
+    }
+    for (TileMapCollider* tileMapCollider : selectedObj->GetComponents<TileMapCollider>()) {
+        anyCollider = true;
+        DrawTileMapColliderGizmo(view, proj, viewWidth, viewHeight, transform, tileMapCollider);
     }
     if (!anyCollider) DrawTransformGizmo(view, proj, viewWidth, viewHeight);
 }
@@ -2322,6 +2327,45 @@ void GizmosManager::DrawChainColliderGizmo(const glm::mat4& view, const glm::mat
                                   selected || hovered ? selectedColor : lineColor);
         drawList->AddCircle(screenPoints[index], selected ? 6.0f : 4.5f,
                             IM_COL32(12, 25, 20, 230));
+    }
+}
+
+void GizmosManager::DrawTileMapColliderGizmo(const glm::mat4& view, const glm::mat4& proj,
+                                              float viewWidth, float viewHeight,
+                                              Transform* transform, TileMapCollider* tileMapCollider) {
+    if (!transform || !tileMapCollider) return;
+    ImDrawList* drawList = ImGui::GetForegroundDrawList();
+    const glm::mat4 world = transform->GetWorldMatrix();
+    const glm::mat4 vp = proj * view;
+    const glm::vec2 offset = tileMapCollider->GetCenter();
+    constexpr ImU32 outlineColor = IM_COL32(0, 255, 0, 200);
+    for (const TileMapCollider::GeneratedRectangle& rectangle : tileMapCollider->GetGeneratedRectangles()) {
+        const glm::vec2 half = rectangle.size * 0.5f;
+        const glm::vec2 local[4] = {
+            rectangle.center + offset + glm::vec2{-half.x, -half.y},
+            rectangle.center + offset + glm::vec2{ half.x, -half.y},
+            rectangle.center + offset + glm::vec2{ half.x,  half.y},
+            rectangle.center + offset + glm::vec2{-half.x,  half.y}
+        };
+        ImVec2 screen[4];
+        for (int index = 0; index < 4; ++index) {
+            const glm::vec2 point = glm::vec2(world * glm::vec4(local[index], 0.0f, 1.0f));
+            screen[index] = WorldToScreen(point, vp, viewWidth, viewHeight);
+        }
+        for (int index = 0; index < 4; ++index)
+            drawList->AddLine(screen[index], screen[(index + 1) % 4], outlineColor, 2.0f);
+    }
+    for (const TileMapCollider::GeneratedPolygon& polygon : tileMapCollider->GetGeneratedPolygons()) {
+        if (polygon.points.size() < 3 || polygon.points.size() > 8) continue;
+        ImVec2 screen[8];
+        for (std::size_t index = 0; index < polygon.points.size(); ++index) {
+            const glm::vec2 point = glm::vec2(world *
+                glm::vec4(polygon.points[index] + offset, 0.0f, 1.0f));
+            screen[index] = WorldToScreen(point, vp, viewWidth, viewHeight);
+        }
+        for (std::size_t index = 0; index < polygon.points.size(); ++index)
+            drawList->AddLine(screen[index], screen[(index + 1) % polygon.points.size()],
+                              outlineColor, 2.0f);
     }
 }
 

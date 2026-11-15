@@ -28,6 +28,9 @@
 #include "engine/components/TextRenderer.hpp"
 #include "engine/components/Transform.hpp"
 #include "engine/components/TrailRenderer.hpp"
+#include "engine/components/TileMapCollider.hpp"
+#include "engine/components/TileMapEditor.hpp"
+#include "engine/components/TileMapRenderer.hpp"
 #include "engine/components/WeldJoint.hpp"
 #include "engine/components/WheelJoint.hpp"
 #include "engine/core/Command.hpp"
@@ -41,6 +44,8 @@
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
+#include "engine/tilemap/TileMap.hpp"
+#include "engine/tilemap/TileSet.hpp"
 #include "engine/serialization/Registry.hpp"
 #include "engine/serialization/SerializableFactory.hpp"
 
@@ -137,6 +142,8 @@ QString ValidateReference(const QString& type, const std::string& id) {
     else if (normalized == "font") exists = assets.GetFont(id);
     else if (normalized == "audioclip" || normalized == "audio") exists = assets.GetAudioClip(id);
     else if (normalized == "shader") exists = assets.GetShader(id);
+    else if (normalized == "tilemap") exists = assets.GetTileMap(id);
+    else if (normalized == "tileset") exists = assets.GetTileSet(id);
     else return {};
     return exists ? QString{} : "no " + type + " asset with id " + QString::fromStdString(id);
 }
@@ -374,6 +381,20 @@ PropertyBag BuildComponentBag(Component* component) {
         b.Bool("lock_rotation", [rb]{ return rb->GetLockRotation(); }, [rb](bool v){ rb->SetLockRotation(v); });
         b.Vec2("linear_velocity", [rb]{ return rb->GetLinearVelocity(); }, [rb](glm::vec2 v){ rb->SetLinearVelocity(v); });
         b.Float("angular_velocity", [rb]{ return rb->GetAngularVelocity(); }, [rb](float v){ rb->SetAngularVelocity(v); });
+    } else if (auto* e = dynamic_cast<TileMapEditor*>(component)) {
+        b.String("tilemap", [e]{ return e->GetTileMapId(); }, [e](const std::string& id){ e->SetTileMap(AssetManager::Get().GetTileMap(id)); }, "TileMap");
+        b.String("tileset", [e]{ return e->GetTileSetId(); }, [e](const std::string& id){ e->SetTileSet(AssetManager::Get().GetTileSet(id)); }, "TileSet");
+        b.String("grid", [e]{ return e->GetGridId(); }, {}, "Grid");
+    } else if (auto* r = dynamic_cast<TileMapRenderer*>(component)) {
+        b.Vec4("color", [r]{ return r->GetColor(); }, [r](glm::vec4 v){ r->SetColor(v); });
+        b.String("material", [r]{ return r->GetMaterialId(); }, [r](const std::string& id){ r->SetMaterial(id); }, "Material");
+        b.Enum("sizing", [r]{ return static_cast<int>(r->GetTileSizingMode()); }, [r](int v){ r->SetTileSizingMode(static_cast<TileMapRenderer::TileSizingMode>(v)); }, {"Native", "FillCell"});
+        if (sortingLayers.empty()) b.String("sorting_layer", [r]{ return r->GetSortingLayer(); }, [r](const std::string& v){ r->SetSortingLayer(v); });
+        else b.StringChoice("sorting_layer", [r]{ return r->GetSortingLayer(); }, [r](const std::string& v){ r->SetSortingLayer(v); }, sortingLayers);
+        b.Int("sorting_order", [r]{ return r->GetSortingOrder(); }, [r](int v){ r->SetSortingOrder(v); });
+    } else if (auto* c = dynamic_cast<TileMapCollider*>(component)) {
+        AddColliderProperties(b, c);
+        b.Int("generated_shape_count", [c]{ return static_cast<int>(c->GetGeneratedShapeCount()); });
     } else if (auto* c = dynamic_cast<BoxCollider*>(component)) {
         AddColliderProperties(b, c); b.Vec2("size", [c]{ return c->GetSize(); }, [c](glm::vec2 v){ c->SetSize(v); });
     } else if (auto* c = dynamic_cast<CircleCollider*>(component)) {
@@ -500,6 +521,8 @@ ResolvedAsset FindAsset(const std::string& id) {
     if (auto* v = assets.GetFont(id)) return {v, "Font"};
     if (auto* v = assets.GetAudioClip(id)) return {v, "AudioClip"};
     if (auto* v = assets.GetShader(id)) return {v, "Shader"};
+    if (auto* v = assets.GetTileMap(id)) return {v, "TileMap"};
+    if (auto* v = assets.GetTileSet(id)) return {v, "TileSet"};
     return {};
 }
 
@@ -508,7 +531,12 @@ PropertyBag BuildAssetBag(Resource* resource) {
     b.String("name", [resource]{ return resource->GetName(); });
     b.String("path", [resource]{ return resource->GetFilePath(); });
 
-    if (auto* s = dynamic_cast<Sprite*>(resource)) {
+    if (auto* map = dynamic_cast<TileMap*>(resource)) {
+        b.Int("cell_count", [map]{ const bool temporary=!map->GetCells(); if(temporary&&!map->Load())return -1; const int count=static_cast<int>(map->GetCells()->size()); if(temporary)map->Unload(); return count; });
+        b.Bool("cells_loaded", [map]{ return map->GetCells() != nullptr; });
+    } else if (auto* set = dynamic_cast<TileSet*>(resource)) {
+        b.Int("tile_count", [set]{ return static_cast<int>(set->GetTiles().size()); });
+    } else if (auto* s = dynamic_cast<Sprite*>(resource)) {
         b.Vec2("uv_min", [s]{ return s->GetUVMin(); }, [s](glm::vec2 v){ s->SetUVMin(v); });
         b.Vec2("uv_max", [s]{ return s->GetUVMax(); }, [s](glm::vec2 v){ s->SetUVMax(v); });
         b.Vec2("pivot", [s]{ return s->GetPivot(); }, [s](glm::vec2 v){ s->SetPivot(v); });
@@ -728,7 +756,7 @@ void RegisterPropertyTools(McpDispatcher& dispatcher) {
     dispatcher.RegisterTool("capabilities.get", [](const QJsonObject&) {
         QJsonArray types; for(const std::string& name:SerializableFactory::GetRegisteredTypeNames()) types.append(QString::fromStdString(name));
         QJsonObject result{{"protocolVersion",2},{"componentAddressing","exact-id"},{"componentTypes",types}};
-        result["tools"]=QJsonArray{"component.list","component.describe","component.get_property","component.set_property","component.set_properties","component.invoke","asset.describe","asset.get_property","asset.set_property","asset.set_properties","asset.save","reference.resolve","console.get_messages","scene.capture_view","user.request_clarification","user.clarification_status"};
+        result["tools"]=QJsonArray{"component.list","component.describe","component.get_property","component.set_property","component.set_properties","component.invoke","asset.describe","asset.get_property","asset.set_property","asset.set_properties","asset.save","reference.resolve","tileset.list_tiles","tileset.get_tile","tileset.set_tile","tileset.remove_tile","tilemap.get_cells","tilemap.set_cells","console.get_messages","scene.capture_view","user.request_clarification","user.clarification_status"};
         result["transactions"]="component.set_properties and asset.set_properties validate and roll back as one batch";result["componentUndo"]=true;result["assetUndo"]=false;result["destructiveClarification"]=QJsonArray{"object.destroy","object.remove_component"};result["clarificationOtherAlwaysIncluded"]=true;result["clarificationMultiSelect"]=true;return McpResult::Ok(result);
     });
     dispatcher.RegisterTool("component.list", [](const QJsonObject& params){GameObject* object=nullptr;if(McpResult r=support::ResolveGameObject(QJsonObject{{"id",params.value("objectId").toString(params.value("id").toString())}},&object);!r.ok)return r;QJsonArray items;for(Component* c:object->GetAllComponents())if(c)items.append(ComponentDescription(c));return McpResult::Ok(QJsonObject{{"objectId",QString::fromStdString(object->GetID())},{"components",items}});});
@@ -737,11 +765,11 @@ void RegisterPropertyTools(McpDispatcher& dispatcher) {
     dispatcher.RegisterTool("component.set_property", [](const QJsonObject& params){if(!params.contains("property")||!params.contains("value"))return McpResult::Error(InvalidParams,"set_property requires property and value");QJsonObject batch=params;batch["values"]=QJsonObject{{params.value("property").toString(),params.value("value")}};return SetComponentProperties(batch);});
     dispatcher.RegisterTool("component.set_properties", SetComponentProperties);
     dispatcher.RegisterTool("component.invoke", InvokeComponentAction);
-    dispatcher.RegisterTool("asset.describe", [](const QJsonObject& params){const QString id=params.value("assetId").toString(params.value("id").toString());ResolvedAsset a=FindAsset(id.toStdString());if(!a.resource)return McpResult::Error(ObjectNotFound,"no loaded asset with id "+id);PropertyBag b=BuildAssetBag(a.resource);return McpResult::Ok(QJsonObject{{"id",id},{"type",a.type},{"name",QString::fromStdString(a.resource->GetName())},{"path",QString::fromStdString(a.resource->GetFilePath())},{"properties",b.Describe()},{"serializedState",YamlToJson(a.resource->Serialize())}});});
+    dispatcher.RegisterTool("asset.describe", [](const QJsonObject& params){const QString id=params.value("assetId").toString(params.value("id").toString());ResolvedAsset a=FindAsset(id.toStdString());if(!a.resource)return McpResult::Error(ObjectNotFound,"no loaded asset with id "+id);PropertyBag b=BuildAssetBag(a.resource);const QJsonValue state=dynamic_cast<TileMap*>(a.resource) ? QJsonValue(QJsonObject{{"type","TileMap"},{"id",id},{"cellsOmitted",true}}) : YamlToJson(a.resource->Serialize());return McpResult::Ok(QJsonObject{{"id",id},{"type",a.type},{"name",QString::fromStdString(a.resource->GetName())},{"path",QString::fromStdString(a.resource->GetFilePath())},{"properties",b.Describe()},{"serializedState",state}});});
     dispatcher.RegisterTool("asset.get_property", [](const QJsonObject& params){const QString id=params.value("assetId").toString(params.value("id").toString());ResolvedAsset a=FindAsset(id.toStdString());if(!a.resource)return McpResult::Error(ObjectNotFound,"no loaded asset with id "+id);const QString name=params.value("property").toString();PropertyBag b=BuildAssetBag(a.resource);Property* p=b.Find(name);if(!p)return McpResult::Error(InvalidParams,"unknown property \""+name+"\"");return McpResult::Ok(QJsonObject{{"assetId",id},{"property",name},{"value",p->get()},{"schema",p->Describe(false)}});});
     dispatcher.RegisterTool("asset.set_property", [](const QJsonObject& params){if(!params.contains("property")||!params.contains("value"))return McpResult::Error(InvalidParams,"set_property requires property and value");QJsonObject batch=params;batch["values"]=QJsonObject{{params.value("property").toString(),params.value("value")}};return SetAssetProperties(batch);});
     dispatcher.RegisterTool("asset.set_properties", SetAssetProperties);
-    dispatcher.RegisterTool("asset.save", [](const QJsonObject& params){const QString id=params.value("assetId").toString(params.value("id").toString());ResolvedAsset a=FindAsset(id.toStdString());if(!a.resource)return McpResult::Error(ObjectNotFound,"no loaded asset with id "+id);AssetManager::Get().SaveResource(a.resource);return McpResult::Ok(QJsonObject{{"assetId",id},{"path",QString::fromStdString(a.resource->GetFilePath())},{"saved",true}});});
+    dispatcher.RegisterTool("asset.save", [](const QJsonObject& params){const QString id=params.value("assetId").toString(params.value("id").toString());ResolvedAsset a=FindAsset(id.toStdString());if(!a.resource)return McpResult::Error(ObjectNotFound,"no loaded asset with id "+id);if(!AssetManager::Get().SaveResource(a.resource))return McpResult::Error(WrongMode,"could not save asset "+id);return McpResult::Ok(QJsonObject{{"assetId",id},{"path",QString::fromStdString(a.resource->GetFilePath())},{"saved",true}});});
     dispatcher.RegisterTool("reference.resolve", [](const QJsonObject& params){const QString id=params.value("id").toString();if(id.isEmpty())return McpResult::Error(InvalidParams,"missing \"id\"");if(GameObject* object=support::FindGameObject(id.toStdString()))return McpResult::Ok(QJsonObject{{"kind","GameObject"},{"id",id},{"name",QString::fromStdString(object->GetName())},{"tag",QString::fromStdString(object->GetTag())}});Registry* registry=support::ActiveRegistry();if(Component* c=registry?registry->Find<Component>(id.toStdString()):nullptr)return McpResult::Ok(ComponentDescription(c));ResolvedAsset a=FindAsset(id.toStdString());if(a.resource)return McpResult::Ok(QJsonObject{{"kind","Asset"},{"type",a.type},{"id",id},{"name",QString::fromStdString(a.resource->GetName())},{"path",QString::fromStdString(a.resource->GetFilePath())}});return McpResult::Error(ObjectNotFound,"no object, component, or loaded asset with id "+id);});
 }
 

@@ -5,7 +5,8 @@
 
 bool Component::IsSingleton(const std::string& typeName) {
     static const std::unordered_set<std::string> kSingletons = {
-        "Transform", "RigidBody", "Camera", "AudioListener", "Grid", "TileMapEditor", "TileMapRenderer"
+        "Transform", "RigidBody", "Camera", "AudioListener", "Grid", "TileMapEditor", "TileMapRenderer",
+        "TileMapCollider"
     };
     return kSingletons.count(typeName) > 0;
 }

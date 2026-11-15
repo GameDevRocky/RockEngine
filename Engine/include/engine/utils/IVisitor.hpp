@@ -42,6 +42,7 @@ class Scene;
 class Grid;
 class TileMapEditor;
 class TileMapRenderer;
+class TileMapCollider;
 class TileMap;
 class TileSet;
 
@@ -85,6 +86,7 @@ public:
     virtual void Visit(Grid* g) {}
     virtual void Visit(TileMapEditor* t) {}
     virtual void Visit(TileMapRenderer* t) {}
+    virtual void Visit(TileMapCollider* t) {}
     virtual void Visit(TileMap* t) {}
     virtual void Visit(TileSet* t) {}
 };

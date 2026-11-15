@@ -2,6 +2,8 @@
 #include "utils/PropertyWidget.hpp"
 #include "utils/ListRowChrome.hpp"
 #include "utils/EditorUtils.hpp"
+#include "utils/WidgetAnimation.hpp"
+#include <QPainter>
 #include "engine/components/ComponentActions.hpp"
 #include "engine/core/SceneManager.hpp"
 #include "engine/core/Scene.hpp"
@@ -113,6 +115,17 @@ inline PropertyWidget<int>* PropertyFactory::Create<int>(const Properties::PropD
 // −Remove buttons. That's the only difference — rows are otherwise built exactly
 // like editable ones.
 // ─────────────────────────────────────────────────────────────────────────────
+inline QIcon ListFooterIcon(bool add) {
+    QPixmap pixmap(16, 16);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setPen(QPen(QColor(230, 230, 230), 2.5, Qt::SolidLine, Qt::RoundCap));
+    painter.drawLine(QPointF(3, 8), QPointF(13, 8));
+    if (add) painter.drawLine(QPointF(8, 3), QPointF(8, 13));
+    return QIcon(pixmap);
+}
+
 template<typename T>
 class ListPropertyWidget : public PropertyWidget<std::vector<T>> {
 public:
@@ -169,11 +182,7 @@ public:
             addButton->setContentsMargins(0,0,0,0);
             addButton->setFixedSize(24, 24);
             addButton->setToolTip("Add");
-            QObject::connect(addButton, &QPushButton::clicked, [this]() {
-                m_data.push_back(T{});
-                rebuild();
-                emitChanged();
-            });
+            QObject::connect(addButton, &QPushButton::clicked, [this]() { appendElement(); });
             headerLayout->addWidget(addButton);
         }
         outer->addWidget(header);
@@ -195,6 +204,37 @@ public:
         m_rowsLayout->setContentsMargins(0, 0, 0, 0);
         m_rowsLayout->setSpacing(2);
         bodyLayout->addWidget(rows);
+        if (!m_readOnly) {
+            auto* footer = new QWidget(body);
+            auto* footerLayout = new QHBoxLayout(footer);
+            footerLayout->setContentsMargins(0, 2, 0, 0);
+            footerLayout->setSpacing(3);
+            footerLayout->addStretch();
+
+            auto* appendButton = new QPushButton(footer);
+            appendButton->setObjectName("ListAppendButton");
+            appendButton->setIcon(ListFooterIcon(true));
+            appendButton->setIconSize(QSize(14, 14));
+            appendButton->setFixedSize(20, 20);
+            appendButton->setToolTip("Append item");
+            QObject::connect(appendButton, &QPushButton::clicked,
+                             [this]() { appendElement(); });
+            footerLayout->addWidget(appendButton);
+
+            auto* removeLastButton = new QPushButton(footer);
+            removeLastButton->setObjectName("ListRemoveLastButton");
+            removeLastButton->setIcon(ListFooterIcon(false));
+            removeLastButton->setIconSize(QSize(14, 14));
+            removeLastButton->setFixedSize(20, 20);
+            removeLastButton->setToolTip("Remove last item");
+            removeLastButton->setEnabled(false);
+            m_removeLast = removeLastButton;
+            QObject::connect(removeLastButton, &QPushButton::clicked, [this]() {
+                if (!m_data.empty()) removeAt(m_data.size() - 1);
+            });
+            footerLayout->addWidget(removeLastButton);
+            bodyLayout->addWidget(footer);
+        }
         m_buildTimer = std::make_unique<QTimer>();
         m_buildTimer->setInterval(1);
         QObject::connect(m_buildTimer.get(), &QTimer::timeout, m_container,
@@ -209,15 +249,54 @@ public:
         // BindProperty subscription answers with SetValue(getter()) — the same
         // value we just produced. Skip the rebuild to avoid focus loss / churn.
         if (vals == m_data) return;
+        if (vals.size() < m_data.size()) {
+            m_data = vals;
+            rebuild();
+            return;
+        }
+        auto previous = std::move(m_data);
         m_data = vals;
-        rebuild();
+        // Existing rows keep their widgets and interaction state. Refresh only
+        // values that changed, then append any new rows through the same batch
+        // path used by the Add button.
+        for (std::size_t i = 0; i < m_nextRow; ++i)
+            if (previous[i] != m_data[i]) m_children[i]->SetValue(m_data[i]);
+        updateCount();
+        appendNewRows();
     }
 
     std::vector<T> GetValue() override { return m_data; }
 
 private:
+    void appendElement() {
+        m_data.push_back(T{});
+        updateCount();
+        appendNewRows();
+        emitChanged();
+    }
+
     void emitChanged() {
         if (this->onChanged) this->onChanged(m_data);
+    }
+
+    void removeAt(std::size_t index) {
+        if (index >= m_data.size()) return;
+        if (index < m_nextRow) {
+            QLayoutItem* item = m_rowsLayout->takeAt(static_cast<int>(index));
+            QWidget* removed = item->widget();
+            if (m_reorder) m_reorder->UnregisterRow(removed);
+            removed->hide();
+            removed->deleteLater();
+            delete item;
+            delete m_children[index];
+            m_children.erase(m_children.begin() + index);
+            --m_nextRow;
+        }
+        m_data.erase(m_data.begin() + index);
+        updateCount();
+        if (m_nextRow < m_data.size()) m_buildTimer->start();
+        else m_buildTimer->stop();
+        emitChanged();
     }
 
     // Move an element and republish. The whole backend of reordering: the row
@@ -229,14 +308,15 @@ private:
         to = std::clamp(to, 0, n - 1);
         if (from == to) return;
 
-        T moved = std::move(m_data[from]);
-        m_data.erase(m_data.begin() + from);
-        m_data.insert(m_data.begin() + to, std::move(moved));
-
         // Queued: this runs from inside the drag handle's own event filter, and
         // rebuild() deletes that handle. Tearing it down underneath the event
         // that asked for it is a use-after-free.
-        QMetaObject::invokeMethod(m_container, [this]() {
+        QMetaObject::invokeMethod(m_container, [this, from, to]() {
+            if (from >= static_cast<int>(m_data.size()) ||
+                to >= static_cast<int>(m_data.size())) return;
+            T moved = std::move(m_data[from]);
+            m_data.erase(m_data.begin() + from);
+            m_data.insert(m_data.begin() + to, std::move(moved));
             rebuild();
             emitChanged();
         }, Qt::QueuedConnection);
@@ -258,16 +338,26 @@ private:
         if (m_buildTimer) m_buildTimer->stop();
         clearRows();
         m_nextRow = 0;
+        updateCount();
+        appendNewRows();
+    }
+
+    void updateCount() {
         if (!m_toggle.isNull()) {
             int n = static_cast<int>(m_data.size());
             m_toggle->setText(QString("%1 item%2").arg(n).arg(n == 1 ? "" : "s"));
         }
-        if (m_data.size() > m_immediateRows) {
-            while (m_nextRow < m_immediateRows) appendRow(m_nextRow++);
-            m_buildTimer->start();
-        } else {
-            while (m_nextRow < m_data.size()) appendRow(m_nextRow++);
-        }
+        if (m_removeLast) m_removeLast->setEnabled(!m_data.empty());
+    }
+
+    void appendNewRows() {
+        // Fill the initial few rows immediately. On an existing list, show one
+        // newly added row immediately and leave any further additions to the
+        // timer so a large external update cannot block the event loop.
+        const std::size_t immediateEnd = std::min(m_data.size(),
+            std::max(m_immediateRows, m_nextRow + 1));
+        while (m_nextRow < immediateEnd) appendRow(m_nextRow++, false);
+        if (m_nextRow < m_data.size()) m_buildTimer->start();
     }
 
     void appendBatch() {
@@ -277,25 +367,30 @@ private:
         }
         const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(3);
         do {
-            appendRow(m_nextRow++);
+            appendRow(m_nextRow++, true);
         } while (m_nextRow < m_data.size() && std::chrono::steady_clock::now() < deadline);
         if (m_nextRow == m_data.size()) m_buildTimer->stop();
     }
 
-    void appendRow(std::size_t i) {
+    void appendRow(std::size_t i, bool animate) {
             PropertyWidget<T>* child = m_childFactory
                 ? m_childFactory() : PropertyFactory::Create<T>(m_elementDesc);
             child->SetValue(m_data[i]);
-
-            child->onChanged = [this, i](T val) {
-                if (i < m_data.size()) m_data[i] = val;
-                emitChanged();
-            };
 
             QWidget* row = new QWidget();
             auto* rowLayout = new QVBoxLayout(row);
             rowLayout->setContentsMargins(0, 0, 0, 0);
             rowLayout->setSpacing(3);
+            // Resolve the current position when the editor changes: deleting a
+            // preceding row shifts this row without replacing its widget.
+            QPointer<QWidget> rowGuard = row;
+            child->onChanged = [this, rowGuard](T val) {
+                const int index = rowGuard && m_rowsLayout
+                    ? m_rowsLayout->indexOf(rowGuard) : -1;
+                if (index < 0 || static_cast<std::size_t>(index) >= m_data.size()) return;
+                m_data[static_cast<std::size_t>(index)] = val;
+                emitChanged();
+            };
 
             QWidget* compactRow = new QWidget(row);
             auto* rl = new QHBoxLayout(compactRow);
@@ -318,14 +413,14 @@ private:
             // changes.
             if (!m_readOnly) {
                 auto* removeBtn = ListRow::MakeRemoveButton(compactRow);
-                QObject::connect(removeBtn, &QPushButton::clicked, [this, i]() {
-                    if (i >= m_data.size()) return;
-                    m_data.erase(m_data.begin() + i);
-                    // Queued for the same reason as moveElement: rebuild() deletes
-                    // the button whose click we are inside.
-                    QMetaObject::invokeMethod(m_container, [this]() {
-                        rebuild();
-                        emitChanged();
+                QObject::connect(removeBtn, &QPushButton::clicked, [this, rowGuard]() {
+                    // Delete after the button's click handler returns. Resolve
+                    // the row again in case another edit changed its position.
+                    QMetaObject::invokeMethod(m_container, [this, rowGuard]() {
+                        const int index = rowGuard && m_rowsLayout
+                            ? m_rowsLayout->indexOf(rowGuard) : -1;
+                        if (index < 0 || static_cast<std::size_t>(index) >= m_data.size()) return;
+                        removeAt(static_cast<std::size_t>(index));
                     }, Qt::QueuedConnection);
                 });
                 rl->addWidget(removeBtn);
@@ -335,6 +430,7 @@ private:
             if (QWidget* detail = child->GetFullRowWidget())
                 rowLayout->addWidget(detail);
             m_rowsLayout->addWidget(row);
+            if (animate) WidgetAnimation::FadeIn(row);
             if (handle) {
                 if (!m_reorder) {
                     m_reorder = new ListRow::ReorderController(
@@ -357,6 +453,7 @@ private:
     std::unique_ptr<QTimer> m_buildTimer;
     QPointer<QWidget> m_container;
     QPointer<QToolButton> m_toggle;
+    QPointer<QPushButton> m_removeLast;
     QPointer<QWidget> m_body;
     QPointer<QWidget> m_rows;
     // Created on the first rebuild that produces rows; parented to m_container so

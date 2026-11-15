@@ -7,7 +7,8 @@
 #include <unordered_set>
 
 #include <QAction>
-#include <QFrame>
+#include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QIcon>
@@ -23,6 +24,7 @@
 
 #include "engine/tilemap/TileSet.hpp"
 #include "utils/AssetThumbnails.hpp"
+#include "utils/TileCollisionShapeEditor.hpp"
 #include "utils/ProperyFactory.hpp"
 #include "utils/RefDropFilter.hpp"
 
@@ -35,12 +37,31 @@ constexpr std::array<std::pair<int, int>, 8> kPositions = {
     {2, 1}, {2, 0}, {1, 0}, {0, 0}
 };
 
-QWidget* FieldRow(const QString& label, QWidget* editor, QWidget* parent, int labelWidth = 108) {
+void MakeBold(QLabel* label) {
+    QFont font = label->font();
+    font.setBold(true);
+    label->setFont(font);
+}
+
+class RuleComboBox final : public QComboBox {
+public:
+    using QComboBox::QComboBox;
+
+    QSize minimumSizeHint() const override {
+        QSize hint = QComboBox::minimumSizeHint();
+        hint.setWidth(0);
+        return hint;
+    }
+};
+
+QWidget* FieldRow(const QString& label, QWidget* editor, QWidget* parent,
+                  int labelWidth = 108) {
     auto* row = new QWidget(parent);
     auto* layout = new QHBoxLayout(row);
     layout->setContentsMargins(0, 0, 0, 0);
     auto* caption = new QLabel(label, row);
-    caption->setMinimumWidth(labelWidth);
+    if (labelWidth > 0) caption->setMinimumWidth(labelWidth);
+    MakeBold(caption);
     layout->addWidget(caption);
     layout->addWidget(editor, 1);
     return row;
@@ -63,6 +84,7 @@ public:
         content->setSpacing(8);
         m_name = new QLabel(m_button);
         m_name->setObjectName("TileSetTileNameLabel");
+        MakeBold(m_name);
         m_name->setStyleSheet("QLabel#TileSetTileNameLabel { background: transparent; border: none; }");
         m_name->setAttribute(Qt::WA_TransparentForMouseEvents);
         content->addWidget(m_name, 1);
@@ -107,40 +129,45 @@ private:
 class RuleEntryWidget final : public PropertyWidget<TileSetRuleEntry> {
 public:
     RuleEntryWidget() {
-        m_card = new QFrame();
+        m_card = new QWidget();
         m_card->setObjectName("TileSetRuleCard");
         m_card->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-        m_card->setStyleSheet("QFrame#TileSetRuleCard { border: none; background: transparent; }");
-        auto* outer = new QVBoxLayout(m_card);
-        outer->setContentsMargins(0, 1, 0, 1);
-        outer->setSpacing(0);
-
-        auto* visual = new QHBoxLayout();
+        auto* cardLayout = new QVBoxLayout(m_card);
+        cardLayout->setContentsMargins(0, 0, 0, 0);
+        cardLayout->setSpacing(6);
+        auto* rowHost = new QWidget(m_card);
+        rowHost->setObjectName("TileRuleRow");
+        cardLayout->addWidget(rowHost);
+        auto* visual = new QHBoxLayout(rowHost);
         visual->setContentsMargins(0, 0, 0, 0);
         visual->setSpacing(8);
-        visual->addStretch();
 
-        auto* gridHost = new QWidget(m_card);
-        auto* grid = new QGridLayout(gridHost);
-        grid->setContentsMargins(0, 0, 0, 0);
-        grid->setSpacing(2);
-        for (std::size_t slot = 0; slot < m_cells.size(); ++slot) {
-            auto* cell = new QToolButton(m_card);
-            cell->setObjectName(QString("TileRuleNeighbor%1").arg(kDirections[slot]));
-            cell->setFixedSize(30, 30);
-            cell->setPopupMode(QToolButton::InstantPopup);
-            m_cells[slot] = cell;
-            grid->addWidget(cell, kPositions[slot].first, kPositions[slot].second);
-        }
-        auto* center = new QLabel("Tile", m_card);
-        center->setAlignment(Qt::AlignCenter);
-        center->setFixedSize(30, 30);
-        center->setStyleSheet("background: #454545; color: #ccc; border-radius: 3px;");
-        grid->addWidget(center, 1, 1);
-        visual->addWidget(gridHost, 0, Qt::AlignVCenter);
+        auto* properties = new QWidget(m_card);
+        properties->setObjectName("TileRuleProperties");
+        auto* propertyLayout = new QVBoxLayout(properties);
+        propertyLayout->setContentsMargins(0, 0, 0, 0);
+        propertyLayout->setSpacing(5);
+        propertyLayout->setAlignment(Qt::AlignTop);
+        visual->addWidget(properties, 1);
 
-        m_preview = new QLabel(m_card);
+        auto* visuals = new QWidget(m_card);
+        visuals->setObjectName("TileRuleVisuals");
+        auto* visualLayout = new QHBoxLayout(visuals);
+        visualLayout->setContentsMargins(0, 0, 0, 0);
+        visualLayout->setSpacing(8);
+        visual->addWidget(visuals, 0, Qt::AlignTop);
+
+        m_customEditor = new TileCollisionShapeEditor(m_card);
+        m_customEditor->setObjectName("TileRuleCustomCollisionEditor");
+        cardLayout->addWidget(m_customEditor, 0, Qt::AlignRight);
+        m_customEditor->onChanged = [this](const TileCollisionPolygon& polygon) {
+            m_value.customPolygon = polygon;
+            if (onChanged) onChanged(m_value);
+        };
+
+        m_preview = new QLabel(visuals);
         m_preview->setObjectName("TileSetRulePreview");
+        MakeBold(m_preview);
         m_preview->setFixedSize(72, 72);
         m_preview->setAlignment(Qt::AlignCenter);
         m_preview->setStyleSheet(
@@ -155,9 +182,96 @@ public:
         m_preview->addAction(clearSprite);
         QObject::connect(clearSprite, &QAction::triggered, m_preview,
                          [this] { ChangeSprite({}); });
-        visual->addWidget(m_preview, 0, Qt::AlignVCenter);
-        visual->addStretch();
-        outer->addLayout(visual);
+        visualLayout->addWidget(m_preview, 0, Qt::AlignVCenter);
+
+        auto* gridHost = new QWidget(visuals);
+        gridHost->setObjectName("TileRuleNeighbors");
+        auto* grid = new QGridLayout(gridHost);
+        grid->setContentsMargins(0, 0, 0, 0);
+        grid->setSpacing(2);
+        for (std::size_t slot = 0; slot < m_cells.size(); ++slot) {
+            auto* cell = new QToolButton(gridHost);
+            cell->setObjectName(QString("TileRuleNeighbor%1").arg(kDirections[slot]));
+            cell->setFixedSize(30, 30);
+            cell->setPopupMode(QToolButton::InstantPopup);
+            m_cells[slot] = cell;
+            grid->addWidget(cell, kPositions[slot].first, kPositions[slot].second);
+        }
+        auto* center = new QLabel("Tile", gridHost);
+        MakeBold(center);
+        center->setAlignment(Qt::AlignCenter);
+        center->setFixedSize(30, 30);
+        center->setStyleSheet("background: #454545; color: #ccc; border-radius: 3px;");
+        grid->addWidget(center, 1, 1);
+        visualLayout->addWidget(gridHost, 0, Qt::AlignVCenter);
+
+        m_output = new RuleComboBox(properties);
+        m_output->setObjectName("TileRuleOutput");
+        m_output->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        m_output->addItem("Fixed", static_cast<int>(TileOutputType::Fixed));
+        m_output->addItem("Random", static_cast<int>(TileOutputType::Random));
+        m_output->addItem("Animation", static_cast<int>(TileOutputType::Animation));
+        propertyLayout->addWidget(FieldRow("Output", m_output, properties, 0));
+        QObject::connect(m_output, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                         [this](int index) { ChangeOutput(index); });
+
+        m_collision = new RuleComboBox(properties);
+        m_collision->setObjectName("TileRuleCollision");
+        m_collision->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        m_collision->addItem("None", static_cast<int>(TileCollisionType::None));
+        m_collision->addItem("Sprite", static_cast<int>(TileCollisionType::Sprite));
+        m_collision->addItem("Grid", static_cast<int>(TileCollisionType::Grid));
+        m_collision->addItem("Custom", static_cast<int>(TileCollisionType::Custom));
+        propertyLayout->insertWidget(0, FieldRow("Collider", m_collision, properties, 0));
+        QObject::connect(m_collision, QOverload<int>::of(&QComboBox::currentIndexChanged),
+                         [this](int index) {
+            if (index < 0) return;
+            m_value.collisionType = static_cast<TileCollisionType>(m_collision->itemData(index).toInt());
+            m_customEditor->setVisible(m_value.collisionType == TileCollisionType::Custom);
+            if (onChanged) onChanged(m_value);
+        });
+
+        Properties::PropDesc spriteListDesc;
+        spriteListDesc.Tag(Properties::Tags::LIST).Element(
+            Properties::PropDesc().Tag(Properties::Tags::SPRITE)
+                                  .RefType(Properties::Tags::OBJECT_REF));
+        m_spriteList.reset(PropertyFactory::Create<std::vector<std::string>>(spriteListDesc));
+        m_spriteList->GetWidget()->setObjectName("TileRuleSpriteList");
+        m_spriteList->onChanged = [this](const std::vector<std::string>& spriteIds) {
+            m_value.spriteIds = spriteIds;
+            UpdateCustomSprite();
+            if (onChanged) onChanged(m_value);
+        };
+        propertyLayout->addWidget(m_spriteList->GetWidget());
+
+        m_speedHost = new QWidget(properties);
+        auto* speedLayout = new QHBoxLayout(m_speedHost);
+        speedLayout->setContentsMargins(0, 0, 0, 0);
+        speedLayout->setSpacing(4);
+        auto* speedLabel = new QLabel("Speed", m_speedHost);
+        MakeBold(speedLabel);
+        speedLayout->addWidget(speedLabel);
+        m_minSpeed = new QDoubleSpinBox(m_speedHost);
+        m_minSpeed->setObjectName("TileRuleMinSpeed");
+        m_minSpeed->setRange(0.01, 100.0);
+        m_minSpeed->setValue(1.0);
+        m_minSpeed->setSuffix("x min");
+        m_maxSpeed = new QDoubleSpinBox(m_speedHost);
+        m_maxSpeed->setObjectName("TileRuleMaxSpeed");
+        m_maxSpeed->setRange(0.01, 100.0);
+        m_maxSpeed->setValue(1.0);
+        m_maxSpeed->setSuffix("x max");
+        speedLayout->addWidget(m_minSpeed);
+        speedLayout->addWidget(m_maxSpeed);
+        propertyLayout->addWidget(m_speedHost);
+        auto speedChanged = [this] {
+            m_value.minAnimationSpeed = static_cast<float>(m_minSpeed->value());
+            m_value.maxAnimationSpeed = static_cast<float>(m_maxSpeed->value());
+            if (onChanged) onChanged(m_value);
+        };
+        QObject::connect(m_minSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged), speedChanged);
+        QObject::connect(m_maxSpeed, QOverload<double>::of(&QDoubleSpinBox::valueChanged), speedChanged);
+
     }
 
     QWidget* GetWidget() override { return m_card; }
@@ -165,7 +279,18 @@ public:
     TileSetRuleEntry GetValue() override { return m_value; }
     void SetValue(const TileSetRuleEntry& value) override {
         m_value = value;
+        QSignalBlocker outputBlock(m_output), collisionBlock(m_collision),
+            minSpeedBlock(m_minSpeed), maxSpeedBlock(m_maxSpeed);
+        m_output->setCurrentIndex(m_output->findData(static_cast<int>(value.outputType)));
+        m_collision->setCurrentIndex(m_collision->findData(static_cast<int>(value.collisionType)));
+        m_spriteList->SetValue(value.spriteIds);
+        m_minSpeed->setValue(value.minAnimationSpeed);
+        m_maxSpeed->setValue(value.maxAnimationSpeed);
         UpdatePreview();
+        UpdateCustomSprite();
+        UpdateOutputVisibility();
+        m_customEditor->SetPolygon(value.customPolygon);
+        m_customEditor->setVisible(value.collisionType == TileCollisionType::Custom);
 
         for (std::size_t slot = 0; slot < m_cells.size(); ++slot) {
             auto* cell = m_cells[slot];
@@ -196,10 +321,34 @@ public:
     }
 
 private:
+    void ChangeOutput(int index) {
+        if (index < 0) return;
+        const auto output = static_cast<TileOutputType>(m_output->itemData(index).toInt());
+        if (m_value.outputType == output) return;
+        if (output == TileOutputType::Fixed && m_value.spriteId.empty() && !m_value.spriteIds.empty())
+            m_value.spriteId = m_value.spriteIds.front();
+        if (output != TileOutputType::Fixed && m_value.spriteIds.empty() && !m_value.spriteId.empty())
+            m_value.spriteIds.push_back(m_value.spriteId);
+        m_value.outputType = output;
+        m_spriteList->SetValue(m_value.spriteIds);
+        UpdatePreview();
+        UpdateCustomSprite();
+        UpdateOutputVisibility();
+        if (onChanged) onChanged(m_value);
+    }
+
+    void UpdateOutputVisibility() {
+        const bool fixed = m_value.outputType == TileOutputType::Fixed;
+        m_preview->setVisible(fixed);
+        m_spriteList->GetWidget()->setVisible(!fixed);
+        m_speedHost->setVisible(m_value.outputType == TileOutputType::Animation);
+    }
+
     void ChangeSprite(const std::string& spriteId) {
         if (m_value.spriteId == spriteId) return;
         m_value.spriteId = spriteId;
         UpdatePreview();
+        UpdateCustomSprite();
         if (onChanged) onChanged(m_value);
     }
 
@@ -213,6 +362,13 @@ private:
         if (pixmap.isNull()) m_preview->setText("Missing");
         else m_preview->setPixmap(pixmap.scaled(66, 66, Qt::KeepAspectRatio,
                                                Qt::SmoothTransformation));
+    }
+
+    void UpdateCustomSprite() {
+        const std::string& spriteId = m_value.outputType == TileOutputType::Fixed
+            ? m_value.spriteId
+            : (m_value.spriteIds.empty() ? m_value.spriteId : m_value.spriteIds.front());
+        m_customEditor->SetSprite(spriteId.empty() ? m_value.fallbackSpriteId : spriteId);
     }
 
     void UpdateCell(std::size_t slot) {
@@ -237,8 +393,15 @@ private:
     }
 
     TileSetRuleEntry m_value;
-    QFrame* m_card = nullptr;
+    QWidget* m_card = nullptr;
     QLabel* m_preview = nullptr;
+    TileCollisionShapeEditor* m_customEditor = nullptr;
+    QComboBox* m_output = nullptr;
+    QComboBox* m_collision = nullptr;
+    QWidget* m_speedHost = nullptr;
+    QDoubleSpinBox* m_minSpeed = nullptr;
+    QDoubleSpinBox* m_maxSpeed = nullptr;
+    std::unique_ptr<PropertyWidget<std::vector<std::string>>> m_spriteList;
     std::array<QToolButton*, 8> m_cells{};
 };
 }
@@ -264,9 +427,7 @@ TileSetInspectorWidget::TileSetInspectorWidget(TileSet* tileSet, QWidget* parent
     layout->setSpacing(8);
 
     auto* tileTitle = new QLabel("Tiles", this);
-    QFont titleFont = tileTitle->font();
-    titleFont.setBold(true);
-    tileTitle->setFont(titleFont);
+    MakeBold(tileTitle);
     layout->addWidget(tileTitle);
 
     m_tiles.reset(new ListPropertyWidget<TileSetTileEntry>(
@@ -309,11 +470,45 @@ TileSetInspectorWidget::TileSetInspectorWidget(TileSet* tileSet, QWidget* parent
         if (!current || current->defaultSpriteId == spriteId) return;
         Tile tile = *current;
         tile.defaultSpriteId = spriteId;
+        m_defaultCustomEditor->SetSprite(spriteId);
         m_tileSet->SetTile(m_selectedTileId, std::move(tile));
         QueueRefresh();
     };
 
-    fields->addWidget(new QLabel("Tiling Rules", m_tileFields));
+    m_collisionType = new QComboBox(m_tileFields);
+    m_collisionType->setObjectName("TileSetCollisionType");
+    m_collisionType->addItem("None", static_cast<int>(TileCollisionType::None));
+    m_collisionType->addItem("Sprite", static_cast<int>(TileCollisionType::Sprite));
+    m_collisionType->addItem("Grid", static_cast<int>(TileCollisionType::Grid));
+    m_collisionType->addItem("Custom", static_cast<int>(TileCollisionType::Custom));
+    fields->addWidget(FieldRow("Default Collider", m_collisionType, m_tileFields));
+    connect(m_collisionType, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, [this](int index) {
+        const Tile* current = m_tileSet->GetTile(m_selectedTileId);
+        if (!current || index < 0) return;
+        const auto collisionType = static_cast<TileCollisionType>(
+            m_collisionType->itemData(index).toInt());
+        if (current->collisionType == collisionType) return;
+        Tile tile = *current;
+        tile.collisionType = collisionType;
+        m_tileSet->SetTile(m_selectedTileId, std::move(tile));
+        m_defaultCustomEditor->setVisible(collisionType == TileCollisionType::Custom);
+    });
+
+    m_defaultCustomEditor = new TileCollisionShapeEditor(m_tileFields);
+    m_defaultCustomEditor->setObjectName("TileSetDefaultCustomCollisionEditor");
+    fields->addWidget(m_defaultCustomEditor, 0, Qt::AlignRight);
+    m_defaultCustomEditor->onChanged = [this](const TileCollisionPolygon& polygon) {
+        const Tile* current = m_tileSet->GetTile(m_selectedTileId);
+        if (!current) return;
+        Tile tile = *current;
+        tile.customPolygon = polygon;
+        m_tileSet->SetTile(m_selectedTileId, std::move(tile));
+    };
+
+    auto* rulesTitle = new QLabel("Tiling Rules", m_tileFields);
+    MakeBold(rulesTitle);
+    fields->addWidget(rulesTitle);
 
     m_rules.reset(new ListPropertyWidget<TileSetRuleEntry>(
         Properties::PropDesc().Tag(Properties::Tags::LIST),
@@ -352,10 +547,15 @@ void TileSetInspectorWidget::SelectTile(TileId id)
         m_rules->SetValue({});
         return;
     }
-    QSignalBlocker idBlock(m_idField), nameBlock(m_nameField);
+    QSignalBlocker idBlock(m_idField), nameBlock(m_nameField), collisionBlock(m_collisionType);
     m_idField->setValue(id);
     m_nameField->setText(QString::fromStdString(tile->name));
     m_defaultSprite->SetValue(tile->defaultSpriteId);
+    const int collisionIndex = m_collisionType->findData(static_cast<int>(tile->collisionType));
+    m_collisionType->setCurrentIndex(collisionIndex >= 0 ? collisionIndex : 0);
+    m_defaultCustomEditor->SetSprite(tile->defaultSpriteId);
+    m_defaultCustomEditor->SetPolygon(tile->customPolygon);
+    m_defaultCustomEditor->setVisible(tile->collisionType == TileCollisionType::Custom);
     RefreshRules();
 }
 
@@ -370,8 +570,22 @@ void TileSetInspectorWidget::RefreshRules()
         return a.id < b.id;
     });
     std::vector<TileSetRuleEntry> rules;
-    for (const AutoTileRule& rule : tile->autoTileRules)
-        rules.push_back({rule.neighbors, rule.spriteId, m_selectedTileId, options, false});
+    for (const AutoTileRule& rule : tile->autoTileRules) {
+        TileSetRuleEntry entry;
+        entry.mask = rule.neighbors;
+        entry.spriteId = rule.spriteId;
+        entry.fallbackSpriteId = tile->defaultSpriteId;
+        entry.collisionType = rule.collisionType;
+        entry.customPolygon = rule.customPolygon;
+        entry.outputType = rule.outputType;
+        entry.spriteIds = rule.spriteIds;
+        entry.minAnimationSpeed = rule.minAnimationSpeed;
+        entry.maxAnimationSpeed = rule.maxAnimationSpeed;
+        entry.ownerId = m_selectedTileId;
+        entry.options = options;
+        entry.newlyAdded = false;
+        rules.push_back(std::move(entry));
+    }
     m_rules->SetValue(rules);
 }
 
@@ -439,7 +653,16 @@ void TileSetInspectorWidget::HandleRuleListChanged(const std::vector<TileSetRule
             QueueRefresh();
             return;
         }
-        rules.push_back({mask, entry.spriteId});
+        AutoTileRule rule;
+        rule.neighbors = mask;
+        rule.spriteId = entry.spriteId;
+        rule.collisionType = entry.newlyAdded ? current->collisionType : entry.collisionType;
+        rule.customPolygon = entry.newlyAdded ? current->customPolygon : entry.customPolygon;
+        rule.outputType = entry.outputType;
+        rule.spriteIds = entry.spriteIds;
+        rule.minAnimationSpeed = std::max(0.01f, entry.minAnimationSpeed);
+        rule.maxAnimationSpeed = std::max(0.01f, entry.maxAnimationSpeed);
+        rules.push_back(std::move(rule));
     }
     if (rules != current->autoTileRules) {
         Tile tile = *current;

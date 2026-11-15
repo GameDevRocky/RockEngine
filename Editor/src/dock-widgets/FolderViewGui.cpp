@@ -17,8 +17,10 @@
 #include "utils/EditorUtils.hpp"
 #include "utils/AssetPreviewDelegate.hpp"
 #include "utils/ProjectFileRenamer.hpp"
+#include "utils/ProjectFileDropTarget.hpp"
 #include "utils/FolderAssetModel.hpp"
 #include "utils/FolderAssetView.hpp"
+#include "utils/WheelScale.hpp"
 #include "engine/utils/EngineUtils.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/core/SelectionManager.hpp"
@@ -49,17 +51,6 @@ constexpr std::array<std::array<int, 8>, 10> kDefaultTileSetNeighborMasks = {{
     {{ 1,  1,  1, -1,  0, -1,  1,  1}}
 }};
 
-// Can this file be imported (copied in + auto-serialized) by dropping it here?
-//
-// Asked of AssetMetaService rather than answered with a list of its own: that
-// table already decides what gets a meta on startup, and a second copy here is
-// how images ended up droppable while audio, fonts and shaders -- all of which
-// the meta service and AssetManager have always handled -- silently were not.
-// Teaching MetaExtensionFor about a new type now makes it droppable too.
-bool IsImportableAsset(const QString& path) {
-    const std::string ext = "." + QFileInfo(path).suffix().toLower().toStdString();
-    return !AssetMetaService::MetaExtensionFor(ext).empty();
-}
 }
 
 FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PROJECT_ROOT), projectDirectory(PROJECT_ROOT) {
@@ -94,6 +85,10 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     proxy->setSourceModel(model);
 
     m_entries = new FolderAssetModel(proxy, this);
+    connect(model, &QFileSystemModel::directoryLoaded, this, [this](const QString& path) {
+        if (QDir(path) == QDir(currentPath))
+            m_entries->SetDirectory(proxy->mapFromSource(model->index(currentPath)));
+    });
     gridView = new FolderAssetView(this);
     gridView->setViewMode(QListView::IconMode);
     gridView->setMovement(QListView::Static);
@@ -106,12 +101,7 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
                                AssetPreviewDelegate::kCellHeight));
     gridView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     gridView->setTextElideMode(Qt::ElideRight);  // Add "..." to long filenames
-    this->setAcceptDrops(true);
-    gridView->setDragEnabled(true);
-    // Drops are handled at the FolderViewGui level (see dropEvent), not by the
-    // grid's file-system model, so external files route to one place. Keeping
-    // this false also stops the model from silently moving dropped files.
-    gridView->setAcceptDrops(false);
+    gridView->setDragDropMode(QAbstractItemView::DragDrop);
     gridView->setDropIndicatorShown(false);
     gridView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     gridView->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -119,6 +109,15 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     gridView->setItemDelegate(m_delegate);
 
     static_cast<FolderAssetView*>(gridView)->SetAssetModel(m_entries);
+    new ProjectFileDropTarget(gridView->viewport(), [this](const QPoint& pos) {
+        const QModelIndex index = gridView->indexAt(pos);
+        if (!index.isValid())
+            return ProjectFileDropTarget::Target{currentPath, gridView->viewport()->rect()};
+        if (index.data(FolderAssetModel::IsDirectoryRole).toBool())
+            return ProjectFileDropTarget::Target{
+                index.data(FolderAssetModel::FilePathRole).toString(), gridView->visualRect(index)};
+        return ProjectFileDropTarget::Target{};
+    });
 
     mainLayout->addWidget(gridView, 1);
 
@@ -128,24 +127,25 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
     footerLayout->setSpacing(6);
     footerLayout->addStretch();
     footerLayout->addWidget(new QLabel("Size", footer));
-    auto* cellSizeSlider = new QSlider(Qt::Horizontal, footer);
-    cellSizeSlider->setObjectName("FolderCellSizeSlider");
-    cellSizeSlider->setRange(24, 128);
-    cellSizeSlider->setValue(AssetPreviewDelegate::kThumbSize);
-    cellSizeSlider->setFixedWidth(120);
-    cellSizeSlider->setToolTip("Adjust Folder View cell size");
-    cellSizeSlider->setAccessibleName("Folder View cell size");
-    footerLayout->addWidget(cellSizeSlider);
+    m_cellSizeSlider = new QSlider(Qt::Horizontal, footer);
+    m_cellSizeSlider->setObjectName("FolderCellSizeSlider");
+    m_cellSizeSlider->setRange(24, 128);
+    m_cellSizeSlider->setSingleStep(8);
+    m_cellSizeSlider->setValue(AssetPreviewDelegate::kThumbSize);
+    m_cellSizeSlider->setFixedWidth(120);
+    m_cellSizeSlider->setToolTip("Adjust Folder View cell size (Ctrl+mouse wheel)");
+    m_cellSizeSlider->setAccessibleName("Folder View cell size");
+    footerLayout->addWidget(m_cellSizeSlider);
     mainLayout->addWidget(footer);
-    connect(cellSizeSlider, &QSlider::valueChanged, this, [this](int size) {
+    connect(m_cellSizeSlider, &QSlider::valueChanged, this, [this](int size) {
         m_delegate->setThumbnailSize(size);
         gridView->setIconSize(QSize(size, size));
         gridView->setGridSize(m_delegate->cellSize());
         static_cast<FolderAssetView*>(gridView)->RefreshToggleButtons();
         gridView->viewport()->update();
     });
+    gridView->viewport()->installEventFilter(this);
     setLayout(mainLayout);
-    setAcceptDrops(true);
 
     connect(gridView, &QListView::clicked, this, [this](const QModelIndex& proxyIndex) {
         const QString spriteId = proxyIndex.data(FolderAssetModel::SpriteIdRole).toString();
@@ -158,8 +158,10 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
         const QString filePath = proxyIndex.data(FolderAssetModel::FilePathRole).toString();
         const QString ext = QFileInfo(filePath).suffix().toLower();
 
-        // Every file-backed type AssetManager can load, so clicking one selects
-        // the asset it describes in the Inspector.
+        // Prefer the live Serializable when this descriptor names an asset that
+        // AssetManager (or SceneManager) currently has in memory. An unloaded
+        // scene has an id in YAML but no Registry object, so it falls through to
+        // the read-only file preview below instead of clearing the Inspector.
         static const QSet<QString> assetExts = {
             "mat", "material", "texture", "shader", "font", "audio", "tilemap",
             "tileset", "scene" };
@@ -169,11 +171,18 @@ FolderViewGui::FolderViewGui(QWidget* parent) : QWidget(parent), currentPath(PRO
                 if (node["id"]) {
                     std::string assetId = node["id"].as<std::string>();
                     auto* selMgr = Engine::Get()->GetActiveContainer()->FindSystem<SelectionManager>();
-                    if (selMgr) selMgr->Select(assetId);
+                    if (selMgr && selMgr->GetSerializable(assetId)) {
+                        selMgr->Select(assetId);
+                        return;
+                    }
                 }
             } catch (...) {
             }
         }
+
+        // Python files and unresolved/unsupported descriptors have no live engine
+        // object. The Inspector decides whether their contents are text or binary.
+        emit InspectFileRequested(filePath);
     });
 
     connect(gridView, &QListView::doubleClicked, this, [this](const QModelIndex& proxyIndex) {
@@ -252,7 +261,9 @@ void FolderViewGui::NavigateToPath(const QString& path, bool recordHistory) {
     }
 
     currentPath = normalizedPath;
-    QModelIndex sourceRoot = model->index(currentPath);
+    // Explicitly fetch a newly visited directory; index() alone can leave the
+    // flat grid empty until some other filesystem view opens that directory.
+    QModelIndex sourceRoot = model->setRootPath(currentPath);
     m_entries->SetDirectory(proxy->mapFromSource(sourceRoot));
     gridView->scrollToTop();
     RefreshBreadcrumbs();
@@ -279,6 +290,11 @@ void FolderViewGui::RefreshBreadcrumbs() {
     rootButton->setFlat(true);
     rootButton->setCursor(Qt::PointingHandCursor);
     rootButton->setStyleSheet("QPushButton { color: #e0e0e0; background: transparent; border: none; padding: 4px 6px; } QPushButton:hover { color: #ffffff; }");
+    const QString rootPath = projectDirectory;
+    rootButton->setToolTip(rootPath);
+    new ProjectFileDropTarget(rootButton, [rootButton, rootPath](const QPoint&) {
+        return ProjectFileDropTarget::Target{rootPath, rootButton->rect()};
+    });
     connect(rootButton, &QPushButton::clicked, this, [this]() {
         NavigateToPath(projectDirectory, true);
     });
@@ -302,6 +318,10 @@ void FolderViewGui::RefreshBreadcrumbs() {
             crumbButton->setStyleSheet("QPushButton { color: #c9c9c9; background: transparent; border: none; padding: 4px 6px; } QPushButton:hover { color: #ffffff; }");
 
             const QString targetPath = QDir(accumulated).absolutePath();
+            crumbButton->setToolTip(targetPath);
+            new ProjectFileDropTarget(crumbButton, [crumbButton, targetPath](const QPoint&) {
+                return ProjectFileDropTarget::Target{targetPath, crumbButton->rect()};
+            });
             connect(crumbButton, &QPushButton::clicked, this, [this, targetPath]() {
                 NavigateToPath(targetPath, true);
             });
@@ -324,6 +344,9 @@ std::vector<std::string> FolderViewGui::GetSelectedFilePaths() const {
 }
 
 bool FolderViewGui::eventFilter(QObject* obj, QEvent* event) {
+    if (obj == gridView->viewport() && event->type() == QEvent::Wheel &&
+        WheelScale::AdjustSlider(m_cellSizeSlider, static_cast<QWheelEvent*>(event)))
+        return true;
     if (obj == m_renameEditor && event->type() == QEvent::KeyPress &&
         static_cast<QKeyEvent*>(event)->key() == Qt::Key_Escape) {
         CancelRename();
@@ -332,52 +355,16 @@ bool FolderViewGui::eventFilter(QObject* obj, QEvent* event) {
     return QWidget::eventFilter(obj, event);
 }
 
-// Accept a drag if it carries at least one file we know how to handle: any
-// source asset to import (copy in + serialize) or a .material to (re)load.
-void FolderViewGui::dragEnterEvent(QDragEnterEvent* event) {
-    if (!event->mimeData()->hasUrls()) { event->ignore(); return; }
-    for (const QUrl& url : event->mimeData()->urls()) {
-        const QString path = url.toLocalFile();
-        if (IsImportableAsset(path) || path.endsWith(".material", Qt::CaseInsensitive)) {
-            event->acceptProposedAction();
-            return;
-        }
-    }
-    event->ignore();
-}
-
-void FolderViewGui::dragMoveEvent(QDragMoveEvent* event) {
-    event->acceptProposedAction();
-}
-
-void FolderViewGui::dropEvent(QDropEvent* event) {
-    bool handled = false;
-    for (const QUrl& url : event->mimeData()->urls()) {
-        const QString path = url.toLocalFile();
-        if (IsImportableAsset(path)) {
-            // Copy into the current folder, generate its meta, and register the
-            // asset — all via the existing asset systems. Images, audio clips,
-            // fonts and shaders all take this one path.
-            AssetManager::Get().ImportAsset(path.toStdString(), currentPath.toStdString());
-            handled = true;
-        } else if (path.endsWith(".material", Qt::CaseInsensitive)) {
-            AssetManager::Get().LoadAssetFromFile(path.toStdString());
-            handled = true;
-        }
-    }
-    if (handled) event->acceptProposedAction();
-    else         event->ignore();
-}
-
 void FolderViewGui::ShowContextMenu(const QPoint& pos) {
-    // Right-clicking an item that isn't already selected makes it the target, so
-    // "Delete" acts on what the user clicked (matching typical file managers).
+
     const QModelIndex idx = gridView->indexAt(pos);
     if (idx.isValid() && !gridView->selectionModel()->isSelected(idx))
         gridView->selectionModel()->setCurrentIndex(idx, QItemSelectionModel::ClearAndSelect);
 
     QMenu menu(this);
     QMenu* newMenu = menu.addMenu("New");
+    newMenu->addAction("Folder",   this, [this]() { CreateNewFolder(); });
+    newMenu->addSeparator();
     newMenu->addAction("Material", this, [this]() { CreateNewMaterial(); });
     newMenu->addAction("Tile Map", this, [this]() { CreateNewTileMap(); });
     newMenu->addAction("Tile Set", this, [this]() { CreateNewTileSet(); });
@@ -563,6 +550,14 @@ QString FolderViewGui::UniquePathIn(const QString& folder, const QString& baseNa
 
 QString FolderViewGui::UniqueAssetPath(const QString& baseName, const QString& ext) const {
     return UniquePathIn(currentPath, baseName, ext);
+}
+
+void FolderViewGui::CreateNewFolder() {
+    const QString path = UniqueAssetPath("New Folder", "");
+    if (!QDir(currentPath).mkdir(QFileInfo(path).fileName()))
+        std::cerr << "[FolderViewGui] Failed to create folder: "
+                  << path.toStdString() << std::endl;
+    // QFileSystemModel watches the directory and shows the new folder.
 }
 
 void FolderViewGui::CreateNewMaterial() {

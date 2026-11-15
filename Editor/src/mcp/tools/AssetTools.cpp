@@ -10,6 +10,8 @@
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
+#include "engine/tilemap/TileMap.hpp"
+#include "engine/tilemap/TileSet.hpp"
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -85,12 +87,14 @@ void RegisterAssetTools(McpDispatcher& dispatcher) {
         if (type.isEmpty() || type == "texture")  data["textures"]  = DescribeAssets(assets.GetAllTextures(), filter);
         if (type.isEmpty() || type == "font")     data["fonts"]     = DescribeAssets(assets.GetAllFonts(), filter);
         if (type.isEmpty() || type == "audio")    data["audioClips"] = DescribeAssets(assets.GetAllAudioClips(), filter);
+        if (type.isEmpty() || type == "tilemap")  data["tileMaps"]   = DescribeAssets(assets.GetAllTileMaps(), filter);
+        if (type.isEmpty() || type == "tileset")  data["tileSets"]   = DescribeAssets(assets.GetAllTileSets(), filter);
         if (type == "shader")                     data["shaders"]   = DescribeAssets(assets.GetAllShaders(), filter);
 
         if (data.isEmpty())
             return McpResult::Error(ObjectNotFound,
                 "unknown asset type \"" + type + "\" -- expected sprite, material, texture, "
-                "font, audio or shader (omit for everything but shaders)");
+                "font, audio, tilemap, tileset or shader (omit for everything but shaders)");
         return McpResult::Ok(data);
     });
 

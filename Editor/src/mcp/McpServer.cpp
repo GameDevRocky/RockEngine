@@ -45,6 +45,7 @@ void McpServer::Start() {
     RegisterBuildTools(m_dispatcher);
     RegisterDebugTools(m_dispatcher);
     RegisterPropertyTools(m_dispatcher);
+    RegisterTileTools(m_dispatcher);
     RegisterClarificationTools(m_dispatcher);
 
     m_server = new QLocalServer(this);

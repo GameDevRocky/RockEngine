@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <glm/vec4.hpp>
 
 #include "engine/components/Component.hpp"
 
@@ -27,6 +28,8 @@ public:
     Material* GetMaterial() const;
     const std::string& GetMaterialId() const { return materialId; }
     void SetMaterial(const std::string& id);
+    glm::vec4 GetColor() const { return color; }
+    void SetColor(const glm::vec4& value);
     TileSizingMode GetTileSizingMode() const { return tileSizingMode; }
     void SetTileSizingMode(TileSizingMode value);
     const std::string& GetSortingLayer() const { return sortingLayer; }
@@ -36,6 +39,7 @@ public:
 
 private:
     std::string materialId = "m1";
+    glm::vec4 color{1.0f};
     TileSizingMode tileSizingMode = TileSizingMode::Native;
     std::string sortingLayer = "Default";
     int sortingOrder = 0;

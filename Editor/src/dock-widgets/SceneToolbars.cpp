@@ -17,6 +17,7 @@
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/ChainCollider.hpp"
+#include "engine/components/TileMapCollider.hpp"
 #include "engine/components/SpriteRenderer.hpp"
 #include "engine/components/TileMapEditor.hpp"
 #include "engine/core/GameObject.hpp"
@@ -669,7 +670,8 @@ void SceneToolsToolbar::Refresh()
     const bool hasCollider = object && (object->GetComponent<BoxCollider>() ||
                                         object->GetComponent<CircleCollider>() ||
                                         object->GetComponent<CapsuleCollider>() ||
-                                        object->GetComponent<ChainCollider>());
+                                        object->GetComponent<ChainCollider>() ||
+                                        object->GetComponent<TileMapCollider>());
     auto* tileEditor = object ? object->GetComponent<TileMapEditor>() : nullptr;
     const bool hasTilemap = tileEditor &&
         Engine::Get()->GetActiveContainer()->GetMode() == Container::Mode::Editor;

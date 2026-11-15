@@ -139,19 +139,7 @@ void SpriteRenderer::OverrideUniforms(int firstFreeTextureSlot)
     // "Apply Normal" builds its map lazily, here, because this is the first point
     // in the frame that is guaranteed to have a current GL context -- the
     // inspector setter that dirtied it runs on the Qt side. No-op when clean.
-    tex->EnsureNormalMap();
-    const GLuint normalTex = tex->GetNormalTextureID();
-    if (normalTex)
-    {
-        glActiveTexture(GL_TEXTURE0 + TextureSlots::NormalMap);
-        glBindTexture(GL_TEXTURE_2D, normalTex);
-        shader->SetTexture("uNormalMap", TextureSlots::NormalMap);
-        shader->SetFloat("uHasNormalMap", 1.0f);
-    }
-    else
-    {
-        shader->SetFloat("uHasNormalMap", 0.0f);
-    }
+    tex->BindNormalMap(*shader);
     // Bound unconditionally: an unlit shader ignores it, and a lit one would
     // otherwise sample whatever texture happened to be left on that unit.
     shader->SetTexture("uShadowAtlas", TextureSlots::ShadowAtlas);

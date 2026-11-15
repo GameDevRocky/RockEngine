@@ -54,9 +54,17 @@ viewport belong in a separate integration suite.
   `BuildWindow` (File → Build Game…, a top-level window rather than a dock). The Sprite Editor
   is created lazily and tabbed into the central Scene/Game dock area. Once created, it follows
   texture asset selection and clears to an empty state if its texture is destroyed.
+  FolderView's right-click New menu creates a uniquely named folder in the current directory.
   FolderView supports F2 and context-menu rename under `Domain/sandbox`. It preserves
   extensions, moves paired source/meta files together, and updates known metadata paths,
   loaded scene paths, the startup-scene config, and ScriptComponent module references.
+  Dragging project files/folders onto a folder cell, an ancestor breadcrumb, or a
+  File Explorer directory moves them through the same reference-preserving transaction.
+  `ProjectFileDropTarget` resolves and highlights those destinations; external source
+  assets retain copy/import semantics. Moves reject collisions and folder cycles,
+  and sprite sub-assets remain copy-only reference drags. Moving Python files updates
+  serialized/live ScriptComponent module paths; destination path components must be
+  valid Python identifiers. Script discovery still scans the fixed `scripts` directory.
   The sandbox root, its `scripts` directory, and `project.build` are fixed paths; bundled
   `Domain/lib` content is outside the rename area.
   Textures with sprites expose a focusable `QPushButton` centered on the cell's right edge,
@@ -67,7 +75,8 @@ viewport belong in a separate integration suite.
   Expanded groups have a shared gray backing.
   All entries use one cell size controlled by the Folder View's bottom-right Size slider
   (24–128 pixel thumbnail bounds). Cell width and height derive from that single value,
-  with fixed room for labels. Sprite previews fit the shared thumbnail bounds while
+  with fixed room for labels. Ctrl+mouse-wheel over the grid updates that same slider.
+  Sprite previews fit the shared thumbnail bounds while
   preserving aspect ratio and omitting scene pivot offsets. Source image dimensions
   never enlarge the grid cells. Expansion is remembered per texture for the session.
   Sprite rows select the sprite resource and emit the single/list sprite MIME formats, never
@@ -87,7 +96,17 @@ viewport belong in a separate integration suite.
   the prior layout without adding UI fields to scene or asset serialization.
   Inspector selection coalesces rebuild requests and uses deferred `InspectorVisitor` rows for
   GameObjects, components, and assets. The Inspector creates those rows in short Qt event-loop
-  batches, and all long `ListPropertyWidget` values batch their child rows automatically.
+  batches and fades each row in as it materializes; deferred component sections and batched
+  `ListPropertyWidget` child rows use the same short opacity animation.
+  Adding or removing a `ListPropertyWidget` row keeps the other editors in place; value
+  refreshes likewise retain existing rows when the list length stays the same or grows.
+  Editable lists also have compact bottom-right `+` and `-` controls for appending or removing
+  the final item; read-only lists omit them.
+  Folder selections prefer those live assets, then fall back to a read-only source preview for
+  text files without a resolvable `Serializable` (notably unloaded scenes and Python scripts).
+  `SourcePreviewEdit` owns Python/YAML syntax coloring and Ctrl+mouse-wheel font zoom; its scrollbar
+  chrome stays hidden while plain wheel input still scrolls, and file previews stay separate from
+  engine serialization.
   Pending batches carry a generation and re-resolve component IDs against the active container
   so a changed selection or removed component cannot populate stale UI. Selection notifications
   detach property subscriptions synchronously before scene unload can free their objects.
@@ -148,7 +167,8 @@ viewport belong in a separate integration suite.
     The inline reference picker has the same bottom-right vertical resize grip as the
     multiline text editor. Its bottom-right cell-size slider scales thumbnail cells;
     at the small end it switches to full-width name rows, falling back to IDs for
-    unnamed assets or objects. Cell size and picker height survive collapsing and
+    unnamed assets or objects. Ctrl+mouse-wheel over either the inline or popup picker updates
+    that same slider. Cell size and picker height survive collapsing and
     reopening the same Inspector row.
   - `SceneTree` / `SceneTreeItemDelegate` — hierarchy tree model/rendering.
   - `ImGuiInstance` — ImGui + ImGuizmo for in-viewport gizmos, rendered over the Qt GL widget.
@@ -226,6 +246,16 @@ viewport belong in a separate integration suite.
   Material uniforms. Repeatable components must never be addressed only by owner plus type.
   Component property batches roll back on failure and enter the active container's Undo stack as
   one command; asset setters retain the Inspector's non-undoable, metadata-auto-save behavior.
+- MCP `assets.list` includes TileMaps and TileSets. `TileMapEditor`, `TileMapRenderer`, and
+  `TileMapCollider` expose their Inspector fields through the generic component property tools;
+  the editor's Grid association and generated collider count are read-only. TileSet definitions
+  use `tileset.list_tiles` / `get_tile` / `set_tile` / `remove_tile`; `set_tile` takes a complete
+  definition, validates sprites and convex polygons, and saves the asset. Removal requires the
+  inline impact clarification because painted cells may lose their resolved sprite/collision.
+  `tilemap.get_cells` reads bounded sparse cells; `tilemap.set_cells` edits up to 1000 cells
+  through an exact TileMapEditor ID, validates tile IDs against its TileSet, saves the map, and
+  records one Undo command. `asset.describe` omits TileMap cell contents to keep large maps
+  bounded; use `tilemap.get_cells` for them. Cell authoring and TileSet edits require the editor world.
 - AI clarification questions are first-class `AiChatGui` transcript entries presented by
   `AiClarificationWidget`, never top-level windows. Pending cards stay expanded; resolved cards
   collapse to their answer summary and retain a read-only expandable body. The
@@ -267,15 +297,29 @@ Terrain TileSet, including its Any wildcards. The tile's default sprite and ever
 start empty so they can be assigned in the Inspector.
 The TileSet asset Inspector uses the shared list property widget for tiles and rules. Tile rows
 show the name on the left and default sprite on the right; selecting one exposes its ID, name,
-and default sprite asset picker below. The rules list spans the Inspector width, and its entries
+default sprite asset picker, and default collider (`None`, `Sprite`, `Grid`, or `Custom`) below. Each rule
+card stays expanded. Collider and Output selectors occupy the left column; the fixed
+sprite preview and 3x3 neighbor grid sit together on the right. Fixed output owns one sprite;
+Random and Animation show reorderable sprite lists below Output, and Animation also shows a
+min/max speed range there.
+Grid feeds full cell bounds to the optional TileMapCollider; Sprite follows the rendered sprite
+rectangle/pivot. Custom shows a separate sprite preview with a convex polygon editor for the
+default tile or rule. Drag points to move them, double-click an edge to insert a point, and
+right-click a point to remove it. The editor enforces 3–8 points and rejects invalid drags.
+Points use sprite-local coordinates and are clamped to the sprite rectangle. A sprite larger
+than its tile cell can still yield a collider larger than the cell. Random and Animation
+rules preview their first sprite; the same normalized polygon scales to each resolved sprite.
+The rules list spans the Inspector width, and its entries
 show a 3x3 neighborhood grid beside a sprite preview that accepts sprite drops and can be cleared
 from its context menu. The list's own controls add, remove, and reorder rules. Each neighbor cell offers Any, Empty (ID 0), or a specific
 TileSet tile ID. The TileMapEditor Inspector assigns the TileMap and TileSet. Selecting an
 object with TileMapEditor shows a Paint button in the Scene view tool palette. That mode opens
 the draggable, collapsible Tile Palette with sprite previews, a None tile for erasing, and a
 square paint size in cells using a property widget.
-The companion TileMapRenderer Inspector chooses a material, Native or Fill Cell sizing, and
-sorting layer/order. `SceneEditController` owns each drag stroke: its tilemap tool samples Grid
+The companion TileMapRenderer Inspector uses the same inline RGBA color picker as SpriteRenderer
+to tint the whole map, and chooses a material, Native or Fill Cell sizing, and
+sorting layer/order. Its sorting layer uses the same LayerManager-backed dropdown as
+SpriteRenderer. `SceneEditController` owns each drag stroke: its tilemap tool samples Grid
 cells, fills gaps between mouse samples, previews the brush footprint, and pushes one
 `TileStrokeCommand` containing before/after IDs. Left-drag paints the selected palette tile;
 right-drag temporarily uses None to erase with the same brush size without changing that selection.

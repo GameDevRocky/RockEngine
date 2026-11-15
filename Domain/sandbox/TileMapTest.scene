@@ -40,6 +40,24 @@ components:
     tileSizingMode: Native
     sortingLayer: Default
     sortingOrder: 0
+  - id: bad082b29aecb30da3b81d1c92ec08e1
+    enabled: true
+    type: TileMapCollider
+    gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
+    center: [0, 0]
+    isSensor: false
+    density: 1
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+  - id: 1fc9fbcd8af4ae99fcd23cc6ef7a1b42
+    enabled: true
+    type: RigidBody
+    gameobject: 33cc18e908a7f0550b3b44bf1b234b2d
+    bodyType: Static
+    useGravity: true
+    lockRotation: false
+    bullet: false
   - id: 341234abc64caf1adc2b4828b4a61349
     enabled: true
     type: Transform
@@ -85,6 +103,47 @@ components:
     normalInfluence: 1
     castShadows: false
     shadowStrength: 1
+  - id: 83928dcadbff7a13718b20f575db02bb
+    enabled: true
+    type: Transform
+    gameobject: 29db6fb852c4dfab1ebb3192ad7bba31
+    localPosition: [70.762146, 428.02435]
+    localRotation: 0
+    localScale: [0.03116979, 0.03116979]
+    parent_id: ~
+  - id: e0e848ff34b8fff230a83e96484592bb
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 29db6fb852c4dfab1ebb3192ad7bba31
+    material_id: m1
+    sprite_id: 0a9a7aad879227f2b6c3407253a9a185
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 272403a55cf3f1055b2075d816780f24
+    enabled: true
+    type: CircleCollider
+    gameobject: 29db6fb852c4dfab1ebb3192ad7bba31
+    center: [0, 0]
+    isSensor: false
+    density: 1
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+    radius: 384.90875
+  - id: 759e53d39d128fe547ce0fbc39784058
+    enabled: true
+    type: RigidBody
+    gameobject: 29db6fb852c4dfab1ebb3192ad7bba31
+    bodyType: Dynamic
+    useGravity: true
+    lockRotation: false
+    bullet: false
 gameobjects:
   - id: a3c474b4b9ad48be936fc739b1d34eb6
     type: GameObject
@@ -103,6 +162,8 @@ gameobjects:
       - 1c9f1fb5e4f0045ffaee00fef13d8926
       - 7794bffbd022951bc1e97de1a24e9192
       - 03e0aa3f9de58b736d3e0c2a84cdc9eb
+      - bad082b29aecb30da3b81d1c92ec08e1
+      - 1fc9fbcd8af4ae99fcd23cc6ef7a1b42
   - id: f1ef6a681c1fa48222aee2c3b52e4dc2
     type: GameObject
     name: Camera
@@ -119,3 +180,13 @@ gameobjects:
     component_ids:
       - 69e015340067cd57049d780b1b84b1f8
       - 3e2b88d19291050f0e221b0894ebec7e
+  - id: 29db6fb852c4dfab1ebb3192ad7bba31
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    active: true
+    component_ids:
+      - 83928dcadbff7a13718b20f575db02bb
+      - e0e848ff34b8fff230a83e96484592bb
+      - 272403a55cf3f1055b2075d816780f24
+      - 759e53d39d128fe547ce0fbc39784058

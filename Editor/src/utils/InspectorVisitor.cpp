@@ -11,6 +11,7 @@
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/ChainCollider.hpp"
+#include "engine/components/TileMapCollider.hpp"
 #include "engine/debug/Console.hpp"
 #include "engine/commands/MacroCommand.hpp"
 #include "engine/components/RigidBody.hpp"
@@ -59,6 +60,7 @@
 #include "engine/core/Scene.hpp"
 #include "Engine.hpp"
 #include "utils/EditorUtils.hpp"
+#include "utils/WidgetAnimation.hpp"
 #include "utils/ComponentPickerWidget.hpp"
 #include "utils/TexturePreviewWidget.hpp"
 #include "dock-widgets/MainWindowGui.hpp"
@@ -75,7 +77,8 @@
 
 using namespace Properties;
 
-InspectorVisitor::InspectorVisitor(bool deferRows) : m_deferRows(deferRows){
+InspectorVisitor::InspectorVisitor(bool deferRows)
+    : m_deferRows(deferRows), m_animateRows(deferRows) {
     content = new QWidget();
     layout = new QGridLayout();
     layout->setContentsMargins(0,0,0,0);
@@ -580,6 +583,10 @@ void InspectorVisitor::Visit(ChainCollider* chainCollider) {
         undoSystem->Push(MacroCommand::Wrap(std::move(edits), "Generate Collider Points"));
     });
     AddFullRow(generateButton);
+}
+
+void InspectorVisitor::Visit(TileMapCollider* tileMapCollider) {
+    Visit(static_cast<Collider*>(tileMapCollider));
 }
 
 void InspectorVisitor::Visit(RigidBody* rb){
@@ -1875,6 +1882,11 @@ void InspectorVisitor::Visit(TileMapEditor* tileMapEditor)
 
 void InspectorVisitor::Visit(TileMapRenderer* tileMapRenderer)
 {
+    BindProperty<glm::vec4>(tileMapRenderer, "Color: ",
+        [=]() { return tileMapRenderer->GetColor(); },
+        [](TileMapRenderer* renderer, const glm::vec4& color) { renderer->SetColor(color); },
+        tileMapRenderer->RENDER_CHANGED_EVENT, PropDesc().Tag(Tags::COLOR));
+
     BindProperty<std::string>(tileMapRenderer, "Material: ",
         [=]() { return tileMapRenderer->GetMaterialId(); },
         [](TileMapRenderer* renderer, const std::string& id) { renderer->SetMaterial(id); },
@@ -1891,14 +1903,35 @@ void InspectorVisitor::Visit(TileMapRenderer* tileMapRenderer)
     });
     AddRow("Sizing", sizing);
 
-    BindProperty<std::string>(tileMapRenderer, "Sorting Layer",
-        [=]() { return tileMapRenderer->GetSortingLayer(); },
-        [](TileMapRenderer* renderer, const std::string& value) { renderer->SetSortingLayer(value); },
-        tileMapRenderer->RENDER_CHANGED_EVENT, PropDesc().Tag(Tags::STRING));
-    BindProperty<int>(tileMapRenderer, "Sorting Order",
-        [=]() { return tileMapRenderer->GetSortingOrder(); },
-        [](TileMapRenderer* renderer, const int& value) { renderer->SetSortingOrder(value); },
-        tileMapRenderer->RENDER_CHANGED_EVENT, PropDesc().Tag(Tags::INT));
+    LayerManager* layerManager = Engine::Get()->GetActiveContainer()->FindSystem<LayerManager>();
+    if (layerManager) {
+        std::vector<std::pair<std::string, std::any>> layerOptions;
+        for (const auto& layer : layerManager->GetLayers())
+            layerOptions.push_back({layer.name, layer.priority});
+
+        auto layer_get = [=]() -> int {
+            return layerManager->GetPriority(tileMapRenderer->GetSortingLayer());
+        };
+        auto layer_set = [layers = layerOptions](TileMapRenderer* renderer, const int& priority) {
+            for (const auto& [name, value] : layers) {
+                if (std::any_cast<int>(value) == priority) {
+                    renderer->SetSortingLayer(name);
+                    return;
+                }
+            }
+        };
+        BindProperty<int>(tileMapRenderer, "Sorting Layer: ", layer_get, layer_set,
+            tileMapRenderer->RENDER_CHANGED_EVENT,
+            PropDesc().Tag(Tags::DROPDOWN).DropVals(layerOptions));
+    }
+
+    BindProperty<float>(tileMapRenderer, "Order in Layer: ",
+        [=]() { return static_cast<float>(tileMapRenderer->GetSortingOrder()); },
+        [](TileMapRenderer* renderer, const float& value) {
+            renderer->SetSortingOrder(static_cast<int>(value));
+        },
+        tileMapRenderer->RENDER_CHANGED_EVENT,
+        PropDesc().Tag(Tags::INT).Range(-32768, 32767).Step(1));
 }
 
 void InspectorVisitor::Visit(TileMap* tileMap)
@@ -1960,6 +1993,10 @@ void InspectorVisitor::AddRow(const std::string& text, QWidget* widget){
 
     layout->addWidget(label, gridRow, 0);
     layout->addWidget(widget, gridRow, 1);
+    if (m_animateRows) {
+        WidgetAnimation::FadeIn(label);
+        WidgetAnimation::FadeIn(widget);
+    }
     gridRow++;
 }
 
@@ -1972,6 +2009,7 @@ void InspectorVisitor::AddFullRow(QWidget* widget) {
         return;
     }
     layout->addWidget(widget, gridRow, 0, 1, 2);
+    if (m_animateRows) WidgetAnimation::FadeIn(widget);
     gridRow++;
 }
 

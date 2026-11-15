@@ -7,6 +7,7 @@
 #include "engine/rendering/core/ImageDecoder.hpp"
 #include <yaml-cpp/yaml.h>
 
+class Shader;
 
 enum class TextureFilter {
     Nearest,
@@ -119,6 +120,10 @@ public:
     // Rebuilds the normal texture if the settings changed since the last call.
     // Cheap no-op when clean. MUST be called with a current GL context.
     void EnsureNormalMap();
+    // Generate lazily and bind the engine-owned normal sampler for this draw.
+    // Also clears uHasNormalMap when disabled, so the previous draw cannot leak.
+    // MUST be called with a current GL context and the shader bound.
+    void BindNormalMap(const Shader& shader);
 
     // 0 when Apply Normal is off or generation failed.
     GLuint GetNormalTextureID() const { return normal_texture_id; }

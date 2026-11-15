@@ -64,6 +64,14 @@ kind. `set_component_properties` is atomic and records one Undo operation; faile
 back. `describe_asset` and the corresponding asset property tools provide the same contract for
 sprites, materials (including active shader uniforms), textures, fonts, shaders, and audio clips.
 
+TileMaps and TileSets also appear in `list_assets` and `describe_asset`. Use `list_tiles`,
+`get_tile`, and `set_tile` to author complete TileSet definitions, including neighbor rules and
+collision polygons. `remove_tile` presents an in-editor impact review before deletion. Use
+`get_tilemap_cells` with cell bounds to inspect sparse maps and `set_tilemap_cells` with an exact
+TileMapEditor component ID to paint or erase cells. TileMapEditor, TileMapRenderer, and
+TileMapCollider fields are available through the generic component property tools.
+`describe_asset` omits TileMap cells; use `get_tilemap_cells` to read them in bounded batches.
+
 The old object/type-specific tools remain as compatibility conveniences. New clients should
 prefer the discoverable exact-id surface.
 

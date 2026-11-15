@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <glm/glm.hpp>
 
 #include "engine/rendering/core/Resource.hpp"
 #include "engine/tilemap/Tile.hpp"
@@ -24,6 +25,8 @@ public:
     bool RemoveTile(TileId id);
 
     std::string ResolveSprite(TileId id, const NeighborMask& neighbors) const;
+    ResolvedTile ResolveTile(TileId id, const NeighborMask& neighbors,
+                             const glm::ivec2& cell = {}, float animationTime = 0.0f) const;
 
 private:
     std::unordered_map<TileId, Tile> tiles;

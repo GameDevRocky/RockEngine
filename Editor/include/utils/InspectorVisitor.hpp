@@ -70,6 +70,7 @@ class InspectorVisitor : public IVisitor{
         void Visit(Grid* grid) override;
         void Visit(TileMapEditor* tileMapEditor) override;
         void Visit(TileMapRenderer* tileMapRenderer) override;
+        void Visit(TileMapCollider* tileMapCollider) override;
         void Visit(TileMap* tileMap) override;
         void Visit(TileSet* tileSet) override;
 
@@ -148,6 +149,10 @@ class InspectorVisitor : public IVisitor{
         std::vector<std::pair<Observable*, int>> m_subscriptions;
         std::vector<std::function<void()>> m_refreshers;
         bool m_deferRows = false;
+        // A deferred visitor fades each row when BuildNextRow materializes it.
+        // Kept separate from m_deferRows because that flag is temporarily false
+        // while the queued row calls back into AddRow/AddFullRow.
+        bool m_animateRows = false;
         std::deque<std::function<void(InspectorVisitor&)>> m_pendingRows;
 };
 

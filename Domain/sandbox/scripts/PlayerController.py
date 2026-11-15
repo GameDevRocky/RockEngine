@@ -154,7 +154,8 @@ class PlayerController(ScriptableComponent):
 
         direction = 1 if move > 0 else -1
         
-        origin = self.transform.world_position
+        # world_position is a live Vector2 view; detach it before adjusting the ray origin.
+        origin = Vector2(self.transform.world_position)
         # Move origin up slightly to avoid catching the floor if sliding low
         origin.y += self.ground_check_offset * 0.5
         

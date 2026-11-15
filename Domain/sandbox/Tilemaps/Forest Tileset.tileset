@@ -1,0 +1,326 @@
+type: TileSet
+id: 2f32378602c007fcf035c97d913c9687
+tiles:
+  - id: 1
+    name: Tile 1
+    defaultSpriteId: 1cc06569b241c6cd9291a1501b7855b3
+    collisionType: None
+    rules:
+      - neighbors: [1, any, 0, any, 0, any, 1, 1]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.35]
+          - [-0.108333334, -0.375]
+          - [0.18333334, -0.2]
+          - [0.31666666, 0.125]
+          - [0.3375, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 00bf96038627966339c6c8e0b8fe070c
+      - neighbors: [any, any, any, any, 0, 0, 0, any]
+        collisionType: Grid
+        customPolygon:
+          - [-0.19583334, -0.175]
+          - [0.14166667, -0.30416667]
+          - [0.45416668, -0.28333333]
+          - [0.5, 0.5]
+          - [-0.37916666, 0.4875]
+          - [-0.34811413, 0.16293827]
+        output: Random
+        sprites:
+          - ef19c313957c4e6450a19a97728f2a3f
+      - neighbors: [0, any, 1, 1, 1, 1, 1, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.22083333]
+          - [-0.5, 0.2125]
+        output: Fixed
+        spriteId: a7e05e7ee0f6a9c2bde9ff315d07b620
+      - neighbors: [1, 1, 1, 1, 1, any, 0, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.26666668, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.5]
+          - [-0.27083334, 0.5]
+        output: Fixed
+        spriteId: 5fb2cc8d59f4b0dd9cf1d67eb1e9dc8e
+      - neighbors: [1, any, 0, any, 1, 1, 1, 1]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.2875, -0.5]
+          - [0.29166666, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: ff5b6d4d3c71ed8831e78583119c08b1
+      - neighbors: [0, 0, 0, any, 1, 1, 1, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.2875, -0.5]
+          - [0.27916667, 0.2375]
+          - [-0.5, 0.24166666]
+        output: Fixed
+        spriteId: d01738647525529a772218a697c1251b
+      - neighbors: [0, any, 1, 1, 1, any, 0, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.24583334, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.26666668]
+          - [-0.25416666, 0.2625]
+        output: Fixed
+        spriteId: 2b7b301d9108508d5bbd77b052d34541
+      - neighbors: [1, 0, 1, 1, 1, 1, 1, 1]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.22083333]
+          - [0.375, 0.37916666]
+          - [0.17083333, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 73f56be2f79bc5a9a7f6a5d874a0a947
+      - neighbors: [1, 1, any, any, any, any, 1, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.5]
+          - [-0.18333334, 0.5]
+          - [-0.37916666, 0.3875]
+          - [-0.5, 0.175]
+        output: Fixed
+        spriteId: 34e239b37949862be73767e255a036bb
+      - neighbors: [1, 1, 1, any, 0, any, 1, 1]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.22916667]
+          - [0.5, -0.2375]
+          - [0.5, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 1a166cddc4ce214859b3f83c814cfc7c
+      - neighbors: [1, 1, 1, 1, 1, 0, 1, 1]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.17916666]
+          - [-0.32916668, -0.35]
+          - [-0.13333334, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 461c54b49a8b5e7d058cd566e65359d1
+      - neighbors: [1, 1, 1, 0, 1, 1, 1, 1]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.24166666, -0.5]
+          - [0.39166668, -0.36666667]
+          - [0.5, -0.22083333]
+          - [0.5, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 0598eb2fdbba3a7eb601d12a94d683bb
+      - neighbors: [0, any, 1, any, 0, any, 1, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.28333333]
+          - [0.5, -0.275]
+          - [0.5, 0.3125]
+          - [-0.5, 0.29166666]
+        output: Fixed
+        spriteId: 43314086b0da7f8caac6c26f8ca244fe
+      - neighbors: [0, 0, 0, any, 0, any, 1, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.49166667, -0.31666666]
+          - [-0.09583333, -0.12916666]
+          - [-0.07083333, 0.3125]
+          - [-0.5, 0.2875]
+        output: Fixed
+        spriteId: 2a6c07a7caf2eb2ea47307d27a505973
+      - neighbors: [0, any, 1, any, 0, 0, 0, 0]
+        collisionType: Custom
+        customPolygon:
+          - [0.22083333, -0.1375]
+          - [0.5, -0.31666666]
+          - [0.475, 0.35833332]
+          - [0.14583333, 0.29166666]
+        output: Fixed
+        spriteId: e23c1ef59e731e51dc163fdd0e26f313
+      - neighbors: [1, 0, 1, 1, 1, 0, 1, 1]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.25416666]
+          - [-0.175, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.32083333]
+          - [0.29583332, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: aedab67a453702cf24c0d2887ac40c30
+      - neighbors: [1, 1, 1, 0, 1, 1, 1, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.2625, -0.48333332]
+          - [0.5, -0.22083333]
+          - [0.5, 0.5]
+          - [-0.24166666, 0.5]
+          - [-0.5, 0.27083334]
+        output: Fixed
+        spriteId: 5b822afba669d22fa55538c28e620cbb
+      - neighbors: [1, any, 0, any, 1, any, 0, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.22916667, -0.5]
+          - [0.30416667, -0.5]
+          - [0.27916667, 0.5]
+          - [-0.25, 0.5]
+        output: Fixed
+        spriteId: 4258dcbf723aa71e5b77b55d3d1ac8fc
+      - neighbors: [0, 0, 0, 0, 1, 0, 0, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: acee09d0e49fbd82b95d0b130f49f580
+      - neighbors: [1, 0, 0, 0, 0, 0, 0, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.24583334, 0.0375]
+          - [-0.004166667, -0.275]
+          - [0.24583334, 0.0375]
+          - [0.27083334, 0.5]
+          - [-0.3375, 0.5]
+        output: Fixed
+        spriteId: cda4f33033b5617b95b331778de3fed5
+      - neighbors: [0, 0, 1, 0, 1, 0, 0, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.24166666, -0.5]
+          - [0.23333333, -0.5]
+          - [0.5, -0.1625]
+          - [0.5, 0.33333334]
+          - [-0.25, 0.30833334]
+        output: Fixed
+        spriteId: 205a5f0f27f8de62b8514d701f2e4814
+      - neighbors: [0, 0, 1, 0, 1, 0, 1, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.15833333]
+          - [-0.23333333, -0.5]
+          - [0.22083333, -0.5]
+          - [0.5, -0.19166666]
+          - [0.5, 0.3375]
+          - [-0.5, 0.30833334]
+        output: Fixed
+        spriteId: 8ccfb06527fe6fb2f25fa13a3e9814d2
+      - neighbors: [0, 0, 0, 0, 1, 0, 1, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.24166666, -0.5]
+          - [0.29166666, -0.5]
+          - [0.2875, 0.22083333]
+          - [-0.5, 0.23333333]
+          - [-0.5, -0.2]
+        output: Fixed
+        spriteId: ab6cb73939b36e096bd0e1fff5ad9878
+      - neighbors: [1, 1, 1, 1, 1, 0, 1, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.20416667, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.5]
+          - [-0.20416667, 0.5]
+          - [-0.5, 0.25833333]
+          - [-0.5, -0.20833331]
+        output: Fixed
+        spriteId: ae71d4422ba4a98743ddbbe4df4be7f2
+      - neighbors: [1, 0, 1, any, 0, 0, 1, 1]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.22916667]
+          - [0.5, -0.25]
+          - [0.5, 0.22916667]
+          - [0.25833333, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 6dcf9c6907b34333e2c78ea3e13c68d9
+      - neighbors: [1, 0, 1, 0, 0, 0, 1, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.23333333]
+          - [0.5, -0.25416666]
+          - [0.5, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 0e43c60567b7f6e462f8329ee5187802
+      - neighbors: [1, 1, 1, 0, 0, any, 1, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.21666667]
+          - [0.5, -0.22083333]
+          - [0.5, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 6122df6e92e8c5172a59b84f9e1a0439
+      - neighbors: [0, any, 1, 0, 1, any, 1, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.30416667]
+          - [-0.5, 0.30416667]
+        output: Fixed
+        spriteId: 0dc7faff9382d2570a707186bd5fc360
+      - neighbors: [1, 0, 0, any, 1, 1, 1, 0]
+        collisionType: Custom
+        customPolygon:
+          - [-0.5, -0.5]
+          - [0.28333333, -0.5]
+          - [0.25833333, 0.5]
+          - [-0.5, 0.5]
+        output: Fixed
+        spriteId: 30c92e24d7bfbe12a60a5959640a16ab
+      - neighbors: [0, any, 1, 1, 1, 0, 1, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.17916666, -0.5]
+          - [0.5, -0.5]
+          - [0.5, 0.2875]
+          - [-0.5, 0.2875]
+          - [-0.5, -0.2125]
+        output: Fixed
+        spriteId: 6f7079769b83e2f9573b7eae7a45ccbe
+      - neighbors: [1, 1, 1, 0, 1, 0, 0, any]
+        collisionType: Custom
+        customPolygon:
+          - [-0.2625, -0.5]
+          - [0.25833333, -0.5]
+          - [0.5, -0.2125]
+          - [0.5, 0.5]
+          - [-0.29166666, 0.5]
+        output: Fixed
+        spriteId: ade5fb69c7a99208545b6f443a5e5317
+  - id: 2
+    name: Tile 2
+    defaultSpriteId: 13f6dcd6f6aa69e19bb8c1214c45a5ba
+    collisionType: None
+    rules:
+      []
+  - id: 3
+    name: Tile 3
+    defaultSpriteId: 1e9fd4650857a62da5479c94e9bb96f0
+    collisionType: None
+    rules:
+      []

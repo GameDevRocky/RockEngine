@@ -225,11 +225,29 @@ child's world transform, including the inherited parent transform.
 definition in a `TileSet`. TileSet YAML writes `tiles`, and TileMap cells write `tileId`.
 Grid YAML stores both `cellSize` and `gapSize`; an omitted `gapSize` defaults to zero.
 TileSet edits through `SetTile()` and `RemoveTile()` use the standard editor asset auto-save path.
+Each Tile definition stores a default collision type (`None`, `Sprite`, `Grid`, or `Custom`, defaulting to
+`None` for legacy files), and each auto-tile rule stores its own collider and output. Fixed output
+uses one sprite, Random selects deterministically per cell from a sprite list, and Animation steps
+through a sprite list using a deterministic speed in the authored min/max range. The optional
+singleton `TileMapCollider` consumes the resolved rule through the same TileMapEditor/Grid
+association. Grid collision uses cell bounds and merges adjacent cells only across zero-gap axes;
+Sprite collision follows the rendered sprite rectangle and pivot. Custom collision uses a convex
+polygon of 3–8 sprite-local points, scaled by the resolved sprite size and offset by its pivot;
+without a resolved sprite it uses the grid cell size. Vertex coordinates stay within the
+sprite bounds (each axis from -0.5 to 0.5); sprites larger than a cell can still produce a
+collider larger than a cell.
+Tile and rule polygons are serialized with their definitions; missing or invalid YAML polygons
+fall back to a four-point box. Legacy out-of-bounds points are clamped when loaded, then
+validated. Tile, TileSet, Grid, and reference-change events mark one dirty bit; `FixedUpdate()` rebuilds
+at most once before the next physics step. A newly required RigidBody is static, while an existing
+body type is preserved. Generated geometry is runtime state and is rebuilt for play-world copies.
 `TileMapRenderer` is a serializable component beside `TileMapEditor`. It defaults to Native
 sprite pixel sizing, with FillCell as an alternative; its sorting layer/order follow sprite
 render sorting. It stores a material ID (default `m1` for older scenes), and ScenePass uses
 that material's shader and uniforms for each tile with the tile sprite bound after the
-material's own texture slots. TileMapRenderer serializes material, sizing, and sorting; TileMapEditor stores only
+material's own texture slots. TileMapRenderer serializes material, RGBA color tint
+(white for legacy scenes), sizing, and sorting. Both batched and custom-shader tile
+draws apply its color through `uColor`; TileMapEditor stores only
 TileMap and TileSet ids. Adding either component requires the other, with defaults when the
 companion is created. ScenePass and PickingPass share cell
 geometry: the authored sprite pivot is placed at the transformed Grid cell center, with Grid
@@ -316,8 +334,11 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
   from `AssetManager` but must never delete them in `Shutdown()` — see the ownership comment on
   `RenderPass`.
   `ScenePass` streams visible tilemap quads for the built-in sprite shader into one vertex
-  buffer upload, then draws consecutive texture runs in tile order. It bakes the tile model,
-  size, pivot, and atlas UVs into vertices; normal maps remain disabled for tiles. Custom
+  buffer upload, then draws consecutive texture runs in tile order. It bakes cell placement,
+  size, pivot, and atlas UVs into tilemap-local vertices, retaining the tilemap model matrix
+  so tangent-space normals rotate and reflect with the map. Sprites and both tile draw paths
+  share `Texture2D::BindNormalMap`, which lazily generates and binds each source texture's
+  normal map and clears the shader flag for unmapped textures. Custom
   shaders keep the per-tile path because they may depend on local vertex positions or model
   uniforms. Picking remains an on-demand per-tile draw path.
 - OpenGL 4.6 core profile.

@@ -4,6 +4,7 @@
 #include "engine/rendering/core/AssetManager.hpp"
 #include "engine/rendering/core/GpuNormalMapGenerator.hpp"
 #include "engine/rendering/core/Sprite.hpp"
+#include "engine/rendering/core/Shader.hpp"
 #include "engine/core/Globals.hpp"
 #include <iostream>
 #include <algorithm>
@@ -470,6 +471,17 @@ void Texture2D::EnsureNormalMap()
 {
     if (!normalDirty) return;
     RebuildNormalMap();
+}
+
+void Texture2D::BindNormalMap(const Shader& shader)
+{
+    EnsureNormalMap();
+    if (normal_texture_id) {
+        glActiveTexture(GL_TEXTURE0 + TextureSlots::NormalMap);
+        glBindTexture(GL_TEXTURE_2D, normal_texture_id);
+        shader.SetTexture("uNormalMap", TextureSlots::NormalMap);
+    }
+    shader.SetFloat("uHasNormalMap", normal_texture_id ? 1.0f : 0.0f);
 }
 
 void Texture2D::SetApplyNormal(bool v)

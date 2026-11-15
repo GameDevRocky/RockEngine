@@ -26,6 +26,7 @@
 #include "engine/components/Grid.hpp"
 #include "engine/components/TileMapEditor.hpp"
 #include "engine/components/TileMapRenderer.hpp"
+#include "engine/components/TileMapCollider.hpp"
 #include <iostream>
 
 
@@ -59,5 +60,6 @@ void RegisterComponentTypes() {
     SerializableFactory::RegisterType("Grid", []() { return new Grid(); });
     SerializableFactory::RegisterType("TileMapEditor", []() { return new TileMapEditor(); });
     SerializableFactory::RegisterType("TileMapRenderer", []() { return new TileMapRenderer(); });
+    SerializableFactory::RegisterType("TileMapCollider", []() { return new TileMapCollider(); });
 
 }

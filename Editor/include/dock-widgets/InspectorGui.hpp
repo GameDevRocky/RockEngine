@@ -41,6 +41,11 @@ public:
     void Init();
     explicit InspectorGui(QWidget* parent = nullptr);
 
+    // Show a project file that has no live Serializable representation. This is
+    // deliberately a separate path from InspectorVisitor: files are not inserted
+    // into the engine Registry just to make their source text selectable.
+    void InspectFile(const QString& filePath);
+
     // Rebuild the inspector for whatever is currently selected. For components
     // whose set of visible rows depends on one of their own fields (e.g. a
     // Light's Type dropdown decides whether the spot-cone rows apply), the

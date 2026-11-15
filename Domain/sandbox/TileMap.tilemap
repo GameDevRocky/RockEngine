@@ -1,222 +1,6 @@
 type: TileMap
 id: 660eb8f53d400cb140112606ec6f0b73
 cells:
-  - x: -14
-    y: -6
-    tileId: 1
-  - x: -13
-    y: -6
-    tileId: 1
-  - x: -12
-    y: -6
-    tileId: 1
-  - x: -11
-    y: -6
-    tileId: 1
-  - x: -10
-    y: -6
-    tileId: 1
-  - x: -9
-    y: -6
-    tileId: 1
-  - x: -8
-    y: -6
-    tileId: 1
-  - x: -7
-    y: -6
-    tileId: 1
-  - x: -6
-    y: -6
-    tileId: 1
-  - x: -5
-    y: -6
-    tileId: 1
-  - x: -4
-    y: -6
-    tileId: 1
-  - x: -3
-    y: -6
-    tileId: 1
-  - x: -2
-    y: -6
-    tileId: 1
-  - x: -14
-    y: -5
-    tileId: 1
-  - x: -13
-    y: -5
-    tileId: 1
-  - x: -12
-    y: -5
-    tileId: 1
-  - x: -11
-    y: -5
-    tileId: 1
-  - x: -10
-    y: -5
-    tileId: 1
-  - x: -9
-    y: -5
-    tileId: 1
-  - x: -8
-    y: -5
-    tileId: 1
-  - x: -7
-    y: -5
-    tileId: 1
-  - x: -6
-    y: -5
-    tileId: 1
-  - x: -5
-    y: -5
-    tileId: 1
-  - x: -4
-    y: -5
-    tileId: 1
-  - x: -3
-    y: -5
-    tileId: 1
-  - x: -2
-    y: -5
-    tileId: 1
-  - x: -1
-    y: -5
-    tileId: 1
-  - x: 0
-    y: -5
-    tileId: 1
-  - x: 1
-    y: -5
-    tileId: 1
-  - x: 4
-    y: -5
-    tileId: 1
-  - x: 5
-    y: -5
-    tileId: 1
-  - x: 6
-    y: -5
-    tileId: 1
-  - x: -14
-    y: -4
-    tileId: 1
-  - x: -13
-    y: -4
-    tileId: 1
-  - x: -12
-    y: -4
-    tileId: 1
-  - x: -11
-    y: -4
-    tileId: 1
-  - x: -10
-    y: -4
-    tileId: 1
-  - x: -9
-    y: -4
-    tileId: 1
-  - x: -8
-    y: -4
-    tileId: 1
-  - x: -7
-    y: -4
-    tileId: 1
-  - x: -6
-    y: -4
-    tileId: 1
-  - x: -5
-    y: -4
-    tileId: 1
-  - x: -4
-    y: -4
-    tileId: 1
-  - x: -3
-    y: -4
-    tileId: 1
-  - x: -2
-    y: -4
-    tileId: 1
-  - x: -1
-    y: -4
-    tileId: 1
-  - x: 0
-    y: -4
-    tileId: 1
-  - x: 1
-    y: -4
-    tileId: 1
-  - x: 3
-    y: -4
-    tileId: 1
-  - x: 4
-    y: -4
-    tileId: 1
-  - x: 5
-    y: -4
-    tileId: 1
-  - x: 6
-    y: -4
-    tileId: 1
-  - x: 7
-    y: -4
-    tileId: 1
-  - x: -14
-    y: -3
-    tileId: 1
-  - x: -13
-    y: -3
-    tileId: 1
-  - x: -12
-    y: -3
-    tileId: 1
-  - x: -11
-    y: -3
-    tileId: 1
-  - x: -10
-    y: -3
-    tileId: 1
-  - x: -9
-    y: -3
-    tileId: 1
-  - x: -8
-    y: -3
-    tileId: 1
-  - x: -7
-    y: -3
-    tileId: 1
-  - x: -6
-    y: -3
-    tileId: 1
-  - x: -5
-    y: -3
-    tileId: 1
-  - x: -4
-    y: -3
-    tileId: 1
-  - x: -3
-    y: -3
-    tileId: 1
-  - x: -2
-    y: -3
-    tileId: 1
-  - x: -1
-    y: -3
-    tileId: 1
-  - x: 0
-    y: -3
-    tileId: 1
-  - x: 1
-    y: -3
-    tileId: 1
-  - x: 2
-    y: -3
-    tileId: 1
-  - x: 3
-    y: -3
-    tileId: 1
-  - x: 4
-    y: -3
-    tileId: 1
   - x: 5
     y: -3
     tileId: 1
@@ -225,60 +9,6 @@ cells:
     tileId: 1
   - x: 7
     y: -3
-    tileId: 1
-  - x: 8
-    y: -3
-    tileId: 1
-  - x: 9
-    y: -3
-    tileId: 1
-  - x: -14
-    y: -2
-    tileId: 1
-  - x: -13
-    y: -2
-    tileId: 1
-  - x: -12
-    y: -2
-    tileId: 1
-  - x: -11
-    y: -2
-    tileId: 1
-  - x: -10
-    y: -2
-    tileId: 1
-  - x: -9
-    y: -2
-    tileId: 1
-  - x: -8
-    y: -2
-    tileId: 1
-  - x: -7
-    y: -2
-    tileId: 1
-  - x: -6
-    y: -2
-    tileId: 1
-  - x: -5
-    y: -2
-    tileId: 1
-  - x: -4
-    y: -2
-    tileId: 1
-  - x: -3
-    y: -2
-    tileId: 1
-  - x: -2
-    y: -2
-    tileId: 1
-  - x: -1
-    y: -2
-    tileId: 1
-  - x: 0
-    y: -2
-    tileId: 1
-  - x: 1
-    y: -2
     tileId: 1
   - x: 2
     y: -2
@@ -296,15 +26,6 @@ cells:
     y: -2
     tileId: 1
   - x: 7
-    y: -2
-    tileId: 1
-  - x: 8
-    y: -2
-    tileId: 1
-  - x: 9
-    y: -2
-    tileId: 1
-  - x: 10
     y: -2
     tileId: 1
   - x: -20
@@ -319,54 +40,6 @@ cells:
   - x: -17
     y: -1
     tileId: 1
-  - x: -16
-    y: -1
-    tileId: 1
-  - x: -15
-    y: -1
-    tileId: 1
-  - x: -14
-    y: -1
-    tileId: 1
-  - x: -13
-    y: -1
-    tileId: 1
-  - x: -12
-    y: -1
-    tileId: 1
-  - x: -11
-    y: -1
-    tileId: 1
-  - x: -10
-    y: -1
-    tileId: 1
-  - x: -9
-    y: -1
-    tileId: 1
-  - x: -8
-    y: -1
-    tileId: 1
-  - x: -7
-    y: -1
-    tileId: 1
-  - x: -6
-    y: -1
-    tileId: 1
-  - x: -5
-    y: -1
-    tileId: 1
-  - x: -4
-    y: -1
-    tileId: 1
-  - x: -3
-    y: -1
-    tileId: 1
-  - x: -2
-    y: -1
-    tileId: 1
-  - x: -1
-    y: -1
-    tileId: 1
   - x: 0
     y: -1
     tileId: 1
@@ -389,21 +62,6 @@ cells:
     y: -1
     tileId: 1
   - x: 7
-    y: -1
-    tileId: 1
-  - x: 8
-    y: -1
-    tileId: 1
-  - x: 9
-    y: -1
-    tileId: 1
-  - x: 10
-    y: -1
-    tileId: 1
-  - x: 11
-    y: -1
-    tileId: 1
-  - x: 12
     y: -1
     tileId: 1
   - x: -20
@@ -421,51 +79,6 @@ cells:
   - x: -16
     y: 0
     tileId: 1
-  - x: -15
-    y: 0
-    tileId: 1
-  - x: -14
-    y: 0
-    tileId: 1
-  - x: -13
-    y: 0
-    tileId: 1
-  - x: -12
-    y: 0
-    tileId: 1
-  - x: -11
-    y: 0
-    tileId: 1
-  - x: -10
-    y: 0
-    tileId: 1
-  - x: -9
-    y: 0
-    tileId: 1
-  - x: -8
-    y: 0
-    tileId: 1
-  - x: -7
-    y: 0
-    tileId: 1
-  - x: -6
-    y: 0
-    tileId: 1
-  - x: -5
-    y: 0
-    tileId: 1
-  - x: -4
-    y: 0
-    tileId: 1
-  - x: -3
-    y: 0
-    tileId: 1
-  - x: -2
-    y: 0
-    tileId: 1
-  - x: -1
-    y: 0
-    tileId: 1
   - x: 0
     y: 0
     tileId: 1
@@ -485,21 +98,6 @@ cells:
     y: 0
     tileId: 1
   - x: 6
-    y: 0
-    tileId: 1
-  - x: 7
-    y: 0
-    tileId: 1
-  - x: 8
-    y: 0
-    tileId: 1
-  - x: 9
-    y: 0
-    tileId: 1
-  - x: 10
-    y: 0
-    tileId: 1
-  - x: 11
     y: 0
     tileId: 1
   - x: 12
@@ -523,51 +121,6 @@ cells:
   - x: -16
     y: 1
     tileId: 1
-  - x: -15
-    y: 1
-    tileId: 1
-  - x: -14
-    y: 1
-    tileId: 1
-  - x: -13
-    y: 1
-    tileId: 1
-  - x: -12
-    y: 1
-    tileId: 1
-  - x: -11
-    y: 1
-    tileId: 1
-  - x: -10
-    y: 1
-    tileId: 1
-  - x: -9
-    y: 1
-    tileId: 1
-  - x: -8
-    y: 1
-    tileId: 1
-  - x: -7
-    y: 1
-    tileId: 1
-  - x: -6
-    y: 1
-    tileId: 1
-  - x: -5
-    y: 1
-    tileId: 1
-  - x: -4
-    y: 1
-    tileId: 1
-  - x: -3
-    y: 1
-    tileId: 1
-  - x: -2
-    y: 1
-    tileId: 1
-  - x: -1
-    y: 1
-    tileId: 1
   - x: 0
     y: 1
     tileId: 1
@@ -587,15 +140,6 @@ cells:
     y: 1
     tileId: 1
   - x: 6
-    y: 1
-    tileId: 1
-  - x: 7
-    y: 1
-    tileId: 1
-  - x: 8
-    y: 1
-    tileId: 1
-  - x: 9
     y: 1
     tileId: 1
   - x: 10
@@ -637,51 +181,6 @@ cells:
   - x: -16
     y: 2
     tileId: 1
-  - x: -15
-    y: 2
-    tileId: 1
-  - x: -14
-    y: 2
-    tileId: 1
-  - x: -13
-    y: 2
-    tileId: 1
-  - x: -12
-    y: 2
-    tileId: 1
-  - x: -11
-    y: 2
-    tileId: 1
-  - x: -10
-    y: 2
-    tileId: 1
-  - x: -9
-    y: 2
-    tileId: 1
-  - x: -8
-    y: 2
-    tileId: 1
-  - x: -7
-    y: 2
-    tileId: 1
-  - x: -6
-    y: 2
-    tileId: 1
-  - x: -5
-    y: 2
-    tileId: 1
-  - x: -4
-    y: 2
-    tileId: 1
-  - x: -3
-    y: 2
-    tileId: 1
-  - x: -2
-    y: 2
-    tileId: 1
-  - x: -1
-    y: 2
-    tileId: 1
   - x: 0
     y: 2
     tileId: 1
@@ -698,18 +197,6 @@ cells:
     y: 2
     tileId: 1
   - x: 5
-    y: 2
-    tileId: 1
-  - x: 6
-    y: 2
-    tileId: 1
-  - x: 7
-    y: 2
-    tileId: 1
-  - x: 8
-    y: 2
-    tileId: 1
-  - x: 9
     y: 2
     tileId: 1
   - x: 10
@@ -1253,6 +740,18 @@ cells:
     y: 6
     tileId: 1
   - x: 15
+    y: 6
+    tileId: 1
+  - x: 16
+    y: 6
+    tileId: 1
+  - x: 17
+    y: 6
+    tileId: 1
+  - x: 18
+    y: 6
+    tileId: 1
+  - x: 19
     y: 6
     tileId: 1
   - x: -36
@@ -1411,6 +910,18 @@ cells:
   - x: 15
     y: 7
     tileId: 1
+  - x: 16
+    y: 7
+    tileId: 1
+  - x: 17
+    y: 7
+    tileId: 1
+  - x: 18
+    y: 7
+    tileId: 1
+  - x: 19
+    y: 7
+    tileId: 1
   - x: -36
     y: 8
     tileId: 1
@@ -1561,6 +1072,21 @@ cells:
   - x: 14
     y: 8
     tileId: 1
+  - x: 15
+    y: 8
+    tileId: 1
+  - x: 16
+    y: 8
+    tileId: 1
+  - x: 17
+    y: 8
+    tileId: 1
+  - x: 18
+    y: 8
+    tileId: 1
+  - x: 19
+    y: 8
+    tileId: 1
   - x: -35
     y: 9
     tileId: 1
@@ -1660,82 +1186,142 @@ cells:
   - x: 14
     y: 9
     tileId: 1
-  - x: -35
-    y: 10
+  - x: 15
+    y: 9
     tileId: 1
-  - x: -34
-    y: 10
+  - x: 16
+    y: 9
     tileId: 1
-  - x: -33
-    y: 10
+  - x: 17
+    y: 9
     tileId: 1
-  - x: -32
-    y: 10
+  - x: 18
+    y: 9
     tileId: 1
-  - x: -31
-    y: 10
+  - x: 19
+    y: 9
     tileId: 1
-  - x: -30
-    y: 10
+  - x: 20
+    y: 9
     tileId: 1
-  - x: -29
-    y: 10
+  - x: 21
+    y: 9
     tileId: 1
-  - x: -28
-    y: 10
+  - x: 22
+    y: 9
     tileId: 1
-  - x: -27
-    y: 10
+  - x: 23
+    y: 9
     tileId: 1
-  - x: -26
-    y: 10
+  - x: 24
+    y: 9
     tileId: 1
-  - x: -25
-    y: 10
-    tileId: 1
-  - x: -24
-    y: 10
-    tileId: 1
-  - x: -23
-    y: 10
-    tileId: 1
-  - x: -22
-    y: 10
-    tileId: 1
-  - x: -21
-    y: 10
-    tileId: 1
-  - x: -20
-    y: 10
-    tileId: 1
-  - x: -19
-    y: 10
-    tileId: 1
-  - x: -18
-    y: 10
-    tileId: 1
-  - x: -17
-    y: 10
-    tileId: 1
-  - x: -16
-    y: 10
-    tileId: 1
-  - x: -15
-    y: 10
-    tileId: 1
-  - x: -14
-    y: 10
-    tileId: 1
-  - x: -13
-    y: 10
-    tileId: 1
-  - x: -12
-    y: 10
-    tileId: 1
-  - x: -11
-    y: 10
+  - x: 25
+    y: 9
     tileId: 1
   - x: -35
+    y: 10
+    tileId: 1
+  - x: -34
+    y: 10
+    tileId: 1
+  - x: -33
+    y: 10
+    tileId: 1
+  - x: -32
+    y: 10
+    tileId: 1
+  - x: -31
+    y: 10
+    tileId: 1
+  - x: -30
+    y: 10
+    tileId: 1
+  - x: -29
+    y: 10
+    tileId: 1
+  - x: -28
+    y: 10
+    tileId: 1
+  - x: -27
+    y: 10
+    tileId: 1
+  - x: -26
+    y: 10
+    tileId: 1
+  - x: -25
+    y: 10
+    tileId: 1
+  - x: -24
+    y: 10
+    tileId: 1
+  - x: -23
+    y: 10
+    tileId: 1
+  - x: -22
+    y: 10
+    tileId: 1
+  - x: -21
+    y: 10
+    tileId: 1
+  - x: -20
+    y: 10
+    tileId: 1
+  - x: -19
+    y: 10
+    tileId: 1
+  - x: -18
+    y: 10
+    tileId: 1
+  - x: -17
+    y: 10
+    tileId: 1
+  - x: -16
+    y: 10
+    tileId: 1
+  - x: -15
+    y: 10
+    tileId: 1
+  - x: -14
+    y: 10
+    tileId: 1
+  - x: -13
+    y: 10
+    tileId: 1
+  - x: -12
+    y: 10
+    tileId: 1
+  - x: -11
+    y: 10
+    tileId: 1
+  - x: 17
+    y: 10
+    tileId: 1
+  - x: 18
+    y: 10
+    tileId: 1
+  - x: 19
+    y: 10
+    tileId: 1
+  - x: 20
+    y: 10
+    tileId: 1
+  - x: 21
+    y: 10
+    tileId: 1
+  - x: 22
+    y: 10
+    tileId: 1
+  - x: 23
+    y: 10
+    tileId: 1
+  - x: 24
+    y: 10
+    tileId: 1
+  - x: 25
+    y: 10
+    tileId: 1
+  - x: -35
     y: 11
     tileId: 1
   - x: -34
@@ -1810,6 +1396,33 @@ cells:
   - x: -11
     y: 11
     tileId: 1
+  - x: 17
+    y: 11
+    tileId: 1
+  - x: 18
+    y: 11
+    tileId: 1
+  - x: 19
+    y: 11
+    tileId: 1
+  - x: 20
+    y: 11
+    tileId: 1
+  - x: 21
+    y: 11
+    tileId: 1
+  - x: 22
+    y: 11
+    tileId: 1
+  - x: 23
+    y: 11
+    tileId: 1
+  - x: 24
+    y: 11
+    tileId: 1
+  - x: 25
+    y: 11
+    tileId: 1
   - x: -34
     y: 12
     tileId: 1
@@ -1880,6 +1493,33 @@ cells:
     y: 12
     tileId: 1
   - x: -11
+    y: 12
+    tileId: 1
+  - x: 17
+    y: 12
+    tileId: 1
+  - x: 18
+    y: 12
+    tileId: 1
+  - x: 19
+    y: 12
+    tileId: 1
+  - x: 20
+    y: 12
+    tileId: 1
+  - x: 21
+    y: 12
+    tileId: 1
+  - x: 22
+    y: 12
+    tileId: 1
+  - x: 23
+    y: 12
+    tileId: 1
+  - x: 24
+    y: 12
+    tileId: 1
+  - x: 25
     y: 12
     tileId: 1
   - x: -33
@@ -1979,6 +1619,18 @@ cells:
     y: 13
     tileId: 1
   - x: 7
+    y: 13
+    tileId: 1
+  - x: 22
+    y: 13
+    tileId: 1
+  - x: 23
+    y: 13
+    tileId: 1
+  - x: 24
+    y: 13
+    tileId: 1
+  - x: 25
     y: 13
     tileId: 1
   - x: -33
@@ -2093,6 +1745,12 @@ cells:
     y: 14
     tileId: 1
   - x: 9
+    y: 14
+    tileId: 1
+  - x: 24
+    y: 14
+    tileId: 1
+  - x: 25
     y: 14
     tileId: 1
   - x: -32
@@ -2731,6 +2389,12 @@ cells:
   - x: -1
     y: 21
     tileId: 1
+  - x: 8
+    y: 21
+    tileId: 1
+  - x: 9
+    y: 21
+    tileId: 1
   - x: 10
     y: 21
     tileId: 1
@@ -2782,6 +2446,15 @@ cells:
   - x: -1
     y: 22
     tileId: 1
+  - x: 8
+    y: 22
+    tileId: 1
+  - x: 9
+    y: 22
+    tileId: 1
+  - x: 10
+    y: 22
+    tileId: 1
   - x: 11
     y: 22
     tileId: 1
@@ -2805,4 +2478,10 @@ cells:
     tileId: 1
   - x: 18
     y: 22
+    tileId: 1
+  - x: 9
+    y: 23
+    tileId: 1
+  - x: 10
+    y: 23
     tileId: 1

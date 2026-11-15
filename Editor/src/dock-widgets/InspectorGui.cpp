@@ -20,6 +20,8 @@
 #include "utils/ComponentPickerWidget.hpp"
 #include "utils/RefDropFilter.hpp"
 #include "utils/EditorUtils.hpp"
+#include "utils/SourcePreviewEdit.hpp"
+#include "utils/WidgetAnimation.hpp"
 #include "engine/core/UndoSystem.hpp"
 #include "engine/core/Container.hpp"
 #include "engine/commands/ComponentCommand.hpp"
@@ -33,9 +35,12 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QApplication>
+#include <QFile>
+#include <QFileInfo>
 #include <QPushButton>
 #include <QSizePolicy>
 #include <QScrollBar>
+#include <QTextCursor>
 
 namespace {
     void clearLayout(QLayout* layout)
@@ -256,6 +261,91 @@ InspectorGui::InspectorGui(QWidget* parent) : QWidget(parent)
             auto* sm = c ? c->FindSystem<SelectionManager>() : nullptr;
             return sm && dynamic_cast<GameObject*>(sm->GetSerializable()) != nullptr;
         }));
+}
+
+void InspectorGui::InspectFile(const QString& filePath)
+{
+    const QFileInfo info(filePath);
+    if (!info.exists() || !info.isFile()) return;
+
+    // File previews and engine selections are mutually exclusive. Clearing the
+    // SelectionManager first also makes the next click on the previously-selected
+    // object a real selection change. OnObjectSelected invalidates the queued
+    // empty-selection rebuild emitted by ClearSelection before it can erase this
+    // preview on the next event-loop turn.
+    if (Container* active = Engine::Get()->GetActiveContainer()) {
+        if (auto* selection = active->FindSystem<SelectionManager>())
+            selection->ClearSelection();
+    }
+    OnObjectSelected({});
+
+    contentWidget = new QWidget();
+    auto* contentLayout = new QVBoxLayout(contentWidget);
+    contentLayout->setContentsMargins(0, 0, 0, 0);
+    contentLayout->setSpacing(6);
+
+    auto* titleLayout = new QHBoxLayout();
+    titleLayout->setContentsMargins(0, 0, 0, 0);
+    auto* title = new QLabel(info.fileName());
+    QFont titleFont = title->font();
+    titleFont.setBold(true);
+    title->setFont(titleFont);
+    titleLayout->addWidget(title, 1);
+
+    auto* openButton = new QPushButton("Open in VS Code");
+    openButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    connect(openButton, &QPushButton::clicked, openButton,
+            [path = info.absoluteFilePath()]() {
+                EditorUtils::OpenInVSCode(path.toStdString());
+            });
+    titleLayout->addWidget(openButton);
+    contentLayout->addLayout(titleLayout);
+
+    auto* pathLabel = new QLabel(info.absoluteFilePath());
+    pathLabel->setObjectName("InspectorFilePreviewPath");
+    pathLabel->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    pathLabel->setWordWrap(true);
+    pathLabel->setStyleSheet("color: #9a9a9a;");
+    contentLayout->addWidget(pathLabel);
+
+    auto* statusLabel = new QLabel();
+    statusLabel->setObjectName("InspectorFilePreviewStatus");
+    statusLabel->setStyleSheet("color: #9a9a9a;");
+    contentLayout->addWidget(statusLabel);
+
+    auto* preview = new SourcePreviewEdit(info.absoluteFilePath());
+    preview->setObjectName("InspectorFilePreview");
+
+    constexpr qint64 kMaxPreviewBytes = 2 * 1024 * 1024;
+    QFile file(info.absoluteFilePath());
+    if (!file.open(QIODevice::ReadOnly)) {
+        statusLabel->setText("Unable to read file");
+        preview->setPlainText(file.errorString());
+    } else {
+        QByteArray bytes = file.read(kMaxPreviewBytes + 1);
+        const bool truncated = bytes.size() > kMaxPreviewBytes;
+        if (truncated) bytes.truncate(kMaxPreviewBytes);
+
+        if (bytes.contains('\0')) {
+            statusLabel->setText(QString("%1 bytes | binary preview unavailable")
+                                     .arg(info.size()));
+            preview->setPlainText("This file contains binary data and cannot be shown as text.");
+        } else {
+            statusLabel->setText(QString("%1 bytes%2 | %3 | read only | Ctrl+wheel to zoom")
+                                     .arg(info.size())
+                                     .arg(truncated ? " | first 2 MiB shown" : "")
+                                     .arg(preview->LanguageName()));
+            QString text = QString::fromUtf8(bytes);
+            if (truncated)
+                text += "\n\n[Preview truncated after 2 MiB]";
+            preview->setPlainText(text);
+            preview->moveCursor(QTextCursor::Start);
+        }
+    }
+
+    contentLayout->addWidget(preview, 1);
+    scrollArea->setWidget(contentWidget);
+    WidgetAnimation::FadeIn(contentWidget, 180);
 }
 
 void InspectorGui::AddScriptToSelectedObject(const std::string& scriptRef)
@@ -711,6 +801,7 @@ void InspectorGui::ContinueInspectionBuild(std::uint64_t generation)
         compWidget->AddWidget(visitor->GetContent());
         TrackSectionExpansion(compWidget, "component:" + comp->GetID());
         m_pendingLayout->insertWidget(m_pendingLayout->indexOf(m_pendingAddButton), compWidget);
+        WidgetAnimation::FadeIn(compWidget, 220);
         m_registerComponentRow(compWidget, componentId);
         m_pendingVisitor = std::move(visitor);
 

@@ -18,6 +18,8 @@ YAML::Node TileMapRenderer::Serialize()
 {
     YAML::Node node = Component::Serialize();
     node["materialId"] = materialId;
+    for (int i = 0; i < 4; ++i) node["color"][i] = color[i];
+    node["color"].SetStyle(YAML::EmitterStyle::Flow);
     node["tileSizingMode"] = tileSizingMode == TileSizingMode::FillCell ? "FillCell" : "Native";
     node["sortingLayer"] = sortingLayer;
     node["sortingOrder"] = sortingOrder;
@@ -28,6 +30,10 @@ void TileMapRenderer::Deserialize(const YAML::Node& node)
 {
     Component::Deserialize(node);
     materialId = node["materialId"].as<std::string>("m1");
+    color = glm::vec4(1.0f);
+    const YAML::Node storedColor = node["color"];
+    if (storedColor && storedColor.IsSequence() && storedColor.size() == 4)
+        for (int i = 0; i < 4; ++i) color[i] = storedColor[i].as<float>(1.0f);
     tileSizingMode = node["tileSizingMode"].as<std::string>("Native") == "FillCell"
         ? TileSizingMode::FillCell : TileSizingMode::Native;
     sortingLayer = node["sortingLayer"].as<std::string>("Default");
@@ -42,6 +48,7 @@ TileMapRenderer* TileMapRenderer::Copy()
     copy->enabled = enabled;
     copy->gameobject_id = gameobject_id;
     copy->materialId = materialId;
+    copy->color = color;
     copy->tileSizingMode = tileSizingMode;
     copy->sortingLayer = sortingLayer;
     copy->sortingOrder = sortingOrder;
@@ -88,6 +95,13 @@ void TileMapRenderer::SetTileSizingMode(TileSizingMode value)
 {
     if (tileSizingMode == value) return;
     tileSizingMode = value;
+    Notify(RENDER_CHANGED_EVENT);
+}
+
+void TileMapRenderer::SetColor(const glm::vec4& value)
+{
+    if (color == value) return;
+    color = value;
     Notify(RENDER_CHANGED_EVENT);
 }
 

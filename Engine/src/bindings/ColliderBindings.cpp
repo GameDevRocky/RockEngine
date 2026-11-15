@@ -6,6 +6,7 @@
 #include "engine/components/CapsuleCollider.hpp"
 #include "engine/components/CircleCollider.hpp"
 #include "engine/components/ChainCollider.hpp"
+#include "engine/components/TileMapCollider.hpp"
 #include "Engine.hpp"
 #include <pybind11/stl.h>
 #include <utility>
@@ -18,6 +19,7 @@ static Collider* FindCollider(const std::string& id) {
     if (auto* c = go->GetComponent<CapsuleCollider>()) return c;
     if (auto* c = go->GetComponent<CircleCollider>())  return c;
     if (auto* c = go->GetComponent<ChainCollider>())   return c;
+    if (auto* c = go->GetComponent<TileMapCollider>()) return c;
     return nullptr;
 }
 
