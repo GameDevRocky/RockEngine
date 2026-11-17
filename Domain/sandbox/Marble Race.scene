@@ -4,7 +4,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 5cdcd0c22606d22623d574cedf0c16ad
-    localPosition: [310.32843, 1518.6675]
+    localPosition: [108.66375, 1669.917]
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
@@ -75,7 +75,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 74c6f2c30fb66ccd7713182925ed0f31
-    localPosition: [-187.45538, 1434.9426]
+    localPosition: [27.958572, 1581.6073]
     localRotation: 0
     localScale: [1, 1]
     parent_id: ~
@@ -189,7 +189,7 @@ components:
       beat_duration: 2
       pop_duration: 0.25
       fade_duration: 0.6
-      pop_scale: 1.45
+      pop_scale: 1.65
       end_scale: 0.75
   - id: 41702506cb3f424ad0ec3d5309642ff8
     enabled: true
@@ -206,7 +206,7 @@ components:
     vAlign: 1
     color: [1, 1, 1, 1]
     weight: 0.25
-    outlineColor: [0.88461125, 0, 0, 1]
+    outlineColor: [0.11667048, 0, 1, 1]
     outlineWidth: 0.13
     visible: true
     sortingLayer: Default
@@ -364,7 +364,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 0c778225958616a2e2954a895a2caecb
-    localPosition: [-295.28525, 827.34686]
+    localPosition: [-15.428177, 1004.58966]
     localRotation: 0
     localScale: [1, 1]
     parent_id: 744fd0eccf6717aa3f2f79fc9a597529
