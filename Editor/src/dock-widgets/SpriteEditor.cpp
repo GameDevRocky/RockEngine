@@ -173,7 +173,8 @@ void SpriteEditor::ApplySlice() {
         std::vector<std::string> ids;
         for (const auto& [id, sp] : AssetManager::Get().GetAllSprites())
             if (sp && sp->GetTextureID() == m_texture->GetID()) ids.push_back(id);
-        for (const auto& id : ids) AssetManager::Get().RemoveSprite(id);
+        for (const auto& id : ids)
+            AssetManager::Get().RemoveSprite(id, AssetManager::SaveMode::Deferred);
         m_canvas->SetSelectedSprite("");
         m_deleteBtn->setEnabled(false);
     }
@@ -189,10 +190,12 @@ void SpriteEditor::ApplySlice() {
             glm::vec2 uvMin{ static_cast<float>(x  / W), static_cast<float>(1.0 - y2 / H) };
             glm::vec2 uvMax{ static_cast<float>(x2 / W), static_cast<float>(1.0 - y  / H) };
             AssetManager::Get().CreateSprite(texId, uvMin, uvMax,
-                                             prefix + "_" + std::to_string(index));
+                                             prefix + "_" + std::to_string(index),
+                                             AssetManager::SaveMode::Deferred);
             ++index;
         }
     }
+    AssetManager::Get().SaveResource(m_texture);
     m_canvas->update();
     UpdateStatus();
 }

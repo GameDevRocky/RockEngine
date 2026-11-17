@@ -54,6 +54,9 @@ viewport belong in a separate integration suite.
   `BuildWindow` (File → Build Game…, a top-level window rather than a dock). The Sprite Editor
   is created lazily and tabbed into the central Scene/Game dock area. Once created, it follows
   texture asset selection and clears to an empty state if its texture is destroyed.
+  Grid slicing by cell count or cell size defers sprite creation/removal saves and
+  writes the texture descriptor once after the complete Apply operation, including
+  Replace existing. Individual canvas edits and deletions still save immediately.
   FolderView's right-click New menu creates a uniquely named folder in the current directory.
   FolderView supports F2 and context-menu rename under `Domain/sandbox`. It preserves
   extensions, moves paired source/meta files together, and updates known metadata paths,

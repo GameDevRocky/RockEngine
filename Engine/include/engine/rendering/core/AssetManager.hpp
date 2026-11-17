@@ -17,6 +17,10 @@
 class AssetManager : public System
 {
 public:
+    // Deferred sprite edits still register and notify immediately. The caller must
+    // SaveResource on the owning texture after completing the batch.
+    enum class SaveMode { Immediate, Deferred };
+
     static inline const Event ASSET_ADDED_EVENT   = Observable::CreateEvent();
     static inline const Event ASSET_REMOVED_EVENT = Observable::CreateEvent();
 
@@ -64,15 +68,15 @@ public:
     void AddTileSet(TileSet* tileSet);
 
     // Create a new sprite carving a normalized-UV region out of an existing texture,
-    // register it with that texture, and persist it into the texture's meta file.
+    // register it with that texture, and persist it unless saving is deferred.
     // Returns nullptr if the texture id is unknown.
     Sprite* CreateSprite(const std::string& textureId, glm::vec2 uvMin, glm::vec2 uvMax,
-                         const std::string& name = "");
+                         const std::string& name = "", SaveMode saveMode = SaveMode::Immediate);
 
-    // Delete a sprite: drop it from its owning texture, rewrite the texture file, fire
+    // Delete a sprite: drop it from its owning texture, save unless deferred, fire
     // ASSET_REMOVED_EVENT (payload = id), and free it. SpriteRenderers that still
     // reference the id simply resolve to nullptr afterwards.
-    void RemoveSprite(const std::string& id);
+    void RemoveSprite(const std::string& id, SaveMode saveMode = SaveMode::Immediate);
 
     // Remove an asset from memory by id, whichever kind it is (material, texture,
     // shader, or sprite). Removing a texture also removes every sprite carved from

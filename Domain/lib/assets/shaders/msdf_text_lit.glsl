@@ -174,20 +174,26 @@ float ScreenPxRange() {
     return max(0.5 * dot(unitRange, screenTexSize), 1.0);
 }
 
+float distanceCoverage(float sd, float outset, float range) {
+    // Keep empty/solid atlas endpoints empty/solid when outlines are wide or
+    // text is minified. Match the unlit shader's bounded contour and AA ramp.
+    const float distanceStep = 1.0 / 255.0;
+    float edge = clamp(0.5 - outset, distanceStep, 1.0 - distanceStep);
+    float halfWidth = min(0.5 / range, min(edge, 1.0 - edge));
+    return clamp((sd - edge) / (2.0 * halfWidth) + 0.5, 0.0, 1.0);
+}
+
 void main() {
     vec3 msd = texture(uMSDF, vTexCoord).rgb;
     float sd = Median(msd.r, msd.g, msd.b);
     float range = ScreenPxRange();
 
-    float fillA = clamp(
-        range * (sd - (0.5 - uWeight)) + 0.5, 0.0, 1.0);
+    float fillA = distanceCoverage(sd, uWeight, range);
     vec4 fill = vec4(uColor.rgb, uColor.a * fillA);
     vec4 glyph = fill;
 
     if (uOutlineWidth > 0.0) {
-        float strokeA = clamp(
-            range * (sd - (0.5 - uWeight - uOutlineWidth)) + 0.5,
-            0.0, 1.0);
+        float strokeA = distanceCoverage(sd, uWeight + uOutlineWidth, range);
         vec4 stroke = vec4(
             uOutlineColor.rgb, uOutlineColor.a * strokeA);
 

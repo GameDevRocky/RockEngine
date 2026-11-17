@@ -1,0 +1,1146 @@
+id: 87ad14aab549873122654a6dfa7d4cb0
+components:
+  - id: 8f41fd652e947f2200bbeae0d1bc5d19
+    enabled: true
+    type: Transform
+    gameobject: fdf9523b905ef98c2dce7d1afc8662ed
+    localPosition: [-3715.4414, -2350.266]
+    localRotation: 32.772278
+    localScale: [1, 1]
+    parent_id: ~
+  - id: f07154fff273fc0be169683fa4935691
+    enabled: true
+    type: ScriptComponent
+    gameobject: fdf9523b905ef98c2dce7d1afc8662ed
+    module: TopDownController
+    class: TopDownController
+    fields:
+      velocity:
+        - 0
+        - 0
+      speed: 21
+      friction: 0.95
+      camera: 0a14507c32ffbde319398347ae800168
+      emit:
+        - fdf9523b905ef98c2dce7d1afc8662ed|f07154fff273fc0be169683fa4935691|shoot|
+        - 0a14507c32ffbde319398347ae800168|78c6314d1b5c4e28b6f606c04e258c83|shake|
+      light: 6d2716c5bce63ad0ba3c81222dc008df
+      elias: false
+      alex: 0
+      camera_smoothing: 1
+      rb: ""
+      bc: ""
+      muzzle: 16ade0e77cc80ecee1e580d428df7ecb
+      bullet_impact: 6f57b5ced6648402132cddb7547dc232
+      bullet_pool: 370512c57b07c73ad7162bdf3ee85904
+      fire_rate: 0.1
+      bullet_spread: 9
+      muzzle_offset: 300
+      muzzle_count: 4
+  - id: 226e591b3871f38ee54f3c7a60abd0ca
+    enabled: true
+    type: RigidBody
+    gameobject: fdf9523b905ef98c2dce7d1afc8662ed
+    bodyType: Static
+    useGravity: false
+    lockRotation: false
+    bullet: false
+  - id: 1c3fffc8ef7b98c6f47658d8d9085219
+    enabled: true
+    type: BoxCollider
+    gameobject: fdf9523b905ef98c2dce7d1afc8662ed
+    center: [73.815186, -5.8998566]
+    isSensor: false
+    density: 1
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+    size: [465.37775, 267.30142]
+  - id: e2772405a5fa763ab449b2c21b049a8c
+    enabled: true
+    type: AudioSource
+    gameobject: fdf9523b905ef98c2dce7d1afc8662ed
+    clip_id: 17ec608dc852f0a5b3c99317afb7e399
+    volume: 0.57
+    pitch: 2.22
+    loop: false
+    mute: false
+    playOnAwake: false
+    spatialBlend: 0
+    minDistance: 100
+    maxDistance: 2010.9847
+  - id: 2d7967f4224d173abdeb11b19d8a9f99
+    enabled: true
+    type: Transform
+    gameobject: cdbbb567faeb648d6555b973bcfe8193
+    localPosition: [0, 0]
+    localRotation: 90
+    localScale: [1.0000002, 1.0000002]
+    parent_id: 8f41fd652e947f2200bbeae0d1bc5d19
+  - id: ef2a6bfacefd219272f787ec6a1701fd
+    enabled: true
+    type: Transform
+    gameobject: 128a2068a964c097fd62f2c7f8c466bb
+    localPosition: [-79.56175, -43.13916]
+    localRotation: -1.7268385e-06
+    localScale: [0.98882866, 1.0000001]
+    parent_id: 2d7967f4224d173abdeb11b19d8a9f99
+  - id: f204c3f54bd7bacf198d94f9437e6a82
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 128a2068a964c097fd62f2c7f8c466bb
+    material_id: m1
+    sprite_id: 6013bc43f1e616a485b723a18886eec8
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 3
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 275d41ad083720cceb39a33e37265551
+    enabled: true
+    type: Transform
+    gameobject: 78abb3f0db5c7aa72955744510eb89d3
+    localPosition: [-0.4434662, 92.5957]
+    localRotation: -1.7075471e-06
+    localScale: [1.0000001, 1.0000001]
+    parent_id: 2d7967f4224d173abdeb11b19d8a9f99
+  - id: aaf3abdf8869af83270d2195ed45e41a
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 78abb3f0db5c7aa72955744510eb89d3
+    material_id: m1
+    sprite_id: 64cf24736657758ecb9e0fb399290b61
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 2
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 55295aa7325c4e0a9818bba8f8039140
+    enabled: true
+    type: Transform
+    gameobject: f25f2e450175e9a779d88718a22afff5
+    localPosition: [-3.2324066, -2.118164]
+    localRotation: -8.537736e-06
+    localScale: [1.0000001, 1.0000001]
+    parent_id: 2d7967f4224d173abdeb11b19d8a9f99
+  - id: 0c6b32fe1e973ba42f6e96c81d33c1a3
+    enabled: true
+    type: SpriteRenderer
+    gameobject: f25f2e450175e9a779d88718a22afff5
+    material_id: m1
+    sprite_id: b84fa6157bba0ebf9387608fc22a5b8b
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 12
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: e44d2b9a4fdd4000d881f4249061d643
+    enabled: true
+    type: Transform
+    gameobject: dfcc941c6d90526f092e34d0eb7d1e85
+    localPosition: [55.31862, -73.148926]
+    localRotation: -8.537736e-06
+    localScale: [1.0000001, 1.0000001]
+    parent_id: 2d7967f4224d173abdeb11b19d8a9f99
+  - id: 152a23d040bf8957427c316c5f3a94ee
+    enabled: true
+    type: SpriteRenderer
+    gameobject: dfcc941c6d90526f092e34d0eb7d1e85
+    material_id: m1
+    sprite_id: 3c79c00e1d11bf271aaae7910e54077e
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 9
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: cb3a71cc2afae4ab4faead5ba3cb1e26
+    enabled: true
+    type: Transform
+    gameobject: 2f261114e77f0a83fc0b07602161ee6e
+    localPosition: [-0.00010681152, -0.00390625]
+    localRotation: -1.7075471e-06
+    localScale: [1.0000001, 1.0000001]
+    parent_id: 2d7967f4224d173abdeb11b19d8a9f99
+  - id: c15b87b76f55bc24f5ebb53f713c1c4c
+    enabled: true
+    type: Transform
+    gameobject: 0f988cbafbfe8b595bb7b4c73d4507e5
+    localPosition: [-15.486179, -132.5459]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: cb3a71cc2afae4ab4faead5ba3cb1e26
+  - id: af88f05016743b9c2b2df6540dc377f3
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 0f988cbafbfe8b595bb7b4c73d4507e5
+    material_id: m1
+    sprite_id: f5d96795c1d59daeb72a1677d2f2988f
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 10
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 64a9680f44c57cbf9ea81fa017f5fc10
+    enabled: true
+    type: Transform
+    gameobject: 16ade0e77cc80ecee1e580d428df7ecb
+    localPosition: [0.29566765, -233.00732]
+    localRotation: -90
+    localScale: [0.99999964, 0.99999964]
+    parent_id: c15b87b76f55bc24f5ebb53f713c1c4c
+  - id: 40579590de11dc1978acf4d3be2c17e3
+    enabled: true
+    type: ParticleComponent
+    gameobject: 16ade0e77cc80ecee1e580d428df7ecb
+    emissionRate: 24
+    maxParticles: 1000
+    duration: 0.1
+    looping: false
+    startBurst: 0
+    lifetimeMin: 0.05
+    lifetimeMax: 0.15
+    startSpeedMin: 300
+    startSpeedMax: 600
+    directionAngle: 0
+    spreadDegrees: 70
+    gravity: [0, 0]
+    damping: 2
+    space: 0
+    simulationBackend: 0
+    shape: 0
+    shapeSize: [32, 32]
+    coneAngle: 25
+    sprite_id: f25981b383d7c2160d48d94648db8464
+    flipX: false
+    flipY: false
+    startColor: [1, 1, 0.5, 1]
+    endColor: [1, 0, 0, 0]
+    startSize: 200
+    endSize: 22
+    blendMode: 1
+    sortingLayer: Default
+    sortingOrder: 14
+  - id: 61eacbc2bc0243c2b00a6ff26798a0b4
+    enabled: true
+    type: Transform
+    gameobject: 6d2716c5bce63ad0ba3c81222dc008df
+    localPosition: [-13.763767, -175.4248]
+    localRotation: -92.81315
+    localScale: [0.9999995, 0.9999995]
+    parent_id: cb3a71cc2afae4ab4faead5ba3cb1e26
+  - id: e1756bbc72276b1822a18285dcadd438
+    enabled: true
+    type: Light
+    gameobject: 6d2716c5bce63ad0ba3c81222dc008df
+    lightType: 1
+    color: [0.95686275, 0.95686275, 0.95686275, 1]
+    intensity: 1
+    range: 2900.5894
+    innerRadius: 0
+    falloff: 1
+    innerAngle: 26.77359
+    outerAngle: 42.499897
+    height: 300
+    normalInfluence: 1
+    castShadows: true
+    shadowStrength: 1
+  - id: 5c985d22ee8ecc0c68961fd6f4442c9b
+    enabled: true
+    type: Transform
+    gameobject: 0a14507c32ffbde319398347ae800168
+    localPosition: [-250.32343, 73.69977]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 8e5e4c02b56ea17b83756e67db699fa4
+    enabled: true
+    type: Camera
+    gameobject: 0a14507c32ffbde319398347ae800168
+    projection: 0
+    orthoSize: 1678.8335
+    clearFlags: 0
+    clearColor: [0.11764706, 0.11764706, 0.11764706, 1]
+    priority: 0
+    targetAspect: 1.7777778
+    viewportRect: [0, 0, 1, 1]
+    cullingLayers: []
+    targetTextureId: ""
+  - id: dba72c877400eaceebfde5e853d0473f
+    enabled: true
+    type: AudioListener
+    gameobject: 0a14507c32ffbde319398347ae800168
+  - id: 78c6314d1b5c4e28b6f606c04e258c83
+    enabled: true
+    type: ScriptComponent
+    gameobject: 0a14507c32ffbde319398347ae800168
+    module: CameraShake
+    class: CameraShake
+    fields:
+      strength: 38
+      duration: 0.36
+      frequency: 28
+      decay: true
+      dx: 0
+      dy: 0
+  - id: 38f8bc7953de23d79a4396b4451c8cc8
+    enabled: true
+    type: Transform
+    gameobject: 64219757135ae15d86a2dadbcaea7fa8
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: e7f8104c56b4cdfc4f915ae69c2f355c
+    enabled: true
+    type: Light
+    gameobject: 64219757135ae15d86a2dadbcaea7fa8
+    lightType: 2
+    color: [1, 1, 1, 1]
+    intensity: 0.7
+    range: 300
+    innerRadius: 0
+    falloff: 1
+    innerAngle: 25
+    outerAngle: 45
+    height: 50
+    normalInfluence: 1
+    castShadows: false
+    shadowStrength: 1
+  - id: e6426e4c86c623e24cc16fa405070df5
+    enabled: true
+    type: Transform
+    gameobject: e06d5f3d0bbeefa749ee3c7e9f5123f2
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: c797d078e30217e0202f935e0d304f4e
+    enabled: true
+    type: Grid
+    gameobject: e06d5f3d0bbeefa749ee3c7e9f5123f2
+    cellSize:
+      - 1
+      - 1
+    gapSize:
+      - 0
+      - 0
+  - id: 98ef7de51c339fa485aedf325502e7ca
+    enabled: true
+    type: Transform
+    gameobject: 214f8ef08de45a1b48a5dacfa8eabca8
+    localPosition: [0, 9.536743e-07]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: e6426e4c86c623e24cc16fa405070df5
+  - id: 081dc914d4c1e3e2eded2973d9802f45
+    enabled: true
+    type: TileMapEditor
+    gameobject: 214f8ef08de45a1b48a5dacfa8eabca8
+    tileMapId: b3f6556d119ca84504631af801112217
+    tileSetId: f5951b0e101b24827dc3077bc8ebaca8
+  - id: 0f3f70fece77b98296e67c7de4decddf
+    enabled: true
+    type: TileMapRenderer
+    gameobject: 214f8ef08de45a1b48a5dacfa8eabca8
+    materialId: m1
+    color: [1, 1, 1, 1]
+    tileSizingMode: FillCell
+    sortingLayer: Default
+    sortingOrder: 0
+  - id: 32fb44831bfc816b0201fc19ba633c86
+    enabled: true
+    type: Transform
+    gameobject: 6210de1b236a39b9eca8f10571103ebe
+    localPosition: [2785.488, 3019.586]
+    localRotation: -154.38626
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 62ef716075ca10d97aaf392014d2e4e8
+    enabled: true
+    type: BoxCollider
+    gameobject: 6210de1b236a39b9eca8f10571103ebe
+    center: [75.56735, -4.818695]
+    isSensor: false
+    density: 1
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+    size: [459.45184, 263.0323]
+  - id: a1c9eb772037300f508e2eb033abae35
+    enabled: true
+    type: RigidBody
+    gameobject: 6210de1b236a39b9eca8f10571103ebe
+    bodyType: Dynamic
+    useGravity: false
+    lockRotation: false
+    bullet: false
+  - id: b0e91c78fdc1892d8d63eb98d2dc2403
+    enabled: true
+    type: ScriptComponent
+    gameobject: 6210de1b236a39b9eca8f10571103ebe
+    module: Domain.sandbox.scripts.EnemyController
+    class: EnemyController
+    fields:
+      player: fdf9523b905ef98c2dce7d1afc8662ed
+      bullet_pool: 370512c57b07c73ad7162bdf3ee85904
+      bullet_impact: 6f57b5ced6648402132cddb7547dc232
+      speed: 50
+      turn_speed: 360
+      patrol_radius: 350
+      detection_range: 850
+      disengage_range: 1300
+      attack_range: 650
+      preferred_range: 425
+      retreat_range: 250
+      shoot_cooldown: 1
+      bullet_spread: 6
+      muzzle_offset: 30
+      search_duration: 4
+      draw_ranges: true
+      knockback_force: 35000
+      knockback_duration: 0.45
+      knockback_drag: 0.97
+      knockback_spin: 40000
+      rb: ""
+      health: 100
+      state: Idle
+  - id: ba673c38edb1a33d4dbd8af5a3e2344c
+    enabled: true
+    type: ScriptComponent
+    gameobject: 6210de1b236a39b9eca8f10571103ebe
+    module: EnemyFlash
+    class: EnemyFlash
+    fields:
+      flash_material: m_enemy_flash
+  - id: 6b6f5c68873aa40c470bde9460d7d8aa
+    enabled: true
+    type: Transform
+    gameobject: bf83147d9f61b9147047718874258b1f
+    localPosition: [-0.00024414062, -0.00048828125]
+    localRotation: 90
+    localScale: [0.9999981, 0.9999981]
+    parent_id: 32fb44831bfc816b0201fc19ba633c86
+  - id: bda87ed9f4243ba694891842e4102b21
+    enabled: true
+    type: ScriptComponent
+    gameobject: bf83147d9f61b9147047718874258b1f
+    module: EnemyController
+    class: EnemyController
+    fields:
+      player: ""
+      bullet_pool: ""
+      bullet_impact: ""
+      speed: 50
+      turn_speed: 360
+      patrol_radius: 350
+      detection_range: 850
+      disengage_range: 1300
+      attack_range: 650
+      preferred_range: 425
+      retreat_range: 250
+      shoot_cooldown: 1
+      bullet_spread: 6
+      muzzle_offset: 30
+      search_duration: 4
+      draw_ranges: true
+      knockback_force: 35000
+      knockback_duration: 0.45
+      knockback_drag: 0.97
+      knockback_spin: 40000
+      rb: ""
+      health: 100
+      state: Idle
+  - id: b33c48e8b41e4c2d33552bac301c8299
+    enabled: true
+    type: Transform
+    gameobject: a95ef85b0ef1e4acaac4b95f09b878d4
+    localPosition: [-79.55896, -43.134766]
+    localRotation: -8.634177e-06
+    localScale: [0.9888303, 1.0000002]
+    parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
+  - id: 6da58e7a8a7b1e88f273f2d551e1c18a
+    enabled: true
+    type: SpriteRenderer
+    gameobject: a95ef85b0ef1e4acaac4b95f09b878d4
+    material_id: m_enemy_flash
+    sprite_id: 6013bc43f1e616a485b723a18886eec8
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 3
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: c5b12c534bcbdd9cf7837a249209ac3e
+    enabled: true
+    type: ShadowCaster
+    gameobject: a95ef85b0ef1e4acaac4b95f09b878d4
+    shape: 4
+    center: [0, 0]
+    size: [100, 100]
+    radius: 50
+    circleSegments: 16
+    alphaThreshold: 0.5
+  - id: 943de381a064572f529208017fd4aeb1
+    enabled: true
+    type: Transform
+    gameobject: 91570af60a063648c1dbf65965161606
+    localPosition: [-0.44213867, 92.59766]
+    localRotation: -1.0245281e-05
+    localScale: [1.0000002, 1.0000002]
+    parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
+  - id: c2975f03a1621de61496da9fd2f087ae
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 91570af60a063648c1dbf65965161606
+    material_id: m_enemy_flash
+    sprite_id: 64cf24736657758ecb9e0fb399290b61
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 2
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 0b77455fd8b873b28e253362eea9e575
+    enabled: true
+    type: ShadowCaster
+    gameobject: 91570af60a063648c1dbf65965161606
+    shape: 4
+    center: [0, 0]
+    size: [100, 100]
+    radius: 50
+    circleSegments: 16
+    alphaThreshold: 0.5
+  - id: 6f052161cd3f943d1907a7fa30550a86
+    enabled: true
+    type: Transform
+    gameobject: 716969e15ff084327807c99c32d47749
+    localPosition: [-3.22937, -2.1154785]
+    localRotation: -1.0245281e-05
+    localScale: [1.0000002, 1.0000002]
+    parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
+  - id: 02d3241378d021171ccdf24dafb2f0e1
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 716969e15ff084327807c99c32d47749
+    material_id: m_enemy_flash
+    sprite_id: b84fa6157bba0ebf9387608fc22a5b8b
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 12
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: 6d3a822cd6ea8a5b1220aab9bdd75541
+    enabled: true
+    type: ShadowCaster
+    gameobject: 716969e15ff084327807c99c32d47749
+    shape: 4
+    center: [0, 0]
+    size: [100, 100]
+    radius: 50
+    circleSegments: 16
+    alphaThreshold: 0.5
+  - id: 1bae01dbca20ca51835eed87d4a7a0db
+    enabled: true
+    type: Transform
+    gameobject: 5934f97a770f3d90d0ecef87f4dfa951
+    localPosition: [55.321167, -73.146484]
+    localRotation: -1.0245281e-05
+    localScale: [1.0000002, 1.0000002]
+    parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
+  - id: 482fedf3a2377ab9832c002cff458720
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 5934f97a770f3d90d0ecef87f4dfa951
+    material_id: m_enemy_flash
+    sprite_id: 3c79c00e1d11bf271aaae7910e54077e
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 9
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: a0b39811feae70ab7d4fea0eab257672
+    enabled: true
+    type: ShadowCaster
+    gameobject: 5934f97a770f3d90d0ecef87f4dfa951
+    shape: 4
+    center: [0, 0]
+    size: [100, 100]
+    radius: 50
+    circleSegments: 16
+    alphaThreshold: 0.5
+  - id: fcdf1b93b3bc6625f1f93dd9aa8baf51
+    enabled: true
+    type: Transform
+    gameobject: a46c57e9729fecbbfe6d522794177f58
+    localPosition: [0.002319336, -0.00048828125]
+    localRotation: -1.0245281e-05
+    localScale: [1.0000002, 1.0000002]
+    parent_id: 6b6f5c68873aa40c470bde9460d7d8aa
+  - id: d64e6281c521f949eabb0ddf75e5b801
+    enabled: true
+    type: Transform
+    gameobject: 39aab30b6216e0ee461085d6ff0fa759
+    localPosition: [-15.484253, -132.54688]
+    localRotation: -1.0245276e-05
+    localScale: [1.0000008, 1.0000008]
+    parent_id: fcdf1b93b3bc6625f1f93dd9aa8baf51
+  - id: 544faff5bafd3855a432a212fcc116c1
+    enabled: true
+    type: SpriteRenderer
+    gameobject: 39aab30b6216e0ee461085d6ff0fa759
+    material_id: m_enemy_flash
+    sprite_id: f5d96795c1d59daeb72a1677d2f2988f
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 10
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: bcfd60461691e91831a9097767dbab3d
+    enabled: true
+    type: Transform
+    gameobject: 3b135ce2a0d6dc1bc918747a5daacfb4
+    localPosition: [150.00208, -0.0009765625]
+    localRotation: 101.23959
+    localScale: [0.9999996, 0.9999996]
+    parent_id: d64e6281c521f949eabb0ddf75e5b801
+  - id: 81bcffc076753affa7d9454474db493a
+    enabled: true
+    type: ParticleComponent
+    gameobject: 3b135ce2a0d6dc1bc918747a5daacfb4
+    emissionRate: 0
+    maxParticles: 1000
+    duration: 0.1
+    looping: false
+    startBurst: 0
+    lifetimeMin: 0.05
+    lifetimeMax: 0.15
+    startSpeedMin: 300
+    startSpeedMax: 600
+    directionAngle: 0
+    spreadDegrees: 20
+    gravity: [0, 0]
+    damping: 2
+    space: 1
+    simulationBackend: 0
+    shape: 0
+    shapeSize: [32, 32]
+    coneAngle: 25
+    sprite_id: default
+    flipX: false
+    flipY: false
+    startColor: [1, 1, 0.5, 1]
+    endColor: [1, 0, 0, 0]
+    startSize: 20
+    endSize: 0
+    blendMode: 1
+    sortingLayer: Default
+    sortingOrder: 0
+  - id: a29772a93d9d2287830045153d0b3d98
+    enabled: true
+    type: Transform
+    gameobject: 3fb3fc3d98e2c2cf4e3813b9b135a9b2
+    localPosition: [-10.000977, -286.05664]
+    localRotation: -92.81315
+    localScale: [1.0000002, 1.0000002]
+    parent_id: fcdf1b93b3bc6625f1f93dd9aa8baf51
+  - id: 5a73f52e8ed8851f9c208053f4db49c2
+    enabled: true
+    type: Light
+    gameobject: 3fb3fc3d98e2c2cf4e3813b9b135a9b2
+    lightType: 1
+    color: [1, 0.6509804, 0.654902, 1]
+    intensity: 0.4
+    range: 3162.21
+    innerRadius: 0
+    falloff: 1
+    innerAngle: 20.753782
+    outerAngle: 32.346943
+    height: 300
+    normalInfluence: 1
+    castShadows: true
+    shadowStrength: 1
+  - id: 1c06ab10bcbc717468372a4fe5cc623d
+    enabled: true
+    type: Transform
+    gameobject: b9e7dc30402331a504a6e215b82ffb8f
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: accf4e319b6c9faa502e2d3b206bd962
+    enabled: true
+    type: ParticleComponent
+    gameobject: b9e7dc30402331a504a6e215b82ffb8f
+    emissionRate: 0
+    maxParticles: 1000
+    duration: 5
+    looping: false
+    startBurst: 0
+    lifetimeMin: 0.15
+    lifetimeMax: 0.3
+    startSpeedMin: 10
+    startSpeedMax: 30
+    directionAngle: 0
+    spreadDegrees: 5
+    gravity: [0, 0]
+    damping: 0
+    space: 1
+    simulationBackend: 0
+    shape: 0
+    shapeSize: [32, 32]
+    coneAngle: 25
+    sprite_id: ""
+    flipX: false
+    flipY: false
+    startColor: [1, 0.9, 0.3, 1]
+    endColor: [1, 0.4, 0, 0]
+    startSize: 22
+    endSize: 26.5
+    blendMode: 1
+    sortingLayer: Default
+    sortingOrder: 0
+  - id: 569eb3c48bd8fa7f0bcb10ccee9debdb
+    enabled: true
+    type: Transform
+    gameobject: 6f57b5ced6648402132cddb7547dc232
+    localPosition: [8677.685, 352.59277]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: b4abeb14fa04165aa2b799df09247f70
+    enabled: true
+    type: ParticleComponent
+    gameobject: 6f57b5ced6648402132cddb7547dc232
+    emissionRate: 118
+    maxParticles: 1000
+    duration: 5
+    looping: false
+    startBurst: 0
+    lifetimeMin: 0.3
+    lifetimeMax: 0.6
+    startSpeedMin: 50
+    startSpeedMax: 800
+    directionAngle: -90
+    spreadDegrees: 50
+    gravity: [0, -50]
+    damping: 0
+    space: 1
+    simulationBackend: 0
+    shape: 3
+    shapeSize: [4, 32]
+    coneAngle: 10
+    sprite_id: 80e3df6482971224026ba8d3c6779d3f
+    flipX: false
+    flipY: false
+    startColor: [0.5254902, 0.4745098, 0.3372549, 1]
+    endColor: [0.19215687, 0.078431375, 0, 0]
+    startSize: 40
+    endSize: 56
+    blendMode: 1
+    sortingLayer: Default
+    sortingOrder: 0
+  - id: 7317f128bb0f4505f275083d38fee713
+    enabled: false
+    type: Transform
+    gameobject: 4c136a0729bc8e6e985f1ee3596ec5a7
+    localPosition: [1576.5746, 552.7452]
+    localRotation: 0
+    localScale: [0.5851363, 0.5851363]
+    parent_id: ~
+  - id: 477184f71088ab1c234006439a74c430
+    enabled: false
+    type: RigidBody
+    gameobject: 4c136a0729bc8e6e985f1ee3596ec5a7
+    bodyType: Dynamic
+    useGravity: true
+    lockRotation: false
+    bullet: true
+  - id: eda64a90dfc2b76710d52951360bd8a1
+    enabled: false
+    type: BoxCollider
+    gameobject: 4c136a0729bc8e6e985f1ee3596ec5a7
+    center: [0, 0]
+    isSensor: false
+    density: 100
+    friction: 0
+    bounciness: 0
+    rollingResistance: 0
+    size: [20, 20]
+  - id: 27cddb42d5b006470ccfb4942d6621d4
+    enabled: false
+    type: ScriptComponent
+    gameobject: 4c136a0729bc8e6e985f1ee3596ec5a7
+    module: Bullet
+    class: Bullet
+    fields:
+      speed: 4400
+      lifetime: 12.9
+      ricochet: false
+      impact_count: 14
+      impact_spread: 80
+  - id: d46f4f2e16a7c449d0fe5575ae9b3a3a
+    enabled: false
+    type: TrailRenderer
+    gameobject: 4c136a0729bc8e6e985f1ee3596ec5a7
+    time: 0.1
+    minVertexDistance: 2
+    widthCurve:
+      keys:
+        - [0, 1, -1, -1]
+        - [1, 0, -1, -1]
+      wrap: 0
+    widthMultiplier: 50
+    startColor: [1, 1, 1, 1]
+    endColor: [1, 0.5647059, 0.2509804, 0]
+    material_id: m_trail
+    sprite_id: 80e3df6482971224026ba8d3c6779d3f
+    emitting: true
+    autodestruct: false
+    sortingLayer: Default
+    sortingOrder: 0
+  - id: 23340cbc2c5fc041c14313c89fdd6c96
+    enabled: false
+    type: Transform
+    gameobject: 659f4fa2185a8690d1d3978c18d72ccc
+    localPosition: [-0.0007324219, 0]
+    localRotation: 0
+    localScale: [1.7090036, 1.7090036]
+    parent_id: 7317f128bb0f4505f275083d38fee713
+  - id: 088f96c0c09303f926f8c7d6d533b93c
+    enabled: false
+    type: Light
+    gameobject: 659f4fa2185a8690d1d3978c18d72ccc
+    lightType: 0
+    color: [1, 1, 1, 1]
+    intensity: 1
+    range: 300
+    innerRadius: 0
+    falloff: 1
+    innerAngle: 25
+    outerAngle: 45
+    height: 50
+    normalInfluence: 1
+    castShadows: false
+    shadowStrength: 1
+  - id: 4f874294a7622e5dff6849b5bc511e40
+    enabled: false
+    type: Transform
+    gameobject: 365c38db7495ef90ac952f1579093dac
+    localPosition: [0, 0]
+    localRotation: 90
+    localScale: [0.9999992, 0.9999992]
+    parent_id: 7317f128bb0f4505f275083d38fee713
+  - id: e77d4f8e01c6c039f036d1e3811c373d
+    enabled: false
+    type: SpriteRenderer
+    gameobject: 365c38db7495ef90ac952f1579093dac
+    material_id: m1
+    sprite_id: 9a89f2f101cde7b71c233a31925047c3
+    color: [1, 1, 1, 1]
+    uvOffset: [0, 0]
+    uvScale: [1, 1]
+    sortingOrder: 0
+    sortingLayer: Default
+    flipX: false
+    flipY: false
+    visible: true
+  - id: ec70fec0614436007f87ee2677dab0e5
+    enabled: true
+    type: Transform
+    gameobject: 370512c57b07c73ad7162bdf3ee85904
+    localPosition: [0, 0]
+    localRotation: 0
+    localScale: [1, 1]
+    parent_id: ~
+  - id: 9902719c2cd55fe1d2fe73f4f62b3eda
+    enabled: true
+    type: ScriptComponent
+    gameobject: 370512c57b07c73ad7162bdf3ee85904
+    module: ObjectPool
+    class: ObjectPool
+    fields:
+      prefab: 4c136a0729bc8e6e985f1ee3596ec5a7
+      initial_size: 50
+      allow_growth: true
+gameobjects:
+  - id: fdf9523b905ef98c2dce7d1afc8662ed
+    type: GameObject
+    name: Player
+    tag: Untagged
+    active: true
+    component_ids:
+      - 8f41fd652e947f2200bbeae0d1bc5d19
+      - f07154fff273fc0be169683fa4935691
+      - 226e591b3871f38ee54f3c7a60abd0ca
+      - 1c3fffc8ef7b98c6f47658d8d9085219
+      - e2772405a5fa763ab449b2c21b049a8c
+  - id: cdbbb567faeb648d6555b973bcfe8193
+    type: GameObject
+    name: Body
+    tag: Untagged
+    active: true
+    component_ids:
+      - 2d7967f4224d173abdeb11b19d8a9f99
+  - id: 128a2068a964c097fd62f2c7f8c466bb
+    type: GameObject
+    name: Right Arm
+    tag: Untagged
+    active: true
+    component_ids:
+      - ef2a6bfacefd219272f787ec6a1701fd
+      - f204c3f54bd7bacf198d94f9437e6a82
+  - id: 78abb3f0db5c7aa72955744510eb89d3
+    type: GameObject
+    name: Backpack
+    tag: Untagged
+    active: true
+    component_ids:
+      - 275d41ad083720cceb39a33e37265551
+      - aaf3abdf8869af83270d2195ed45e41a
+  - id: f25f2e450175e9a779d88718a22afff5
+    type: GameObject
+    name: Head
+    tag: Untagged
+    active: true
+    component_ids:
+      - 55295aa7325c4e0a9818bba8f8039140
+      - 0c6b32fe1e973ba42f6e96c81d33c1a3
+  - id: dfcc941c6d90526f092e34d0eb7d1e85
+    type: GameObject
+    name: Left Arm
+    tag: Untagged
+    active: true
+    component_ids:
+      - e44d2b9a4fdd4000d881f4249061d643
+      - 152a23d040bf8957427c316c5f3a94ee
+  - id: 2f261114e77f0a83fc0b07602161ee6e
+    type: GameObject
+    name: Wepon Holder
+    tag: Untagged
+    active: true
+    component_ids:
+      - cb3a71cc2afae4ab4faead5ba3cb1e26
+  - id: 0f988cbafbfe8b595bb7b4c73d4507e5
+    type: GameObject
+    name: AR
+    tag: Untagged
+    active: true
+    component_ids:
+      - c15b87b76f55bc24f5ebb53f713c1c4c
+      - af88f05016743b9c2b2df6540dc377f3
+  - id: 16ade0e77cc80ecee1e580d428df7ecb
+    type: GameObject
+    name: muzzel
+    tag: Untagged
+    active: true
+    component_ids:
+      - 64a9680f44c57cbf9ea81fa017f5fc10
+      - 40579590de11dc1978acf4d3be2c17e3
+  - id: 6d2716c5bce63ad0ba3c81222dc008df
+    type: GameObject
+    name: Spot Light
+    tag: Untagged
+    active: true
+    component_ids:
+      - 61eacbc2bc0243c2b00a6ff26798a0b4
+      - e1756bbc72276b1822a18285dcadd438
+  - id: 0a14507c32ffbde319398347ae800168
+    type: GameObject
+    name: Main Camera
+    tag: Untagged
+    active: true
+    component_ids:
+      - 5c985d22ee8ecc0c68961fd6f4442c9b
+      - 8e5e4c02b56ea17b83756e67db699fa4
+      - dba72c877400eaceebfde5e853d0473f
+      - 78c6314d1b5c4e28b6f606c04e258c83
+  - id: 64219757135ae15d86a2dadbcaea7fa8
+    type: GameObject
+    name: Directional light
+    tag: Untagged
+    active: true
+    component_ids:
+      - 38f8bc7953de23d79a4396b4451c8cc8
+      - e7f8104c56b4cdfc4f915ae69c2f355c
+  - id: e06d5f3d0bbeefa749ee3c7e9f5123f2
+    type: GameObject
+    name: Grid
+    tag: Untagged
+    active: true
+    component_ids:
+      - e6426e4c86c623e24cc16fa405070df5
+      - c797d078e30217e0202f935e0d304f4e
+  - id: 214f8ef08de45a1b48a5dacfa8eabca8
+    type: GameObject
+    name: Tilemap
+    tag: Untagged
+    active: true
+    component_ids:
+      - 98ef7de51c339fa485aedf325502e7ca
+      - 081dc914d4c1e3e2eded2973d9802f45
+      - 0f3f70fece77b98296e67c7de4decddf
+  - id: 6210de1b236a39b9eca8f10571103ebe
+    type: GameObject
+    name: Enemy
+    tag: Untagged
+    active: true
+    component_ids:
+      - 32fb44831bfc816b0201fc19ba633c86
+      - 62ef716075ca10d97aaf392014d2e4e8
+      - a1c9eb772037300f508e2eb033abae35
+      - b0e91c78fdc1892d8d63eb98d2dc2403
+      - ba673c38edb1a33d4dbd8af5a3e2344c
+  - id: bf83147d9f61b9147047718874258b1f
+    type: GameObject
+    name: Body
+    tag: Untagged
+    active: true
+    component_ids:
+      - 6b6f5c68873aa40c470bde9460d7d8aa
+      - bda87ed9f4243ba694891842e4102b21
+  - id: a95ef85b0ef1e4acaac4b95f09b878d4
+    type: GameObject
+    name: Right Arm
+    tag: Untagged
+    active: true
+    component_ids:
+      - b33c48e8b41e4c2d33552bac301c8299
+      - 6da58e7a8a7b1e88f273f2d551e1c18a
+      - c5b12c534bcbdd9cf7837a249209ac3e
+  - id: 91570af60a063648c1dbf65965161606
+    type: GameObject
+    name: Backpack
+    tag: Untagged
+    active: true
+    component_ids:
+      - 943de381a064572f529208017fd4aeb1
+      - c2975f03a1621de61496da9fd2f087ae
+      - 0b77455fd8b873b28e253362eea9e575
+  - id: 716969e15ff084327807c99c32d47749
+    type: GameObject
+    name: Head
+    tag: Untagged
+    active: true
+    component_ids:
+      - 6f052161cd3f943d1907a7fa30550a86
+      - 02d3241378d021171ccdf24dafb2f0e1
+      - 6d3a822cd6ea8a5b1220aab9bdd75541
+  - id: 5934f97a770f3d90d0ecef87f4dfa951
+    type: GameObject
+    name: Left Arm
+    tag: Untagged
+    active: true
+    component_ids:
+      - 1bae01dbca20ca51835eed87d4a7a0db
+      - 482fedf3a2377ab9832c002cff458720
+      - a0b39811feae70ab7d4fea0eab257672
+  - id: a46c57e9729fecbbfe6d522794177f58
+    type: GameObject
+    name: Wepon Holder
+    tag: Untagged
+    active: true
+    component_ids:
+      - fcdf1b93b3bc6625f1f93dd9aa8baf51
+  - id: 39aab30b6216e0ee461085d6ff0fa759
+    type: GameObject
+    name: AR
+    tag: Untagged
+    active: true
+    component_ids:
+      - d64e6281c521f949eabb0ddf75e5b801
+      - 544faff5bafd3855a432a212fcc116c1
+  - id: 3b135ce2a0d6dc1bc918747a5daacfb4
+    type: GameObject
+    name: muzzel
+    tag: Untagged
+    active: true
+    component_ids:
+      - bcfd60461691e91831a9097767dbab3d
+      - 81bcffc076753affa7d9454474db493a
+  - id: 3fb3fc3d98e2c2cf4e3813b9b135a9b2
+    type: GameObject
+    name: Spot Light
+    tag: Untagged
+    active: true
+    component_ids:
+      - a29772a93d9d2287830045153d0b3d98
+      - 5a73f52e8ed8851f9c208053f4db49c2
+  - id: b9e7dc30402331a504a6e215b82ffb8f
+    type: GameObject
+    name: BulletTrail
+    tag: Untagged
+    active: true
+    component_ids:
+      - 1c06ab10bcbc717468372a4fe5cc623d
+      - accf4e319b6c9faa502e2d3b206bd962
+  - id: 6f57b5ced6648402132cddb7547dc232
+    type: GameObject
+    name: BulletImpact
+    tag: Untagged
+    active: true
+    component_ids:
+      - 569eb3c48bd8fa7f0bcb10ccee9debdb
+      - b4abeb14fa04165aa2b799df09247f70
+  - id: 4c136a0729bc8e6e985f1ee3596ec5a7
+    type: GameObject
+    name: BulletPrefab
+    tag: Bullet
+    active: false
+    component_ids:
+      - 7317f128bb0f4505f275083d38fee713
+      - 477184f71088ab1c234006439a74c430
+      - eda64a90dfc2b76710d52951360bd8a1
+      - 27cddb42d5b006470ccfb4942d6621d4
+      - d46f4f2e16a7c449d0fe5575ae9b3a3a
+  - id: 659f4fa2185a8690d1d3978c18d72ccc
+    type: GameObject
+    name: Light
+    tag: Untagged
+    active: false
+    component_ids:
+      - 23340cbc2c5fc041c14313c89fdd6c96
+      - 088f96c0c09303f926f8c7d6d533b93c
+  - id: 365c38db7495ef90ac952f1579093dac
+    type: GameObject
+    name: GameObject
+    tag: Untagged
+    active: false
+    component_ids:
+      - 4f874294a7622e5dff6849b5bc511e40
+      - e77d4f8e01c6c039f036d1e3811c373d
+  - id: 370512c57b07c73ad7162bdf3ee85904
+    type: GameObject
+    name: BulletPool
+    tag: Untagged
+    active: true
+    component_ids:
+      - ec70fec0614436007f87ee2677dab0e5
+      - 9902719c2cd55fe1d2fe73f4f62b3eda

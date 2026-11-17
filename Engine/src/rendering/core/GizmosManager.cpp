@@ -1447,8 +1447,16 @@ void GizmosManager::DrawDirectionalLightGizmo(const glm::mat4& vp, float viewWid
                                               Transform* transform, Light* light, int alpha) {
     ImDrawList* drawList = ImGui::GetForegroundDrawList();
 
-    const glm::vec2 worldCenter = transform->GetWorldPosition();
-    const glm::vec2 dir = light->GetWorldDirection();
+    const ImVec2 screenCenter = WorldToScreen(transform->GetWorldPosition(), vp, viewWidth, viewHeight);
+    const glm::vec2 center(screenCenter.x, screenCenter.y);
+    // Project a vector (w = 0) so camera translation cannot affect orientation.
+    // Normalize in screen space to discard the orthographic camera's zoom while
+    // preserving its rotation and the viewport's aspect ratio and Y-down axis.
+    const glm::vec4 projected = vp * glm::vec4(light->GetWorldDirection(), 0.0f, 0.0f);
+    const glm::vec2 screenDirection(projected.x * viewWidth, -projected.y * viewHeight);
+    const float directionLength = glm::length(screenDirection);
+    if (directionLength <= 0.0f) return;
+    const glm::vec2 dir = screenDirection / directionLength;
     const glm::vec2 perp(-dir.y, dir.x);
 
     // A directional light has no position or extent that means anything, so this
@@ -1456,26 +1464,27 @@ void GizmosManager::DrawDirectionalLightGizmo(const glm::mat4& vp, float viewWid
     // travels. Deliberately NON-interactive -- direction comes from the
     // Transform's rotation, and the rotate gizmo already edits that. A second set
     // of handles here would be a second source of truth.
-    constexpr float kRayLength  = 160.0f;   // world units
-    constexpr float kRaySpacing = 34.0f;
+    constexpr float kRayLengthPx  = 160.0f;
+    constexpr float kRaySpacingPx = 34.0f;
+    constexpr float kArrowheadLengthPx = 18.0f;
     constexpr int   kRayCount   = 3;
 
     const glm::vec4 c = light->GetColor();
     const ImU32 color = IM_COL32(int(c.r * 255), int(c.g * 255), int(c.b * 255), alpha);
 
     for (int i = -(kRayCount / 2); i <= kRayCount / 2; ++i) {
-        const glm::vec2 offset = perp * (static_cast<float>(i) * kRaySpacing);
-        const glm::vec2 start = worldCenter + offset - dir * (kRayLength * 0.5f);
-        const glm::vec2 end   = worldCenter + offset + dir * (kRayLength * 0.5f);
-        const ImVec2 s = WorldToScreen(start, vp, viewWidth, viewHeight);
-        const ImVec2 e = WorldToScreen(end,   vp, viewWidth, viewHeight);
+        const glm::vec2 offset = perp * (static_cast<float>(i) * kRaySpacingPx);
+        const glm::vec2 start = center + offset - dir * (kRayLengthPx * 0.5f);
+        const glm::vec2 end   = center + offset + dir * (kRayLengthPx * 0.5f);
+        const ImVec2 s(start.x, start.y);
+        const ImVec2 e(end.x, end.y);
         drawList->AddLine(s, e, color, 1.5f);
 
         // Arrowhead: two short barbs swept back from the tip.
-        const glm::vec2 barbA = end - RotateVec(dir, 0.4f) * 18.0f;
-        const glm::vec2 barbB = end - RotateVec(dir, -0.4f) * 18.0f;
-        drawList->AddLine(e, WorldToScreen(barbA, vp, viewWidth, viewHeight), color, 1.5f);
-        drawList->AddLine(e, WorldToScreen(barbB, vp, viewWidth, viewHeight), color, 1.5f);
+        const glm::vec2 barbA = end - RotateVec(dir, 0.4f) * kArrowheadLengthPx;
+        const glm::vec2 barbB = end - RotateVec(dir, -0.4f) * kArrowheadLengthPx;
+        drawList->AddLine(e, ImVec2(barbA.x, barbA.y), color, 1.5f);
+        drawList->AddLine(e, ImVec2(barbB.x, barbB.y), color, 1.5f);
     }
 }
 

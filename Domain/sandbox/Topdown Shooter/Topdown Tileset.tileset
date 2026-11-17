@@ -1,0 +1,48 @@
+type: TileSet
+id: f5951b0e101b24827dc3077bc8ebaca8
+tiles:
+  - id: 1
+    name: Tile 1
+    defaultSpriteId: adf33be5bb9e70df9f8951ffdb9bdb2f
+    collisionType: None
+    rules:
+      - neighbors: [1, any, 0, any, 0, any, 1, 1]
+        collisionType: None
+        output: Fixed
+        spriteId: 489b1f298ffef9735559d8d94cda52d2
+      - neighbors: [any, any, any, any, 0, 0, 0, any]
+        collisionType: None
+        output: Fixed
+        spriteId: 489b1f298ffef9735559d8d94cda52d2
+      - neighbors: [0, any, 1, any, 1, 1, 1, any]
+        collisionType: None
+        output: Fixed
+        spriteId: 489b1f298ffef9735559d8d94cda52d2
+      - neighbors: [1, 1, 1, 1, 1, any, 0, any]
+        collisionType: None
+        output: Fixed
+        spriteId: ""
+      - neighbors: [1, any, 0, any, 1, 1, 1, 1]
+        collisionType: None
+        output: Fixed
+        spriteId: ""
+      - neighbors: [0, 0, 0, any, 1, 1, 1, any]
+        collisionType: None
+        output: Fixed
+        spriteId: 489b1f298ffef9735559d8d94cda52d2
+      - neighbors: [0, any, 1, 1, 1, any, 0, 0]
+        collisionType: None
+        output: Fixed
+        spriteId: 489b1f298ffef9735559d8d94cda52d2
+      - neighbors: [1, 0, 1, 1, 1, 1, 1, 1]
+        collisionType: None
+        output: Fixed
+        spriteId: ""
+      - neighbors: [1, 1, 1, 1, 1, 1, 1, 0]
+        collisionType: None
+        output: Fixed
+        spriteId: ""
+      - neighbors: [1, 1, 1, any, 0, any, 1, 1]
+        collisionType: None
+        output: Fixed
+        spriteId: 489b1f298ffef9735559d8d94cda52d2

@@ -78,6 +78,17 @@ float screenPxRange() {
     return max(0.5 * dot(unitRange, screenTexSize), 1.0);
 }
 
+float distanceCoverage(float sd, float outset, float range) {
+    // RGB8 distance fields saturate at 0 outside and 1 inside. A wide
+    // outline/weight or minified AA ramp must not turn those endpoints into
+    // translucent ink across the entire glyph quad. Keep the contour and its
+    // symmetric AA ramp inside the representable range instead.
+    const float distanceStep = 1.0 / 255.0;
+    float edge = clamp(0.5 - outset, distanceStep, 1.0 - distanceStep);
+    float halfWidth = min(0.5 / range, min(edge, 1.0 - edge));
+    return clamp((sd - edge) / (2.0 * halfWidth) + 0.5, 0.0, 1.0);
+}
+
 void main() {
     vec3  msd   = texture(uMSDF, vTexCoord).rgb;
     float sd    = median(msd.r, msd.g, msd.b);
@@ -85,13 +96,13 @@ void main() {
 
     // 0.5 is the glyph edge in a signed distance field; shifting the threshold
     // by uWeight dilates or erodes the shape, which is a free faux-bold.
-    float fillA = clamp(range * (sd - (0.5 - uWeight)) + 0.5, 0.0, 1.0);
+    float fillA = distanceCoverage(sd, uWeight, range);
     vec4  fill  = vec4(uColor.rgb, uColor.a * fillA);
 
     if (uOutlineWidth > 0.0) {
         // The outline is the same glyph at a lower threshold, i.e. dilated
         // further out, with the fill composited over it.
-        float strokeA = clamp(range * (sd - (0.5 - uWeight - uOutlineWidth)) + 0.5, 0.0, 1.0);
+        float strokeA = distanceCoverage(sd, uWeight + uOutlineWidth, range);
         vec4  stroke  = vec4(uOutlineColor.rgb, uOutlineColor.a * strokeA);
 
         // Straight-alpha "fill over stroke". Doing this by hand rather than

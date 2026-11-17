@@ -314,6 +314,9 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
 
 - `src/rendering/core/`: Shader, Texture2D, Material, Sprite, Resource, GizmosManager,
   `RenderTarget` (FBO + color texture + depth renderbuffer; owned by `RenderPipeline`).
+- Directional-light gizmo rays use fixed screen-pixel lengths, spacing, and arrowheads;
+  their origin and orientation follow the light and Scene camera transforms, so
+  orthographic zoom does not resize the arrows.
 - Generated texture normal maps select their backend through the Rendering global
   `useGPUNormalMapGeneration` (false = CPU, true = OpenGL compute). The GPU path reads the
   uploaded albedo directly, performs separable height-field blur and Sobel/Scharr encoding in
@@ -323,6 +326,10 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
 - MSDF text has separate unlit and lit assets. `text`/`msdf_text` remains the default;
   `text_lit`/`msdf_text_lit` is opt-in and consumes the same LightBlock and shadow atlas as
   lit sprites while retaining TextRenderer-owned fill, weight, and outline controls.
+  Both text shaders keep the combined weight/outline threshold and its antialiasing
+  ramp within the RGB8 distance field's range. Empty atlas texels must stay fully
+  transparent, including under minification; otherwise a wide outline fills the
+  entire rectangular glyph quad with a translucent background.
 - The polar shadow-atlas rasterizer interpolates each edge's light-relative position and measures
   radial distance in the fragment stage. Do not interpolate endpoint distances directly: radial
   length is nonlinear across a projected edge, so doing that overestimates oblique blockers and

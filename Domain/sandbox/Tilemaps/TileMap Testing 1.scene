@@ -26,7 +26,7 @@ components:
     type: Transform
     gameobject: 27d025e08ff0501fbf199080ce91f924
     localPosition: [25.04866, 118.88963]
-    localRotation: 0.5196456
+    localRotation: 0.5196454
     localScale: [0.6933596, 0.6933596]
     parent_id: ~
   - id: 104a1015c1e12db37ea53169f31278b3
@@ -335,15 +335,15 @@ components:
     type: Transform
     gameobject: 9a30149c1af0006e3edb419555007c18
     localPosition: [-0.00032806396, -11.59761]
-    localRotation: 6.295984e-08
+    localRotation: 0
     localScale: [0.42376894, 0.4056494]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: eab49f33037d8106a1dcd35e3e1eab82
     enabled: true
     type: Transform
     gameobject: 3ffbee457f70afd023959af3dce66b1d
-    localPosition: [-0.00023269653, 4.5776367e-05]
-    localRotation: -2.5958025e-06
+    localPosition: [-0.00023651123, 4.5776367e-05]
+    localRotation: -2.635133e-06
     localScale: [0.67836756, 0.6051571]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: 0146ac8c4181145e9bd7d94dc7d0aa32
@@ -383,7 +383,7 @@ components:
     type: Transform
     gameobject: 54bb8b21d8508c8c7f05cb52a5642192
     localPosition: [7.6293945e-06, 18.746948]
-    localRotation: -1.7464194e-07
+    localRotation: -3.4928388e-07
     localScale: [0.45831648, 0.4397718]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: e9aedcf3b8b2e9be7e17bb324eb2973c
@@ -410,7 +410,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 1ff59f0a9a556fd1dc39b327ee5e9348
-    localPosition: [0, -3.0517578e-05]
+    localPosition: [0, -7.6293945e-05]
     localRotation: -0.5196461
     localScale: [0.6666666, 0.6666666]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
@@ -467,7 +467,7 @@ components:
     enabled: true
     type: ParticleComponent
     gameobject: b66e62a58bf18b0fbfa9f6891256194b
-    emissionRate: 10
+    emissionRate: 5
     maxParticles: 1000
     duration: 5
     looping: true
@@ -507,7 +507,7 @@ components:
     enabled: true
     type: ParticleComponent
     gameobject: 13df83745f74c7cbb6a6e5051a2d852b
-    emissionRate: 10
+    emissionRate: 5
     maxParticles: 1000
     duration: 5
     looping: true
@@ -634,7 +634,7 @@ components:
     module: Parallax
     class: Parallax
     fields:
-      factor: 0.5
+      factor: 0.25
       horizontal: true
       vertical: true
   - id: 87a134a158c111fbed52d02dec92aa14
@@ -667,7 +667,7 @@ components:
     module: Parallax
     class: Parallax
     fields:
-      factor: 0.25
+      factor: 0.5
       horizontal: true
       vertical: true
   - id: 8ad24139d10955d7953fbbb4ed32783c
@@ -683,8 +683,8 @@ components:
     type: Light
     gameobject: 66fa75b7c3b97fab80d4ff646714b930
     lightType: 2
-    color: [1, 1, 1, 1]
-    intensity: 0.15
+    color: [0.2321355, 0.31824216, 0.5096208, 1]
+    intensity: 0.5
     range: 300
     innerRadius: 0
     falloff: 1

@@ -279,7 +279,7 @@ void AssetManager::AddMaterial(Material* material)
 }
 
 Sprite* AssetManager::CreateSprite(const std::string& textureId, glm::vec2 uvMin,
-                                   glm::vec2 uvMax, const std::string& name)
+                                   glm::vec2 uvMax, const std::string& name, SaveMode saveMode)
 {
     Texture2D* tex = GetTexture(textureId);
     if (!tex) {
@@ -301,11 +301,11 @@ Sprite* AssetManager::CreateSprite(const std::string& textureId, glm::vec2 uvMin
 
     tex->RegisterSprite(id);
     AddSprite(sprite);                          // subscribes auto-save + fires ASSET_ADDED_EVENT
-    SaveResource(tex);                          // persist the new sprite immediately
+    if (saveMode == SaveMode::Immediate) SaveResource(tex);
     return sprite;
 }
 
-void AssetManager::RemoveSprite(const std::string& id)
+void AssetManager::RemoveSprite(const std::string& id, SaveMode saveMode)
 {
     auto it = sprites.find(id);
     if (it == sprites.end()) return;
@@ -317,7 +317,7 @@ void AssetManager::RemoveSprite(const std::string& id)
     // texture file so its embedded sprites: sequence no longer contains it.
     if (tex) tex->UnregisterSprite(id);
     sprites.erase(it);
-    if (tex) SaveResource(tex);
+    if (tex && saveMode == SaveMode::Immediate) SaveResource(tex);
 
     Notify(ASSET_REMOVED_EVENT, id);
     delete sprite;
