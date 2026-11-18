@@ -26,7 +26,7 @@ components:
     type: Transform
     gameobject: 27d025e08ff0501fbf199080ce91f924
     localPosition: [25.04866, 118.88963]
-    localRotation: 0.5196454
+    localRotation: 0.51964533
     localScale: [0.6933596, 0.6933596]
     parent_id: ~
   - id: 104a1015c1e12db37ea53169f31278b3
@@ -58,12 +58,24 @@ components:
     module: PlayerController
     class: PlayerController
     fields:
-      jump_sound: 729822f1a9892f6c885614a265eb7a72
+      jump_sound: cc22fdc5a35e78bac096e4e620b049c3
+      walking_sound: 61eb0587b0fbb964899ac16f115b6f60
       song: ""
       test_:
         []
       event:
         - 27d025e08ff0501fbf199080ce91f924|5acc02eb3c119671148c5187a504b268|alert|BITCH
+      on_walking:
+        []
+      on_idle:
+        []
+      on_falling:
+        []
+      on_hit_ground:
+        []
+      on_jumping:
+        - cc22fdc5a35e78bac096e4e620b049c3|8c076d2994a9728eb3912695ab1c95b7|play|
+      current_state: Unknown
       move_speed: 40
       acceleration: 199.9
       deceleration: 300
@@ -335,7 +347,7 @@ components:
     type: Transform
     gameobject: 9a30149c1af0006e3edb419555007c18
     localPosition: [-0.00032806396, -11.59761]
-    localRotation: 0
+    localRotation: 3.147992e-08
     localScale: [0.42376894, 0.4056494]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
   - id: eab49f33037d8106a1dcd35e3e1eab82
@@ -410,7 +422,7 @@ components:
     enabled: true
     type: Transform
     gameobject: 1ff59f0a9a556fd1dc39b327ee5e9348
-    localPosition: [0, -7.6293945e-05]
+    localPosition: [0, -9.1552734e-05]
     localRotation: -0.5196461
     localScale: [0.6666666, 0.6666666]
     parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
@@ -430,6 +442,48 @@ components:
     normalInfluence: 1
     castShadows: false
     shadowStrength: 1
+  - id: 1611df531e87dc2f9ca68b66288f926b
+    enabled: true
+    type: Transform
+    gameobject: cc22fdc5a35e78bac096e4e620b049c3
+    localPosition: [0, 0]
+    localRotation: -0.51964533
+    localScale: [1.442253, 1.442253]
+    parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
+  - id: 8c076d2994a9728eb3912695ab1c95b7
+    enabled: true
+    type: AudioSource
+    gameobject: cc22fdc5a35e78bac096e4e620b049c3
+    clip_id: 3b47963df15e0f20189e21272ded4448
+    volume: 1
+    pitch: 1
+    loop: false
+    mute: false
+    playOnAwake: false
+    spatialBlend: 0
+    minDistance: 100
+    maxDistance: 1500
+  - id: 2f350f6015928b7bcf2d6f8cf91149d6
+    enabled: true
+    type: Transform
+    gameobject: 61eb0587b0fbb964899ac16f115b6f60
+    localPosition: [0, 0]
+    localRotation: -0.51964533
+    localScale: [1.442253, 1.442253]
+    parent_id: 1de8c26b6a54ebc62cde50fa554c7bfb
+  - id: 7fc004e7fdf58c0d6a11ecfa552a1a7d
+    enabled: true
+    type: AudioSource
+    gameobject: 61eb0587b0fbb964899ac16f115b6f60
+    clip_id: 968779fce579c4df7de3c2d684af843f
+    volume: 1
+    pitch: 1
+    loop: true
+    mute: false
+    playOnAwake: false
+    spatialBlend: 0
+    minDistance: 100
+    maxDistance: 1500
   - id: c557d15402229f902111d454d6003197
     enabled: true
     type: Transform
@@ -746,6 +800,22 @@ gameobjects:
     component_ids:
       - fbff2a22ff132bec9fb1c73839d378f2
       - 26c2a03e49410a210462fdbb0b7dc5bd
+  - id: cc22fdc5a35e78bac096e4e620b049c3
+    type: GameObject
+    name: Jump Audio
+    tag: Untagged
+    active: true
+    component_ids:
+      - 1611df531e87dc2f9ca68b66288f926b
+      - 8c076d2994a9728eb3912695ab1c95b7
+  - id: 61eb0587b0fbb964899ac16f115b6f60
+    type: GameObject
+    name: Walking Audio
+    tag: Untagged
+    active: true
+    component_ids:
+      - 2f350f6015928b7bcf2d6f8cf91149d6
+      - 7fc004e7fdf58c0d6a11ecfa552a1a7d
   - id: 983d4dc0871048db88c0abb372766b89
     type: GameObject
     name: Camera

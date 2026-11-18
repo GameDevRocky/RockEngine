@@ -28,9 +28,17 @@ class PlayerController(ScriptableComponent):
     """
 
     jump_sound : AudioSource = None
+    walking_sound : AudioSource = None
     song : AudioSource = None
     test_ : list[bool]
     event : Event
+
+    on_walking: Event
+    on_idle: Event
+    on_falling: Event
+    on_hit_ground: Event
+    on_jumping: Event
+    current_state: Reflect[str, ReadOnly()] = "Unknown"
 
 
 
@@ -86,6 +94,14 @@ class PlayerController(ScriptableComponent):
             self.song.loop = True
             self.song.play()
 
+        if self.jump_sound:
+            self.jump_sound.loop = False
+            self.jump_sound.play_on_awake = False
+        if self.walking_sound:
+            self.walking_sound.loop = True
+            self.walking_sound.play_on_awake = False
+            self.walking_sound.stop()
+
         
         self.facing = 1     
         self.grounded = False
@@ -99,6 +115,8 @@ class PlayerController(ScriptableComponent):
         self.is_wall_sliding = False
         self.wall_direction = 0
         self.wall_jump_lockout_timer = 0.0
+        self._ground_state_initialized = False
+        self._was_grounded = False
 
         
         # A child at the feet is the ground-ray origin. Only spawn one if the
@@ -134,6 +152,7 @@ class PlayerController(ScriptableComponent):
         self._move_horizontal(dt)
         self._handle_jump(dt)
         self._clamp_fall()
+        self._update_player_state()
         self.sr.set_uniform("uTime", Time.elapsed_time)
 
     @action
@@ -244,6 +263,12 @@ class PlayerController(ScriptableComponent):
             if was_in_coyote and self.coyote_timer == 0.0:
                 self.jumps_left = min(self.jumps_left, self.max_jumps - 1)
 
+        if (self._ground_state_initialized
+                and self.grounded and not self._was_grounded):
+            self.on_hit_ground.invoke()
+        self._was_grounded = self.grounded
+        self._ground_state_initialized = True
+
         Debug.draw_line(origin, origin + down)
 
     def _handle_jump(self, dt):
@@ -270,6 +295,9 @@ class PlayerController(ScriptableComponent):
             self.jump_buffer_timer = 0.0
             self.coyote_timer = 0.0
             self.is_jumping = True
+            self._set_player_state("Jumping")
+            if self.jump_sound:
+                self.jump_sound.play_one_shot()
             # Stop the ground ray from re-latching before we've physically cleared
             # it. coyote_timer is already zeroed, so _check_ground's ledge branch
             # won't also dock a jump for going airborne here.
@@ -290,6 +318,44 @@ class PlayerController(ScriptableComponent):
                 vel.y *= self.jump_cut_multiplier
                 self.rb.velocity = vel
             self.is_jumping = False
+
+    def _update_player_state(self):
+        """Publish state transitions after the fixed-step movement is final."""
+        vel = self.rb.velocity
+        if self.is_jumping and vel.y > 0.0:
+            state = "Jumping"
+        elif not self.grounded:
+            state = "Falling"
+        elif abs(vel.x) > 5.0:
+            state = "Walking"
+        else:
+            state = "Idle"
+        self._set_player_state(state)
+
+    def _set_player_state(self, state):
+        if state == self.current_state:
+            return
+
+        was_walking = self.current_state == "Walking"
+        self.current_state = state
+
+        if was_walking and state != "Walking" and self.walking_sound:
+            self.walking_sound.stop()
+
+        if state == "Walking":
+            if self.walking_sound:
+                self.walking_sound.play()
+            self.on_walking.invoke()
+        elif state == "Idle":
+            self.on_idle.invoke()
+        elif state == "Falling":
+            self.on_falling.invoke()
+        elif state == "Jumping":
+            self.on_jumping.invoke()
+
+    def on_shutdown(self):
+        if self.walking_sound:
+            self.walking_sound.stop()
 
     def _clamp_fall(self):
         vel = self.rb.velocity
