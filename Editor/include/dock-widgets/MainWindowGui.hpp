@@ -51,7 +51,6 @@ public:
     QDockWidget* consoleDock;
     QDockWidget* aiAssistantDock;
     QDockWidget* runtimeBarDock;
-    QDockWidget* settingsDock;
     QDockWidget* animatorDock = nullptr;   // created lazily by ShowAnimator()
     QDockWidget* spriteEditorDock = nullptr; // created lazily by ShowSpriteEditor()
 

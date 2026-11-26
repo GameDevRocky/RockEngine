@@ -1,3 +1,4 @@
+//hello
 #include "Editor.hpp"
 #include <QApplication>
 #include <QStyleFactory>

@@ -132,11 +132,8 @@ public:
     ~Texture2D();
 
 private:
-    // Selects the project-wide CPU/GPU backend and falls back to CPU if compute
-    // initialization is unavailable. Called only by EnsureNormalMap().
+    // Generates on the CPU and uploads to OpenGL. Called only by EnsureNormalMap().
     void RebuildNormalMap();
-    void RebuildNormalMapCpu();
-    bool RebuildNormalMapGpu();
     void DestroyNormalMap();
 
     GLuint texture_id = 0;
@@ -150,7 +147,6 @@ private:
 
     GLuint normal_texture_id = 0;
     bool   normalDirty       = false;
-    int    globalsSubscription = -1;
     bool   applyNormal       = false;
     float  normalStrength    = 2.0f;
     int    normalBlur        = 1;

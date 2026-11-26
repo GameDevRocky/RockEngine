@@ -6,14 +6,9 @@
 namespace {
 
 std::thread::id g_mainThread;
-
-// Separate from the id because a default-constructed thread::id is a valid
-// "no thread" value that nothing compares equal to -- but relying on that would
-// make IsCurrent() return false during static init, before Stamp() runs, and
-// trip asserts in constructors that legitimately run on the main thread.
 std::atomic<bool> g_stamped{false};
 
-} // namespace
+}
 
 namespace MainThread {
 

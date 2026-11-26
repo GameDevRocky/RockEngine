@@ -4,7 +4,6 @@
 #include <QTemporaryDir>
 #include <gtest/gtest.h>
 
-#include "engine/core/Globals.hpp"
 #include "engine/rendering/core/Shader.hpp"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/utils/EngineUtils.hpp"
@@ -53,14 +52,6 @@ void APIENTRY uniformInt(GLint location, GLint value) { if (location == 2) captu
 }
 
 TEST(TextureNormalBindingTest, GeneratesBindsAndDisablesNormalsWithoutLeakingAcrossTextures) {
-    auto* globals = Globals::Get();
-    const bool originalGpu = globals->Get<bool>("Rendering", "useGPUNormalMapGeneration", false);
-    struct RestoreBackend {
-        bool value;
-        ~RestoreBackend() { Globals::Get()->SetValue("Rendering", "useGPUNormalMapGeneration", value); }
-    } restore{originalGpu};
-    ASSERT_TRUE(globals->SetValue("Rendering", "useGPUNormalMapGeneration", false));
-
     GlCapture state;
     capture = &state;
     state.textures[3] = 77; // Existing albedo binding must survive generation.

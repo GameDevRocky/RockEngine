@@ -2,10 +2,8 @@
 #include "stb_image.h"
 #include "engine/rendering/core/Texture2D.hpp"
 #include "engine/rendering/core/AssetManager.hpp"
-#include "engine/rendering/core/GpuNormalMapGenerator.hpp"
 #include "engine/rendering/core/Sprite.hpp"
 #include "engine/rendering/core/Shader.hpp"
-#include "engine/core/Globals.hpp"
 #include <iostream>
 #include <algorithm>
 #include <cmath>
@@ -14,26 +12,10 @@
 
 using namespace EngineUtils;
 
-Texture2D::Texture2D()
-{
-    globalsSubscription = Globals::Get()->Subscribe([this](std::any payload) {
-        if (!payload.has_value() || payload.type() != typeid(GlobalPropertyChange))
-            return true;
-
-        const auto& change = std::any_cast<const GlobalPropertyChange&>(payload);
-        const bool normalBackendChanged =
-            change.group == "Rendering" &&
-            (change.property == "useGPUNormalMapGeneration" ||
-             change.property == "useAcceleratedNMapGen");
-        if (normalBackendChanged && applyNormal) normalDirty = true;
-        return true;
-    }, Globals::PROPERTY_CHANGED_EVENT);
-}
+Texture2D::Texture2D() = default;
 
 Texture2D::~Texture2D()
 {
-    if (globalsSubscription >= 0)
-        Globals::Get()->Unsubscribe(globalsSubscription);
     Notify(DESTROYED_EVENT, GetID());
     if (texture_id)
         glDeleteTextures(1, &texture_id);
@@ -46,7 +28,6 @@ void Texture2D::ApplySettings() const
 {
     glBindTexture(GL_TEXTURE_2D, texture_id);
     
-    // Change GL_LINEAR_MIPMAP_LINEAR to just GL_LINEAR
     GLenum minFilter = (filter == TextureFilter::Linear) ? GL_LINEAR : GL_NEAREST;
     GLenum magFilter = (filter == TextureFilter::Linear) ? GL_LINEAR : GL_NEAREST;
     
@@ -59,10 +40,6 @@ void Texture2D::ApplySettings() const
 }
 
 void Texture2D::Awake(){
-    // The synchronous path: decode here and upload immediately. The bulk asset
-    // load takes the split version instead (ImageDecoder::Decode on a worker,
-    // then UploadDecoded on the main thread), but a texture created on its own
-    // still gets a one-call route.
     DecodedImage img = ImageDecoder::Decode(path);
     if (!img.ok) {
         std::cerr << "Failed to load texture: " << img.error << std::endl;
@@ -82,11 +59,6 @@ void Texture2D::UploadDecoded(DecodedImage& img){
     glBindTexture(GL_TEXTURE_2D, texture_id);
 
     GLenum format = channels == 4 ? GL_RGBA : GL_RGB;
-
-    // Rows are tightly packed at the source's native channel count, so a
-    // 3-channel image whose width isn't a multiple of 4 would be misread under
-    // GL's default 4-byte row alignment. Awake() got away with it only because
-    // stb's own buffer happened to satisfy it often enough.
     GLint prevAlignment = 4;
     glGetIntegerv(GL_UNPACK_ALIGNMENT, &prevAlignment);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -103,10 +75,6 @@ void Texture2D::UploadDecoded(DecodedImage& img){
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     ApplySettings();
-
-    // The decoded pixels are not retained: the GPU has them now, and holding
-    // 25MB of source images resident to avoid a re-read that happens twice per
-    // session is the wrong trade.
     img.pixels.clear();
     img.pixels.shrink_to_fit();
 }
@@ -116,9 +84,6 @@ void Texture2D::Deserialize(const YAML::Node &node){
     path = GetAssetPath(node["path"].as<std::string>());
     filter = node["filtering"].as<std::string>() == "linear" ? TextureFilter::Linear : TextureFilter::Nearest;
     wrap = node["wrap"].as<std::string>() == "clamp" ? TextureWrap::Clamp : TextureWrap::Repeat;
-
-    // The generated image is never stored -- only the recipe. Textures authored
-    // before this block existed simply keep Apply Normal off.
     if (const YAML::Node& n = node["normal"])
     {
         applyNormal    = n["apply"].as<bool>(false);
@@ -208,7 +173,6 @@ void Texture2D::Unbind() const
 void Texture2D::SetFilter(TextureFilter f) {
     filter = f;
     if (texture_id) ApplySettings();
-    // The normal map mirrors the albedo's sampling so the two stay in register.
     normalDirty = normalDirty || applyNormal;
     Notify(FILTER_CHANGED_EVENT);
 }
@@ -231,17 +195,6 @@ void Texture2D::Accept(IVisitor* v) { v->Visit(this); }
 // The result lives only in `normal_texture_id`; nothing touches the filesystem.
 // ─────────────────────────────────────────────────────────────────────────────
 namespace {
-
-    bool WantsGpuNormalMapGeneration()
-    {
-        Globals* globals = Globals::Get();
-        if (globals->FindProperty("Rendering", "useGPUNormalMapGeneration"))
-            return globals->Get<bool>("Rendering", "useGPUNormalMapGeneration", false);
-
-        // Compatibility with the provisional name used by the first Globals
-        // config before the CPU/GPU backend switch was implemented.
-        return globals->Get<bool>("Rendering", "useAcceleratedNMapGen", false);
-    }
 
     // Clamp or wrap a coordinate to match how the texture itself samples, so the
     // generated normals tile exactly when the texture is set to Repeat.
@@ -294,53 +247,6 @@ void Texture2D::RebuildNormalMap()
         DestroyNormalMap();
         return;
     }
-
-    const bool useGpu = WantsGpuNormalMapGeneration();
-    if (useGpu && RebuildNormalMapGpu()) return;
-
-    if (useGpu)
-    {
-        static bool warned = false;
-        if (!warned)
-        {
-            std::cerr << "Texture2D: GPU normal-map generation is unavailable; "
-                         "falling back to CPU generation." << std::endl;
-            warned = true;
-        }
-    }
-    RebuildNormalMapCpu();
-}
-
-bool Texture2D::RebuildNormalMapGpu()
-{
-    GpuNormalMapSettings settings;
-    settings.strength = normalStrength;
-    settings.blurRadius = normalBlur;
-    settings.useAlpha = heightSource == NormalHeightSource::Alpha;
-    settings.useScharr = edgeFilter == NormalEdgeFilter::Scharr;
-    settings.invertX = normalInvertX;
-    settings.invertY = normalInvertY;
-    settings.repeat = wrap == TextureWrap::Repeat;
-
-    if (!GpuNormalMapGenerator::Generate(texture_id, normal_texture_id,
-                                         width, height, settings)) return false;
-
-    // Match the albedo sampler after the compute output and its mip chain exist.
-    GLint previousTexture = 0;
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTexture);
-    glBindTexture(GL_TEXTURE_2D, normal_texture_id);
-    const GLenum sampleFilter = filter == TextureFilter::Linear ? GL_LINEAR : GL_NEAREST;
-    const GLenum wrapMode = wrap == TextureWrap::Repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, sampleFilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, sampleFilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
-    glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(previousTexture));
-    return true;
-}
-
-void Texture2D::RebuildNormalMapCpu()
-{
 
     // UploadDecoded frees its pixels right after upload, so the source has to be
     // re-decoded here. The vertical flip MUST match the albedo's, or the normal
