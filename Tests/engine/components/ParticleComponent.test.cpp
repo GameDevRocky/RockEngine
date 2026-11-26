@@ -29,16 +29,37 @@ TEST_F(ParticleComponentTest, BurstRequestsAccumulateAndDoNotSerialize) {
     EXPECT_EQ(emitter.ConsumePendingBurst(), 0);
 }
 
-TEST_F(ParticleComponentTest, CapacityAndBackendAreNormalized) {
+TEST_F(ParticleComponentTest, CapacityIsNormalized) {
     ParticleComponent emitter;
     emitter.SetMaxParticles(-5);
     EXPECT_EQ(emitter.GetMaxParticles(), 1);
     emitter.SetMaxParticles(2000000);
     EXPECT_EQ(emitter.GetMaxParticles(), 1000000);
-    emitter.SetSimulationBackend(ParticleComponent::SimulationBackend::CUDA);
-    EXPECT_EQ(emitter.GetSimulationBackend(), ParticleComponent::SimulationBackend::CUDA);
-    emitter.SetSimulationBackend(static_cast<ParticleComponent::SimulationBackend>(99));
-    EXPECT_EQ(emitter.GetSimulationBackend(), ParticleComponent::SimulationBackend::OpenGLCompute);
+}
+
+TEST_F(ParticleComponentTest, LegacyCudaEmitterLoadsAndResavesWithoutBackend) {
+    ParticleComponent emitter;
+    emitter.SetEmissionRate(12.0f);
+    emitter.SetLifetime({0.5f, 3.0f});
+    emitter.SetShape(ParticleComponent::Shape::Cone);
+    emitter.SetSpace(ParticleComponent::SimulationSpace::Local);
+    YAML::Node legacy = emitter.Serialize();
+    legacy["simulationBackend"] = 1; // CUDA in older scenes.
+
+    ParticleComponent restored;
+    restored.Deserialize(YAML::Load(YAML::Dump(legacy)));
+
+    const YAML::Node saved = YAML::Load(YAML::Dump(restored.Serialize()));
+    EXPECT_FALSE(saved["simulationBackend"].IsDefined());
+    ParticleComponent reopened;
+    reopened.Deserialize(saved);
+
+    for (const auto* result : {&restored, &reopened}) {
+        EXPECT_FLOAT_EQ(result->GetEmissionRate(), 12.0f);
+        EXPECT_EQ(result->GetLifetime(), glm::vec2(0.5f, 3.0f));
+        EXPECT_EQ(result->GetShape(), ParticleComponent::Shape::Cone);
+        EXPECT_EQ(result->GetSpace(), ParticleComponent::SimulationSpace::Local);
+    }
 }
 
 TEST_F(ParticleComponentTest, CopyAndSerializationKeepAuthoredEmitterSettings) {

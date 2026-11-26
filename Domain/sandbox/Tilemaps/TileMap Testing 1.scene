@@ -380,7 +380,6 @@ components:
     gravity: [0, 0]
     damping: 0
     space: 1
-    simulationBackend: 0
     shape: 0
     shapeSize: [32, 32]
     coneAngle: 360
@@ -535,7 +534,6 @@ components:
     gravity: [0, 0]
     damping: 0
     space: 1
-    simulationBackend: 0
     shape: 2
     shapeSize: [287.43213, 173.88829]
     coneAngle: 25
@@ -575,7 +573,6 @@ components:
     gravity: [0, 0]
     damping: 0
     space: 1
-    simulationBackend: 0
     shape: 2
     shapeSize: [287.43213, 173.88829]
     coneAngle: 25

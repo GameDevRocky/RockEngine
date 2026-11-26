@@ -26,31 +26,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 option(ROCKENGINE_BUILD_EDITOR         "Build the Qt6 editor (RockEngineEditor + RockEngineLauncher)" ON)
 option(ROCKENGINE_BUILD_TESTS "Build the RockEngine tests" OFF)
 option(ROCKENGINE_STAGE_PLAYER_RUNTIME "Stage the shippable Python runtime beside the Player"         ON)
-set(ROCKENGINE_ENABLE_CUDA "AUTO" CACHE STRING
-    "Build the optional CUDA particle backend (AUTO, ON, or OFF)")
-set_property(CACHE ROCKENGINE_ENABLE_CUDA PROPERTY STRINGS AUTO ON OFF)
-string(TOUPPER "${ROCKENGINE_ENABLE_CUDA}" ROCKENGINE_ENABLE_CUDA)
-if(NOT ROCKENGINE_ENABLE_CUDA MATCHES "^(AUTO|ON|OFF)$")
-    message(FATAL_ERROR "ROCKENGINE_ENABLE_CUDA must be AUTO, ON, or OFF")
-endif()
-
-set(ROCKENGINE_HAS_CUDA OFF)
-if(NOT ROCKENGINE_ENABLE_CUDA STREQUAL "OFF")
-    include(CheckLanguage)
-    check_language(CUDA)
-    if(CMAKE_CUDA_COMPILER)
-        enable_language(CUDA)
-        find_package(CUDAToolkit REQUIRED)
-        set(ROCKENGINE_HAS_CUDA ON)
-        message(STATUS "RockEngine CUDA particles enabled with ${CMAKE_CUDA_COMPILER}")
-    elseif(ROCKENGINE_ENABLE_CUDA STREQUAL "ON")
-        message(FATAL_ERROR
-            "ROCKENGINE_ENABLE_CUDA=ON but no compatible CUDA compiler was found. "
-            "Set CMAKE_CUDA_COMPILER or CUDACXX to the desired nvcc executable.")
-    else()
-        message(STATUS "CUDA compiler not found; particle simulation will use OpenGL compute")
-    endif()
-endif()
 
 option(ROCKENGINE_STATIC_MSVC_RUNTIME "Link the static MSVC runtime (/MT). Export-template builds only." OFF)
 

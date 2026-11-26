@@ -101,7 +101,6 @@ private:
 
     bool initialized = false;
     bool pendingReset = false;   // serviced at the next context-current frame
-    bool warnedCudaDeferred = false;
 
     unsigned int quadVBO = 0;
     unsigned int simProgram = 0;

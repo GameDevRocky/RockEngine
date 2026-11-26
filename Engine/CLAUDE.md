@@ -319,7 +319,7 @@ frame (not just on resize) since `targetAspect` can change live from the inspect
   uniforms. Picking remains an on-demand per-tile draw path.
 - OpenGL 4.6 core profile.
 
-### Particle simulation backends
+### Particle simulation
 
 `ParticleManager` owns one growable std430 particle arena shared by every emitter. Each emitter
 keeps a persistent slice and a descriptor slot; a parallel owner SSBO maps every arena particle
@@ -329,23 +329,14 @@ arena in one dispatch. Rendering addresses the same arena with base-instance dra
 or garbage-collecting an emitter only reallocates/reclaims its slice and never copies particles
 through the CPU.
 
-The authored `ParticleComponent::SimulationBackend` value remains serialized, copied into play
-mode, and exposed to the editor/MCP/Python for forward compatibility. While the particle-world
-revamp is GLSL-first, all values execute through the batched GLSL path; the optional CUDA source
-and build boundary remain in the tree but are not selected by `ParticleManager`. Restore CUDA
-only against the global-arena/descriptor model--do not return to one registered SSBO and one
-map/dispatch/unmap sequence per emitter.
+All emitters use batched GLSL compute. Legacy scene files may contain `simulationBackend`;
+the loader ignores it and subsequent saves omit it. The backend selector and its C++, Python,
+and MCP APIs have been removed.
 
 The frame id is a global simulation guard because the Scene and Game view can render the same
 world in one engine frame. Play-mode transitions defer arena clearing until a GL context is
 current. Emitter slots remain fixed-capacity rings: zeroed particles are dead, emission overwrites
 from the per-emitter head, and no readback or atomics are required.
-
-On Windows hybrid-GPU systems, both executable entry points export the NVIDIA Optimus and AMD
-PowerXpress high-performance hints before Qt/SDL creates a context. Windows' per-application
-Graphics preference can override those hints. CUDA initialization validates `GL_VENDOR` first and
-reports the active GL vendor/renderer because an AMD/Intel-owned context cannot interoperate with
-CUDA even when an NVIDIA CUDA device is present.
 
 ## Audio
 

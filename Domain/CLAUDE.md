@@ -52,6 +52,9 @@ proxy holding an object id and forwarding to the C++ binding.
 - `Time.delta_time` and `Time.elapsed_time` are scaled simulation values and freeze during
   play-mode pause. `Time.unscaled_delta_time` and `Time.unscaled_time` expose the continuing
   wall clock for UI and other pause-independent behavior.
+- Particle emitters always use OpenGL compute. Remove reads or writes of
+  `ParticleComponent.simulation_backend` and references to `ParticleComponent.Backend` from
+  existing scripts; there is no replacement setting. Legacy scene files still load unchanged.
 
 ## When changing Domain code
 

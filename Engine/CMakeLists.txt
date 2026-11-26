@@ -10,19 +10,6 @@ file(GLOB_RECURSE ENGINE_HEADERS CONFIGURE_DEPENDS "include/*.hpp")
 
 add_library(RockEngineCore STATIC ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
-if(ROCKENGINE_HAS_CUDA)
-    target_sources(RockEngineCore PRIVATE
-        "src/rendering/cuda/CudaParticleBackend.cu"
-    )
-    target_compile_definitions(RockEngineCore PRIVATE ROCKENGINE_HAS_CUDA=1)
-    target_link_libraries(RockEngineCore PRIVATE CUDA::cudart_static)
-    set_target_properties(RockEngineCore PROPERTIES
-        CUDA_STANDARD 20
-        CUDA_STANDARD_REQUIRED ON
-        CUDA_ARCHITECTURES "all-major"
-        CUDA_RUNTIME_LIBRARY Static
-    )
-endif()
 target_include_directories(RockEngineCore 
     PUBLIC 
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

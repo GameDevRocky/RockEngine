@@ -511,13 +511,6 @@ bool ParticleManager::BeginSimulationFrame(float dt, std::uint64_t frameId)
 void ParticleManager::QueueEmitter(ParticleComponent* emitter,
                                    const glm::vec2& emitterPos, float emitterRot)
 {
-    if (emitter->GetSimulationBackend() == ParticleComponent::SimulationBackend::CUDA &&
-        !warnedCudaDeferred) {
-        std::cerr << "ParticleManager: CUDA particle simulation is deferred during the "
-                     "batched particle-world revamp; using GLSL compute." << std::endl;
-        warnedCudaDeferred = true;
-    }
-
     EmitterState& state = GetOrCreate(emitter);
     state.lastTouchedFrame = currentFrame;
     if (frameDt <= 0.0f) return;
